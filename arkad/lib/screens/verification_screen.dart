@@ -1,9 +1,8 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../screens/profile_screen.dart'; // Import the ProfileScreen
+import '../screens/profile_screen.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String email;
@@ -15,62 +14,57 @@ class VerificationScreen extends StatefulWidget {
 }
 
 class _VerificationScreenState extends State<VerificationScreen> {
-  final List<TextEditingController> _codeControllers =
+  final List<TextEditingController> _controllers =
       List.generate(6, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  final List<FocusNode> _nodes = List.generate(6, (_) => FocusNode());
 
   bool _isVerifying = false;
   bool _isResending = false;
-  bool _isCodeComplete = false;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    // Set up listeners to auto-advance focus and check code completion
+    _setupTextFieldListeners();
+  }
+
+  void _setupTextFieldListeners() {
     for (int i = 0; i < 6; i++) {
-      _codeControllers[i].addListener(() {
-        if (i < 5 && _codeControllers[i].text.length == 1) {
-          _focusNodes[i + 1].requestFocus();
+      _controllers[i].addListener(() {
+        final value = _controllers[i].text;
+
+        // Auto-advance to next field when a digit is entered
+        if (value.length == 1 && i < 5) {
+          _nodes[i + 1].requestFocus();
         }
-        _checkCodeCompletion();
+      });
+
+      // Set up focus listeners for handling backspace navigation
+      _nodes[i].addListener(() {
+        if (_nodes[i].hasFocus && i > 0 && _controllers[i].text.isEmpty) {
+          // When focusing an empty field, pre-select the previous field
+          // This helps with backspace navigation
+          _controllers[i - 1].selection = TextSelection.fromPosition(
+            TextPosition(offset: _controllers[i - 1].text.length),
+          );
+        }
       });
     }
   }
 
-  void _checkCodeCompletion() {
-    final isComplete =
-        _codeControllers.every((controller) => controller.text.length == 1);
-    if (isComplete != _isCodeComplete) {
-      setState(() {
-        _isCodeComplete = isComplete;
-      });
-    }
-  }
+  bool get _isCodeComplete =>
+      _controllers.every((controller) => controller.text.length == 1);
 
-  String get _fullCode {
-    return _codeControllers.map((controller) => controller.text).join();
-  }
-
-  void _clearError() {
-    if (_errorMessage != null) {
-      setState(() {
-        _errorMessage = null;
-      });
-    }
-  }
+  String get _fullCode =>
+      _controllers.map((controller) => controller.text).join();
 
   Future<void> _verifyCode() async {
-    _clearError();
+    if (!_isCodeComplete) return;
 
-    if (_fullCode.length != 6) {
-      setState(() {
-        _errorMessage = 'Please enter the complete 6-digit code';
-      });
-      return;
-    }
-
-    setState(() => _isVerifying = true);
+    setState(() {
+      _isVerifying = true;
+      _errorMessage = null;
+    });
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
@@ -79,35 +73,34 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
       if (mounted) {
         if (success) {
-          // After verification and automatic sign in, navigate to ProfileScreen
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
-              builder: (context) => ProfileScreen(
-                user: authProvider.user!,
-              ),
+              builder: (context) => ProfileScreen(user: authProvider.user!),
             ),
             (route) => false,
           );
         } else if (authProvider.error != null) {
           setState(() {
-            _isVerifying = false;
             _errorMessage = authProvider.error;
           });
         }
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isVerifying = false;
-          _errorMessage = e.toString();
-        });
+        setState(() => _errorMessage = e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isVerifying = false);
       }
     }
   }
 
   Future<void> _resendCode() async {
-    _clearError();
-    setState(() => _isResending = true);
+    setState(() {
+      _isResending = true;
+      _errorMessage = null;
+    });
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
@@ -116,8 +109,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
           await authProvider.requestNewVerificationCode(widget.email);
 
       if (mounted) {
-        setState(() => _isResending = false);
-
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('A new verification code has been sent')));
@@ -127,10 +118,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isResending = false;
-          _errorMessage = 'Failed to resend code: ${e.toString()}';
-        });
+        setState(
+            () => _errorMessage = 'Failed to resend code: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isResending = false);
       }
     }
   }
@@ -157,39 +150,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
             const SizedBox(height: 40),
 
-            // 6 digit code input
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(
-                6,
-                (index) => SizedBox(
-                  width: 45,
-                  child: TextField(
-                    controller: _codeControllers[index],
-                    focusNode: _focusNodes[index],
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    maxLength: 1,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                    decoration: InputDecoration(
-                      counterText: "",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    onChanged: (value) {
-                      // If backspace is pressed on empty field, go back to previous field
-                      if (value.isEmpty && index > 0) {
-                        _focusNodes[index - 1].requestFocus();
-                      }
-                    },
-                  ),
-                ),
-              ),
-            ),
+            // Verification code input fields
+            _buildVerificationCodeInputs(),
 
             // Error message
             if (_errorMessage != null)
@@ -204,15 +166,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
             const SizedBox(height: 40),
 
-            // Verify button - disabled until code is complete
+            // Verify button
             ElevatedButton(
-              onPressed:
-                  (_isVerifying || !_isCodeComplete) ? null : _verifyCode,
+              onPressed: _isVerifying || !_isCodeComplete ? null : _verifyCode,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
               ),
               child: _isVerifying
                   ? const SizedBox(
@@ -220,15 +178,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       height: 24,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text(
-                      'Verify',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
+                  : const Text('Verify'),
             ),
 
             const SizedBox(height: 24),
 
+            // Resend code button
             TextButton(
               onPressed: _isResending ? null : _resendCode,
               child: _isResending
@@ -241,12 +196,59 @@ class _VerificationScreenState extends State<VerificationScreen> {
     );
   }
 
+  Widget _buildVerificationCodeInputs() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(
+        6,
+        (index) => SizedBox(
+          width: 45,
+          child: RawKeyboardListener(
+            focusNode: FocusNode(),
+            onKey: (event) {
+              // Handle backspace navigation
+              if (event is RawKeyDownEvent &&
+                  event.logicalKey == LogicalKeyboardKey.backspace &&
+                  _controllers[index].text.isEmpty &&
+                  index > 0) {
+                _nodes[index - 1].requestFocus();
+              }
+            },
+            child: TextField(
+              controller: _controllers[index],
+              focusNode: _nodes[index],
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              maxLength: 1,
+              decoration: InputDecoration(
+                counterText: "",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: EdgeInsets.zero,
+              ),
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              onChanged: (value) {
+                // Clear field if more than one character somehow gets in
+                if (value.length > 1) {
+                  _controllers[index].text = value[0];
+                }
+
+                setState(() {}); // Update button state
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
-    for (var controller in _codeControllers) {
+    for (final controller in _controllers) {
       controller.dispose();
     }
-    for (var node in _focusNodes) {
+    for (final node in _nodes) {
       node.dispose();
     }
     super.dispose();
