@@ -1,64 +1,83 @@
 import 'dart:io';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
+import '../config/app_config.dart';
+import '../config/api_endpoints.dart';
 import '../services/auth_service.dart';
 import '../models/user.dart';
-import '../config/app_config.dart';
+import 'api_service.dart';
 
 class UserService {
   final AuthService _authService;
+  final ApiService _apiService;
 
-  UserService({AuthService? authService})
-      : _authService = authService ?? AuthService();
+  UserService({
+    AuthService? authService,
+    ApiService? apiService,
+  })  : _authService = authService ?? AuthService(),
+        _apiService = apiService ?? ApiService();
 
   // Get user profile
   Future<User> getUserProfile() async {
-    final response = await _authService.authenticatedRequest(
-      'GET',
-      '/user/profile',
+    final token = await _authService.getValidToken();
+    if (token == null) {
+      throw Exception('Not authenticated');
+    }
+
+    final response = await _apiService.get(
+      ApiEndpoints.userProfile,
+      headers: {'Authorization': token},
+      fromJson: User.fromJson,
     );
 
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      return User.fromJson(jsonResponse);
+    if (response.isSuccess && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception('Failed to get user profile: ${response.body}');
+      throw Exception('Failed to get user profile: ${response.error}');
     }
   }
 
   // Update complete profile
   Future<User> updateProfile(Map<String, dynamic> profileData) async {
-    final response = await _authService.authenticatedRequest(
-      'PUT',
-      '/user/profile',
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(profileData),
+    final token = await _authService.getValidToken();
+    if (token == null) {
+      throw Exception('Not authenticated');
+    }
+
+    final response = await _apiService.put(
+      ApiEndpoints.userProfile,
+      headers: {'Authorization': token},
+      body: profileData,
+      fromJson: User.fromJson,
     );
 
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      return User.fromJson(jsonResponse);
+    if (response.isSuccess && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception('Failed to update profile: ${response.body}');
+      throw Exception('Failed to update profile: ${response.error}');
     }
   }
 
   // Update individual profile fields
   Future<User> updateProfileFields(Map<String, dynamic> fields) async {
-    final response = await _authService.authenticatedRequest(
-      'PATCH',
-      '/user/profile',
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(fields),
+    final token = await _authService.getValidToken();
+    if (token == null) {
+      throw Exception('Not authenticated');
+    }
+
+    final response = await _apiService.patch(
+      ApiEndpoints.userProfile,
+      headers: {'Authorization': token},
+      body: fields,
+      fromJson: User.fromJson,
     );
 
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      return User.fromJson(jsonResponse);
+    if (response.isSuccess && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception('Failed to update profile fields: ${response.body}');
+      throw Exception('Failed to update profile fields: ${response.error}');
     }
   }
 
@@ -67,7 +86,7 @@ class UserService {
     try {
       // Create a multipart request
       final uri =
-          Uri.parse('${AppConfig.baseUrl}/user/profile/profile-picture');
+          Uri.parse('${AppConfig.baseUrl}${ApiEndpoints.profilePicture}');
       final request = http.MultipartRequest('POST', uri);
 
       // Add JWT authorization
@@ -110,16 +129,21 @@ class UserService {
 
   // Delete profile picture
   Future<User> deleteProfilePicture() async {
-    final response = await _authService.authenticatedRequest(
-      'DELETE',
-      '/user/profile/profile-picture',
+    final token = await _authService.getValidToken();
+    if (token == null) {
+      throw Exception('Not authenticated');
+    }
+
+    final response = await _apiService.delete(
+      ApiEndpoints.profilePicture,
+      headers: {'Authorization': token},
+      fromJson: User.fromJson,
     );
 
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      return User.fromJson(jsonResponse);
+    if (response.isSuccess && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception('Failed to delete profile picture: ${response.body}');
+      throw Exception('Failed to delete profile picture: ${response.error}');
     }
   }
 
@@ -127,7 +151,7 @@ class UserService {
   Future<User> uploadCV(File cvFile) async {
     try {
       // Create a multipart request
-      final uri = Uri.parse('${AppConfig.baseUrl}/user/profile/cv');
+      final uri = Uri.parse('${AppConfig.baseUrl}${ApiEndpoints.cv}');
       final request = http.MultipartRequest('POST', uri);
 
       // Add JWT authorization
@@ -170,16 +194,21 @@ class UserService {
 
   // Delete CV
   Future<User> deleteCV() async {
-    final response = await _authService.authenticatedRequest(
-      'DELETE',
-      '/user/profile/cv',
+    final token = await _authService.getValidToken();
+    if (token == null) {
+      throw Exception('Not authenticated');
+    }
+
+    final response = await _apiService.delete(
+      ApiEndpoints.cv,
+      headers: {'Authorization': token},
+      fromJson: User.fromJson,
     );
 
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      return User.fromJson(jsonResponse);
+    if (response.isSuccess && response.data != null) {
+      return response.data!;
     } else {
-      throw Exception('Failed to delete CV: ${response.body}');
+      throw Exception('Failed to delete CV: ${response.error}');
     }
   }
 }

@@ -2,32 +2,26 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
+import '../config/api_endpoints.dart';
+import 'api_service.dart';
 
 /// Service responsible for authentication operations
 class AuthService {
-  // API Constants
-  static String get _baseUrl => AppConfig.baseUrl;
-  static const String _beginSignupEndpoint = '/user/begin-signup';
-  static const String _completeSignupEndpoint = '/user/complete-signup';
-  static const String _signinEndpoint = '/user/signin';
-
   // Storage Keys
   static const String _tokenKey = 'auth_token';
   static const String _tokenExpiryKey = 'auth_token_expiry';
   static const String _emailKey = 'temp_email';
   static const String _passwordKey = 'temp_password';
 
-  // Default HTTP headers
-  static final Map<String, String> _defaultHeaders = {
-    'Content-Type': 'application/json',
-    'accept': 'application/json',
-  };
-
   final FlutterSecureStorage _storage;
+  final ApiService _apiService;
 
-  /// Creates an instance of AuthService with optional storage dependency
-  AuthService({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+  /// Creates an instance of AuthService with optional dependencies
+  AuthService({
+    FlutterSecureStorage? storage,
+    ApiService? apiService,
+  })  : _storage = storage ?? const FlutterSecureStorage(),
+        _apiService = apiService ?? ApiService();
 
   /// Begins the signup process
   ///
@@ -35,25 +29,25 @@ class AuthService {
   /// for the complete-signup step
   Future<void> beginSignup(String email, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl$_beginSignupEndpoint'),
-        headers: _defaultHeaders,
-        body: jsonEncode({
+      final response = await _apiService.post(
+        ApiEndpoints.beginSignup,
+        body: {
           'email': email,
           'password': password,
-        }),
+        },
       );
 
-      _validateResponse(response,
-          successMessage: 'Signup initiated successfully',
-          errorMessage: 'Failed to initiate signup');
+      if (response.isError) {
+        throw AuthException('Failed to initiate signup: ${response.error}');
+      }
 
-      // Extract token directly from the response body
-      final token = jsonDecode(response.body);
+      // Extract token directly from the response
+      final token = response.data;
 
       if (token == null) {
         throw AuthException('Failed to extract token');
       }
+
       // Store auth token and credentials for verification step
       await _storeAuthData(token, email, password);
     } catch (e) {
@@ -72,20 +66,19 @@ class AuthService {
         throw AuthException('Missing authentication data');
       }
 
-      final response = await http.post(
-        Uri.parse('$_baseUrl$_completeSignupEndpoint'),
-        headers: _defaultHeaders,
-        body: jsonEncode({
+      final response = await _apiService.post(
+        ApiEndpoints.completeSignup,
+        body: {
           'token': token,
           'code': code,
           'email': email,
           'password': password,
-        }),
+        },
       );
 
-      _validateResponse(response,
-          successMessage: 'Signup verified successfully',
-          errorMessage: 'Failed to verify signup');
+      if (response.isError) {
+        throw AuthException('Failed to verify signup: ${response.error}');
+      }
 
       // No need to store anything here - we'll signin next
     } catch (e) {
@@ -98,24 +91,23 @@ class AuthService {
   /// Returns the authentication token
   Future<String> signin(String email, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl$_signinEndpoint'),
-        headers: _defaultHeaders,
-        body: jsonEncode({
+      final response = await _apiService.post(
+        ApiEndpoints.signin,
+        body: {
           'email': email,
           'password': password,
-        }),
+        },
       );
 
-      _validateResponse(response,
-          successMessage: 'Signed in successfully',
-          errorMessage: 'Authentication failed');
+      if (response.isError) {
+        throw AuthException('Authentication failed: ${response.error}');
+      }
 
-      final token = jsonDecode(response.body);
+      final token = response.data;
 
       // Calculate expiry (24 hours from now)
       final expiryTime =
-          DateTime.now().add(const Duration(hours: 24)).toIso8601String();
+          DateTime.now().add(const Duration(hours: 96)).toIso8601String();
 
       // Store the token and expiry
       await _storage.write(key: _tokenKey, value: token);
@@ -170,11 +162,10 @@ class AuthService {
 
     final allHeaders = {
       'Authorization': token,
-      ..._defaultHeaders,
       ...?headers,
     };
 
-    final uri = Uri.parse('$_baseUrl$endpoint');
+    final uri = Uri.parse('${AppConfig.baseUrl}$endpoint');
 
     try {
       switch (method.toUpperCase()) {
@@ -193,14 +184,6 @@ class AuthService {
       }
     } catch (e) {
       throw AuthException('API request failed: ${e.toString()}');
-    }
-  }
-
-  /// Validates HTTP response and throws appropriate exceptions
-  void _validateResponse(http.Response response,
-      {required String successMessage, required String errorMessage}) {
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw AuthException('$errorMessage: ${response.body}');
     }
   }
 

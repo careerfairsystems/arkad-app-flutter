@@ -1,25 +1,31 @@
-/// Configuration class for app-wide settings
+import 'package:flutter/foundation.dart';
+
+enum Environment { staging, production }
+
 class AppConfig {
-  // Environment-specific URLs
-  static const String _devBaseUrl = 'https://dev.backend.arkadtlth.se/api';
-  static const String _stagingBaseUrl =
-      'https://staging.backend.arkadtlth.se/api';
-  static const String _prodBaseUrl = 'https://backend.arkadtlth.se/api';
+  // Singleton instance
+  static final AppConfig _instance = AppConfig._internal();
+  factory AppConfig() => _instance;
+  AppConfig._internal();
 
-  // Current environment - can be changed to 'dev', 'staging', or 'prod'
-  static const String _environment = 'staging';
+  // Current environment
+  static Environment _environment = Environment.staging;
 
-  /// Base URL for the API, determined by current environment
+  // Environment setters and getters
+  static void setEnvironment(Environment env) => _environment = env;
+  static Environment get environment => _environment;
+
+  // Base URL based on environment
   static String get baseUrl {
     switch (_environment) {
-      case 'dev':
-        return _devBaseUrl;
-      case 'staging':
-        return _stagingBaseUrl;
-      case 'prod':
-        return _prodBaseUrl;
-      default:
-        return _stagingBaseUrl;
+      case Environment.staging:
+        return 'https://staging.backend.arkadtlth.se/api';
+      case Environment.production:
+        return '';
     }
   }
+
+  // Timeout durations
+  static const int connectionTimeoutSeconds = 30;
+  static const int receiveTimeoutSeconds = 30;
 }

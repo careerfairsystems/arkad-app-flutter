@@ -16,13 +16,11 @@ void main() {
         Provider<UserService>(
           create: (_) => UserService(),
         ),
-        ChangeNotifierProxyProvider2<AuthService, UserService, AuthProvider>(
+        ChangeNotifierProvider<AuthProvider>(
           create: (context) => AuthProvider(
             Provider.of<AuthService>(context, listen: false),
             Provider.of<UserService>(context, listen: false),
-          ),
-          update: (_, authService, userService, previousAuthProvider) =>
-              previousAuthProvider!..init(),
+          )..init(),
         ),
       ],
       child: const MyApp(),
@@ -54,12 +52,14 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-
-    if (authProvider.isAuthenticated && authProvider.user != null) {
-      return ProfileScreen(user: authProvider.user!);
-    } else {
-      return const LoginScreen();
-    }
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        if (authProvider.isAuthenticated && authProvider.user != null) {
+          return ProfileScreen(user: authProvider.user!);
+        } else {
+          return const LoginScreen();
+        }
+      },
+    );
   }
 }
