@@ -82,7 +82,7 @@ class UserService {
   }
 
   // Upload profile picture with improved error handling
-  Future<User> uploadProfilePicture(File imageFile) async {
+  Future<bool> uploadProfilePicture(File imageFile) async {
     try {
       // Create a multipart request
       final uri =
@@ -116,9 +116,9 @@ class UserService {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
+      // Just check if successful, don't try to parse User object
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        return User.fromJson(jsonResponse);
+        return true;
       } else {
         throw Exception('Failed to upload profile picture: ${response.body}');
       }
@@ -128,7 +128,7 @@ class UserService {
   }
 
   // Delete profile picture
-  Future<User> deleteProfilePicture() async {
+  Future<bool> deleteProfilePicture() async {
     final token = await _authService.getValidToken();
     if (token == null) {
       throw Exception('Not authenticated');
@@ -137,18 +137,13 @@ class UserService {
     final response = await _apiService.delete(
       ApiEndpoints.profilePicture,
       headers: {'Authorization': token},
-      fromJson: User.fromJson,
     );
 
-    if (response.isSuccess && response.data != null) {
-      return response.data!;
-    } else {
-      throw Exception('Failed to delete profile picture: ${response.error}');
-    }
+    return response.isSuccess;
   }
 
   // Upload CV with improved error handling
-  Future<User> uploadCV(File cvFile) async {
+  Future<bool> uploadCV(File cvFile) async {
     try {
       // Create a multipart request
       final uri = Uri.parse('${AppConfig.baseUrl}${ApiEndpoints.cv}');
@@ -181,9 +176,9 @@ class UserService {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
+      // Just check if successful, don't try to parse User object
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        return User.fromJson(jsonResponse);
+        return true;
       } else {
         throw Exception('Failed to upload CV: ${response.body}');
       }
@@ -193,7 +188,7 @@ class UserService {
   }
 
   // Delete CV
-  Future<User> deleteCV() async {
+  Future<bool> deleteCV() async {
     final token = await _authService.getValidToken();
     if (token == null) {
       throw Exception('Not authenticated');
@@ -202,13 +197,8 @@ class UserService {
     final response = await _apiService.delete(
       ApiEndpoints.cv,
       headers: {'Authorization': token},
-      fromJson: User.fromJson,
     );
 
-    if (response.isSuccess && response.data != null) {
-      return response.data!;
-    } else {
-      throw Exception('Failed to delete CV: ${response.error}');
-    }
+    return response.isSuccess;
   }
 }

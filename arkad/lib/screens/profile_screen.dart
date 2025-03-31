@@ -181,16 +181,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Helper method to handle URL launching
-  void _launchUrl(BuildContext context, String urlString) async {
-    final Uri url = Uri.parse(urlString);
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      // Using a synchronous call after async to check if context is still valid
+  // Fixed URL launching function
+  Future<void> _launchUrl(BuildContext context, String urlString) async {
+    // Ensure URL has proper scheme
+    String fixedUrl = urlString;
+    if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
+      fixedUrl = 'https://$urlString';
+    }
+
+    try {
+      // Parse the URL with fixed scheme
+      final Uri uri = Uri.parse(fixedUrl);
+
+      // Check if the URL can be launched
+      if (await canLaunchUrl(uri)) {
+        // Launch URL in external browser
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        // Show error if URL can't be launched
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not open: $urlString')),
+          );
+        }
+      }
+    } catch (e) {
+      // Show error on exception (e.g., malformed URL)
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open the link')),
+          SnackBar(content: Text('Invalid URL: $urlString')),
         );
       }
     }
