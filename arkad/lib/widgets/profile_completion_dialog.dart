@@ -383,12 +383,16 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final currentUser = authProvider.user;
+    final List<String> missingFields = currentUser?.getMissingFields() ?? [];
+    final bool isProfileComplete = missingFields.isEmpty;
+
     return WillPopScope(
-      // Prevent dialog from closing when back button is pressed
-      onWillPop: () async => false,
+      // Only allow dismiss if profile is complete
+      onWillPop: () async => isProfileComplete,
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        // Don't dismiss on tap outside
         child: SingleChildScrollView(
           child: Container(
             width: double.maxFinite,
@@ -411,49 +415,45 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Complete Your Profile',
+                              isProfileComplete
+                                  ? 'Update Your Profile'
+                                  : 'Complete Your Profile',
                               style: Theme.of(context).textTheme.titleLarge,
                             ),
-                            // Close button
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () => Navigator.of(context).pop(false),
-                              tooltip: 'Close',
-                            ),
+                            // Only show close button if profile is complete
+                            if (isProfileComplete)
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                tooltip: 'Close',
+                              ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Help companies find you by completing your profile information.',
+                          isProfileComplete
+                              ? 'Update your profile information anytime.'
+                              : 'Please complete the missing fields to activate your profile.',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                        const SizedBox(height: 16),
+
+                        // Dynamically build form based on missing fields
+                        const SizedBox(height: 24),
+                        _buildDynamicForm(missingFields),
+                        const SizedBox(height: 24),
+
+                        // Dynamic submit button
                         SizedBox(
-                          height:
-                              400, // Increased height for more content visibility
-                          child: PageView(
-                            controller: _pageController,
-                            onPageChanged: (int page) {
-                              setState(() {
-                                _currentPage = page;
-                              });
-                            },
-                            children: [
-                              SingleChildScrollView(
-                                  child: _buildBasicInfoPage()),
-                              SingleChildScrollView(
-                                  child: _buildEducationPage()),
-                              SingleChildScrollView(
-                                  child: _buildPreferencesPage()),
-                              SingleChildScrollView(child: _buildUploadsPage()),
-                            ],
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _submitForm,
+                            child: Text(isProfileComplete
+                                ? 'Update Profile'
+                                : 'Complete Profile'),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        _buildPageIndicator(),
-                        const SizedBox(height: 16),
-                        _buildNavigationButtons(),
                       ],
                     ),
                   ),
@@ -463,301 +463,403 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
     );
   }
 
-  Widget _buildBasicInfoPage() {
+  // Dynamic form builder that only shows fields that need to be completed
+  Widget _buildDynamicForm(List<String> missingFields) {
+    final allMissing = missingFields.isEmpty ? false : true;
+
+    // If no missing fields, show all sections for updating
+    if (!allMissing) {
+      return Column(
+        children: [
+          ExpansionTile(
+            title: const Text('Basic Information'),
+            initiallyExpanded: true,
+            children: [
+              _buildBasicInfoFields(),
+            ],
+          ),
+          ExpansionTile(
+            title: const Text('Education'),
+            children: [
+              _buildEducationFields(),
+            ],
+          ),
+          ExpansionTile(
+            title: const Text('Preferences'),
+            children: [
+              _buildPreferencesFields(),
+            ],
+          ),
+          ExpansionTile(
+            title: const Text('Media & Documents'),
+            children: [
+              _buildUploadsFields(),
+            ],
+          ),
+        ],
+      );
+    }
+
+    // Otherwise, only show sections with missing fields
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Personal Information',
-            style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _firstNameController,
-          decoration: const InputDecoration(
-            labelText: 'First Name',
-            border: OutlineInputBorder(),
+        if (missingFields.contains('First Name') ||
+            missingFields.contains('Last Name'))
+          ExpansionTile(
+            title: const Text('Basic Information'),
+            initiallyExpanded: true,
+            children: [
+              _buildBasicInfoFields(),
+            ],
           ),
-          // Removed validator as it's now optional
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _lastNameController,
-          decoration: const InputDecoration(
-            labelText: 'Last Name',
-            border: OutlineInputBorder(),
+        if (missingFields.contains('Programme') ||
+            missingFields.contains('Master Title') ||
+            missingFields.contains('Study Year'))
+          ExpansionTile(
+            title: const Text('Education'),
+            initiallyExpanded: true,
+            children: [
+              _buildEducationFields(),
+            ],
           ),
-          // Removed validator as it's now optional
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _linkedinController,
-          decoration: const InputDecoration(
-            labelText: 'LinkedIn URL',
-            border: OutlineInputBorder(),
-            hintText: 'https://linkedin.com/in/yourprofile',
+        if (missingFields.contains('LinkedIn') ||
+            missingFields.contains('Food Preferences'))
+          ExpansionTile(
+            title: const Text('Preferences'),
+            initiallyExpanded: true,
+            children: [
+              _buildPreferencesFields(),
+            ],
           ),
-        ),
+        if (missingFields.contains('Profile Picture') ||
+            missingFields.contains('CV'))
+          ExpansionTile(
+            title: const Text('Media & Documents'),
+            initiallyExpanded: true,
+            children: [
+              _buildUploadsFields(),
+            ],
+          ),
       ],
     );
   }
 
-  Widget _buildEducationPage() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Education Details',
-            style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 16),
+  // Create separate methods for each section's fields
+  Widget _buildBasicInfoFields() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.user;
+    final bool needsFirstName =
+        currentUser?.firstName == null || currentUser!.firstName!.isEmpty;
+    final bool needsLastName =
+        currentUser?.lastName == null || currentUser!.lastName!.isEmpty;
 
-        // Programme dropdown
-        DropdownButtonFormField<Programme>(
-          value: _selectedProgramme,
-          decoration: const InputDecoration(
-            labelText: 'Programme',
-            border: OutlineInputBorder(),
-          ),
-          hint: const Text('Select your programme'),
-          isExpanded: true,
-          items: PROGRAMS.map((program) {
-            return DropdownMenuItem<Programme>(
-              value: program['value'] as Programme,
-              child: Text(program['label'] as String),
-            );
-          }).toList(),
-          onChanged: (Programme? value) {
-            setState(() {
-              _selectedProgramme = value;
-              if (value != null) {
-                // Update the text controller for consistency
-                final programLabel = PROGRAMS.firstWhere(
-                  (prog) => prog['value'] == value,
-                  orElse: () => {'label': ''},
-                )['label'] as String;
-                _programmeController.text = programLabel;
-              }
-            });
-          },
-        ),
-
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _masterTitleController,
-          decoration: const InputDecoration(
-            labelText: 'Master Title',
-            border: OutlineInputBorder(),
-            hintText: 'e.g., MSc in Data Science',
-          ),
-        ),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<int>(
-          value: _studyYear,
-          decoration: const InputDecoration(
-            labelText: 'Study Year',
-            border: OutlineInputBorder(),
-          ),
-          items: [null, ..._studyYearOptions].map((int? year) {
-            return DropdownMenuItem<int>(
-              value: year,
-              child: Text(year == null ? 'Select Study Year' : 'Year $year'),
-            );
-          }).toList(),
-          onChanged: (int? value) {
-            setState(() {
-              _studyYear = value;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPreferencesPage() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Preferences', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _foodPreferencesController,
-          decoration: const InputDecoration(
-            labelText: 'Food Preferences',
-            border: OutlineInputBorder(),
-            hintText: 'e.g., Vegetarian, Vegan, Gluten-free, etc.',
-          ),
-          maxLines: 2,
-        ),
-        const SizedBox(height: 20),
-        Text(
-          'Completing your profile helps companies find you and match you with opportunities.',
-          style: Theme.of(context).textTheme.bodySmall,
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildUploadsPage() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Upload Documents',
-            style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 16),
-
-        // Profile Picture Upload
-        Card(
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Profile Picture',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: 10),
-                Center(
-                  child: _selectedProfileImage != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child: Image.file(
-                            _selectedProfileImage!,
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          child: Icon(
-                            Icons.person,
-                            size: 50,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                ),
-                const SizedBox(height: 10),
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: _pickProfileImage,
-                    icon: const Icon(Icons.photo_library),
-                    label: Text(_selectedProfileImage != null
-                        ? 'Change Picture'
-                        : 'Select Picture'),
-                  ),
-                ),
-              ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
+      child: Column(
+        children: [
+          if (needsFirstName)
+            TextFormField(
+              controller: _firstNameController,
+              decoration: const InputDecoration(
+                labelText: 'First Name *',
+                border: OutlineInputBorder(),
+                helperText: 'Required',
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'First name is required';
+                }
+                return null;
+              },
             ),
-          ),
-        ),
+          if (needsFirstName) const SizedBox(height: 16),
 
-        const SizedBox(height: 16),
-
-        // CV Upload
-        Card(
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'CV / Resume',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: 10),
-                if (_selectedCV != null)
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.description, color: Colors.blue),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            _selectedCV!.path.split('/').last,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  const Text('No file selected'),
-                const SizedBox(height: 10),
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: _pickCVFile,
-                    icon: const Icon(Icons.upload_file),
-                    label:
-                        Text(_selectedCV != null ? 'Change File' : 'Upload CV'),
-                  ),
-                ),
-              ],
+          if (needsLastName)
+            TextFormField(
+              controller: _lastNameController,
+              decoration: const InputDecoration(
+                labelText: 'Last Name *',
+                border: OutlineInputBorder(),
+                helperText: 'Required',
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Last name is required';
+                }
+                return null;
+              },
             ),
-          ),
-        ),
 
-        const SizedBox(height: 20),
-        Text(
-          'Uploading your CV makes it easier for recruiters to find you.',
-          style: Theme.of(context).textTheme.bodySmall,
-          textAlign: TextAlign.center,
-        ),
-      ],
+          // Show message if all fields in this section are completed
+          if (!needsFirstName && !needsLastName)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                  'Your basic information is complete. You can update it if needed.'),
+            ),
+        ],
+      ),
     );
   }
 
-  Widget _buildPageIndicator() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(_totalPages, (index) {
-        return Container(
-          width: 8.0,
-          height: 8.0,
-          margin: const EdgeInsets.symmetric(horizontal: 4.0),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _currentPage == index
-                ? Theme.of(context).primaryColor
-                : Colors.grey.shade300,
-          ),
-        );
-      }),
+  Widget _buildEducationFields() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.user;
+    final bool needsProgramme =
+        currentUser?.programme == null || currentUser!.programme!.isEmpty;
+    final bool needsMasterTitle =
+        currentUser?.masterTitle == null || currentUser!.masterTitle!.isEmpty;
+    final bool needsStudyYear = currentUser?.studyYear == null;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
+      child: Column(
+        children: [
+          if (needsProgramme) ...[
+            DropdownButtonFormField<Programme>(
+              decoration: const InputDecoration(
+                labelText: 'Programme *',
+                border: OutlineInputBorder(),
+                helperText: 'Required',
+              ),
+              value: _selectedProgramme,
+              hint: const Text('Select your programme'),
+              validator: (value) {
+                if (value == null) {
+                  return 'Programme is required';
+                }
+                return null;
+              },
+              items: PROGRAMS.map((program) {
+                return DropdownMenuItem<Programme>(
+                  value: program['value'] as Programme,
+                  child: Text(program['label'] as String),
+                );
+              }).toList(),
+              onChanged: (Programme? newValue) {
+                setState(() {
+                  _selectedProgramme = newValue;
+                  if (newValue != null) {
+                    _programmeController.text = PROGRAMS
+                        .firstWhere(
+                            (program) => program['value'] == newValue)['label']
+                        .toString();
+                  }
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          if (needsMasterTitle) ...[
+            TextFormField(
+              controller: _masterTitleController,
+              decoration: const InputDecoration(
+                labelText: 'Master Title *',
+                border: OutlineInputBorder(),
+                helperText: 'Required',
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Master title is required';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          if (needsStudyYear) ...[
+            DropdownButtonFormField<int>(
+              decoration: const InputDecoration(
+                labelText: 'Study Year *',
+                border: OutlineInputBorder(),
+                helperText: 'Required',
+              ),
+              value: _studyYear,
+              hint: const Text('Select your study year'),
+              validator: (value) {
+                if (value == null) {
+                  return 'Study year is required';
+                }
+                return null;
+              },
+              items: _studyYearOptions.map((year) {
+                return DropdownMenuItem<int>(
+                  value: year,
+                  child: Text('Year $year'),
+                );
+              }).toList(),
+              onChanged: (int? newValue) {
+                setState(() {
+                  _studyYear = newValue;
+                });
+              },
+            ),
+          ],
+
+          // Show message if all fields in this section are completed
+          if (!needsProgramme && !needsMasterTitle && !needsStudyYear)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                  'Your education information is complete. You can update it if needed.'),
+            ),
+        ],
+      ),
     );
   }
 
-  Widget _buildNavigationButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        if (_currentPage > 0)
-          TextButton(
-            onPressed: _previousPage,
-            child: const Text('Previous'),
-          )
-        else
-          const SizedBox(width: 80),
-        if (_currentPage < _totalPages - 1)
-          ElevatedButton(
-            onPressed: _nextPage,
-            child: const Text('Next'),
-          )
-        else
-          ElevatedButton(
-            onPressed: _submitForm,
-            child: const Text('Save Profile'),
-          ),
-      ],
+  Widget _buildPreferencesFields() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.user;
+    final bool needsLinkedin =
+        currentUser?.linkedin == null || currentUser!.linkedin!.isEmpty;
+    final bool needsFoodPreferences = currentUser?.foodPreferences == null ||
+        currentUser!.foodPreferences!.isEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
+      child: Column(
+        children: [
+          if (needsLinkedin) ...[
+            TextFormField(
+              controller: _linkedinController,
+              decoration: const InputDecoration(
+                labelText: 'LinkedIn Profile URL *',
+                border: OutlineInputBorder(),
+                helperText: 'Required (e.g., linkedin.com/in/yourprofile)',
+                prefixIcon: Icon(Icons.link),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'LinkedIn profile is required';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          if (needsFoodPreferences) ...[
+            TextFormField(
+              controller: _foodPreferencesController,
+              decoration: const InputDecoration(
+                labelText: 'Food Preferences *',
+                border: OutlineInputBorder(),
+                helperText: 'Required (allergies, vegetarian, etc.)',
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Food preferences are required (put "None" if not applicable)';
+                }
+                return null;
+              },
+            ),
+          ],
+
+          // Show message if all fields in this section are completed
+          if (!needsLinkedin && !needsFoodPreferences)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                  'Your preferences are complete. You can update them if needed.'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUploadsFields() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.user;
+    final bool needsProfilePicture = currentUser?.profilePicture == null ||
+        currentUser!.profilePicture!.isEmpty;
+    final bool needsCV = currentUser?.cv == null || currentUser!.cv!.isEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
+      child: Column(
+        children: [
+          if (needsProfilePicture) ...[
+            const Text('Profile Picture *',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Container(
+              height: 150,
+              width: 150,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(75),
+              ),
+              child: _selectedProfileImage != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(75),
+                      child:
+                          Image.file(_selectedProfileImage!, fit: BoxFit.cover),
+                    )
+                  : const Icon(Icons.person, size: 80),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: _pickProfileImage,
+              icon: const Icon(Icons.photo_camera),
+              label: const Text('Select Profile Picture'),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          if (needsCV) ...[
+            const Text('CV / Resume *',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _selectedCV != null
+                        ? Icons.check_circle
+                        : Icons.upload_file,
+                    color: _selectedCV != null ? Colors.green : Colors.grey,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      _selectedCV != null
+                          ? 'Selected: ${_selectedCV!.path.split('/').last}'
+                          : 'No CV selected yet (PDF format)',
+                      style: TextStyle(
+                        color: _selectedCV != null
+                            ? Colors.black
+                            : Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: _pickCVFile,
+              icon: const Icon(Icons.attach_file),
+              label: const Text('Select CV File'),
+            ),
+          ],
+
+          // Show message if all fields in this section are completed
+          if (!needsProfilePicture && !needsCV)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                  'Your profile picture and CV are already uploaded. You can update them if needed.'),
+            ),
+        ],
+      ),
     );
   }
 }

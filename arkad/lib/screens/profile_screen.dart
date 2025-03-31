@@ -29,9 +29,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _checkProfileCompletion() async {
     if (_checkedProfileCompletion) return;
 
-    // Show profile completion dialog as a suggestion, not a requirement
-    // This will now show for all new users without checking for required fields
-    _showProfileCompletionDialog();
+    final currentUser = Provider.of<AuthProvider>(context, listen: false).user;
+
+    // Only show for unverified users
+    if (currentUser != null && !currentUser.isVerified) {
+      _showProfileCompletionDialog();
+    }
 
     setState(() {
       _checkedProfileCompletion = true;
@@ -41,7 +44,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _showProfileCompletionDialog() async {
     final result = await showDialog<bool>(
       context: context,
-      barrierDismissible: true, // Allow users to dismiss by tapping outside
+      barrierDismissible:
+          false, // Never dismiss by tapping outside for unverified users
       builder: (BuildContext context) {
         return const ProfileCompletionDialog();
       },
@@ -52,6 +56,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         await authProvider.refreshUserProfile();
+
+        // Check if user is verified after refreshing profile
+        final updatedUser = authProvider.user;
+        if (updatedUser != null && !updatedUser.isVerified) {
+          // If still not verified, show dialog again
+          _showProfileCompletionDialog();
+        }
+      }
+    } else if (result == false) {
+      // If user tried to dismiss but is not verified, show dialog again
+      final currentUser =
+          Provider.of<AuthProvider>(context, listen: false).user;
+      if (currentUser != null && !currentUser.isVerified) {
+        _showProfileCompletionDialog();
       }
     }
   }
