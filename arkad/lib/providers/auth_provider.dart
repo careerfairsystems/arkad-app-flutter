@@ -22,7 +22,10 @@ class AuthProvider with ChangeNotifier {
   String? _verificationEmail;
   String? _verificationPassword;
 
-  AuthProvider(this._authService, this._userService);
+  AuthProvider(this._authService, this._userService) {
+    // Auto-check if we have a valid token on startup
+    _checkAuthStatus();
+  }
 
   // Getters
   AuthStatus get status => _status;

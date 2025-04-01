@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'navigation/main_navigation.dart';
 import 'providers/auth_provider.dart';
-import 'screens/login_screen.dart';
-import 'screens/profile_screen.dart';
+import 'providers/theme_provider.dart';
 import 'services/auth_service.dart';
 import 'services/user_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize any services that need to be set up before the app starts
+
   runApp(
     MultiProvider(
       providers: [
@@ -22,6 +26,8 @@ void main() {
             Provider.of<UserService>(context, listen: false),
           )..init(),
         ),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        // ...other providers
       ],
       child: const MyApp(),
     ),
@@ -33,33 +39,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return MaterialApp(
       title: 'Arkad App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      routes: {
-        '/': (context) => const AuthWrapper(),
-        '/login': (context) => const LoginScreen(),
-      },
-    );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        if (authProvider.isAuthenticated && authProvider.user != null) {
-          return ProfileScreen(user: authProvider.user!);
-        } else {
-          return const LoginScreen();
-        }
-      },
+      theme: themeProvider.getTheme(),
+      home: const MainNavigation(initialRoute: '/companies'),
+      // Using the MainNavigation widget for navigation instead of routes
     );
   }
 }

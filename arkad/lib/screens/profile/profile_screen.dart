@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/user.dart';
-import '../providers/auth_provider.dart';
-import '../screens/edit_profile_screen.dart';
-import '../widgets/profile_completion_dialog.dart';
+import '../../models/user.dart';
+import '../../providers/auth_provider.dart';
+import 'edit_profile_screen.dart';
+import '../../widgets/profile_completion_dialog.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User user;
