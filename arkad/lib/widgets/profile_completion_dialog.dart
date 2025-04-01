@@ -621,6 +621,8 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
                 labelText: 'Programme *',
                 border: OutlineInputBorder(),
                 helperText: 'Required',
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 16),
               ),
               value: _selectedProgramme,
               hint: const Text('Select your programme'),
