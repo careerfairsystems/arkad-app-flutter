@@ -9,6 +9,8 @@ import 'package:file_picker/file_picker.dart' as fp;
 import '../models/user.dart';
 import '../providers/auth_provider.dart';
 import '../services/user_service.dart';
+import '../widgets/profile_form_components.dart';
+import '../utils/profile_utils.dart';
 
 // Define the Programme enum
 enum Programme {
@@ -143,12 +145,11 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
   bool _isLoading = false;
   User? _initialUserData;
 
-  // Study year options
-  final List<int> _studyYearOptions = [1, 2, 3, 4, 5];
-
   final ImagePicker _imagePicker = ImagePicker();
 
   Programme? _selectedProgramme;
+  bool _profilePictureDeleted = false;
+  bool _cvDeleted = false;
 
   @override
   void initState() {
@@ -190,16 +191,7 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
     _programmeController.text = user.programme ?? '';
 
     // Convert string programme to enum if it exists
-    if (user.programme != null && user.programme!.isNotEmpty) {
-      try {
-        _selectedProgramme = PROGRAMS.firstWhere(
-          (prog) => prog['label'] == user.programme,
-          orElse: () => PROGRAMS[0],
-        )['value'] as Programme;
-      } catch (e) {
-        _selectedProgramme = null;
-      }
-    }
+    _selectedProgramme = ProfileUtils.programmeStringToEnum(user.programme);
 
     _linkedinController.text = user.linkedin ?? '';
     _masterTitleController.text = user.masterTitle ?? '';
@@ -318,30 +310,22 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
       try {
         final userService = UserService();
 
-        // Prepare the profile data from form fields
-        final profileData = {
-          'first_name': _firstNameController.text.trim(),
-          'last_name': _lastNameController.text.trim(),
-          // Get the label from the selected programme enum
-          'programme': _selectedProgramme != null
-              ? PROGRAMS.firstWhere(
-                      (prog) => prog['value'] == _selectedProgramme)['label']
-                  as String
-              : _programmeController.text.trim(),
-          'linkedin': _linkedinController.text.trim(),
-          'master_title': _masterTitleController.text.trim(),
-          'study_year': _studyYear,
-          'food_preferences': _foodPreferencesController.text.trim(),
-        };
-
-        // Remove null values to avoid overwriting with null
-        profileData.removeWhere((key, value) =>
-            value == null || (value is String && value.isEmpty));
+        // Use the ProfileUtils helper to prepare data
+        final profileData = ProfileUtils.prepareProfileData(
+          firstName: _firstNameController.text,
+          lastName: _lastNameController.text,
+          selectedProgramme: _selectedProgramme,
+          programmeText: _programmeController.text,
+          linkedin: _linkedinController.text,
+          masterTitle: _masterTitleController.text,
+          studyYear: _studyYear,
+          foodPreferences: _foodPreferencesController.text,
+        );
 
         // Update the user profile
         await userService.updateProfileFields(profileData);
 
-        // Upload profile picture if selected
+        // Upload profile picture if selected (optional)
         if (_selectedProfileImage != null) {
           setState(() {
             _isUploading = true;
@@ -349,7 +333,7 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
           await userService.uploadProfilePicture(_selectedProfileImage!);
         }
 
-        // Upload CV if selected
+        // Upload CV if selected (optional)
         if (_selectedCV != null) {
           setState(() {
             _isUploading = true;
@@ -358,6 +342,11 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
         }
 
         if (mounted) {
+          // Refresh the user profile in the auth provider
+          final authProvider =
+              Provider.of<AuthProvider>(context, listen: false);
+          await authProvider.refreshUserProfile();
+
           Navigator.of(context).pop(true); // Return success
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Profile updated successfully!')),
@@ -491,7 +480,7 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
             ],
           ),
           ExpansionTile(
-            title: const Text('Media & Documents'),
+            title: const Text('Media & Documents (Optional)'),
             children: [
               _buildUploadsFields(),
             ],
@@ -531,15 +520,14 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
               _buildPreferencesFields(),
             ],
           ),
-        if (missingFields.contains('Profile Picture') ||
-            missingFields.contains('CV'))
-          ExpansionTile(
-            title: const Text('Media & Documents'),
-            initiallyExpanded: true,
-            children: [
-              _buildUploadsFields(),
-            ],
-          ),
+        // Always show optional media section but mark as optional
+        ExpansionTile(
+          title: const Text('Media & Documents (Optional)'),
+          initiallyExpanded: false,
+          children: [
+            _buildUploadsFields(),
+          ],
+        ),
       ],
     );
   }
@@ -555,49 +543,11 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
-      child: Column(
-        children: [
-          if (needsFirstName)
-            TextFormField(
-              controller: _firstNameController,
-              decoration: const InputDecoration(
-                labelText: 'First Name *',
-                border: OutlineInputBorder(),
-                helperText: 'Required',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'First name is required';
-                }
-                return null;
-              },
-            ),
-          if (needsFirstName) const SizedBox(height: 16),
-
-          if (needsLastName)
-            TextFormField(
-              controller: _lastNameController,
-              decoration: const InputDecoration(
-                labelText: 'Last Name *',
-                border: OutlineInputBorder(),
-                helperText: 'Required',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Last name is required';
-                }
-                return null;
-              },
-            ),
-
-          // Show message if all fields in this section are completed
-          if (!needsFirstName && !needsLastName)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                  'Your basic information is complete. You can update it if needed.'),
-            ),
-        ],
+      child: ProfileFormComponents.buildBasicInfoFields(
+        firstNameController: _firstNameController,
+        lastNameController: _lastNameController,
+        needsFirstName: needsFirstName,
+        needsLastName: needsLastName,
       ),
     );
   }
@@ -613,101 +563,30 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
-      child: Column(
-        children: [
-          if (needsProgramme) ...[
-            DropdownButtonFormField<Programme>(
-              decoration: const InputDecoration(
-                labelText: 'Programme *',
-                border: OutlineInputBorder(),
-                helperText: 'Required',
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              ),
-              value: _selectedProgramme,
-              hint: const Text('Select your programme'),
-              validator: (value) {
-                if (value == null) {
-                  return 'Programme is required';
-                }
-                return null;
-              },
-              items: PROGRAMS.map((program) {
-                return DropdownMenuItem<Programme>(
-                  value: program['value'] as Programme,
-                  child: Text(program['label'] as String),
-                );
-              }).toList(),
-              onChanged: (Programme? newValue) {
-                setState(() {
-                  _selectedProgramme = newValue;
-                  if (newValue != null) {
-                    _programmeController.text = PROGRAMS
-                        .firstWhere(
-                            (program) => program['value'] == newValue)['label']
-                        .toString();
-                  }
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          if (needsMasterTitle) ...[
-            TextFormField(
-              controller: _masterTitleController,
-              decoration: const InputDecoration(
-                labelText: 'Master Title *',
-                border: OutlineInputBorder(),
-                helperText: 'Required',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Master title is required';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          if (needsStudyYear) ...[
-            DropdownButtonFormField<int>(
-              decoration: const InputDecoration(
-                labelText: 'Study Year *',
-                border: OutlineInputBorder(),
-                helperText: 'Required',
-              ),
-              value: _studyYear,
-              hint: const Text('Select your study year'),
-              validator: (value) {
-                if (value == null) {
-                  return 'Study year is required';
-                }
-                return null;
-              },
-              items: _studyYearOptions.map((year) {
-                return DropdownMenuItem<int>(
-                  value: year,
-                  child: Text('Year $year'),
-                );
-              }).toList(),
-              onChanged: (int? newValue) {
-                setState(() {
-                  _studyYear = newValue;
-                });
-              },
-            ),
-          ],
-
-          // Show message if all fields in this section are completed
-          if (!needsProgramme && !needsMasterTitle && !needsStudyYear)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                  'Your education information is complete. You can update it if needed.'),
-            ),
-        ],
+      child: ProfileFormComponents.buildEducationFields(
+        programmeController: _programmeController,
+        masterTitleController: _masterTitleController,
+        studyYear: _studyYear,
+        selectedProgramme: _selectedProgramme,
+        onStudyYearChanged: (int? newValue) {
+          setState(() {
+            _studyYear = newValue;
+          });
+        },
+        onProgrammeChanged: (Programme? newValue) {
+          setState(() {
+            _selectedProgramme = newValue;
+            if (newValue != null) {
+              _programmeController.text = PROGRAMS
+                  .firstWhere(
+                      (program) => program['value'] == newValue)['label']
+                  .toString();
+            }
+          });
+        },
+        needsProgramme: needsProgramme,
+        needsMasterTitle: needsMasterTitle,
+        needsStudyYear: needsStudyYear,
       ),
     );
   }
@@ -722,52 +601,11 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
-      child: Column(
-        children: [
-          if (needsLinkedin) ...[
-            TextFormField(
-              controller: _linkedinController,
-              decoration: const InputDecoration(
-                labelText: 'LinkedIn Profile URL *',
-                border: OutlineInputBorder(),
-                helperText: 'Required (e.g., linkedin.com/in/yourprofile)',
-                prefixIcon: Icon(Icons.link),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'LinkedIn profile is required';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          if (needsFoodPreferences) ...[
-            TextFormField(
-              controller: _foodPreferencesController,
-              decoration: const InputDecoration(
-                labelText: 'Food Preferences *',
-                border: OutlineInputBorder(),
-                helperText: 'Required (allergies, vegetarian, etc.)',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Food preferences are required (put "None" if not applicable)';
-                }
-                return null;
-              },
-            ),
-          ],
-
-          // Show message if all fields in this section are completed
-          if (!needsLinkedin && !needsFoodPreferences)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                  'Your preferences are complete. You can update them if needed.'),
-            ),
-        ],
+      child: ProfileFormComponents.buildPreferencesFields(
+        linkedinController: _linkedinController,
+        foodPreferencesController: _foodPreferencesController,
+        needsLinkedin: needsLinkedin,
+        needsFoodPreferences: needsFoodPreferences,
       ),
     );
   }
@@ -775,91 +613,42 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
   Widget _buildUploadsFields() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.user;
-    final bool needsProfilePicture = currentUser?.profilePicture == null ||
-        currentUser!.profilePicture!.isEmpty;
-    final bool needsCV = currentUser?.cv == null || currentUser!.cv!.isEmpty;
+    final bool needsProfilePicture = false; // No longer required
+    final bool needsCV = false; // No longer required
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (needsProfilePicture) ...[
-            const Text('Profile Picture *',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Container(
-              height: 150,
-              width: 150,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(75),
-              ),
-              child: _selectedProfileImage != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(75),
-                      child:
-                          Image.file(_selectedProfileImage!, fit: BoxFit.cover),
-                    )
-                  : const Icon(Icons.person, size: 80),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton.icon(
-              onPressed: _pickProfileImage,
-              icon: const Icon(Icons.photo_camera),
-              label: const Text('Select Profile Picture'),
-            ),
-            const SizedBox(height: 16),
-          ],
+          const Text('Profile Media (Optional)',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
 
-          if (needsCV) ...[
-            const Text('CV / Resume *',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    _selectedCV != null
-                        ? Icons.check_circle
-                        : Icons.upload_file,
-                    color: _selectedCV != null ? Colors.green : Colors.grey,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      _selectedCV != null
-                          ? 'Selected: ${_selectedCV!.path.split('/').last}'
-                          : 'No CV selected yet (PDF format)',
-                      style: TextStyle(
-                        color: _selectedCV != null
-                            ? Colors.black
-                            : Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton.icon(
-              onPressed: _pickCVFile,
-              icon: const Icon(Icons.attach_file),
-              label: const Text('Select CV File'),
-            ),
-          ],
+          // Profile Picture Section
+          const Text('Profile Picture',
+              style: TextStyle(fontWeight: FontWeight.normal)),
+          const SizedBox(height: 8),
+          ProfileFormComponents.buildProfilePictureSection(
+            selectedProfileImage: _selectedProfileImage,
+            onPickImage: _pickProfileImage,
+            onDeleteImage: null,
+            profilePictureDeleted: _profilePictureDeleted,
+            currentProfilePicture: currentUser?.profilePicture,
+          ),
+          const SizedBox(height: 16),
 
-          // Show message if all fields in this section are completed
-          if (!needsProfilePicture && !needsCV)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                  'Your profile picture and CV are already uploaded. You can update them if needed.'),
-            ),
+          // CV Section
+          const Text('CV / Resume',
+              style: TextStyle(fontWeight: FontWeight.normal)),
+          const SizedBox(height: 8),
+          ProfileFormComponents.buildCVSection(
+            selectedCV: _selectedCV,
+            onPickCV: _pickCVFile,
+            onDeleteCV: null,
+            cvDeleted: _cvDeleted,
+            currentCV: currentUser?.cv,
+          ),
         ],
       ),
     );

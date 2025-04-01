@@ -2,11 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
 import '../models/user.dart';
 import '../providers/auth_provider.dart';
 import '../services/user_service.dart';
 import '../widgets/profile_completion_dialog.dart'; // Import for Programme enum
+import '../widgets/profile_form_components.dart';
+import '../utils/profile_utils.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final User user;
@@ -38,7 +39,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _isUploading = false;
   String? _error;
 
-  final List<int> _studyYearOptions = [1, 2, 3, 4, 5];
   final ImagePicker _imagePicker = ImagePicker();
 
   // Add these flags to track local UI state
@@ -63,61 +63,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _studyYear = widget.user.studyYear;
 
     // Convert string programme to enum if it exists
-    if (widget.user.programme != null && widget.user.programme!.isNotEmpty) {
-      try {
-        _selectedProgramme = PROGRAMS.firstWhere(
-          (prog) => prog['label'] == widget.user.programme,
-          orElse: () => PROGRAMS[0],
-        )['value'] as Programme;
-      } catch (e) {
-        _selectedProgramme = null;
-      }
-    }
+    _selectedProgramme =
+        ProfileUtils.programmeStringToEnum(widget.user.programme);
   }
 
   Future<void> _pickImage() async {
-    try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
+    final File? image = await ProfileUtils.pickProfileImage(
+        context: context, imagePicker: _imagePicker);
 
-      if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
-      }
-    } catch (e) {
-      _showErrorSnackbar('Failed to pick image: $e');
+    if (image != null) {
+      setState(() {
+        _selectedImage = image;
+        _profilePictureDeleted =
+            false; // Reset deletion flag if new image selected
+      });
     }
   }
 
   Future<void> _pickCV() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx'],
-        withData: true,
-      );
+    final File? cv = await ProfileUtils.pickCVFile(context: context);
 
-      if (result != null &&
-          result.files.isNotEmpty &&
-          result.files.first.path != null) {
-        setState(() {
-          _selectedCV = File(result.files.first.path!);
-        });
-      }
-    } catch (e) {
-      _showErrorSnackbar('Failed to pick CV: $e');
+    if (cv != null) {
+      setState(() {
+        _selectedCV = cv;
+        _cvDeleted = false; // Reset deletion flag if new CV selected
+      });
     }
-  }
-
-  void _showErrorSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
   }
 
   Future<void> _updateProfile() async {
@@ -131,43 +102,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
-      // Prepare the profile data from form fields
-      final profileData = {
-        'first_name': _firstNameController.text.trim(),
-        'last_name': _lastNameController.text.trim(),
-        // Get the label from the selected programme enum
-        'programme': _selectedProgramme != null
-            ? PROGRAMS.firstWhere(
-                    (prog) => prog['value'] == _selectedProgramme)['label']
-                as String
-            : _programmeController.text.trim(),
-        'linkedin': _linkedinController.text.trim(),
-        'master_title': _masterTitleController.text.trim(),
-        'study_year': _studyYear,
-        'food_preferences': _foodPreferencesController.text.trim(),
-      };
-
-      // Remove null values to avoid overwriting with null
-      profileData.removeWhere(
-          (key, value) => value == null || (value is String && value.isEmpty));
+      // Use the ProfileUtils helper to prepare data
+      final profileData = ProfileUtils.prepareProfileData(
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        selectedProgramme: _selectedProgramme,
+        programmeText: _programmeController.text,
+        linkedin: _linkedinController.text,
+        masterTitle: _masterTitleController.text,
+        studyYear: _studyYear,
+        foodPreferences: _foodPreferencesController.text,
+      );
 
       // Update the user profile with the UserService
       await _userService.updateProfileFields(profileData);
 
       // Upload profile picture if selected
       if (_selectedImage != null) {
-        setState(() {
-          _isUploading = true;
-        });
         await _userService.uploadProfilePicture(_selectedImage!);
+      } else if (_profilePictureDeleted) {
+        await _userService.deleteProfilePicture();
       }
 
       // Upload CV if selected
       if (_selectedCV != null) {
-        setState(() {
-          _isUploading = true;
-        });
         await _userService.uploadCV(_selectedCV!);
+      } else if (_cvDeleted) {
+        await _userService.deleteCV();
       }
 
       // Refresh the user profile in the auth provider
@@ -184,7 +145,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       setState(() {
         _error = e.toString();
       });
-      _showErrorSnackbar('Failed to update profile: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update profile: $e')),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -205,22 +168,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _profilePictureDeleted = true;
       });
 
-      // Make the API call
-      await _userService.deleteProfilePicture();
-
-      // Refresh user data in provider
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.refreshUserProfile();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile picture removed successfully')),
-      );
-    } catch (e) {
-      // Revert the visual indicator if there was an error
-      setState(() {
-        _profilePictureDeleted = false;
-      });
-      _showErrorSnackbar('Failed to remove profile picture: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Profile picture will be removed when you save')),
+        );
+      }
     } finally {
       setState(() {
         _isUploading = false;
@@ -239,22 +192,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _cvDeleted = true;
       });
 
-      // Make the API call
-      await _userService.deleteCV();
-
-      // Refresh user data in provider
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.refreshUserProfile();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('CV removed successfully')),
-      );
-    } catch (e) {
-      // Revert the visual indicator if there was an error
-      setState(() {
-        _cvDeleted = false;
-      });
-      _showErrorSnackbar('Failed to remove CV: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('CV will be removed when you save')),
+        );
+      }
     } finally {
       setState(() {
         _isUploading = false;
@@ -285,60 +227,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Profile picture section
+                    // Profile picture section (now optional)
                     Center(
                       child: Column(
                         children: [
-                          Stack(
-                            children: [
-                              CircleAvatar(
-                                radius: 60,
-                                backgroundImage: _selectedImage != null
-                                    ? FileImage(_selectedImage!)
-                                    : (!_profilePictureDeleted &&
-                                            widget.user.profilePicture !=
-                                                null &&
-                                            widget
-                                                .user.profilePicture!.isNotEmpty
-                                        ? NetworkImage(
-                                            widget.user.profilePicture!)
-                                        : null) as ImageProvider<Object>?,
-                                child: (_selectedImage == null &&
-                                        (_profilePictureDeleted ||
-                                            widget.user.profilePicture ==
-                                                null ||
-                                            widget
-                                                .user.profilePicture!.isEmpty))
-                                    ? const Icon(Icons.person, size: 60)
-                                    : null,
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).primaryColor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: IconButton(
-                                    icon: const Icon(Icons.camera_alt,
-                                        color: Colors.white),
-                                    onPressed: _pickImage,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          ProfileFormComponents.buildProfilePictureSection(
+                            selectedProfileImage: _selectedImage,
+                            onPickImage: _pickImage,
+                            onDeleteImage: _deleteProfilePicture,
+                            profilePictureDeleted: _profilePictureDeleted,
+                            currentProfilePicture: widget.user.profilePicture,
                           ),
-                          const SizedBox(height: 8),
-                          if (!_profilePictureDeleted &&
-                              widget.user.profilePicture != null &&
-                              widget.user.profilePicture!.isNotEmpty)
-                            TextButton.icon(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              label: const Text('Remove Picture',
-                                  style: TextStyle(color: Colors.red)),
-                              onPressed: _deleteProfilePicture,
-                            ),
+                          const Text('Profile Picture (Optional)',
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 12)),
                         ],
                       ),
                     ),
@@ -364,6 +266,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 16),
 
+                    // Email field (always readonly)
                     TextFormField(
                       controller: _emailController,
                       readOnly: true, // Email cannot be changed
@@ -375,35 +278,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    TextFormField(
-                      controller: _firstNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'First Name *',
-                        border: OutlineInputBorder(),
-                        helperText: 'Required',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'First name is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    TextFormField(
-                      controller: _lastNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Last Name *',
-                        border: OutlineInputBorder(),
-                        helperText: 'Required',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Last name is required';
-                        }
-                        return null;
-                      },
+                    // Basic information fields
+                    ProfileFormComponents.buildBasicInfoFields(
+                      firstNameController: _firstNameController,
+                      lastNameController: _lastNameController,
                     ),
 
                     const SizedBox(height: 24),
@@ -414,38 +292,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Fields marked with * are required',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
                     const SizedBox(height: 16),
 
-                    DropdownButtonFormField<Programme>(
-                      decoration: const InputDecoration(
-                        labelText: 'Programme *',
-                        border: OutlineInputBorder(),
-                        helperText: 'Required',
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                      ),
-                      value: _selectedProgramme,
-                      hint: const Text('Select your programme'),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Programme is required';
-                        }
-                        return null;
+                    ProfileFormComponents.buildEducationFields(
+                      programmeController: _programmeController,
+                      masterTitleController: _masterTitleController,
+                      studyYear: _studyYear,
+                      selectedProgramme: _selectedProgramme,
+                      onStudyYearChanged: (int? newValue) {
+                        setState(() {
+                          _studyYear = newValue;
+                        });
                       },
-                      isExpanded: true,
-                      icon: const Icon(Icons.arrow_drop_down),
-                      menuMaxHeight: 350,
-                      items: PROGRAMS.map((program) {
-                        return DropdownMenuItem<Programme>(
-                          value: program['value'] as Programme,
-                          child: Text(
-                            program['label'] as String,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (Programme? newValue) {
+                      onProgrammeChanged: (Programme? newValue) {
                         setState(() {
                           _selectedProgramme = newValue;
                           if (newValue != null) {
@@ -454,50 +318,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     program['value'] == newValue)['label']
                                 .toString();
                           }
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    TextFormField(
-                      controller: _masterTitleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Master Title *',
-                        border: OutlineInputBorder(),
-                        helperText: 'Required',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Master title is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(
-                        labelText: 'Study Year *',
-                        border: OutlineInputBorder(),
-                        helperText: 'Required',
-                      ),
-                      value: _studyYear,
-                      hint: const Text('Select your study year'),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Study year is required';
-                        }
-                        return null;
-                      },
-                      items: _studyYearOptions.map((year) {
-                        return DropdownMenuItem<int>(
-                          value: year,
-                          child: Text('Year $year'),
-                        );
-                      }).toList(),
-                      onChanged: (int? newValue) {
-                        setState(() {
-                          _studyYear = newValue;
                         });
                       },
                     ),
@@ -510,126 +330,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 16),
-
-                    TextFormField(
-                      controller: _linkedinController,
-                      decoration: const InputDecoration(
-                        labelText: 'LinkedIn Profile URL *',
-                        border: OutlineInputBorder(),
-                        helperText:
-                            'Required (e.g., linkedin.com/in/yourprofile)',
-                        prefixIcon: Icon(Icons.link),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'LinkedIn profile is required';
-                        }
-                        return null;
-                      },
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Fields marked with * are required',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
-
                     const SizedBox(height: 16),
 
-                    TextFormField(
-                      controller: _foodPreferencesController,
-                      decoration: const InputDecoration(
-                        labelText: 'Food Preferences *',
-                        border: OutlineInputBorder(),
-                        helperText:
-                            'Required (allergies, vegetarian, etc. or "None")',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Food preferences are required (put "None" if not applicable)';
-                        }
-                        return null;
-                      },
+                    ProfileFormComponents.buildPreferencesFields(
+                      linkedinController: _linkedinController,
+                      foodPreferencesController: _foodPreferencesController,
                     ),
 
                     const SizedBox(height: 24),
 
-                    // CV management
+                    // CV management (now optional)
                     const Text(
-                      'CV / Resume',
+                      'CV / Resume (Optional)',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
 
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _selectedCV != null ||
-                                    (widget.user.cv != null &&
-                                        widget.user.cv!.isNotEmpty)
-                                ? Icons.check_circle
-                                : Icons.upload_file,
-                            color: _selectedCV != null ||
-                                    (!_cvDeleted &&
-                                        widget.user.cv != null &&
-                                        widget.user.cv!.isNotEmpty)
-                                ? Colors.green
-                                : Colors.grey,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              _selectedCV != null
-                                  ? 'Selected: ${_selectedCV!.path.split('/').last}'
-                                  : (_cvDeleted
-                                      ? 'No CV selected yet (PDF format)'
-                                      : (widget.user.cv != null &&
-                                              widget.user.cv!.isNotEmpty
-                                          ? 'Current: ${widget.user.cv!.split('/').last}'
-                                          : 'No CV selected yet (PDF format)')),
-                              style: TextStyle(
-                                color: _selectedCV != null ||
-                                        (!_cvDeleted &&
-                                            widget.user.cv != null &&
-                                            widget.user.cv!.isNotEmpty)
-                                    ? Colors.black
-                                    : Colors.grey[600],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _pickCV,
-                            icon: const Icon(Icons.attach_file),
-                            label: Text(widget.user.cv != null &&
-                                    widget.user.cv!.isNotEmpty
-                                ? 'Change CV'
-                                : 'Select CV File'),
-                          ),
-                        ),
-                        if (!_cvDeleted &&
-                            widget.user.cv != null &&
-                            widget.user.cv!.isNotEmpty)
-                          const SizedBox(width: 8),
-                        if (!_cvDeleted &&
-                            widget.user.cv != null &&
-                            widget.user.cv!.isNotEmpty)
-                          TextButton.icon(
-                            onPressed: _deleteCV,
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            label: const Text('Remove',
-                                style: TextStyle(color: Colors.red)),
-                          ),
-                      ],
+                    ProfileFormComponents.buildCVSection(
+                      selectedCV: _selectedCV,
+                      onPickCV: _pickCV,
+                      onDeleteCV: _deleteCV,
+                      cvDeleted: _cvDeleted,
+                      currentCV: widget.user.cv,
                     ),
 
                     const SizedBox(height: 32),

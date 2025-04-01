@@ -57,23 +57,17 @@ class User {
       String? masterTitle,
       int? studyYear,
       String? foodPreferences) {
+    // Only first name, last name, programme, study year, and food preferences are required
     return firstName != null &&
         firstName.isNotEmpty &&
         lastName != null &&
         lastName.isNotEmpty &&
-        cv != null &&
-        cv.isNotEmpty &&
-        profilePicture != null &&
-        profilePicture.isNotEmpty &&
         programme != null &&
         programme.isNotEmpty &&
-        linkedin != null &&
-        linkedin.isNotEmpty &&
-        masterTitle != null &&
-        masterTitle.isNotEmpty &&
         studyYear != null &&
         foodPreferences != null &&
         foodPreferences.isNotEmpty;
+    // CV, profile picture, LinkedIn, and master title are no longer required
   }
 
   static String _prependMediaUrl(String? url) {
@@ -138,17 +132,12 @@ class User {
     if (firstName == null || firstName!.isEmpty)
       missingFields.add('First Name');
     if (lastName == null || lastName!.isEmpty) missingFields.add('Last Name');
-    if (cv == null || cv!.isEmpty) missingFields.add('CV');
-    if (profilePicture == null || profilePicture!.isEmpty)
-      missingFields.add('Profile Picture');
     if (programme == null || programme!.isEmpty) missingFields.add('Programme');
-    if (linkedin == null || linkedin!.isEmpty) missingFields.add('LinkedIn');
-    if (masterTitle == null || masterTitle!.isEmpty)
-      missingFields.add('Master Title');
     if (studyYear == null) missingFields.add('Study Year');
     if (foodPreferences == null || foodPreferences!.isEmpty)
       missingFields.add('Food Preferences');
 
+    // CV, profile picture, LinkedIn, and master title are no longer in missing fields list
     return missingFields;
   }
 }
