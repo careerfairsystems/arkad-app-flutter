@@ -5,6 +5,7 @@ import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import 'edit_profile_screen.dart';
 import '../../widgets/profile_completion_dialog.dart';
+import '../auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User user;
@@ -241,9 +242,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // First handle the synchronous part
     authProvider.logout();
 
-    // Then navigate - no async gap here
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      '/login',
+    // Then navigate using MaterialPageRoute instead of named route
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => const LoginScreen(),
+      ),
       (route) => false,
     );
   }

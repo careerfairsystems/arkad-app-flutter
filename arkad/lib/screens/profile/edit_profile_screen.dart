@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/user_service.dart';
-import '../../widgets/profile_completion_dialog.dart'; // Import for Programme enum
+import '../../widgets/profile_completion_dialog.dart'; 
 import '../../widgets/profile_form_components.dart';
 import '../../utils/profile_utils.dart';
 

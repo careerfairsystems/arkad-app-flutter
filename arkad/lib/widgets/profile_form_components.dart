@@ -265,9 +265,6 @@ class ProfileFormComponents {
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        const Text('Profile Picture (Optional)',
-            style: TextStyle(color: Colors.grey, fontSize: 12)),
         if (!profilePictureDeleted &&
             currentProfilePicture != null &&
             currentProfilePicture.isNotEmpty &&

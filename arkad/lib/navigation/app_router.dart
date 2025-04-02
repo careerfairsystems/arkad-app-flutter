@@ -1,47 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'main_navigation.dart';
 import '../screens/companies/companies_screen.dart';
 import '../screens/student_sessions/student_sessions_screen.dart';
 import '../screens/event/event_screen.dart';
 import '../screens/map/map_screen.dart';
+import '../screens/auth/login_screen.dart';
+import '../screens/auth/signup_screen.dart';
+import '../screens/auth/verification_screen.dart';
+import '../screens/auth/reset_password_screen.dart';
+import '../screens/profile/profile_screen.dart';
+import '../screens/profile/edit_profile_screen.dart';
+import '../providers/auth_provider.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
-    switch (settings.name) {
+    final uri = Uri.parse(settings.name ?? '/');
+    final pathSegments = uri.pathSegments;
+
+    // Main navigation entry points
+    if (pathSegments.isEmpty || pathSegments[0] == 'home') {
+      return MaterialPageRoute(
+          builder: (_) => const MainNavigation(initialRoute: '/companies'));
+    }
+
+    switch (pathSegments[0]) {
       // Main navigation routes
-      case '/':
-      case '/home':
+      case 'companies':
+        if (pathSegments.length > 1) {
+          // Handle company details with ID
+          final companyId = pathSegments[1];
+          return MaterialPageRoute(builder: (_) => CompaniesScreen());
+        }
         return MaterialPageRoute(
             builder: (_) => const MainNavigation(initialRoute: '/companies'));
-      case '/companies':
-        return MaterialPageRoute(
-            builder: (_) => const MainNavigation(initialRoute: '/companies'));
-      case '/sessions':
+
+      case 'sessions':
         return MaterialPageRoute(
             builder: (_) => const MainNavigation(initialRoute: '/sessions'));
-      case '/events':
+
+      case 'events':
+        if (pathSegments.length > 1) {
+          // Handle event details with ID
+          final eventId = pathSegments[1];
+          return MaterialPageRoute(builder: (_) => EventScreen());
+        }
         return MaterialPageRoute(
             builder: (_) => const MainNavigation(initialRoute: '/events'));
-      case '/map':
+
+      case 'map':
         return MaterialPageRoute(
             builder: (_) => const MainNavigation(initialRoute: '/map'));
 
-      // Direct routes (no bottom navigation)
-      case '/edit-profile':
-        // This route should be handled by your existing edit profile screen
+      case 'profile':
+        if (pathSegments.length > 1 && pathSegments[1] == 'edit') {
+          return MaterialPageRoute(
+            builder: (_) {
+              final authProvider = Provider.of<AuthProvider>(_, listen: false);
+              return EditProfileScreen(user: authProvider.user!);
+            },
+          );
+        }
         return MaterialPageRoute(
-            builder: (_) => const Scaffold(
-                  body: Center(child: Text('Edit Profile Screen')),
-                ));
+            builder: (_) => const MainNavigation(initialRoute: '/profile'));
+
+      // Auth related routes
+      case 'login':
+        return MaterialPageRoute(
+            builder: (_) => const MainNavigation(initialRoute: '/login'));
+
+      case 'auth':
+        if (pathSegments.length > 1) {
+          switch (pathSegments[1]) {
+            case 'signup':
+              return MaterialPageRoute(builder: (_) => const SignupScreen());
+            case 'verification':
+              final args = settings.arguments as Map<String, dynamic>?;
+              final email = args?['email'] as String? ?? '';
+              return MaterialPageRoute(
+                  builder: (_) => VerificationScreen(email: email));
+            case 'password-reset':
+              return MaterialPageRoute(
+                  builder: (_) => const ResetPasswordScreen());
+          }
+        }
+        return _errorRoute();
 
       default:
-        return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            body: Center(
-              child: Text('No route defined for ${settings.name}'),
-            ),
-          ),
-        );
+        return _errorRoute();
     }
+  }
+
+  static Route<dynamic> _errorRoute() {
+    return MaterialPageRoute(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: const Center(child: Text('Route not found')),
+      ),
+    );
   }
 }
