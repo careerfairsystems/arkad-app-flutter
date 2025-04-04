@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import 'login_screen.dart';
-import 'verification_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -136,6 +134,11 @@ class _SignupScreenState extends State<SignupScreen> {
     return true;
   }
 
+  void _navigateToLogin() {
+    // Use Navigator.pop() to go back to login screen
+    Navigator.of(context).pop();
+  }
+
   Future<void> _handleSignup() async {
     if (!_validateAndShowErrors()) return;
 
@@ -153,14 +156,10 @@ class _SignupScreenState extends State<SignupScreen> {
         setState(() => _isLoading = false);
 
         if (success) {
-          // Navigate to verification screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => VerificationScreen(
-                email: _emailController.text.trim(),
-              ),
-            ),
+          // Use named route for verification screen
+          Navigator.of(context).pushNamed(
+            '/auth/verification',
+            arguments: {'email': _emailController.text.trim()},
           );
         } else if (authProvider.error != null) {
           setState(() => _errorMessage = authProvider.error);
@@ -380,14 +379,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 children: [
                   const Text("Already have an account?"),
                   TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                    },
+                    onPressed: _navigateToLogin,
                     child: const Text(
                       "Login",
                       style: TextStyle(fontWeight: FontWeight.bold),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import 'signup_screen.dart';
-import 'reset_password_screen.dart';
 import '../profile/profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -57,6 +55,15 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     }
+  }
+
+  void _navigateToSignup() {
+    // Use Navigator.pushNamed instead of creating a new MaterialPageRoute
+    Navigator.of(context).pushNamed('/auth/signup');
+  }
+
+  void _navigateToResetPassword() {
+    Navigator.of(context).pushNamed('/auth/reset-password');
   }
 
   @override
@@ -138,14 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ResetPasswordScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: _navigateToResetPassword,
                   child: const Text("Forgot password?"),
                 ),
               ),
@@ -184,14 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Text("Don't have an account?"),
                   TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SignupScreen(),
-                        ),
-                      );
-                    },
+                    onPressed: _navigateToSignup,
                     child: const Text(
                       "Sign up",
                       style: TextStyle(fontWeight: FontWeight.bold),
