@@ -3,6 +3,7 @@ import '../../models/company.dart';
 import '../../services/company_service.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/filter_dropdown.dart';
+import '../../widgets/filter_dropdown_controller.dart';
 import 'company_detail_screen.dart';
 import 'filter_options.dart';
 
@@ -23,6 +24,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   TextEditingController _searchController = TextEditingController();
   bool _showFilters = false;
 
+  // Filter dropdown controller
+  final FilterDropdownController _dropdownController =
+      FilterDropdownController();
+
   // Selected filter options
   Set<String> _selectedDegrees = {};
   Set<String> _selectedCompetences = {};
@@ -34,6 +39,12 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   void initState() {
     super.initState();
     _loadCompanies();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadCompanies() async {
@@ -97,6 +108,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   void _toggleFilters() {
     setState(() {
       _showFilters = !_showFilters;
+      // Collapse all dropdowns when hiding filters
+      if (!_showFilters) {
+        _dropdownController.collapseAll();
+      }
     });
   }
 
@@ -187,9 +202,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             ),
           ),
 
-          // Filter section (collapsible)
+          // Filter section (collapsible and scrollable)
           AnimatedCrossFade(
-            firstChild: _buildFilterSection(),
+            firstChild: _buildScrollableFilterSection(),
             secondChild: const SizedBox.shrink(),
             crossFadeState: _showFilters
                 ? CrossFadeState.showFirst
@@ -206,7 +221,26 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     );
   }
 
-  Widget _buildFilterSection() {
+  Widget _buildScrollableFilterSection() {
+    // Calculate available height for filter section (approximately 50% of screen height)
+    final double maxFilterHeight = MediaQuery.of(context).size.height * 0.5;
+
+    return Container(
+      constraints: BoxConstraints(maxHeight: maxFilterHeight),
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: _buildFilterContent(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterContent() {
     // Count total active filters for the badge
     int totalActiveFilters = _selectedDegrees.length +
         _selectedCompetences.length +
@@ -214,108 +248,122 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
         _selectedIndustries.length +
         (_hasStudentSessions ? 1 : 0);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      'Filters',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    if (totalActiveFilters > 0)
-                      Container(
-                        margin: const EdgeInsets.only(left: 8),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '$totalActiveFilters',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                  ],
+                Text(
+                  'Filters',
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
+                if (totalActiveFilters > 0)
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$totalActiveFilters',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            Row(
+              children: [
+                TextButton.icon(
+                  icon: const Icon(Icons.close),
+                  label: const Text('Close'),
+                  onPressed: _toggleFilters,
+                ),
+                const SizedBox(width: 8),
                 TextButton(
                   onPressed: _clearAllFilters,
                   child: const Text('Clear All'),
                 ),
               ],
             ),
-            const Divider(),
-
-            // Student Session filter - kept as switch
-            Row(
-              children: [
-                Switch(
-                  value: _hasStudentSessions,
-                  onChanged: (value) {
-                    setState(() {
-                      _hasStudentSessions = value;
-                      _applyFilters();
-                    });
-                  },
-                ),
-                const Text('Has Student Sessions'),
-              ],
-            ),
-            const Divider(),
-
-            // Degrees dropdown
-            FilterDropdown<String>(
-              title: 'Degrees',
-              options: FilterOptions.degrees,
-              selectedValues: _selectedDegrees,
-              onSelectionChanged: _updateDegreesFilter,
-              displayStringForOption: (option) => option,
-            ),
-            const Divider(),
-
-            // Positions dropdown
-            FilterDropdown<String>(
-              title: 'Positions',
-              options: FilterOptions.positions,
-              selectedValues: _selectedPositions,
-              onSelectionChanged: _updatePositionsFilter,
-              displayStringForOption: (option) => option,
-            ),
-            const Divider(),
-
-            // Industries dropdown
-            FilterDropdown<String>(
-              title: 'Industries',
-              options: FilterOptions.industries,
-              selectedValues: _selectedIndustries,
-              onSelectionChanged: _updateIndustriesFilter,
-              displayStringForOption: (option) => option,
-            ),
-            const Divider(),
-
-            // Competences dropdown
-            FilterDropdown<String>(
-              title: 'Competences',
-              options: FilterOptions.competences,
-              selectedValues: _selectedCompetences,
-              onSelectionChanged: _updateCompetencesFilter,
-              displayStringForOption: (option) => option,
-            ),
           ],
         ),
-      ),
+        const Divider(),
+
+        // Student Session filter - kept as switch
+        Row(
+          children: [
+            Switch(
+              value: _hasStudentSessions,
+              onChanged: (value) {
+                setState(() {
+                  _hasStudentSessions = value;
+                  _applyFilters();
+                });
+              },
+            ),
+            const Text('Has Student Sessions'),
+          ],
+        ),
+        const Divider(),
+
+        // Degrees dropdown
+        FilterDropdown<String>(
+          id: 'degrees',
+          title: 'Degrees',
+          options: FilterOptions.degrees,
+          selectedValues: _selectedDegrees,
+          onSelectionChanged: _updateDegreesFilter,
+          displayStringForOption: (option) => option,
+          controller: _dropdownController,
+        ),
+        const Divider(),
+
+        // Positions dropdown
+        FilterDropdown<String>(
+          id: 'positions',
+          title: 'Positions',
+          options: FilterOptions.positions,
+          selectedValues: _selectedPositions,
+          onSelectionChanged: _updatePositionsFilter,
+          displayStringForOption: (option) => option,
+          controller: _dropdownController,
+        ),
+        const Divider(),
+
+        // Industries dropdown
+        FilterDropdown<String>(
+          id: 'industries',
+          title: 'Industries',
+          options: FilterOptions.industries,
+          selectedValues: _selectedIndustries,
+          onSelectionChanged: _updateIndustriesFilter,
+          displayStringForOption: (option) => option,
+          controller: _dropdownController,
+        ),
+        const Divider(),
+
+        // Competences dropdown
+        FilterDropdown<String>(
+          id: 'competences',
+          title: 'Competences',
+          options: FilterOptions.competences,
+          selectedValues: _selectedCompetences,
+          onSelectionChanged: _updateCompetencesFilter,
+          displayStringForOption: (option) => option,
+          controller: _dropdownController,
+        ),
+        // Padding at the bottom to ensure space after the last dropdown
+        const SizedBox(height: 8),
+      ],
     );
   }
 
@@ -496,11 +544,5 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
         },
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 }

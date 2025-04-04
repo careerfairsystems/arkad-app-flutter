@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'filter_dropdown_controller.dart';
 
 class FilterDropdown<T> extends StatefulWidget {
+  final String id;
   final String title;
   final List<T> options;
   final Set<T> selectedValues;
   final Function(Set<T>) onSelectionChanged;
   final String Function(T) displayStringForOption;
+  final FilterDropdownController? controller;
 
   const FilterDropdown({
     Key? key,
@@ -14,14 +17,16 @@ class FilterDropdown<T> extends StatefulWidget {
     required this.selectedValues,
     required this.onSelectionChanged,
     required this.displayStringForOption,
-  }) : super(key: key);
+    this.controller,
+    String? id,
+  })  : id = id ?? title,
+        super(key: key);
 
   @override
   _FilterDropdownState<T> createState() => _FilterDropdownState<T>();
 }
 
 class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
-  bool _isExpanded = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   late List<T> _filteredOptions;
@@ -30,18 +35,49 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
   void initState() {
     super.initState();
     _filteredOptions = List.from(widget.options);
+
+    // Listen to controller changes if provided
+    if (widget.controller != null) {
+      widget.controller!.addListener(_onControllerChanged);
+    }
   }
 
-  void _toggleDropdown() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-      if (!_isExpanded) {
-        // Clear search when closing dropdown
+  @override
+  void dispose() {
+    _searchController.dispose();
+    if (widget.controller != null) {
+      widget.controller!.removeListener(_onControllerChanged);
+    }
+    super.dispose();
+  }
+
+  void _onControllerChanged() {
+    // If this dropdown is no longer expanded according to the controller,
+    // clear the search
+    if (widget.controller != null &&
+        !widget.controller!.isExpanded(widget.id) &&
+        _isExpanded) {
+      setState(() {
         _searchController.clear();
         _searchQuery = '';
         _filteredOptions = List.from(widget.options);
-      }
-    });
+      });
+    }
+    // Always refresh UI when controller changes
+    setState(() {});
+  }
+
+  bool get _isExpanded {
+    if (widget.controller != null) {
+      return widget.controller!.isExpanded(widget.id);
+    }
+    return false;
+  }
+
+  void _toggleDropdown() {
+    if (widget.controller != null) {
+      widget.controller!.setExpanded(widget.id, isExpanded: !_isExpanded);
+    }
   }
 
   void _updateSearch(String query) {
@@ -82,6 +118,7 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // Dropdown header
         InkWell(
@@ -135,6 +172,8 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
               ? CrossFadeState.showFirst
               : CrossFadeState.showSecond,
           duration: const Duration(milliseconds: 200),
+          // Make sure the animation doesn't take too much height when collapsed
+          sizeCurve: Curves.easeInOut,
         ),
       ],
     );
@@ -143,6 +182,7 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
   Widget _buildDropdownContent(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // Search field
         Padding(
@@ -171,11 +211,15 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
           ),
         ),
 
-        // Options list
+        // Options list - limit height to prevent excessive expansion
         Container(
-          constraints: const BoxConstraints(maxHeight: 250),
+          constraints: BoxConstraints(
+            // Adjust max height based on number of options, but keep it reasonable
+            maxHeight: widget.options.length > 10 ? 200 : 150,
+          ),
           child: SingleChildScrollView(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Clear all row at top
                 if (widget.selectedValues.isNotEmpty)
@@ -217,7 +261,10 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
                       final option = _filteredOptions[index];
                       final isSelected = widget.selectedValues.contains(option);
                       return CheckboxListTile(
-                        title: Text(widget.displayStringForOption(option)),
+                        title: Text(
+                          widget.displayStringForOption(option),
+                          style: const TextStyle(fontSize: 14),
+                        ),
                         value: isSelected,
                         onChanged: (_) => _toggleOption(option),
                         dense: true,
@@ -234,6 +281,7 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4.0),
                         ),
+                        visualDensity: VisualDensity.compact,
                       );
                     },
                   ),
@@ -244,11 +292,5 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
         const SizedBox(height: 8),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 }
