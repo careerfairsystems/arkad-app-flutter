@@ -8,4 +8,6 @@ class ApiEndpoints {
   static const String userProfile = '/user/profile';
   static const String profilePicture = '/user/profile/profile-picture';
   static const String cv = '/user/profile/cv';
+
+  static const String companies = '/company/';
 }

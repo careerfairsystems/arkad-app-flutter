@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'main_navigation.dart';
 import '../screens/companies/companies_screen.dart';
+import '../screens/companies/company_detail_screen.dart';
 import '../screens/student_sessions/student_sessions_screen.dart';
 import '../screens/event/event_screen.dart';
 import '../screens/map/map_screen.dart';
@@ -12,6 +13,7 @@ import '../screens/auth/reset_password_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../providers/auth_provider.dart';
+import '../services/company_service.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -29,8 +31,22 @@ class AppRouter {
       case 'companies':
         if (pathSegments.length > 1) {
           // Handle company details with ID
-          final companyId = pathSegments[1];
-          return MaterialPageRoute(builder: (_) => CompaniesScreen());
+          final companyId = int.tryParse(pathSegments[1]);
+          if (companyId != null) {
+            return MaterialPageRoute(
+              builder: (context) {
+                final companyService = CompanyService();
+                if (companyService.isLoaded) {
+                  final company = companyService.getCompanyById(companyId);
+                  if (company != null) {
+                    return CompanyDetailScreen(company: company);
+                  }
+                }
+                // If company isn't loaded or found, go to companies screen
+                return const CompaniesScreen();
+              },
+            );
+          }
         }
         return MaterialPageRoute(
             builder: (_) => const MainNavigation(initialRoute: '/companies'));
