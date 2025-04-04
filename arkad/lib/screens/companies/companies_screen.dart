@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../models/company.dart';
 import '../../services/company_service.dart';
-import 'company_detail_screen.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/filter_dropdown.dart';
+import 'company_detail_screen.dart';
+import 'filter_options.dart';
 
 class CompaniesScreen extends StatefulWidget {
   const CompaniesScreen({Key? key}) : super(key: key);
@@ -19,6 +21,14 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   bool _hasError = false;
   String _searchQuery = '';
   TextEditingController _searchController = TextEditingController();
+  bool _showFilters = false;
+
+  // Selected filter options
+  Set<String> _selectedDegrees = {};
+  Set<String> _selectedCompetences = {};
+  Set<String> _selectedPositions = {};
+  Set<String> _selectedIndustries = {};
+  bool _hasStudentSessions = false;
 
   @override
   void initState() {
@@ -48,11 +58,85 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   void _applyFilters() {
-    if (_searchQuery.isEmpty) {
-      _filteredCompanies = List.from(_companies);
-    } else {
-      _filteredCompanies = _companyService.searchCompanies(_searchQuery);
+    if (_searchQuery.isEmpty &&
+        _selectedDegrees.isEmpty &&
+        _selectedCompetences.isEmpty &&
+        _selectedPositions.isEmpty &&
+        _selectedIndustries.isEmpty &&
+        !_hasStudentSessions) {
+      setState(() {
+        _filteredCompanies = List.from(_companies);
+      });
+      return;
     }
+
+    // First filter by search query if present
+    List<Company> searchResults = _searchQuery.isEmpty
+        ? List.from(_companies)
+        : _companyService.searchCompanies(_searchQuery);
+
+    // Then apply additional filters
+    final filteredResults = _companyService.filterCompanies(
+      companies: searchResults,
+      degrees: _selectedDegrees.isNotEmpty ? _selectedDegrees.toList() : null,
+      competences: _selectedCompetences.isNotEmpty
+          ? _selectedCompetences.toList()
+          : null,
+      positions:
+          _selectedPositions.isNotEmpty ? _selectedPositions.toList() : null,
+      industries:
+          _selectedIndustries.isNotEmpty ? _selectedIndustries.toList() : null,
+      hasStudentSessions: _hasStudentSessions ? true : null,
+    );
+
+    setState(() {
+      _filteredCompanies = filteredResults;
+    });
+  }
+
+  void _toggleFilters() {
+    setState(() {
+      _showFilters = !_showFilters;
+    });
+  }
+
+  void _clearAllFilters() {
+    setState(() {
+      _selectedDegrees = {};
+      _selectedCompetences = {};
+      _selectedPositions = {};
+      _selectedIndustries = {};
+      _hasStudentSessions = false;
+      _applyFilters();
+    });
+  }
+
+  void _updateDegreesFilter(Set<String> selected) {
+    setState(() {
+      _selectedDegrees = selected;
+      _applyFilters();
+    });
+  }
+
+  void _updateCompetencesFilter(Set<String> selected) {
+    setState(() {
+      _selectedCompetences = selected;
+      _applyFilters();
+    });
+  }
+
+  void _updatePositionsFilter(Set<String> selected) {
+    setState(() {
+      _selectedPositions = selected;
+      _applyFilters();
+    });
+  }
+
+  void _updateIndustriesFilter(Set<String> selected) {
+    setState(() {
+      _selectedIndustries = selected;
+      _applyFilters();
+    });
   }
 
   @override
@@ -60,9 +144,17 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Companies'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: _toggleFilters,
+            tooltip: 'Filter companies',
+          ),
+        ],
       ),
       body: Column(
         children: [
+          // Search bar
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
@@ -94,10 +186,135 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               },
             ),
           ),
+
+          // Filter section (collapsible)
+          AnimatedCrossFade(
+            firstChild: _buildFilterSection(),
+            secondChild: const SizedBox.shrink(),
+            crossFadeState: _showFilters
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            duration: const Duration(milliseconds: 300),
+          ),
+
+          // Companies list
           Expanded(
             child: _buildContent(),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterSection() {
+    // Count total active filters for the badge
+    int totalActiveFilters = _selectedDegrees.length +
+        _selectedCompetences.length +
+        _selectedPositions.length +
+        _selectedIndustries.length +
+        (_hasStudentSessions ? 1 : 0);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Filters',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    if (totalActiveFilters > 0)
+                      Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$totalActiveFilters',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: _clearAllFilters,
+                  child: const Text('Clear All'),
+                ),
+              ],
+            ),
+            const Divider(),
+
+            // Student Session filter - kept as switch
+            Row(
+              children: [
+                Switch(
+                  value: _hasStudentSessions,
+                  onChanged: (value) {
+                    setState(() {
+                      _hasStudentSessions = value;
+                      _applyFilters();
+                    });
+                  },
+                ),
+                const Text('Has Student Sessions'),
+              ],
+            ),
+            const Divider(),
+
+            // Degrees dropdown
+            FilterDropdown<String>(
+              title: 'Degrees',
+              options: FilterOptions.degrees,
+              selectedValues: _selectedDegrees,
+              onSelectionChanged: _updateDegreesFilter,
+              displayStringForOption: (option) => option,
+            ),
+            const Divider(),
+
+            // Positions dropdown
+            FilterDropdown<String>(
+              title: 'Positions',
+              options: FilterOptions.positions,
+              selectedValues: _selectedPositions,
+              onSelectionChanged: _updatePositionsFilter,
+              displayStringForOption: (option) => option,
+            ),
+            const Divider(),
+
+            // Industries dropdown
+            FilterDropdown<String>(
+              title: 'Industries',
+              options: FilterOptions.industries,
+              selectedValues: _selectedIndustries,
+              onSelectionChanged: _updateIndustriesFilter,
+              displayStringForOption: (option) => option,
+            ),
+            const Divider(),
+
+            // Competences dropdown
+            FilterDropdown<String>(
+              title: 'Competences',
+              options: FilterOptions.competences,
+              selectedValues: _selectedCompetences,
+              onSelectionChanged: _updateCompetencesFilter,
+              displayStringForOption: (option) => option,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -135,23 +352,67 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             Text(
               _companies.isEmpty
                   ? 'No companies available'
-                  : 'No companies match your search',
+                  : 'No companies match your criteria',
               style: const TextStyle(fontSize: 18, color: Colors.grey),
             ),
+            if (_hasStudentSessions ||
+                _selectedDegrees.isNotEmpty ||
+                _selectedCompetences.isNotEmpty ||
+                _selectedPositions.isNotEmpty ||
+                _selectedIndustries.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.filter_alt_off),
+                label: const Text('Clear Filters'),
+                onPressed: _clearAllFilters,
+              ),
+            ],
           ],
         ),
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: () => _loadCompanies(),
-      child: ListView.builder(
-        itemCount: _filteredCompanies.length,
-        itemBuilder: (context, index) {
-          final company = _filteredCompanies[index];
-          return _buildCompanyCard(company);
-        },
-      ),
+    // Display result count
+    int totalFilters = _selectedDegrees.length +
+        _selectedCompetences.length +
+        _selectedPositions.length +
+        _selectedIndustries.length +
+        (_hasStudentSessions ? 1 : 0);
+
+    return Column(
+      children: [
+        if (totalFilters > 0 || _searchQuery.isNotEmpty)
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              children: [
+                Text(
+                  'Showing ${_filteredCompanies.length} of ${_companies.length} companies',
+                  style: TextStyle(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.6),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => _loadCompanies(),
+            child: ListView.builder(
+              itemCount: _filteredCompanies.length,
+              itemBuilder: (context, index) {
+                final company = _filteredCompanies[index];
+                return _buildCompanyCard(company);
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 

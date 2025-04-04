@@ -106,19 +106,24 @@ class CompanyService {
     }).toList();
   }
 
-  // Filter companies by various criteria
+  // Filter companies by various criteria with an optional list of companies to filter
   List<Company> filterCompanies({
+    List<Company>? companies,
     List<String>? industries,
     List<String>? programmes,
     List<String>? degrees,
+    List<String>? positions,
+    List<String>? competences,
     bool? hasStudentSessions,
   }) {
-    if (!_isLoaded) {
+    if (!_isLoaded && companies == null) {
       throw Exception(
           'Companies not loaded yet. Call getAllCompanies() first.');
     }
 
-    return _companies.where((company) {
+    final List<Company> companiesToFilter = companies ?? _companies;
+
+    return companiesToFilter.where((company) {
       // Filter by industries
       if (industries != null && industries.isNotEmpty) {
         if (!company.industries.any((i) => industries.contains(i))) {
@@ -140,9 +145,23 @@ class CompanyService {
         }
       }
 
+      // Filter by positions
+      if (positions != null && positions.isNotEmpty) {
+        if (!company.positions.any((p) => positions.contains(p))) {
+          return false;
+        }
+      }
+
+      // Filter by competences
+      if (competences != null && competences.isNotEmpty) {
+        if (!company.desiredCompetences.any((c) => competences.contains(c))) {
+          return false;
+        }
+      }
+
       // Filter by student sessions availability
-      if (hasStudentSessions != null) {
-        if (hasStudentSessions && company.daysWithStudentsession <= 0) {
+      if (hasStudentSessions != null && hasStudentSessions) {
+        if (company.daysWithStudentsession <= 0) {
           return false;
         }
       }
