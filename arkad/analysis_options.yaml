@@ -1,5 +1,12 @@
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  errors:
+    invalid_annotation_target: ignore
+
 linter:
   rules:
     avoid_print: false
@@ -9,3 +16,17 @@ linter:
     prefer_final_fields: false
     unnecessary_breaks: true
     use_key_in_widget_constructors: false
+    always_declare_return_types: true
+    annotate_overrides: true
+    avoid_empty_else: true
+    avoid_redundant_argument_values: true
+    avoid_unused_constructor_parameters: true
+    curly_braces_in_flow_control_structures: true
+    directives_ordering: true
+    empty_catches: true
+    file_names: true
+    library_names: true
+    package_names: true
+    sort_child_properties_last: true
+    type_init_formals: true
+    unawaited_futures: true
