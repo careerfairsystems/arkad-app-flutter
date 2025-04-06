@@ -14,6 +14,7 @@ import '../screens/profile/profile_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../providers/auth_provider.dart';
 import '../services/company_service.dart';
+import '../utils/service_helper.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -35,7 +36,7 @@ class AppRouter {
           if (companyId != null) {
             return MaterialPageRoute(
               builder: (context) {
-                final companyService = CompanyService();
+                final companyService = ServiceHelper.getService<CompanyService>();
                 if (companyService.isLoaded) {
                   final company = companyService.getCompanyById(companyId);
                   if (company != null) {

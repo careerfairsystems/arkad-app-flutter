@@ -1,11 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:namer_app/services/user_service.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/user_service.dart';
-import '../../widgets/profile_completion_dialog.dart'; 
+import '../../utils/service_helper.dart';
+import '../../widgets/profile_completion_dialog.dart';
 import '../../widgets/profile_form_components.dart';
 import '../../utils/profile_utils.dart';
 
@@ -20,7 +21,7 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _userService = UserService();
+  final _userService = ServiceHelper.getService<UserService>();
 
   // Form field controllers
   late TextEditingController _emailController;

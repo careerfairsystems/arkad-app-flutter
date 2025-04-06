@@ -9,5 +9,6 @@ class ApiEndpoints {
   static const String profilePicture = '/user/profile/profile-picture';
   static const String cv = '/user/profile/cv';
 
+  // Company endpoints
   static const String companies = '/company/';
 }

@@ -11,10 +11,10 @@ class CompanyService {
   bool _isLoaded = false;
 
   CompanyService({
-    AuthService? authService,
-    ApiService? apiService,
-  })  : _authService = authService ?? AuthService(),
-        _apiService = apiService ?? ApiService();
+    required AuthService authService,
+    required ApiService apiService,
+  })  : _authService = authService,
+        _apiService = apiService;
 
   // Getter for cached companies
   List<Company> get companies => _companies;

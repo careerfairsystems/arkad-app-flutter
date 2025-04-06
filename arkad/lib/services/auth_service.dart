@@ -16,12 +16,12 @@ class AuthService {
   final FlutterSecureStorage _storage;
   final ApiService _apiService;
 
-  /// Creates an instance of AuthService with optional dependencies
+  /// Creates an instance of AuthService with required dependencies
   AuthService({
-    FlutterSecureStorage? storage,
-    ApiService? apiService,
-  })  : _storage = storage ?? const FlutterSecureStorage(),
-        _apiService = apiService ?? ApiService();
+    required FlutterSecureStorage storage,
+    required ApiService apiService,
+  })  : _storage = storage,
+        _apiService = apiService;
 
   /// Begins the signup process
   ///

@@ -16,7 +16,7 @@ class ApiResponse<T> {
 class ApiService {
   final http.Client _client;
 
-  ApiService({http.Client? client}) : _client = client ?? http.Client();
+  ApiService({required http.Client client}) : _client = client;
 
   // Default headers
   Map<String, String> get _defaultHeaders => {

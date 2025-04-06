@@ -14,10 +14,10 @@ class UserService {
   final ApiService _apiService;
 
   UserService({
-    AuthService? authService,
-    ApiService? apiService,
-  })  : _authService = authService ?? AuthService(),
-        _apiService = apiService ?? ApiService();
+    required AuthService authService,
+    required ApiService apiService,
+  })  : _authService = authService,
+        _apiService = apiService;
 
   // Get user profile
   Future<User> getUserProfile() async {

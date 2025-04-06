@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/company.dart';
 import '../../services/company_service.dart';
+import '../../utils/service_helper.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/filter_dropdown.dart';
 import '../../widgets/filter_dropdown_controller.dart';
@@ -15,7 +16,7 @@ class CompaniesScreen extends StatefulWidget {
 }
 
 class _CompaniesScreenState extends State<CompaniesScreen> {
-  final CompanyService _companyService = CompanyService();
+  late final CompanyService _companyService;
   List<Company> _companies = [];
   List<Company> _filteredCompanies = [];
   bool _isLoading = true;
@@ -38,6 +39,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   @override
   void initState() {
     super.initState();
+    _companyService = ServiceHelper.getService<CompanyService>();
     _loadCompanies();
   }
 

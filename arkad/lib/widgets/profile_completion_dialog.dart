@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:namer_app/services/user_service.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 // Import updated packages
@@ -8,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart' as fp;
 import '../models/user.dart';
 import '../providers/auth_provider.dart';
-import '../services/user_service.dart';
+import '../../utils/service_helper.dart';
 import '../widgets/profile_form_components.dart';
 import '../utils/profile_utils.dart';
 
@@ -308,7 +309,7 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
       });
 
       try {
-        final userService = UserService();
+        final userService = ServiceHelper.getService<UserService>();
 
         // Use the ProfileUtils helper to prepare data
         final profileData = ProfileUtils.prepareProfileData(
