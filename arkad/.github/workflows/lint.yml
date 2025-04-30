@@ -1,4 +1,4 @@
-name: Lint
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  lint:
+  analyze:
     name: Analyze code
     runs-on: ubuntu-latest
 
@@ -20,12 +20,81 @@ jobs:
         with:
           flutter-version: "3.13.0"
           channel: "stable"
+          cache: true
 
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Verify formatting
+        run: dart format --set-exit-if-changed .
+
       - name: Analyze code
         run: flutter analyze --no-fatal-infos
 
-      - name: Format code
-        run: dart format --set-exit-if-changed .
+      - name: Run tests with coverage
+        run: |
+          flutter test --coverage
+          genhtml coverage/lcov.info -o coverage/html
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage/html
+
+  build:
+    name: Build verification
+    needs: analyze
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [android, ios, web]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.13.0"
+          channel: "stable"
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build for ${{ matrix.platform }}
+        run: |
+          if [ "${{ matrix.platform }}" = "web" ]; then
+            flutter build web --release
+          elif [ "${{ matrix.platform }}" = "android" ]; then
+            flutter build apk --release
+          elif [ "${{ matrix.platform }}" = "ios" ]; then
+            flutter build ios --release --no-codesign
+          fi
+
+  security:
+    name: Security check
+    runs-on: ubuntu-latest
+    needs: analyze
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.13.0"
+          channel: "stable"
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run dependency check
+        run: flutter pub outdated --mode=null-safety
+
+      - name: Check for outdated packages
+        run: flutter pub outdated
