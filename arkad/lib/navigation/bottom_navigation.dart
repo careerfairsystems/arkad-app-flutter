@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 
+/// Represents an item in the bottom navigation bar.
 class NavigationItem {
+  /// The label shown below the icon.
   final String label;
+
+  /// The icon to display for this item.
   final IconData icon;
+
+  /// The route associated with this item.
   final String route;
 
   const NavigationItem({
@@ -12,9 +18,17 @@ class NavigationItem {
   });
 }
 
+/// A customized bottom navigation bar for the app.
+///
+/// This widget displays the navigation items and handles tab switching.
 class AppBottomNavigation extends StatelessWidget {
+  /// The index of the currently selected tab.
   final int currentIndex;
+
+  /// Callback when a tab is tapped.
   final Function(int) onTap;
+
+  /// The list of navigation items to display.
   final List<NavigationItem> items;
 
   const AppBottomNavigation({
@@ -30,14 +44,18 @@ class AppBottomNavigation extends StatelessWidget {
       currentIndex: currentIndex < items.length ? currentIndex : 0,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: Theme.of(context).primaryColor,
+      selectedItemColor: Theme.of(context).colorScheme.primary,
       unselectedItemColor: Colors.grey,
-      items: items
-          .map((item) => BottomNavigationBarItem(
-                icon: Icon(item.icon),
-                label: item.label,
-              ))
-          .toList(),
+      showUnselectedLabels: true,
+      items: items.map((item) => _buildNavigationBarItem(item)).toList(),
+    );
+  }
+
+  /// Creates a BottomNavigationBarItem from a NavigationItem.
+  BottomNavigationBarItem _buildNavigationBarItem(NavigationItem item) {
+    return BottomNavigationBarItem(
+      icon: Icon(item.icon),
+      label: item.label,
     );
   }
 }

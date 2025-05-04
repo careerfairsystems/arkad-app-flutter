@@ -128,9 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     Text(
                       currentUser.email,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
                     if (currentUser.programme != null &&
                         currentUser.programme!.isNotEmpty) ...[
@@ -259,16 +257,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
+            style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 16,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               decoration: isLink ? TextDecoration.underline : null,
               color: isLink ? Colors.blue : null,
             ),

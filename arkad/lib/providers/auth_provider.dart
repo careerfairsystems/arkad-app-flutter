@@ -3,12 +3,14 @@ import '../services/auth_service.dart';
 import '../services/user_service.dart';
 import '../models/user.dart';
 
+/// Authentication status states
 enum AuthStatus {
   initial,
   authenticated,
   unauthenticated,
 }
 
+/// AuthProvider manages authentication state throughout the app
 class AuthProvider with ChangeNotifier {
   final AuthService _authService;
   final UserService _userService;
@@ -22,8 +24,9 @@ class AuthProvider with ChangeNotifier {
   String? _verificationEmail;
   String? _verificationPassword;
 
+  /// Creates a new AuthProvider with required services
   AuthProvider(this._authService, this._userService) {
-    // Auto-check if we have a valid token on startup
+    // Auto-check if user is logged in on startup
     _checkAuthStatus();
   }
 
@@ -173,11 +176,18 @@ class AuthProvider with ChangeNotifier {
     _setLoading(true);
 
     try {
-      final token = await _authService.getValidToken();
+      final token = await _authService.getToken();
 
       if (token != null) {
-        final user = await _userService.getUserProfile();
-        _authenticate(user);
+        try {
+          final user = await _userService.getUserProfile();
+          _authenticate(user);
+        } catch (e) {
+          // If we have a token but can't get the profile,
+          // token might be invalid
+          await _authService.logout();
+          _setUnauthenticated();
+        }
       } else {
         _setUnauthenticated();
       }

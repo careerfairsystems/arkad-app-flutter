@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/theme_config.dart';
 
 class ThemeProvider extends ChangeNotifier {
   bool _isDarkMode = false;
@@ -11,28 +12,6 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   ThemeData getTheme() {
-    return _isDarkMode ? _darkTheme : _lightTheme;
+    return _isDarkMode ? ArkadTheme.darkTheme : ArkadTheme.lightTheme;
   }
-
-  // Light theme
-  final ThemeData _lightTheme = ThemeData(
-    primarySwatch: Colors.blue,
-    brightness: Brightness.light,
-    scaffoldBackgroundColor: Colors.white,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.blue,
-      foregroundColor: Colors.white,
-    ),
-  );
-
-  // Dark theme
-  final ThemeData _darkTheme = ThemeData(
-    primarySwatch: Colors.blue,
-    brightness: Brightness.dark,
-    scaffoldBackgroundColor: Colors.grey[900],
-    appBarTheme: AppBarTheme(
-      backgroundColor: Colors.grey[800],
-      foregroundColor: Colors.white,
-    ),
-  );
 }

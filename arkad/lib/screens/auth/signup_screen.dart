@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../config/theme_config.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+/// Signup screen for new user registration.
+///
+/// Provides real-time validation, password requirements, and navigation to login.
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -52,7 +57,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _confirmPasswordController.addListener(_validateConfirmPassword);
   }
 
-  // Add this missing method
+  /// Builds a row for password requirement feedback.
   Widget _buildRequirementRow(bool isMet, String requirement) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),
@@ -60,7 +65,7 @@ class _SignupScreenState extends State<SignupScreen> {
         children: [
           Icon(
             isMet ? Icons.check_circle : Icons.cancel,
-            color: isMet ? Colors.green : Colors.red,
+            color: isMet ? ArkadColors.arkadGreen : ArkadColors.lightRed,
             size: 16.0,
           ),
           const SizedBox(width: 8.0),
@@ -68,7 +73,7 @@ class _SignupScreenState extends State<SignupScreen> {
             requirement,
             style: TextStyle(
               fontSize: 12.0,
-              color: isMet ? Colors.green : Colors.red,
+              color: isMet ? ArkadColors.arkadGreen : ArkadColors.lightRed,
             ),
           ),
         ],
@@ -76,13 +81,14 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
+  /// Validates the email field in real time.
   void _validateEmail() {
     setState(() {
       _isEmailValid = _emailRegExp.hasMatch(_emailController.text.trim());
     });
   }
 
-  // Update the _validatePassword method to check all requirements
+  /// Validates the password field in real time.
   void _validatePassword() {
     final password = _passwordController.text;
     setState(() {
@@ -107,6 +113,7 @@ class _SignupScreenState extends State<SignupScreen> {
     });
   }
 
+  /// Validates the confirm password field in real time.
   void _validateConfirmPassword() {
     setState(() {
       _isConfirmPasswordValid =
@@ -120,13 +127,13 @@ class _SignupScreenState extends State<SignupScreen> {
       _isConfirmPasswordValid &&
       _policyAccepted;
 
+  /// Validates the form and shows errors for missing policy acceptance.
   bool _validateAndShowErrors() {
     if (!_formKey.currentState!.validate()) return false;
     if (!_policyAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Please accept the privacy policy and terms of service'),
+          content: Text('Please accept the privacy policy'),
         ),
       );
       return false;
@@ -134,29 +141,23 @@ class _SignupScreenState extends State<SignupScreen> {
     return true;
   }
 
+  /// Navigates to the login screen.
   void _navigateToLogin() {
-    // Use Navigator.pop() to go back to login screen
     Navigator.of(context).pop();
   }
 
+  /// Handles signup logic and navigation on success.
   Future<void> _handleSignup() async {
     if (!_validateAndShowErrors()) return;
-
     setState(() => _isLoading = true);
-
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
     try {
       final success = await authProvider.initialSignUp(
         _emailController.text.trim(),
         _passwordController.text,
       );
-
       if (mounted) {
-        setState(() => _isLoading = false);
-
         if (success) {
-          // Use named route for verification screen
           Navigator.of(context).pushNamed(
             '/auth/verification',
             arguments: {'email': _emailController.text.trim()},
@@ -168,226 +169,249 @@ class _SignupScreenState extends State<SignupScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _isLoading = false;
           _errorMessage = e.toString();
         });
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Sign Up")),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 30),
-
-              // Email field with real-time validation
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.email),
-                  suffixIcon: _emailController.text.isNotEmpty
-                      ? Icon(
-                          _isEmailValid ? Icons.check_circle : Icons.error,
-                          color: _isEmailValid ? Colors.green : Colors.red,
-                        )
-                      : null,
-                  // Use errorText for real-time feedback instead of validator
-                  errorText: _emailController.text.isNotEmpty && !_isEmailValid
-                      ? 'Please enter a valid email'
-                      : null,
-                ),
-                keyboardType: TextInputType.emailAddress,
-                // Remove validator as we're using errorText instead
-                textInputAction: TextInputAction.next,
-              ),
-
-              const SizedBox(height: 16),
-
-              // Password field with detailed validation feedback
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: _passwordController.text.isNotEmpty
-                      ? Icon(
-                          _isPasswordValid ? Icons.check_circle : Icons.error,
-                          color: _isPasswordValid ? Colors.green : Colors.red,
-                        )
-                      : null,
-                  // No errorText needed here as we show detailed requirements below
-                ),
-                obscureText: true,
-                // Remove validator as detailed requirements are shown separately
-                textInputAction: TextInputAction.next,
-              ),
-
-              // Password requirements indicator
-              if (_passwordController.text.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Password must:',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 12),
-                      ),
-                      const SizedBox(height: 5),
-                      _buildRequirementRow(
-                          _hasMinLength, 'Be at least 8 characters'),
-                      _buildRequirementRow(_hasUppercase,
-                          'Contain at least one uppercase letter'),
-                      _buildRequirementRow(_hasLowercase,
-                          'Contain at least one lowercase letter'),
-                      _buildRequirementRow(
-                          _hasNumber, 'Contain at least one number'),
-                      _buildRequirementRow(_hasSpecialChar,
-                          'Contain at least one special character'),
-                    ],
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 40),
+                // App logo
+                Center(
+                  child: Image.asset(
+                    'assets/icons/arkad_logo_inverted.png',
+                    height: 120,
                   ),
                 ),
-
-              const SizedBox(height: 16),
-
-              // Confirm password field with real-time validation
-              TextFormField(
-                controller: _confirmPasswordController,
-                decoration: InputDecoration(
-                  labelText: 'Confirm Password',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: _confirmPasswordController.text.isNotEmpty
-                      ? Icon(
-                          _isConfirmPasswordValid
-                              ? Icons.check_circle
-                              : Icons.error,
-                          color: _isConfirmPasswordValid
-                              ? Colors.green
-                              : Colors.red,
-                        )
-                      : null,
-                  // Use errorText for real-time feedback
-                  errorText: _confirmPasswordController.text.isNotEmpty &&
-                          !_isConfirmPasswordValid
-                      ? 'Passwords do not match'
-                      : null,
+                const SizedBox(height: 40),
+                // Welcome text
+                Text(
+                  'Create Account',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                obscureText: true,
-                // Remove validator as we're using errorText
-                textInputAction: TextInputAction.done,
-              ),
+                const SizedBox(height: 8),
+                Text(
+                  'Sign up to get started',
+                  style: theme.textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 40),
 
-              const SizedBox(height: 20),
+                // Email field with real-time validation
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    hintText: 'Enter your email',
+                    prefixIcon: Icon(Icons.email, color: ArkadColors.arkadTurkos),
+                    suffixIcon: _emailController.text.isNotEmpty
+                        ? Icon(
+                            _isEmailValid ? Icons.check_circle : Icons.error,
+                            color: _isEmailValid ? ArkadColors.arkadGreen : ArkadColors.lightRed,
+                          )
+                        : null,
+                    errorText: _emailController.text.isNotEmpty && !_isEmailValid
+                        ? 'Please enter a valid email'
+                        : null,
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                ),
 
-              // Terms & Policy checkbox with clearer text
-              CheckboxListTile(
-                title: RichText(
-                  text: TextSpan(
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
-                    children: const [
-                      TextSpan(
-                        text: 'I agree to the ',
-                      ),
-                      TextSpan(
-                        text: 'Privacy Policy',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
+                const SizedBox(height: 20),
+
+                // Password field with detailed validation feedback
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    hintText: 'Enter your password',
+                    prefixIcon: Icon(Icons.lock, color: ArkadColors.arkadTurkos),
+                    suffixIcon: _passwordController.text.isNotEmpty
+                        ? Icon(
+                            _isPasswordValid ? Icons.check_circle : Icons.error,
+                            color: _isPasswordValid ? ArkadColors.arkadGreen : ArkadColors.lightRed,
+                          )
+                        : null,
+                  ),
+                  obscureText: true,
+                  textInputAction: TextInputAction.next,
+                ),
+
+                // Password requirements indicator
+                if (_passwordController.text.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Password must:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: ArkadColors.gray,
+                          ),
                         ),
-                      ),
-                      TextSpan(
-                        text: ' and ',
-                      ),
-                      TextSpan(
-                        text: 'Terms of Service',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                value: _policyAccepted,
-                controlAffinity: ListTileControlAffinity.leading,
-                contentPadding: EdgeInsets.zero,
-                onChanged: (value) {
-                  setState(() {
-                    _policyAccepted = value ?? false;
-                  });
-                },
-              ),
-
-              // Error message
-              if (_errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-              const SizedBox(height: 30),
-
-              // Sign up button - disabled until form is valid
-              ElevatedButton(
-                onPressed: (_isFormValid && !_isLoading) ? _handleSignup : null,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text(
-                        'Sign Up',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Login link
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Already have an account?"),
-                  TextButton(
-                    onPressed: _navigateToLogin,
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                        const SizedBox(height: 5),
+                        _buildRequirementRow(_hasMinLength, 'Be at least 8 characters long'),
+                        _buildRequirementRow(_hasUppercase, 'Contain an uppercase letter'),
+                        _buildRequirementRow(_hasLowercase, 'Contain a lowercase letter'),
+                        _buildRequirementRow(_hasNumber, 'Contain a number'),
+                        _buildRequirementRow(_hasSpecialChar, 'Contain a special character'),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ],
+
+                const SizedBox(height: 20),
+
+                // Confirm Password field
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+                    hintText: 'Confirm your password',
+                    prefixIcon: Icon(Icons.lock_outline, color: ArkadColors.arkadTurkos),
+                    suffixIcon: _confirmPasswordController.text.isNotEmpty
+                        ? Icon(
+                            _isConfirmPasswordValid ? Icons.check_circle : Icons.error,
+                            color: _isConfirmPasswordValid ? ArkadColors.arkadGreen : ArkadColors.lightRed,
+                          )
+                        : null,
+                    errorText: _confirmPasswordController.text.isNotEmpty && !_isConfirmPasswordValid
+                        ? 'Passwords do not match'
+                        : null,
+                  ),
+                  obscureText: true,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _handleSignup(),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Privacy Policy Checkbox
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _policyAccepted,
+                      onChanged: (value) {
+                        setState(() {
+                          _policyAccepted = value ?? false;
+                        });
+                      },
+                      activeColor: ArkadColors.arkadTurkos,
+                    ),
+                    Expanded(
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          const Text(
+                            'I accept the ',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              final url = Uri.parse('https://www.arkadtlth.se/privacypolicy');
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            child: Text(
+                              'privacy policy',
+                              style: TextStyle(
+                                color: ArkadColors.arkadTurkos,
+                                fontSize: 12,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Error message
+                if (_errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: Text(
+                      _errorMessage!,
+                      style: TextStyle(color: ArkadColors.lightRed),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+
+                const SizedBox(height: 30),
+
+                // Sign Up button
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _handleSignup,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ArkadColors.arkadTurkos,
+                    foregroundColor: ArkadColors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(ArkadColors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Login link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Already have an account?",
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    TextButton(
+                      onPressed: _navigateToLogin,
+                      child: Text(
+                        "Sign in",
+                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -396,9 +420,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
-    _emailController.removeListener(_validateEmail);
-    _passwordController.removeListener(_validatePassword);
-    _confirmPasswordController.removeListener(_validateConfirmPassword);
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();

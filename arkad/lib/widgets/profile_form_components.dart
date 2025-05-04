@@ -66,6 +66,7 @@ class ProfileFormComponents {
   }
 
   static Widget buildEducationFields({
+    required BuildContext context,
     required TextEditingController programmeController,
     required TextEditingController masterTitleController,
     required int? studyYear,
@@ -108,7 +109,7 @@ class ProfileFormComponents {
                 child: Text(
                   program['label'] as String,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14),
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               );
             }).toList(),
@@ -280,6 +281,7 @@ class ProfileFormComponents {
   }
 
   static Widget buildCVSection({
+    required BuildContext context,
     required File? selectedCV,
     required Function() onPickCV,
     required Function()? onDeleteCV,
@@ -321,14 +323,7 @@ class ProfileFormComponents {
                           : (currentCV != null && currentCV.isNotEmpty
                               ? 'Current: ${currentCV.split('/').last}'
                               : 'No CV selected yet (PDF format)')),
-                  style: TextStyle(
-                    color: selectedCV != null ||
-                            (!cvDeleted &&
-                                currentCV != null &&
-                                currentCV.isNotEmpty)
-                        ? Colors.black
-                        : Colors.grey[600],
-                  ),
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
             ],
@@ -336,7 +331,7 @@ class ProfileFormComponents {
         ),
         const SizedBox(height: 8),
         const Text('CV / Resume (Optional)',
-            style: TextStyle(color: Colors.grey, fontSize: 12)),
+            style: TextStyle(fontSize: 12)),
         Row(
           children: [
             Expanded(

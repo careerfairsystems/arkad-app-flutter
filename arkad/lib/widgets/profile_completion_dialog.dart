@@ -1,17 +1,17 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:namer_app/services/user_service.dart';
+import 'package:arkad/services/user_service.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 // Import updated packages
 import 'package:path_provider/path_provider.dart';
 // We'll still use file_picker but with a fallback approach
 import 'package:file_picker/file_picker.dart' as fp;
-import '../models/user.dart';
+import 'package:arkad/models/user.dart';
 import '../providers/auth_provider.dart';
-import '../../utils/service_helper.dart';
-import '../widgets/profile_form_components.dart';
-import '../utils/profile_utils.dart';
+import 'package:arkad/utils/service_helper.dart';
+import 'package:arkad/widgets/profile_form_components.dart';
+import 'package:arkad/utils/profile_utils.dart';
 
 // Define the Programme enum
 enum Programme {
@@ -565,6 +565,7 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
       child: ProfileFormComponents.buildEducationFields(
+        context: context,
         programmeController: _programmeController,
         masterTitleController: _masterTitleController,
         studyYear: _studyYear,
@@ -644,6 +645,7 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
               style: TextStyle(fontWeight: FontWeight.normal)),
           const SizedBox(height: 8),
           ProfileFormComponents.buildCVSection(
+            context: context,
             selectedCV: _selectedCV,
             onPickCV: _pickCVFile,
             onDeleteCV: null,

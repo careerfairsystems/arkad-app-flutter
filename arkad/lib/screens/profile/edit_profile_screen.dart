@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:namer_app/services/user_service.dart';
+import 'package:arkad/services/user_service.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/user.dart';
@@ -256,14 +256,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         color: Colors.red.shade100,
                         child: Text(
                           _error!,
-                          style: TextStyle(color: Colors.red.shade800),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.red.shade800),
                         ),
                       ),
 
                     const Text(
                       'Basic Information',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
 
@@ -290,17 +289,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     // Education information section
                     const Text(
                       'Education Information',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       'Fields marked with * are required',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(fontSize: 12),
                     ),
                     const SizedBox(height: 16),
 
                     ProfileFormComponents.buildEducationFields(
+                      context: context,
                       programmeController: _programmeController,
                       masterTitleController: _masterTitleController,
                       studyYear: _studyYear,
@@ -328,13 +327,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     // Professional information section
                     const Text(
                       'Professional Information',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       'Fields marked with * are required',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(fontSize: 12),
                     ),
                     const SizedBox(height: 16),
 
@@ -354,6 +352,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     const SizedBox(height: 16),
 
                     ProfileFormComponents.buildCVSection(
+                      context: context,
                       selectedCV: _selectedCV,
                       onPickCV: _pickCV,
                       onDeleteCV: _deleteCV,

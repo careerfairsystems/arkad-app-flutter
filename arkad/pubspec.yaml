@@ -1,4 +1,4 @@
-name: namer_app
+name: arkad
 description: A new Flutter project.
 
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
@@ -31,3 +31,19 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+
+  fonts:
+    - family: MyriadProCondensed
+      fonts:
+        - asset: assets/fonts/MyriadProCondensed.ttf
+          weight: 400
+        - asset: assets/fonts/MyriadProBoldCondensed.ttf
+          weight: 700
+    - family: Bahnschrift
+      fonts:
+        - asset: assets/fonts/BAHNSCHRIFT.ttf
+          weight: 400

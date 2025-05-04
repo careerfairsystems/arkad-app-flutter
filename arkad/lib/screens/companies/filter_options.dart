@@ -1,8 +1,12 @@
+/// Provides filter options for the companies screen
+///
+/// This class contains static lists of filter options that can be used
+/// throughout the application for consistent filtering of companies.
 class FilterOptions {
-  // Degree options
+  /// Academic degree options for filtering companies
   static const List<String> degrees = ["Bachelor", "Master", "PhD"];
 
-  // Competence options
+  /// Competence areas for filtering companies
   static const List<String> competences = [
     "Architecture",
     "Artificial Intelligence",
@@ -45,7 +49,7 @@ class FilterOptions {
     "Physics",
   ];
 
-  // Position options
+  /// Position types offered by companies
   static const List<String> positions = [
     "Thesis",
     "Trainee Employment",
@@ -55,7 +59,7 @@ class FilterOptions {
     "Part Time",
   ];
 
-  // Industry options
+  /// Industry sectors that companies operate in
   static const List<String> industries = [
     "Electricity Energy Power",
     "Environment",

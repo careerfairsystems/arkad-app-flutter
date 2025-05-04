@@ -9,7 +9,6 @@ import 'api_service.dart';
 class AuthService {
   // Storage Keys
   static const String _tokenKey = 'auth_token';
-  static const String _tokenExpiryKey = 'auth_token_expiry';
   static const String _emailKey = 'temp_email';
   static const String _passwordKey = 'temp_password';
 
@@ -105,13 +104,8 @@ class AuthService {
 
       final token = response.data;
 
-      // Calculate expiry (24 hours from now)
-      final expiryTime =
-          DateTime.now().add(const Duration(hours: 96)).toIso8601String();
-
-      // Store the token and expiry
+      // Store the token
       await _storage.write(key: _tokenKey, value: token);
-      await _storage.write(key: _tokenExpiryKey, value: expiryTime);
 
       // Clear temporary credentials (cleanup)
       await _clearTemporaryData();
@@ -122,30 +116,9 @@ class AuthService {
     }
   }
 
-  /// Gets a valid token, refreshing if necessary
-  Future<String?> getValidToken() async {
-    final token = await _storage.read(key: _tokenKey);
-    if (token == null) return null;
-
-    if (await _isTokenExpired()) {
-      // Token expired, needs refresh
-      return null; // Currently no refresh mechanism
-    }
-
-    return token;
-  }
-
-  /// Checks if the stored token is expired
-  Future<bool> _isTokenExpired() async {
-    final expiryString = await _storage.read(key: _tokenExpiryKey);
-    if (expiryString == null) return true;
-
-    try {
-      final expiry = DateTime.parse(expiryString);
-      return DateTime.now().isAfter(expiry);
-    } catch (_) {
-      return true;
-    }
+  /// Gets the stored authentication token
+  Future<String?> getToken() async {
+    return await _storage.read(key: _tokenKey);
   }
 
   /// Makes an authenticated request to the API
@@ -155,7 +128,7 @@ class AuthService {
     Map<String, String>? headers,
     Object? body,
   }) async {
-    final token = await getValidToken();
+    final token = await getToken();
     if (token == null) {
       throw AuthException('Not authenticated');
     }
@@ -214,7 +187,6 @@ class AuthService {
   /// Completely logs out the user and clears all stored data
   Future<void> logout() async {
     await _storage.delete(key: _tokenKey);
-    await _storage.delete(key: _tokenExpiryKey);
     await _clearTemporaryData();
   }
 }

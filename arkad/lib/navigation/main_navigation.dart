@@ -15,33 +15,39 @@ import '../screens/auth/signup_screen.dart';
 import '../screens/auth/verification_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 
+/// Main navigation container that handles authenticated and unauthenticated states
+/// with bottom navigation and tab-specific navigation stacks.
+///
+/// This widget is the entry point for all navigation in the app. It manages
+/// tab switching, navigation history, and the correct navigator stack for each tab.
 class MainNavigation extends StatefulWidget {
+  /// Optionally specify the initial route/tab.
   final String? initialRoute;
 
   const MainNavigation({Key? key, this.initialRoute}) : super(key: key);
 
   @override
-  _MainNavigationState createState() => _MainNavigationState();
+  State<MainNavigation> createState() => _MainNavigationState();
 }
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
   final NavigationHistory _navigationHistory = NavigationHistory();
 
-  // Create navigator keys for each tab to maintain their state
+  // Navigator keys for authenticated state tabs
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
-    GlobalKey<NavigatorState>(),
-    GlobalKey<NavigatorState>(),
-    GlobalKey<NavigatorState>(),
-    GlobalKey<NavigatorState>(),
-    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(), // Companies
+    GlobalKey<NavigatorState>(), // Sessions
+    GlobalKey<NavigatorState>(), // Events
+    GlobalKey<NavigatorState>(), // Map
+    GlobalKey<NavigatorState>(), // Profile
   ];
 
-  // Keys for unauthenticated state
+  // Navigator keys for unauthenticated state tabs
   final List<GlobalKey<NavigatorState>> _unauthNavigatorKeys = [
-    GlobalKey<NavigatorState>(),
-    GlobalKey<NavigatorState>(),
-    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(), // Companies
+    GlobalKey<NavigatorState>(), // Map
+    GlobalKey<NavigatorState>(), // Login
   ];
 
   // Define navigation items for authentication states
@@ -105,6 +111,8 @@ class _MainNavigationState extends State<MainNavigation> {
     }
   }
 
+  /// Sets the initial tab index based on the initialRoute.
+  /// If the route is not found, defaults to the first tab.
   void _setInitialIndex() {
     if (widget.initialRoute != null) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -116,12 +124,12 @@ class _MainNavigationState extends State<MainNavigation> {
         if (items[i].route == widget.initialRoute) {
           setState(() {
             _currentIndex = i;
-            // Add initial route to navigation history
             _navigationHistory.push(_currentIndex, items[i].route);
           });
           return;
         }
       }
+
       // Default to first tab if route not found
       setState(() {
         _currentIndex = 0;
@@ -130,6 +138,7 @@ class _MainNavigationState extends State<MainNavigation> {
     }
   }
 
+  /// Handles tab selection in the bottom navigation.
   void _onTabTapped(int index) {
     if (_currentIndex == index) return;
 
@@ -139,11 +148,12 @@ class _MainNavigationState extends State<MainNavigation> {
 
     setState(() {
       _currentIndex = index;
-      // Add new tab to navigation history
       _navigationHistory.push(_currentIndex, items[_currentIndex].route);
     });
   }
 
+  /// Handles back button press and navigation history.
+  /// Returns true if the app should exit, false otherwise.
   bool _handleBackNavigation() {
     final isFirstRouteInCurrentTab =
         !_getActiveNavigatorKey().currentState!.canPop();
@@ -156,38 +166,37 @@ class _MainNavigationState extends State<MainNavigation> {
           setState(() {
             _currentIndex = previousItem.tabIndex;
           });
-          return false;
+          return false; // Don't exit the app
         }
       }
-      // If we have no more items in history or it's the same tab, allow the app to exit
+      // If no more history or it's the same tab, allow the app to exit
       return true;
     }
 
-    // Otherwise let the tab's Navigator handle the back button
+    // Let the tab's Navigator handle the back button
     _getActiveNavigatorKey().currentState!.pop();
 
-    // Update navigation history to track route pops within tab
+    // Update navigation history after popping
     _updateHistoryOnTabPop();
 
-    return false;
+    return false; // Don't exit the app
   }
 
-  // New method to update history when popping within a tab
+  /// Updates the navigation history when popping a screen within a tab.
   void _updateHistoryOnTabPop() {
     final navKey = _getActiveNavigatorKey();
     if (navKey.currentState != null && navKey.currentState!.canPop()) {
-      // We can't directly get the new current route after popping,
-      // so we'll just record that we're still in this tab but at a different route
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final isAuthenticated = authProvider.isAuthenticated;
       final items =
           isAuthenticated ? _authenticatedItems : _unauthenticatedItems;
 
-      // Just push the tab's base route again to update history
+      // Update history with the tab's base route
       _navigationHistory.push(_currentIndex, items[_currentIndex].route);
     }
   }
 
+  /// Gets the active navigator key for the current tab.
   GlobalKey<NavigatorState> _getActiveNavigatorKey() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final isAuthenticated = authProvider.isAuthenticated;
@@ -204,10 +213,9 @@ class _MainNavigationState extends State<MainNavigation> {
     final navigatorKeys =
         isAuthenticated ? _navigatorKeys : _unauthNavigatorKeys;
 
-    // Reset index if it's out of range (e.g. after logging out)
+    // Reset index if it's out of range (e.g., after logging out)
     if (_currentIndex >= items.length) {
       _currentIndex = 0;
-      // Reset navigation history if authentication state changed
       _navigationHistory.clear();
       _navigationHistory.push(0, items[0].route);
     }
@@ -216,24 +224,39 @@ class _MainNavigationState extends State<MainNavigation> {
       onWillPop: () async {
         return _handleBackNavigation();
       },
-      child: Scaffold(
-        body: IndexedStack(
-          index: _currentIndex,
-          children: isAuthenticated
-              ? _buildAuthenticatedTabNavigators(navigatorKeys)
-              : _buildUnauthenticatedTabNavigators(navigatorKeys),
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Use a ConstrainedBox to ensure the body never overflows
+            return Scaffold(
+              resizeToAvoidBottomInset: true,
+              body: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                  maxHeight: constraints.maxHeight,
+                ),
+                child: IndexedStack(
+                  index: _currentIndex,
+                  children: isAuthenticated
+                      ? _buildAuthenticatedTabNavigators(navigatorKeys)
+                      : _buildUnauthenticatedTabNavigators(navigatorKeys),
+                ),
+              ),
+              bottomNavigationBar: authProvider.status != AuthStatus.initial
+                  ? AppBottomNavigation(
+                      currentIndex: _currentIndex,
+                      onTap: _onTabTapped,
+                      items: items,
+                    )
+                  : null,
+            );
+          },
         ),
-        bottomNavigationBar: authProvider.status != AuthStatus.initial
-            ? AppBottomNavigation(
-                currentIndex: _currentIndex,
-                onTap: _onTabTapped,
-                items: items,
-              )
-            : null,
       ),
     );
   }
 
+  /// Builds navigator stacks for authenticated state.
   List<Widget> _buildAuthenticatedTabNavigators(
       List<GlobalKey<NavigatorState>> keys) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -247,6 +270,7 @@ class _MainNavigationState extends State<MainNavigation> {
     ];
   }
 
+  /// Builds navigator stacks for unauthenticated state.
   List<Widget> _buildUnauthenticatedTabNavigators(
       List<GlobalKey<NavigatorState>> keys) {
     return [
@@ -256,7 +280,7 @@ class _MainNavigationState extends State<MainNavigation> {
     ];
   }
 
-  // Updated method to handle routes within each tab
+  /// Creates a nested Navigator for each tab with its own navigation stack.
   Widget _buildTabNavigator(
       GlobalKey<NavigatorState> key, String tabId, Widget rootScreen) {
     return Navigator(
@@ -265,15 +289,12 @@ class _MainNavigationState extends State<MainNavigation> {
       onGenerateRoute: (RouteSettings settings) {
         Widget screen;
 
-        // Handle the initial route
         if (settings.name == '/') {
           screen = rootScreen;
         } else {
-          // Handle specific routes based on tab and route path
           screen = _buildScreenForRoute(tabId, settings);
         }
 
-        // Return the appropriate route with the screen
         return MaterialPageRoute(
           settings: settings,
           builder: (BuildContext context) => screen,
@@ -282,11 +303,9 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  // New method to build screens for each route within tabs
+  /// Resolves the appropriate screen for a given route within a tab.
   Widget _buildScreenForRoute(String tabId, RouteSettings settings) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-    // Split the route path to get components
     final uri = Uri.parse(settings.name!);
     final pathSegments = uri.pathSegments;
 
@@ -294,16 +313,10 @@ class _MainNavigationState extends State<MainNavigation> {
     switch (tabId) {
       case 'companies':
         if (pathSegments.length > 1 && pathSegments[1] == 'detail') {
-          // Get company ID from arguments
           final arguments = settings.arguments as Map<String, dynamic>?;
-          final companyId = arguments?['companyId'] as int?;
-          if (companyId != null) {
-            // Fetch the company and return the detail screen
-            final companyService = Provider.of(context, listen: false);
-            final company = companyService.getCompanyById(companyId);
-            if (company != null) {
-              return CompanyDetailScreen(company: company);
-            }
+          final company = arguments?['company'];
+          if (company != null) {
+            return CompanyDetailScreen(company: company);
           }
         }
         return const CompaniesScreen();
@@ -329,10 +342,16 @@ class _MainNavigationState extends State<MainNavigation> {
         }
         return const LoginScreen();
 
-      // Add cases for other tabs as needed
+      case 'map':
+        return const MapScreen();
+
+      case 'sessions':
+        return const StudentSessionsScreen();
+
+      case 'events':
+        return const EventScreen();
 
       default:
-        // Default fallback - should not happen in normal flow
         return const Scaffold(
           body: Center(child: Text('Route not found')),
         );

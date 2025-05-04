@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 
+/// Represents an item in the navigation history for bottom navigation.
 class NavigationHistoryItem {
+  /// The index of the tab in the bottom navigation.
   final int tabIndex;
+
+  /// The route name for this navigation item.
   final String route;
-  // Add a more detailed path for in-tab navigation
+
+  /// Optional in-tab route for detailed navigation tracking.
   final String? inTabRoute;
 
   NavigationHistoryItem({
@@ -26,11 +31,15 @@ class NavigationHistoryItem {
       tabIndex.hashCode ^ route.hashCode ^ (inTabRoute?.hashCode ?? 0);
 }
 
+/// Maintains a stack of navigation history for the bottom navigation.
+///
+/// This class is used to track tab switching and in-tab navigation for a smooth UX.
 class NavigationHistory {
   final List<NavigationHistoryItem> _history = [];
 
+  /// Adds a new navigation item to the history.
+  /// Avoids adding consecutive duplicates.
   void push(int tabIndex, String route, {String? inTabRoute}) {
-    // Avoid adding duplicates consecutively
     if (_history.isNotEmpty) {
       final last = _history.last;
       if (last.tabIndex == tabIndex &&
@@ -46,6 +55,8 @@ class NavigationHistory {
     ));
   }
 
+  /// Removes the most recent history item and returns the previous one.
+  /// Returns null if there's only one or zero items in the history.
   NavigationHistoryItem? pop() {
     if (_history.length <= 1) {
       return null;
@@ -54,29 +65,15 @@ class NavigationHistory {
     return _history.isNotEmpty ? _history.last : null;
   }
 
+  /// The current (most recent) navigation item.
   NavigationHistoryItem? get current =>
       _history.isNotEmpty ? _history.last : null;
 
-  NavigationHistoryItem? get previous =>
-      _history.length > 1 ? _history[_history.length - 2] : null;
-
+  /// Clears all navigation history.
   void clear() {
     _history.clear();
   }
 
-  int get length => _history.length;
-
-  bool get isEmpty => _history.isEmpty;
-
+  /// Whether the history has more than one entry.
   bool get hasMultipleEntries => _history.length > 1;
-
-  // Debug helper method
-  void printHistory() {
-    print('Navigation History (${_history.length} items):');
-    for (var i = 0; i < _history.length; i++) {
-      final item = _history[i];
-      print(
-          '[$i] Tab: ${item.tabIndex}, Route: ${item.route}, InTabRoute: ${item.inTabRoute}');
-    }
-  }
 }

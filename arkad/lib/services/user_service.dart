@@ -21,7 +21,7 @@ class UserService {
 
   // Get user profile
   Future<User> getUserProfile() async {
-    final token = await _authService.getValidToken();
+    final token = await _authService.getToken();
     if (token == null) {
       throw Exception('Not authenticated');
     }
@@ -41,7 +41,7 @@ class UserService {
 
   // Update complete profile
   Future<User> updateProfile(Map<String, dynamic> profileData) async {
-    final token = await _authService.getValidToken();
+    final token = await _authService.getToken();
     if (token == null) {
       throw Exception('Not authenticated');
     }
@@ -62,7 +62,7 @@ class UserService {
 
   // Update individual profile fields
   Future<User> updateProfileFields(Map<String, dynamic> fields) async {
-    final token = await _authService.getValidToken();
+    final token = await _authService.getToken();
     if (token == null) {
       throw Exception('Not authenticated');
     }
@@ -90,7 +90,7 @@ class UserService {
       final request = http.MultipartRequest('POST', uri);
 
       // Add JWT authorization
-      final token = await _authService.getValidToken();
+      final token = await _authService.getToken();
       if (token == null) {
         throw Exception('Authorization token is missing');
       }
@@ -129,7 +129,7 @@ class UserService {
 
   // Delete profile picture
   Future<bool> deleteProfilePicture() async {
-    final token = await _authService.getValidToken();
+    final token = await _authService.getToken();
     if (token == null) {
       throw Exception('Not authenticated');
     }
@@ -150,7 +150,7 @@ class UserService {
       final request = http.MultipartRequest('POST', uri);
 
       // Add JWT authorization
-      final token = await _authService.getValidToken();
+      final token = await _authService.getToken();
       if (token == null) {
         throw Exception('Authorization token is missing');
       }
@@ -189,7 +189,7 @@ class UserService {
 
   // Delete CV
   Future<bool> deleteCV() async {
-    final token = await _authService.getValidToken();
+    final token = await _authService.getToken();
     if (token == null) {
       throw Exception('Not authenticated');
     }
