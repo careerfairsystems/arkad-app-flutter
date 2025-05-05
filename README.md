@@ -1,11 +1,6 @@
 # Arkad App Flutter
 
 A mobile application for the Arkad career fair, built with Flutter. This cross-platform application provides information about companies, events, and facilitates connections between students and potential employers.
-
-![Arkad Logo](arkad/assets/icons/arkad_logo_inverted.png)
-
-## Project Overview
-
 Arkad App is the official mobile application for the Arkad career fair. It allows users to:
 
 - Browse participating companies
@@ -16,46 +11,38 @@ Arkad App is the official mobile application for the Arkad career fair. It allow
 
 The application is built for Android, iOS, and web platforms using Flutter.
 
+![Arkad Logo](arkad/assets/icons/arkad_logo_inverted.png)
+
+# Development
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
-
-- **Flutter SDK** (version 3.13.0 or higher)
-- **Dart SDK** (latest stable version)
 - **Git** for version control
 - **IDE**: Visual Studio Code or Android Studio (recommended)
 
 ### Platform-specific Requirements
-
-- **iOS Development**:
-  - macOS with Xcode installed
-  - iOS Simulator or physical device
 - **Android Development**:
   - Android Studio with Android SDK
   - Android Emulator or physical device
 
 ## Getting Started
 
-### 1. Clone the Repository
+### 1. Install Flutter and verify installation
+Follow the guide at https://docs.flutter.dev/get-started/install
+
+Then verify your installation with
+```bash
+https://docs.flutter.dev/get-started/install
+```
+### 2. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/arkad-app-flutter.git
+git clone git@github.com:careerfairsystems/arkad-app-flutter.git
 cd arkad-app-flutter
 ```
-
-### 2. Install Dependencies
-
-```bash
-cd arkad
-flutter pub get
-```
-
-### 3. Verify Setup
-
-```bash
-flutter doctor
-flutter analyze
-```
+### 3. Setup emulator/physical device
+TODO: Fix Hanxuan
 
 ### 4. Run the App
 
@@ -79,21 +66,19 @@ arkad/
 │   ├── services/       # Services and APIs
 │   ├── utils/          # Utility functions
 │   └── widgets/        # Reusable UI components
-├── test/               # Test files
-└── web/                # Web-specific configuration
+└──
 ```
 
 ## Development
 
 ### Workflow
 
-1. Create a new branch for your feature or bugfix:
+2. Create a new branch for your feature:
 
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
-2. Make your changes following the code style guidelines
 
 3. Test your changes:
 
@@ -104,37 +89,24 @@ arkad/
    # Format code
    dart format .
 
-   # Build the app for testing
-   flutter build apk --debug
    ```
 
-4. Commit your changes using conventional commit format:
+4. Commit changes after each iteration of your code:
 
    ```bash
    git add .
-   git commit -m "feat: add your feature description"
+   git commit -m "describe your changes"
    ```
 
-5. Push your changes and create a pull request:
+5. Push your changes
    ```bash
-   git push origin feature/your-feature-name
+   git push
    ```
+6. Create PR
+When you are satisfied with your code and everything works you can create a PR
+TODO: Hanxuan describe what they do here
 
-### Code Quality Standards
-
-We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages:
-
-- `feat:` for new features
-- `fix:` for bug fixes
-- `docs:` for documentation changes
-- `style:` for formatting changes
-- `refactor:` for code refactoring
-- `test:` for adding tests
-- `chore:` for maintenance tasks
 
 ### CI/CD Pipeline
 
-Our GitHub workflow automatically runs checks on every PR:
-
-1. **Analysis**: Code formatting and static analysis
-2. **Build Verification**: Android, iOS, and web builds
+Our GitHub workflow automatically runs checks on every PR to check that your code builds and follows code standards defined.
