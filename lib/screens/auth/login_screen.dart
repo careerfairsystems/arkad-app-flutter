@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+
 import '../../config/theme_config.dart';
+import '../../providers/auth_provider.dart';
 import '../profile/profile_screen.dart';
 
 /// Login screen for user authentication.

@@ -49,7 +49,7 @@ class User {
     required this.isStaff,
     this.foodPreferences,
     bool? isVerified,
-  }) : this.isVerified = isVerified ??
+  }) : isVerified = isVerified ??
             _calculateVerificationStatus(
                 firstName,
                 lastName,
@@ -140,13 +140,15 @@ class User {
   List<String> getMissingFields() {
     List<String> missingFields = [];
 
-    if (firstName == null || firstName!.isEmpty)
+    if (firstName == null || firstName!.isEmpty) {
       missingFields.add('First Name');
+    }
     if (lastName == null || lastName!.isEmpty) missingFields.add('Last Name');
     if (programme == null || programme!.isEmpty) missingFields.add('Programme');
     if (studyYear == null) missingFields.add('Study Year');
-    if (foodPreferences == null || foodPreferences!.isEmpty)
+    if (foodPreferences == null || foodPreferences!.isEmpty) {
       missingFields.add('Food Preferences');
+    }
 
     // CV, profile picture, LinkedIn, and master title are no longer in missing fields list
     return missingFields;

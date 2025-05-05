@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
-import '../../config/theme_config.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../config/theme_config.dart';
+import '../../providers/auth_provider.dart';
 
 /// Signup screen for new user registration.
 ///
@@ -121,12 +122,6 @@ class _SignupScreenState extends State<SignupScreen> {
     });
   }
 
-  bool get _isFormValid =>
-      _isEmailValid &&
-      _isPasswordValid &&
-      _isConfirmPasswordValid &&
-      _policyAccepted;
-
   /// Validates the form and shows errors for missing policy acceptance.
   bool _validateAndShowErrors() {
     if (!_formKey.currentState!.validate()) return false;
@@ -221,16 +216,20 @@ class _SignupScreenState extends State<SignupScreen> {
                   decoration: InputDecoration(
                     labelText: 'Email',
                     hintText: 'Enter your email',
-                    prefixIcon: Icon(Icons.email, color: ArkadColors.arkadTurkos),
+                    prefixIcon:
+                        Icon(Icons.email, color: ArkadColors.arkadTurkos),
                     suffixIcon: _emailController.text.isNotEmpty
                         ? Icon(
                             _isEmailValid ? Icons.check_circle : Icons.error,
-                            color: _isEmailValid ? ArkadColors.arkadGreen : ArkadColors.lightRed,
+                            color: _isEmailValid
+                                ? ArkadColors.arkadGreen
+                                : ArkadColors.lightRed,
                           )
                         : null,
-                    errorText: _emailController.text.isNotEmpty && !_isEmailValid
-                        ? 'Please enter a valid email'
-                        : null,
+                    errorText:
+                        _emailController.text.isNotEmpty && !_isEmailValid
+                            ? 'Please enter a valid email'
+                            : null,
                   ),
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
@@ -244,11 +243,14 @@ class _SignupScreenState extends State<SignupScreen> {
                   decoration: InputDecoration(
                     labelText: 'Password',
                     hintText: 'Enter your password',
-                    prefixIcon: Icon(Icons.lock, color: ArkadColors.arkadTurkos),
+                    prefixIcon:
+                        Icon(Icons.lock, color: ArkadColors.arkadTurkos),
                     suffixIcon: _passwordController.text.isNotEmpty
                         ? Icon(
                             _isPasswordValid ? Icons.check_circle : Icons.error,
-                            color: _isPasswordValid ? ArkadColors.arkadGreen : ArkadColors.lightRed,
+                            color: _isPasswordValid
+                                ? ArkadColors.arkadGreen
+                                : ArkadColors.lightRed,
                           )
                         : null,
                   ),
@@ -272,11 +274,15 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                         const SizedBox(height: 5),
-                        _buildRequirementRow(_hasMinLength, 'Be at least 8 characters long'),
-                        _buildRequirementRow(_hasUppercase, 'Contain an uppercase letter'),
-                        _buildRequirementRow(_hasLowercase, 'Contain a lowercase letter'),
+                        _buildRequirementRow(
+                            _hasMinLength, 'Be at least 8 characters long'),
+                        _buildRequirementRow(
+                            _hasUppercase, 'Contain an uppercase letter'),
+                        _buildRequirementRow(
+                            _hasLowercase, 'Contain a lowercase letter'),
                         _buildRequirementRow(_hasNumber, 'Contain a number'),
-                        _buildRequirementRow(_hasSpecialChar, 'Contain a special character'),
+                        _buildRequirementRow(
+                            _hasSpecialChar, 'Contain a special character'),
                       ],
                     ),
                   ),
@@ -289,14 +295,20 @@ class _SignupScreenState extends State<SignupScreen> {
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
                     hintText: 'Confirm your password',
-                    prefixIcon: Icon(Icons.lock_outline, color: ArkadColors.arkadTurkos),
+                    prefixIcon: Icon(Icons.lock_outline,
+                        color: ArkadColors.arkadTurkos),
                     suffixIcon: _confirmPasswordController.text.isNotEmpty
                         ? Icon(
-                            _isConfirmPasswordValid ? Icons.check_circle : Icons.error,
-                            color: _isConfirmPasswordValid ? ArkadColors.arkadGreen : ArkadColors.lightRed,
+                            _isConfirmPasswordValid
+                                ? Icons.check_circle
+                                : Icons.error,
+                            color: _isConfirmPasswordValid
+                                ? ArkadColors.arkadGreen
+                                : ArkadColors.lightRed,
                           )
                         : null,
-                    errorText: _confirmPasswordController.text.isNotEmpty && !_isConfirmPasswordValid
+                    errorText: _confirmPasswordController.text.isNotEmpty &&
+                            !_isConfirmPasswordValid
                         ? 'Passwords do not match'
                         : null,
                   ),
@@ -329,9 +341,11 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                           GestureDetector(
                             onTap: () async {
-                              final url = Uri.parse('https://www.arkadtlth.se/privacypolicy');
+                              final url = Uri.parse(
+                                  'https://www.arkadtlth.se/privacypolicy');
                               if (await canLaunchUrl(url)) {
-                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                                await launchUrl(url,
+                                    mode: LaunchMode.externalApplication);
                               }
                             },
                             child: Text(
@@ -379,7 +393,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(ArkadColors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                ArkadColors.white),
                           ),
                         )
                       : const Text(
@@ -405,7 +420,8 @@ class _SignupScreenState extends State<SignupScreen> {
                       onPressed: _navigateToLogin,
                       child: Text(
                         "Sign in",
-                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],

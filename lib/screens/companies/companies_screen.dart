@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+
 import '../../models/company.dart';
 import '../../services/company_service.dart';
 import '../../utils/service_helper.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/filter_dropdown.dart';
 import '../../widgets/filter_dropdown_controller.dart';
+import '../../widgets/loading_indicator.dart';
 import 'company_detail_screen.dart';
 import 'filter_options.dart';
 
 class CompaniesScreen extends StatefulWidget {
-  const CompaniesScreen({Key? key}) : super(key: key);
+  const CompaniesScreen({super.key});
 
   @override
   _CompaniesScreenState createState() => _CompaniesScreenState();

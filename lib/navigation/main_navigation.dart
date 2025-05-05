@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/auth_provider.dart';
-import 'bottom_navigation.dart';
-import 'navigation_history.dart';
-import '../screens/companies/companies_screen.dart';
-import '../screens/companies/company_detail_screen.dart';
-import '../screens/student_sessions/student_sessions_screen.dart';
-import '../screens/event/event_screen.dart';
-import '../screens/map/map_screen.dart';
-import '../screens/profile/profile_screen.dart';
-import '../screens/profile/edit_profile_screen.dart';
 import '../screens/auth/login_screen.dart';
+import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/auth/verification_screen.dart';
-import '../screens/auth/reset_password_screen.dart';
+import '../screens/companies/companies_screen.dart';
+import '../screens/companies/company_detail_screen.dart';
+import '../screens/event/event_screen.dart';
+import '../screens/map/map_screen.dart';
+import '../screens/profile/edit_profile_screen.dart';
+import '../screens/profile/profile_screen.dart';
+import '../screens/student_sessions/student_sessions_screen.dart';
+import 'bottom_navigation.dart';
+import 'navigation_history.dart';
 
 /// Main navigation container that handles authenticated and unauthenticated states
 /// with bottom navigation and tab-specific navigation stacks.
@@ -24,7 +25,7 @@ class MainNavigation extends StatefulWidget {
   /// Optionally specify the initial route/tab.
   final String? initialRoute;
 
-  const MainNavigation({Key? key, this.initialRoute}) : super(key: key);
+  const MainNavigation({super.key, this.initialRoute});
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();

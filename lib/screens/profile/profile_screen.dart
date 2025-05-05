@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../config/theme_config.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_onboarding_provider.dart';
 import '../../widgets/profile_onboarding_widget.dart';
-import 'edit_profile_screen.dart';
 import '../auth/login_screen.dart';
-import '../../config/theme_config.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User user;

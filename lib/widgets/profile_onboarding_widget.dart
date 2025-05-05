@@ -1,15 +1,16 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+
+import '../config/theme_config.dart';
 import '../models/user.dart';
 import '../providers/auth_provider.dart';
 import '../providers/profile_onboarding_provider.dart';
 import '../services/user_service.dart';
-import '../utils/service_helper.dart';
-import '../config/theme_config.dart';
-import '../widgets/profile_form_components.dart';
 import '../utils/profile_utils.dart';
+import '../utils/service_helper.dart';
 import '../widgets/profile_completion_dialog.dart'; // For the Programme enum and PROGRAMS
 
 class ProfileOnboardingWidget extends StatefulWidget {
@@ -17,10 +18,10 @@ class ProfileOnboardingWidget extends StatefulWidget {
   final Function onProfileUpdated;
 
   const ProfileOnboardingWidget({
-    Key? key,
+    super.key,
     required this.user,
     required this.onProfileUpdated,
-  }) : super(key: key);
+  });
 
   @override
   State<ProfileOnboardingWidget> createState() =>
@@ -272,7 +273,6 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             'Personal Information',
@@ -393,7 +393,6 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             'Education Details',
@@ -547,7 +546,6 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             'Additional Information',
@@ -753,13 +751,10 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
         switch (stepId) {
           case 'basic':
             stepWidgets.add(_buildBasicInfoStep(provider));
-            break;
           case 'education':
             stepWidgets.add(_buildEducationStep(provider));
-            break;
           case 'preferences':
             stepWidgets.add(_buildAdditionalInfoStep(provider));
-            break;
         }
       }
     }

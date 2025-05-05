@@ -3,12 +3,12 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 
 import '../providers/auth_provider.dart';
-import '../providers/theme_provider.dart';
 import '../providers/profile_onboarding_provider.dart';
+import '../providers/theme_provider.dart';
 import 'api_service.dart';
 import 'auth_service.dart';
-import 'user_service.dart';
 import 'company_service.dart';
+import 'user_service.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
@@ -40,7 +40,6 @@ void setupServiceLocator() {
 
   serviceLocator.registerLazySingleton<CompanyService>(
     () => CompanyService(
-      authService: serviceLocator<AuthService>(),
       apiService: serviceLocator<ApiService>(),
     ),
   );

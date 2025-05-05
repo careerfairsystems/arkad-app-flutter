@@ -1,12 +1,13 @@
 import 'dart:io';
-import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
-import '../config/app_config.dart';
+
 import '../config/api_endpoints.dart';
-import '../services/auth_service.dart';
+import '../config/app_config.dart';
 import '../models/user.dart';
+import '../services/auth_service.dart';
 import 'api_service.dart';
 
 class UserService {

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'navigation/main_navigation.dart';
 import 'providers/auth_provider.dart';
-import 'providers/theme_provider.dart';
 import 'providers/profile_onboarding_provider.dart';
+import 'providers/theme_provider.dart';
 import 'services/service_locator.dart';
 
 void main() async {

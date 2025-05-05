@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// Represents an item in the navigation history for bottom navigation.
 class NavigationHistoryItem {
   /// The index of the tab in the bottom navigation.

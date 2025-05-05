@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 enum Environment { staging, production }
 
 class AppConfig {

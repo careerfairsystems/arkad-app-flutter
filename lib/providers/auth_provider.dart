@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import '../services/user_service.dart';
+
 import '../models/user.dart';
+import '../services/auth_service.dart';
 import '../services/service_locator.dart';
+import '../services/user_service.dart';
 import 'profile_onboarding_provider.dart';
 
 /// Authentication status states

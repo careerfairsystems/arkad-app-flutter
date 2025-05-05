@@ -1,17 +1,19 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+
+import 'package:arkad/models/user.dart';
 import 'package:arkad/services/user_service.dart';
-import 'package:provider/provider.dart';
+import 'package:arkad/utils/profile_utils.dart';
+import 'package:arkad/utils/service_helper.dart';
+import 'package:arkad/widgets/profile_form_components.dart';
+// We'll still use file_picker but with a fallback approach
+import 'package:file_picker/file_picker.dart' as fp;
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 // Import updated packages
 import 'package:path_provider/path_provider.dart';
-// We'll still use file_picker but with a fallback approach
-import 'package:file_picker/file_picker.dart' as fp;
-import 'package:arkad/models/user.dart';
+import 'package:provider/provider.dart';
+
 import '../providers/auth_provider.dart';
-import 'package:arkad/utils/service_helper.dart';
-import 'package:arkad/widgets/profile_form_components.dart';
-import 'package:arkad/utils/profile_utils.dart';
 
 // Define the Programme enum
 enum Programme {
@@ -115,7 +117,7 @@ const PROGRAMS = [
 ];
 
 class ProfileCompletionDialog extends StatefulWidget {
-  const ProfileCompletionDialog({Key? key}) : super(key: key);
+  const ProfileCompletionDialog({super.key});
 
   @override
   State<ProfileCompletionDialog> createState() =>
@@ -127,8 +129,6 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
 
   // Page controller for multi-step form
   final PageController _pageController = PageController();
-  int _currentPage = 0;
-  final int _totalPages = 4; // Updated to include uploads page
 
   // Form field controllers
   final _firstNameController = TextEditingController();
@@ -210,24 +210,6 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
     _masterTitleController.dispose();
     _foodPreferencesController.dispose();
     super.dispose();
-  }
-
-  void _nextPage() {
-    if (_currentPage < _totalPages - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void _previousPage() {
-    if (_currentPage > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
   }
 
   // Pick profile image
@@ -524,7 +506,6 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
         // Always show optional media section but mark as optional
         ExpansionTile(
           title: const Text('Media & Documents (Optional)'),
-          initiallyExpanded: false,
           children: [
             _buildUploadsFields(),
           ],
@@ -615,8 +596,6 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
   Widget _buildUploadsFields() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.user;
-    final bool needsProfilePicture = false; // No longer required
-    final bool needsCV = false; // No longer required
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),

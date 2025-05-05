@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Displays a map of the ARKAD event
 class MapScreen extends StatefulWidget {
-  const MapScreen({Key? key}) : super(key: key);
+  const MapScreen({super.key});
 
   @override
   State<MapScreen> createState() => _MapScreenState();

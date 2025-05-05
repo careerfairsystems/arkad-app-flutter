@@ -1,20 +1,15 @@
-import 'dart:convert';
 import '../config/api_endpoints.dart';
 import '../models/company.dart';
 import 'api_service.dart';
-import 'auth_service.dart';
 
 class CompanyService {
-  final AuthService _authService;
   final ApiService _apiService;
   List<Company> _companies = [];
   bool _isLoaded = false;
 
   CompanyService({
-    required AuthService authService,
     required ApiService apiService,
-  })  : _authService = authService,
-        _apiService = apiService;
+  }) : _apiService = apiService;
 
   // Getter for cached companies
   List<Company> get companies => _companies;

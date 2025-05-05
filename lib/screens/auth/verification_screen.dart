@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+
 import '../../config/theme_config.dart';
+import '../../providers/auth_provider.dart';
 import '../profile/profile_screen.dart';
 
 /// Verification screen for email confirmation during authentication.
@@ -105,7 +106,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
                 // App logo

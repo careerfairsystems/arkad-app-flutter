@@ -29,7 +29,7 @@ class FilterDropdown<T> extends StatefulWidget {
   final FilterDropdownController? controller;
 
   const FilterDropdown({
-    Key? key,
+    super.key,
     required this.title,
     required this.options,
     required this.selectedValues,
@@ -37,8 +37,7 @@ class FilterDropdown<T> extends StatefulWidget {
     required this.displayStringForOption,
     this.controller,
     String? id,
-  })  : id = id ?? title,
-        super(key: key);
+  })  : id = id ?? title;
 
   @override
   State<FilterDropdown<T>> createState() => _FilterDropdownState<T>();
@@ -237,7 +236,7 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
         decoration: InputDecoration(
           hintText: 'Search ${widget.title.toLowerCase()}...',
           prefixIcon: const Icon(Icons.search, size: 20),
-          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+          contentPadding: const EdgeInsets.symmetric(),
           isDense: true,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
@@ -329,7 +328,7 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
           value: isSelected,
           onChanged: (_) => _toggleOption(option),
           dense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+          contentPadding: const EdgeInsets.symmetric(),
           controlAffinity: ListTileControlAffinity.leading,
           activeColor: Theme.of(context).colorScheme.primary,
           tileColor: isSelected

@@ -1,8 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import '../widgets/profile_completion_dialog.dart';
 
 class ProfileFormComponents {
@@ -330,8 +327,7 @@ class ProfileFormComponents {
           ),
         ),
         const SizedBox(height: 8),
-        const Text('CV / Resume (Optional)',
-            style: TextStyle(fontSize: 12)),
+        const Text('CV / Resume (Optional)', style: TextStyle(fontSize: 12)),
         Row(
           children: [
             Expanded(

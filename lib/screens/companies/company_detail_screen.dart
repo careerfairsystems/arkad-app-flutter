@@ -6,8 +6,7 @@ import '../../models/job.dart';
 class CompanyDetailScreen extends StatelessWidget {
   final Company company;
 
-  const CompanyDetailScreen({Key? key, required this.company})
-      : super(key: key);
+  const CompanyDetailScreen({super.key, required this.company});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +36,6 @@ class CompanyDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.all(24.0),
       color: Theme.of(context).colorScheme.surface,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           if (company.fullLogoUrl != null) ...[
             ClipRRect(
