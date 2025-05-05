@@ -1,0 +1,284 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/user.dart';
+
+class ProfileOnboardingProvider with ChangeNotifier {
+  int _currentStep = 0;
+  bool _onboardingCompleted = false;
+  int _totalSteps = 0;
+  List<String> _missingRequiredFields = [];
+  List<String> _optionalFields = [];
+  List<String> _completedOptionalFields = [];
+  bool _isLoading = false;
+
+  // Track initialization attempts to implement retry mechanism
+  int _initializationAttempts = 0;
+  static const int _maxInitAttempts = 3;
+
+  // Categorized steps - each represents a page in the onboarding flow
+  final List<Map<String, dynamic>> _steps = [
+    {
+      'id': 'basic',
+      'title': 'Basic Information',
+      'requiredFields': ['First Name', 'Last Name'],
+      'optionalFields': ['Profile Picture'],
+    },
+    {
+      'id': 'education',
+      'title': 'Education Details',
+      'requiredFields': ['Programme', 'Study Year'],
+      'optionalFields': ['Master Title'],
+    },
+    {
+      'id': 'preferences',
+      'title': 'Additional Information',
+      'requiredFields': ['Food Preferences'],
+      'optionalFields': ['LinkedIn', 'CV'],
+    }
+  ];
+
+  // Keys for SharedPreferences
+  static const String _currentStepKey = 'profile_onboarding_current_step';
+  static const String _onboardingCompletedKey = 'profile_onboarding_completed';
+
+  // Getters
+  int get currentStep => _currentStep;
+  bool get onboardingCompleted => _onboardingCompleted;
+  int get totalSteps => _totalSteps;
+  List<String> get missingRequiredFields => _missingRequiredFields;
+  List<String> get optionalFields => _optionalFields;
+  List<String> get completedOptionalFields => _completedOptionalFields;
+  List<Map<String, dynamic>> get steps => _steps;
+  bool get isLoading => _isLoading;
+  bool get hasIncompleteRequiredFields => _missingRequiredFields.isNotEmpty;
+
+  // Calculate completion percentage including both required and optional fields
+  double get completionPercentage {
+    int totalFields = _steps.fold(0, (total, step) {
+      // Fix: Explicitly cast the result to int
+      return total +
+          (step['requiredFields'].length as int) +
+          (step['optionalFields'].length as int);
+    });
+
+    int missingFields = _missingRequiredFields.length +
+        (_optionalFields.length - _completedOptionalFields.length);
+
+    return totalFields > 0 ? (totalFields - missingFields) / totalFields : 1.0;
+  }
+
+  // Initialize provider by loading saved data with retry mechanism
+  Future<void> initialize(User? user) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Get saved step or default to 0
+      _currentStep = prefs.getInt(_currentStepKey) ?? 0;
+      _onboardingCompleted = prefs.getBool(_onboardingCompletedKey) ?? false;
+
+      // Update fields based on current user data
+      _updateFields(user);
+
+      // Reset initialization attempts on success
+      _initializationAttempts = 0;
+    } catch (e) {
+      print('Error initializing onboarding provider: $e');
+
+      // Retry logic for handling race conditions
+      if (_initializationAttempts < _maxInitAttempts) {
+        _initializationAttempts++;
+        print(
+            'Retrying initialization attempt $_initializationAttempts of $_maxInitAttempts');
+
+        // Wait briefly before retrying
+        await Future.delayed(
+            Duration(milliseconds: 300 * _initializationAttempts));
+
+        // Try again
+        return initialize(user);
+      } else {
+        // Reset to default state after max retries
+        _currentStep = 0;
+        _onboardingCompleted = false;
+        _updateFields(user);
+        print('Max initialization attempts reached. Using default values.');
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Update fields when user data changes
+  void _updateFields(User? user) {
+    if (user == null) {
+      _missingRequiredFields = [];
+      _optionalFields = [];
+      _completedOptionalFields = [];
+      _totalSteps = 0;
+      // Bug fix: Add notifyListeners() to ensure UI is updated when user is null
+      notifyListeners();
+      return;
+    }
+
+    // Get missing required fields
+    _missingRequiredFields = user.getMissingFields();
+
+    // Define optional fields
+    _optionalFields = ['CV', 'Profile Picture', 'LinkedIn', 'Master Title'];
+    _completedOptionalFields = [];
+
+    // Check which optional fields are completed
+    if (user.cv != null && user.cv!.isNotEmpty) {
+      _completedOptionalFields.add('CV');
+    }
+
+    if (user.profilePicture != null && user.profilePicture!.isNotEmpty) {
+      _completedOptionalFields.add('Profile Picture');
+    }
+
+    if (user.linkedin != null && user.linkedin!.isNotEmpty) {
+      _completedOptionalFields.add('LinkedIn');
+    }
+
+    if (user.masterTitle != null && user.masterTitle!.isNotEmpty) {
+      _completedOptionalFields.add('Master Title');
+    }
+
+    // Determine which steps to show based on missing fields
+    _totalSteps = _calculateTotalSteps();
+
+    // If user is verified or no missing required fields, mark onboarding as completed
+    if (_missingRequiredFields.isEmpty || user.isVerified) {
+      _onboardingCompleted = true;
+      _saveOnboardingCompleted();
+    } else {
+      _onboardingCompleted = false;
+    }
+  }
+
+  // Calculate how many steps we need to show based on missing fields
+  int _calculateTotalSteps() {
+    int stepCount = 0;
+
+    for (var step in _steps) {
+      // Check if this step has any required fields that are missing
+      bool hasRequiredFieldsMissing = step['requiredFields']
+          .any((field) => _missingRequiredFields.contains(field));
+
+      // Check if this step has any optional fields that could be filled
+      bool hasOptionalFields = step['optionalFields'].isNotEmpty;
+
+      // If either condition is true, we'll show this step
+      if (hasRequiredFieldsMissing || hasOptionalFields) {
+        stepCount++;
+      }
+    }
+
+    return stepCount;
+  }
+
+  // Get active step details
+  Map<String, dynamic> getActiveStep() {
+    if (_currentStep >= 0 && _currentStep < _steps.length) {
+      return _steps[_currentStep];
+    }
+    return _steps[0]; // Default to first step
+  }
+
+  // Check if a specific field is missing (required or optional)
+  bool isFieldMissing(String fieldName) {
+    return _missingRequiredFields.contains(fieldName) ||
+        (_optionalFields.contains(fieldName) &&
+            !_completedOptionalFields.contains(fieldName));
+  }
+
+  // Check if a field is required
+  bool isFieldRequired(String fieldName) {
+    for (var step in _steps) {
+      if ((step['requiredFields'] as List).contains(fieldName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Move to the next step
+  Future<void> nextStep() async {
+    if (_currentStep < _totalSteps - 1) {
+      _currentStep++;
+      await _saveCurrentStep();
+      notifyListeners();
+    }
+  }
+
+  // Move to the previous step
+  Future<void> previousStep() async {
+    if (_currentStep > 0) {
+      _currentStep--;
+      await _saveCurrentStep();
+      notifyListeners();
+    }
+  }
+
+  // Set a specific step
+  Future<void> setStep(int step) async {
+    if (step >= 0 && step < _totalSteps) {
+      _currentStep = step;
+      await _saveCurrentStep();
+      notifyListeners();
+    }
+  }
+
+  // Mark onboarding as complete
+  Future<void> completeOnboarding() async {
+    _onboardingCompleted = true;
+    await _saveOnboardingCompleted();
+    notifyListeners();
+  }
+
+  // Refresh onboarding state based on updated user data
+  Future<void> refreshOnboardingState(User? user) async {
+    _updateFields(user);
+    notifyListeners();
+  }
+
+  // Save current step to SharedPreferences
+  Future<void> _saveCurrentStep() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_currentStepKey, _currentStep);
+    } catch (e) {
+      print('Error saving current step: $e');
+    }
+  }
+
+  // Save onboarding completed status to SharedPreferences
+  Future<void> _saveOnboardingCompleted() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_onboardingCompletedKey, _onboardingCompleted);
+    } catch (e) {
+      print('Error saving onboarding completed status: $e');
+    }
+  }
+
+  // Reset onboarding state (e.g., for testing)
+  Future<void> resetOnboarding() async {
+    try {
+      _currentStep = 0;
+      _onboardingCompleted = false;
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_currentStepKey);
+      await prefs.remove(_onboardingCompletedKey);
+
+      notifyListeners();
+    } catch (e) {
+      print('Error resetting onboarding: $e');
+    }
+  }
+}
