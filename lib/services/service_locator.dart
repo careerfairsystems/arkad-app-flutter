@@ -12,14 +12,14 @@ import 'user_service.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
-/// Initialize all the services and providers at app startup
+/// Centrialized initialization of all the services and providers. An alternative to Flutter’s inherited widgets and provides a more decoupled way to access services and providers throughout the app. This abstracts the complexity from lower-level components and avoids the need to pass dependencies down the widget tree.
+
+// We could have used InheritedWidget or riverpod package to handle state, but GetIt with provider is a solid combo to my understanding.
 void setupServiceLocator() {
-  // Register dependencies
   serviceLocator.registerLazySingleton<FlutterSecureStorage>(
       () => const FlutterSecureStorage());
   serviceLocator.registerLazySingleton<http.Client>(() => http.Client());
 
-  // Register services with their dependencies
   serviceLocator.registerLazySingleton<ApiService>(
     () => ApiService(client: serviceLocator<http.Client>()),
   );
@@ -44,7 +44,6 @@ void setupServiceLocator() {
     ),
   );
 
-  // Register providers
   serviceLocator.registerLazySingleton<AuthProvider>(
     () => AuthProvider(
       serviceLocator<AuthService>(),
@@ -56,7 +55,6 @@ void setupServiceLocator() {
     () => ThemeProvider(),
   );
 
-  // Register the profile onboarding provider
   serviceLocator.registerLazySingleton<ProfileOnboardingProvider>(
     () => ProfileOnboardingProvider(),
   );

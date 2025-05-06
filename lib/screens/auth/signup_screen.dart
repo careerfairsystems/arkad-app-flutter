@@ -153,7 +153,7 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       if (mounted) {
         if (success) {
-          Navigator.of(context).pushNamed(
+          await Navigator.of(context).pushNamed(
             '/auth/verification',
             arguments: {'email': _emailController.text.trim()},
           );

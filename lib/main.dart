@@ -8,9 +8,10 @@ import 'providers/theme_provider.dart';
 import 'services/service_locator.dart';
 
 void main() async {
+  // Good pratice, harmless to include. Ensure that the Flutter engine is initialized before running the app. In simplier terms if you need to do any native setup or asynchronous work such as reading local storage before showing the UI, this call ensures that the Flutter engine is ready to handle it.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize the service locator
+  // Initialize the GetIt.instance, a singleton instance of the service locator that is globally accessible and hold references to our services, calling getIt<SomeType>() will refer to the same registered objects.
   setupServiceLocator();
 
   runApp(const MyApp());

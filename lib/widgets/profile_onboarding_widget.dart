@@ -168,13 +168,15 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                       borderRadius: BorderRadius.circular(18),
                       border: isCurrent
                           ? Border.all(
-                              color: ArkadColors.arkadTurkos.withOpacity(0.3),
+                              color: ArkadColors.arkadTurkos
+                                  .withValues(alpha: 0.3),
                               width: 4)
                           : null,
                       boxShadow: isCurrent
                           ? [
                               BoxShadow(
-                                color: ArkadColors.arkadTurkos.withOpacity(0.3),
+                                color: ArkadColors.arkadTurkos
+                                    .withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               )
@@ -436,7 +438,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
               isExpanded: true,
               icon: const Icon(Icons.arrow_drop_down),
               menuMaxHeight: 350,
-              items: PROGRAMS.map((program) {
+              items: programs.map((program) {
                 return DropdownMenuItem<Programme>(
                   value: program['value'] as Programme,
                   child: Text(
@@ -450,7 +452,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                 setState(() {
                   _selectedProgramme = newValue;
                   if (newValue != null) {
-                    _programmeController.text = PROGRAMS
+                    _programmeController.text = programs
                         .firstWhere(
                             (program) => program['value'] == newValue)['label']
                         .toString();
@@ -765,8 +767,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
   Future<void> _nextStep(ProfileOnboardingProvider provider) async {
     if (_formKey.currentState!.validate()) {
       if (provider.currentStep < provider.totalSteps - 1) {
-        provider.nextStep();
-        _animationController.forward(from: 0.0);
+        await provider.nextStep();
+        await _animationController.forward(from: 0.0);
       } else {
         await _submitForm();
       }
@@ -775,8 +777,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
 
   Future<void> _previousStep(ProfileOnboardingProvider provider) async {
     if (provider.currentStep > 0) {
-      provider.previousStep();
-      _animationController.forward(from: 0.0);
+      await provider.previousStep();
+      await _animationController.forward(from: 0.0);
     }
   }
 
@@ -811,11 +813,11 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
                 side: BorderSide(
-                    color: ArkadColors.arkadTurkos.withOpacity(0.5),
+                    color: ArkadColors.arkadTurkos.withValues(alpha: 0.5),
                     width: 1.5),
               ),
               elevation: 8,
-              shadowColor: ArkadColors.arkadTurkos.withOpacity(0.2),
+              shadowColor: ArkadColors.arkadTurkos.withValues(alpha: 0.2),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -859,7 +861,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                                       .textTheme
                                       .bodyMedium
                                       ?.copyWith(
-                                        color: Colors.white.withOpacity(0.85),
+                                        color: Colors.white
+                                            .withValues(alpha: 0.85),
                                         fontSize: 14,
                                       ),
                                 ),
@@ -1022,11 +1025,17 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
   }
 
   Future<void> _submitForm() async {
-    // Existing submit form implementation...
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isSubmitting = true;
       });
+
+      // Store all context-dependent objects before async operations
+      final context = this.context;
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final onboardingProvider =
+          Provider.of<ProfileOnboardingProvider>(context, listen: false);
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
 
       try {
         final userService = ServiceHelper.getService<UserService>();
@@ -1061,26 +1070,22 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
 
         if (mounted) {
           // Refresh the user profile in the auth provider
-          final authProvider =
-              Provider.of<AuthProvider>(context, listen: false);
           await authProvider.refreshUserProfile();
 
           // Refresh the onboarding state
-          final onboardingProvider =
-              Provider.of<ProfileOnboardingProvider>(context, listen: false);
           await onboardingProvider.refreshOnboardingState(authProvider.user);
 
           // Notify parent that profile was updated
           widget.onProfileUpdated();
 
           // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.showSnackBar(
             const SnackBar(content: Text('Profile updated successfully!')),
           );
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.showSnackBar(
             SnackBar(
                 content: Text('Failed to update profile: ${e.toString()}')),
           );

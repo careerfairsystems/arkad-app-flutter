@@ -221,14 +221,15 @@ class _MainNavigationState extends State<MainNavigation> {
       _navigationHistory.push(0, items[0].route);
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        return _handleBackNavigation();
+    return PopScope<Object?>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return; // the pop already happened – nothing to do
+        _handleBackNavigation(); // your existing logic
       },
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // Use a ConstrainedBox to ensure the body never overflows
             return Scaffold(
               resizeToAvoidBottomInset: true,
               body: ConstrainedBox(

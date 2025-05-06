@@ -20,11 +20,15 @@ class ProfileUtils {
         imageQuality: 85,
       );
 
+      if (!context.mounted) return null;
+
       if (image != null) {
         return File(image.path);
       }
     } catch (e) {
-      _showErrorSnackbar(context, 'Failed to pick image: $e');
+      if (context.mounted) {
+        _showErrorSnackbar(context, 'Failed to pick image: $e');
+      }
     }
     return null;
   }
@@ -33,13 +37,15 @@ class ProfileUtils {
     required BuildContext context,
   }) async {
     try {
-      // First attempt with file_picker
+      // attempt with file_picker
       try {
         FilePickerResult? result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
           allowedExtensions: ['pdf', 'doc', 'docx'],
-          withData: true, // Load file bytes in memory
+          withData: true,
         );
+
+        if (!context.mounted) return null; // 🔑 guard
 
         if (result != null &&
             result.files.isNotEmpty &&
@@ -48,24 +54,27 @@ class ProfileUtils {
         } else if (result != null &&
             result.files.isNotEmpty &&
             result.files.first.bytes != null) {
-          // If we have bytes but no path (e.g. on web), save to temporary file
           final tempDir = await getTemporaryDirectory();
+
+          if (!context.mounted) return null; // another await ⇒ guard again
+
           final file = File('${tempDir.path}/${result.files.first.name}');
           await file.writeAsBytes(result.files.first.bytes!);
           return file;
         }
       } catch (e) {
-        // If file_picker fails, we'll fall through to the next approach
-        print('File picker error: $e');
+        // fall through to snackbar
+        debugPrint('File picker error: $e');
       }
 
-      // Alert user that file selection wasn't successful
       if (context.mounted) {
         _showErrorSnackbar(
             context, 'Could not select CV file. Please try again.');
       }
     } catch (e) {
-      _showErrorSnackbar(context, 'Failed to pick CV: $e');
+      if (context.mounted) {
+        _showErrorSnackbar(context, 'Failed to pick CV: $e');
+      }
     }
     return null;
   }
@@ -93,7 +102,7 @@ class ProfileUtils {
       'last_name': lastName.trim(),
       // Get the label from the selected programme enum
       'programme': selectedProgramme != null
-          ? PROGRAMS.firstWhere(
+          ? programs.firstWhere(
               (prog) => prog['value'] == selectedProgramme)['label'] as String
           : programmeText.trim(),
       'linkedin': linkedin.trim(),
@@ -116,9 +125,9 @@ class ProfileUtils {
     }
 
     try {
-      return PROGRAMS.firstWhere(
+      return programs.firstWhere(
         (prog) => prog['label'] == programmeString,
-        orElse: () => PROGRAMS[0],
+        orElse: () => programs[0],
       )['value'] as Programme;
     } catch (e) {
       return null;

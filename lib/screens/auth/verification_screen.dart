@@ -45,7 +45,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
       final success = await authProvider.verifyCode(_codeController.text);
       if (mounted) {
         if (success) {
-          Navigator.of(context).pushAndRemoveUntil(
+          await Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) => ProfileScreen(user: authProvider.user!),
             ),

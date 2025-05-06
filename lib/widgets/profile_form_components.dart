@@ -100,7 +100,7 @@ class ProfileFormComponents {
             isExpanded: true,
             icon: const Icon(Icons.arrow_drop_down),
             menuMaxHeight: 350,
-            items: PROGRAMS.map((program) {
+            items: programs.map((program) {
               return DropdownMenuItem<Programme>(
                 value: program['value'] as Programme,
                 child: Text(

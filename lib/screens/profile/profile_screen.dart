@@ -31,9 +31,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final user = authProvider.user;
       if (user != null) {
-        final onboardingProvider = Provider.of<ProfileOnboardingProvider>(context, listen: false);
+        final onboardingProvider =
+            Provider.of<ProfileOnboardingProvider>(context, listen: false);
         onboardingProvider.initialize(user);
-        
+
         // Register listener for user state changes to keep verification and onboarding in sync
         if (!_isUserStateListenerRegistered) {
           _isUserStateListenerRegistered = true;
@@ -42,7 +43,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     });
   }
-  
+
   @override
   void dispose() {
     // Unregister the listener when the widget is disposed
@@ -53,15 +54,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
     super.dispose();
   }
-  
+
   // Sync verification status with onboarding state
   void _syncVerificationWithOnboarding() {
     if (!mounted) return;
-    
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final onboardingProvider = Provider.of<ProfileOnboardingProvider>(context, listen: false);
+    final onboardingProvider =
+        Provider.of<ProfileOnboardingProvider>(context, listen: false);
     final user = authProvider.user;
-    
+
     // Immediately update onboarding state when verification status changes
     if (user != null && user.isVerified) {
       onboardingProvider.completeOnboarding();
@@ -70,28 +72,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Helper method to refresh the profile when onboarding updates occur
   Future<void> _onProfileUpdated() async {
-    if (mounted) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.refreshUserProfile();
-      
-      // Refresh the onboarding state
-      final onboardingProvider = Provider.of<ProfileOnboardingProvider>(context, listen: false);
-      await onboardingProvider.refreshOnboardingState(authProvider.user);
-      
-      // Show success feedback
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
-      );
-    }
+    if (!mounted) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final onboardingProvider =
+        Provider.of<ProfileOnboardingProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
+    await authProvider.refreshUserProfile();
+    await onboardingProvider.refreshOnboardingState(authProvider.user);
+
+    if (!mounted) return;
+
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Profile updated successfully!')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final currentUser = authProvider.user ?? widget.user;
-    
+
     // Access the onboarding provider to check profile completion status
     final onboardingProvider = Provider.of<ProfileOnboardingProvider>(context);
 
@@ -121,12 +124,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (!currentUser.isVerified && onboardingProvider.hasIncompleteRequiredFields)
+              if (!currentUser.isVerified &&
+                  onboardingProvider.hasIncompleteRequiredFields)
                 ProfileOnboardingWidget(
                   user: currentUser,
                   onProfileUpdated: _onProfileUpdated,
                 )
-              else if (currentUser.isVerified && !onboardingProvider.hasIncompleteRequiredFields)
+              else if (currentUser.isVerified &&
+                  !onboardingProvider.hasIncompleteRequiredFields)
                 Column(
                   children: [
                     Center(
@@ -136,7 +141,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             tag: 'profilePicture',
                             child: CircleAvatar(
                               radius: 60,
-                              backgroundImage: currentUser.profilePicture != null
+                              backgroundImage: currentUser.profilePicture !=
+                                      null
                                   ? NetworkImage(currentUser.profilePicture!)
                                   : null,
                               child: currentUser.profilePicture == null
@@ -180,7 +186,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
 
                     if (currentUser.studyYear != null)
-                      _buildInfoTile("Study Year", "Year ${currentUser.studyYear}"),
+                      _buildInfoTile(
+                          "Study Year", "Year ${currentUser.studyYear}"),
 
                     if (currentUser.masterTitle != null &&
                         currentUser.masterTitle!.isNotEmpty)
@@ -191,7 +198,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _buildInfoTile(
                           "Food Preferences", currentUser.foodPreferences!),
 
-                    if (currentUser.cv != null && currentUser.cv!.isNotEmpty) ...[
+                    if (currentUser.cv != null &&
+                        currentUser.cv!.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
                         onPressed: () => _launchUrl(context, currentUser.cv!),
@@ -210,8 +218,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ],
                 )
-              else if (!onboardingProvider.hasIncompleteRequiredFields && 
-                  onboardingProvider.optionalFields.length > onboardingProvider.completedOptionalFields.length)
+              else if (!onboardingProvider.hasIncompleteRequiredFields &&
+                  onboardingProvider.optionalFields.length >
+                      onboardingProvider.completedOptionalFields.length)
                 _buildOptionalFieldsCard(context, onboardingProvider),
             ],
           ),
@@ -221,9 +230,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // Widget to show optional fields completion card
-  Widget _buildOptionalFieldsCard(BuildContext context, ProfileOnboardingProvider provider) {
-    double completionPercentage = provider.completedOptionalFields.length / provider.optionalFields.length;
-    
+  Widget _buildOptionalFieldsCard(
+      BuildContext context, ProfileOnboardingProvider provider) {
+    double completionPercentage = provider.completedOptionalFields.length /
+        provider.optionalFields.length;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
@@ -240,14 +251,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Text(
                   'Profile completion',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold
-                  ),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Text(
                   '${(completionPercentage * 100).toInt()}%',
                   style: TextStyle(
-                    color: ArkadColors.arkadTurkos, 
+                    color: ArkadColors.arkadTurkos,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -357,9 +369,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Text(
             value,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              decoration: isLink ? TextDecoration.underline : null,
-              color: isLink ? Colors.blue : null,
-            ),
+                  decoration: isLink ? TextDecoration.underline : null,
+                  color: isLink ? Colors.blue : null,
+                ),
           ),
         ],
       ),

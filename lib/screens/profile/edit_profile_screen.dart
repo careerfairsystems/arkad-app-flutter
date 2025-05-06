@@ -95,9 +95,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _updateProfile() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
+
+    // #1 capture references that don’t change
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final auth = Provider.of<AuthProvider>(context, listen: false);
 
     setState(() {
       _isUploading = true;
@@ -105,7 +108,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
-      // Use the ProfileUtils helper to prepare data
       final profileData = ProfileUtils.prepareProfileData(
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
@@ -117,45 +119,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         foodPreferences: _foodPreferencesController.text,
       );
 
-      // Update the user profile with the UserService
       await _userService.updateProfileFields(profileData);
-
-      // Upload profile picture if selected
       if (_selectedImage != null) {
         await _userService.uploadProfilePicture(_selectedImage!);
       } else if (_profilePictureDeleted) {
         await _userService.deleteProfilePicture();
       }
 
-      // Upload CV if selected
       if (_selectedCV != null) {
         await _userService.uploadCV(_selectedCV!);
       } else if (_cvDeleted) {
         await _userService.deleteCV();
       }
 
-      // Refresh the user profile in the auth provider
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.refreshUserProfile();
+      await auth.refreshUserProfile();
 
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully!')),
-        );
-      }
+      // #2 bail out if the widget got disposed while we were waiting
+      if (!mounted) return;
+
+      navigator.pop(); // uses captured Navigator
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully!')),
+      );
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
+      messenger.showSnackBar(
         SnackBar(content: Text('Failed to update profile: $e')),
       );
     } finally {
       if (mounted) {
-        setState(() {
-          _isUploading = false;
-        });
+        setState(() => _isUploading = false);
       }
     }
   }
@@ -258,7 +251,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         color: Colors.red.shade100,
                         child: Text(
                           _error!,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.red.shade800),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Colors.red.shade800),
                         ),
                       ),
 
@@ -315,7 +311,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         setState(() {
                           _selectedProgramme = newValue;
                           if (newValue != null) {
-                            _programmeController.text = PROGRAMS
+                            _programmeController.text = programs
                                 .firstWhere((program) =>
                                     program['value'] == newValue)['label']
                                 .toString();

@@ -37,7 +37,7 @@ class FilterDropdown<T> extends StatefulWidget {
     required this.displayStringForOption,
     this.controller,
     String? id,
-  })  : id = id ?? title;
+  }) : id = id ?? title;
 
   @override
   State<FilterDropdown<T>> createState() => _FilterDropdownState<T>();
@@ -332,7 +332,10 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
           controlAffinity: ListTileControlAffinity.leading,
           activeColor: Theme.of(context).colorScheme.primary,
           tileColor: isSelected
-              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2)
+              ? Theme.of(context)
+                  .colorScheme
+                  .primaryContainer
+                  .withValues(alpha: .2)
               : null,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4.0),

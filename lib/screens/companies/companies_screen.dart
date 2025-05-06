@@ -13,7 +13,7 @@ class CompaniesScreen extends StatefulWidget {
   const CompaniesScreen({super.key});
 
   @override
-  _CompaniesScreenState createState() => _CompaniesScreenState();
+  State<CompaniesScreen> createState() => _CompaniesScreenState();
 }
 
 class _CompaniesScreenState extends State<CompaniesScreen> {
@@ -444,7 +444,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.6),
+                        .withValues(alpha: .6),
                     fontStyle: FontStyle.italic,
                   ),
                 ),

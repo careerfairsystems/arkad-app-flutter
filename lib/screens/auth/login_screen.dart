@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (mounted) {
         if (success) {
-          Navigator.of(context).pushAndRemoveUntil(
+          await Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) => ProfileScreen(user: authProvider.user!),
             ),
@@ -112,7 +112,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     labelText: 'Email',
                     hintText: 'Enter your email',
-                    prefixIcon: Icon(Icons.email, color: ArkadColors.arkadTurkos),
+                    prefixIcon:
+                        Icon(Icons.email, color: ArkadColors.arkadTurkos),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
@@ -133,10 +134,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     labelText: 'Password',
                     hintText: 'Enter your password',
-                    prefixIcon: Icon(Icons.lock, color: ArkadColors.arkadTurkos),
+                    prefixIcon:
+                        Icon(Icons.lock, color: ArkadColors.arkadTurkos),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                         color: ArkadColors.arkadTurkos,
                       ),
                       onPressed: () {
@@ -192,7 +196,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(ArkadColors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                ArkadColors.white),
                           ),
                         )
                       : const Text(
@@ -216,7 +221,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _navigateToSignup,
                       child: Text(
                         "Sign up",
-                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],

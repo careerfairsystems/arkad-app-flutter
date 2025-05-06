@@ -17,102 +17,93 @@ import '../providers/auth_provider.dart';
 
 // Define the Programme enum
 enum Programme {
-  Architecture,
-  Automotive,
-  Automation,
-  Biomedical_Engineering,
-  Chemical_Engineering,
-  Civil_Engineering,
-  Computer_Science_Engineering,
-  Construction_and_Architecture,
-  Construction_and_Railway_Construction,
-  Road_and_Traffic_Technology,
-  Electrical_Engineering,
-  Engineering_Biotechnology,
-  Information_and_Communication_Engineering,
-  Engineering_Mathematics,
-  Engineering_Nanoscience,
-  Engineering_Physics,
-  Environmental_Engineering,
-  Fire_Protection_Engineering,
-  Industrial_Design,
-  Industrial_Economics_and_Management,
-  Surveying,
-  Mechanical_engineering,
-  Mechanical_Engineering_with_Industrial_Design,
-  Risk_Safety_and_Crisis_Management,
+  architecture,
+  automotive,
+  automation,
+  biomedicalEngineering,
+  chemicalEngineering,
+  civilEngineering,
+  computerScienceEngineering,
+  constructionAndArchitecture,
+  constructionAndRailwayConstruction,
+  roadAndTrafficTechnology,
+  electricalEngineering,
+  engineeringBiotechnology,
+  informationAndCommunicationEngineering,
+  engineeringMathematics,
+  engineeringNanoscience,
+  engineeringPhysics,
+  environmentalEngineering,
+  fireProtectionEngineering,
+  industrialDesign,
+  industrialEconomicsAndManagement,
+  surveying,
+  mechanicalEngineering,
+  mechanicalEngineeringWithIndustrialDesign,
+  riskSafetyAndCrisisManagement,
 }
 
 // Program options
-const PROGRAMS = [
-  {'label': "Architecture", 'value': Programme.Architecture},
-  {'label': "Automotive", 'value': Programme.Automotive},
-  {'label': "Automation", 'value': Programme.Automation},
-  {
-    'label': "Biomedical Engineering",
-    'value': Programme.Biomedical_Engineering
-  },
-  {'label': "Chemical Engineering", 'value': Programme.Chemical_Engineering},
-  {'label': "Civil Engineering", 'value': Programme.Civil_Engineering},
+const programs = [
+  {'label': "Architecture", 'value': Programme.architecture},
+  {'label': "Automotive", 'value': Programme.automotive},
+  {'label': "Automation", 'value': Programme.automation},
+  {'label': "Biomedical Engineering", 'value': Programme.biomedicalEngineering},
+  {'label': "Chemical Engineering", 'value': Programme.chemicalEngineering},
+  {'label': "Civil Engineering", 'value': Programme.civilEngineering},
   {
     'label': "Computer Science and Engineering",
-    'value': Programme.Computer_Science_Engineering
+    'value': Programme.computerScienceEngineering
   },
   {
     'label': "Construction and Architecture",
-    'value': Programme.Construction_and_Architecture
+    'value': Programme.constructionAndArchitecture
   },
   {
     'label': "Construction and Railway Construction",
-    'value': Programme.Construction_and_Railway_Construction
+    'value': Programme.constructionAndRailwayConstruction
   },
-  {'label': "Traffic and Road", 'value': Programme.Road_and_Traffic_Technology},
-  {
-    'label': "Electrical Engineering",
-    'value': Programme.Electrical_Engineering
-  },
+  {'label': "Traffic and Road", 'value': Programme.roadAndTrafficTechnology},
+  {'label': "Electrical Engineering", 'value': Programme.electricalEngineering},
   {
     'label': "Engineering Biotechnology",
-    'value': Programme.Engineering_Biotechnology
+    'value': Programme.engineeringBiotechnology
   },
   {
     'label': "Information and Communication Engineering",
-    'value': Programme.Information_and_Communication_Engineering
+    'value': Programme.informationAndCommunicationEngineering
   },
   {
     'label': "Engineering Mathematics",
-    'value': Programme.Engineering_Mathematics
+    'value': Programme.engineeringMathematics
   },
   {
     'label': "Engineering Nanoscience",
-    'value': Programme.Engineering_Nanoscience
+    'value': Programme.engineeringNanoscience
   },
-  {'label': "Engineering Physics", 'value': Programme.Engineering_Physics},
+  {'label': "Engineering Physics", 'value': Programme.engineeringPhysics},
   {
     'label': "Environmental Engineering",
-    'value': Programme.Environmental_Engineering
+    'value': Programme.environmentalEngineering
   },
   {
     'label': "Fire Protection Engineering",
-    'value': Programme.Fire_Protection_Engineering
+    'value': Programme.fireProtectionEngineering
   },
-  {'label': "Industrial Design", 'value': Programme.Industrial_Design},
+  {'label': "Industrial Design", 'value': Programme.industrialDesign},
   {
     'label': "Industrial Engineering and Management",
-    'value': Programme.Industrial_Economics_and_Management
+    'value': Programme.industrialEconomicsAndManagement
   },
-  {'label': "Surveying", 'value': Programme.Surveying},
-  {
-    'label': "Mechanical Engineering",
-    'value': Programme.Mechanical_engineering
-  },
+  {'label': "Surveying", 'value': Programme.surveying},
+  {'label': "Mechanical Engineering", 'value': Programme.mechanicalEngineering},
   {
     'label': "Mechanical Engineering with Technical Design",
-    'value': Programme.Mechanical_Engineering_with_Industrial_Design
+    'value': Programme.mechanicalEngineeringWithIndustrialDesign
   },
   {
     'label': "Risk, Safety and Crisis Management",
-    'value': Programme.Risk_Safety_and_Crisis_Management
+    'value': Programme.riskSafetyAndCrisisManagement
   },
 ];
 
@@ -285,70 +276,61 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
   }
 
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+    if (!_formKey.currentState!.validate()) return;
 
-      try {
-        final userService = ServiceHelper.getService<UserService>();
+    // ── capture everything that needs BuildContext ────────────
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final userService = ServiceHelper.getService<UserService>();
 
-        // Use the ProfileUtils helper to prepare data
-        final profileData = ProfileUtils.prepareProfileData(
-          firstName: _firstNameController.text,
-          lastName: _lastNameController.text,
-          selectedProgramme: _selectedProgramme,
-          programmeText: _programmeController.text,
-          linkedin: _linkedinController.text,
-          masterTitle: _masterTitleController.text,
-          studyYear: _studyYear,
-          foodPreferences: _foodPreferencesController.text,
-        );
+    setState(() => _isLoading = true);
 
-        // Update the user profile
-        await userService.updateProfileFields(profileData);
+    try {
+      // ── build the payload synchronously ─────────────────────
+      final profileData = ProfileUtils.prepareProfileData(
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        selectedProgramme: _selectedProgramme,
+        programmeText: _programmeController.text,
+        linkedin: _linkedinController.text,
+        masterTitle: _masterTitleController.text,
+        studyYear: _studyYear,
+        foodPreferences: _foodPreferencesController.text,
+      );
 
-        // Upload profile picture if selected (optional)
-        if (_selectedProfileImage != null) {
-          setState(() {
-            _isUploading = true;
-          });
-          await userService.uploadProfilePicture(_selectedProfileImage!);
-        }
+      // ── perform the asynchronous work ───────────────────────
+      await userService.updateProfileFields(profileData);
 
-        // Upload CV if selected (optional)
-        if (_selectedCV != null) {
-          setState(() {
-            _isUploading = true;
-          });
-          await userService.uploadCV(_selectedCV!);
-        }
+      if (_selectedProfileImage != null) {
+        setState(() => _isUploading = true);
+        await userService.uploadProfilePicture(_selectedProfileImage!);
+      }
+      if (_selectedCV != null) {
+        setState(() => _isUploading = true);
+        await userService.uploadCV(_selectedCV!);
+      }
 
-        if (mounted) {
-          // Refresh the user profile in the auth provider
-          final authProvider =
-              Provider.of<AuthProvider>(context, listen: false);
-          await authProvider.refreshUserProfile();
+      // optional: a single guard after the last await
+      if (!mounted) return;
 
-          Navigator.of(context).pop(true); // Return success
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile updated successfully!')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Failed to update profile: ${e.toString()}')),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _isUploading = false;
-          });
-        }
+      await auth.refreshUserProfile();
+
+      navigator.pop(true); // use captured navigator
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully!')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to update profile: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isUploading = false;
+        });
       }
     }
   }
@@ -360,9 +342,17 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
     final List<String> missingFields = currentUser?.getMissingFields() ?? [];
     final bool isProfileComplete = missingFields.isEmpty;
 
-    return WillPopScope(
+    return PopScope<Object?>(
       // Only allow dismiss if profile is complete
-      onWillPop: () async => isProfileComplete,
+      canPop: isProfileComplete,
+
+      // ── new API ───────────────────────────────────────────────
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        // No additional action needed as canPop handles the dismissal
+        // logic. Just leave the body empty or keep your comment.
+      },
+      // ──────────────────────────────────────────────────────────
+
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: SingleChildScrollView(
@@ -560,7 +550,7 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
           setState(() {
             _selectedProgramme = newValue;
             if (newValue != null) {
-              _programmeController.text = PROGRAMS
+              _programmeController.text = programs
                   .firstWhere(
                       (program) => program['value'] == newValue)['label']
                   .toString();
