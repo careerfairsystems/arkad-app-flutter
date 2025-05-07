@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -138,7 +139,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   /// Navigates to the login screen.
   void _navigateToLogin() {
-    Navigator.of(context).pop();
+    context.pop(); // Use GoRouter navigation
   }
 
   /// Handles signup logic and navigation on success.
@@ -153,10 +154,8 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       if (mounted) {
         if (success) {
-          await Navigator.of(context).pushNamed(
-            '/auth/verification',
-            arguments: {'email': _emailController.text.trim()},
-          );
+          context.push(
+              '/auth/verification?email=${Uri.encodeComponent(_emailController.text.trim())}');
         } else if (authProvider.error != null) {
           setState(() => _errorMessage = authProvider.error);
         }

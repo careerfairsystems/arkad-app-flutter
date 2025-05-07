@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import 'navigation/main_navigation.dart';
+import 'navigation/app_router.dart';
 import 'providers/auth_provider.dart';
 import 'providers/profile_onboarding_provider.dart';
 import 'providers/theme_provider.dart';
@@ -32,12 +31,16 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(
             value: serviceLocator<ProfileOnboardingProvider>()),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, _) => MaterialApp(
-          title: 'Arkad App',
-          theme: themeProvider.getTheme(),
-          home: const MainNavigation(initialRoute: '/companies'),
-        ),
+      child: Consumer2<ThemeProvider, AuthProvider>(
+        builder: (context, themeProvider, auth, _) {
+          // Create a new AppRouter instance with auth
+          final router = AppRouter(auth).router;
+          return MaterialApp.router(
+            title: 'Arkad App',
+            theme: themeProvider.getTheme(),
+            routerConfig: router,
+          );
+        },
       ),
     );
   }

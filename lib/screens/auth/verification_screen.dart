@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart'; // Add go_router import
 
 import '../../config/theme_config.dart';
 import '../../providers/auth_provider.dart';
-import '../profile/profile_screen.dart';
 
 /// Verification screen for email confirmation during authentication.
 ///
@@ -45,12 +45,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
       final success = await authProvider.verifyCode(_codeController.text);
       if (mounted) {
         if (success) {
-          await Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => ProfileScreen(user: authProvider.user!),
-            ),
-            (route) => false,
-          );
+          // Let GoRouter handle navigation based on authentication state
+          // No need to manually navigate here
         } else if (authProvider.error != null) {
           setState(() => _errorMessage = authProvider.error);
         }

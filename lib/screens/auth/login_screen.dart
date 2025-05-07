@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; // Add go_router import
 import 'package:provider/provider.dart';
 
 import '../../config/theme_config.dart';
 import '../../providers/auth_provider.dart';
-import '../profile/profile_screen.dart';
 
 /// Login screen for user authentication.
 ///
@@ -38,12 +38,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (mounted) {
         if (success) {
-          await Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => ProfileScreen(user: authProvider.user!),
-            ),
-            (route) => false,
-          );
+          // The GoRouter will automatically redirect to the appropriate screen
+          // No need to push a route manually
         } else if (authProvider.error != null) {
           setState(() => _errorMessage = authProvider.error);
         }
@@ -61,12 +57,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Navigates to the signup screen.
   void _navigateToSignup() {
-    Navigator.of(context).pushNamed('/auth/signup');
+    context.push('/auth/signup');
   }
 
   /// Navigates to the reset password screen.
   void _navigateToResetPassword() {
-    Navigator.of(context).pushNamed('/auth/reset-password');
+    context.push('/auth/reset-password');
   }
 
   @override
