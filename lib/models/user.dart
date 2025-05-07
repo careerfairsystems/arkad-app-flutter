@@ -95,11 +95,11 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     // First use the generated function as a base
     User user = _$UserFromJson(json);
-    
+
     // Process media URLs (preserve existing functionality)
     String? processedCv = user.cv != null ? _prependMediaUrl(user.cv!) : null;
-    String? processedProfilePic = user.profilePicture != null 
-        ? _prependMediaUrl(user.profilePicture!) 
+    String? processedProfilePic = user.profilePicture != null
+        ? _prependMediaUrl(user.profilePicture!)
         : null;
 
     // Calculate verification status

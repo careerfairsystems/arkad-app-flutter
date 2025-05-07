@@ -86,7 +86,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'Failed to resend code: ${e.toString()}');
+        setState(
+            () => _errorMessage = 'Failed to resend code: ${e.toString()}');
       }
     } finally {
       if (mounted) {
@@ -133,7 +134,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 const SizedBox(height: 8),
                 Text(
                   widget.email,
-                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
@@ -146,7 +148,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     labelText: 'Verification Code',
                     hintText: 'Enter 6-digit code',
                     counterText: '',
-                    prefixIcon: Icon(Icons.lock_outline, color: ArkadColors.arkadTurkos),
+                    prefixIcon: Icon(Icons.lock_outline,
+                        color: ArkadColors.arkadTurkos),
                   ),
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   textAlign: TextAlign.center,
@@ -158,14 +161,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
                     child: Text(
                       _errorMessage!,
-                      style: theme.textTheme.bodyMedium?.copyWith(color: ArkadColors.lightRed),
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: ArkadColors.lightRed),
                       textAlign: TextAlign.center,
                     ),
                   ),
                 const SizedBox(height: 40),
                 // Verify button
                 ElevatedButton(
-                  onPressed: _isVerifying || !_isCodeComplete ? null : _verifyCode,
+                  onPressed:
+                      _isVerifying || !_isCodeComplete ? null : _verifyCode,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ArkadColors.arkadTurkos,
                     foregroundColor: ArkadColors.white,
@@ -180,7 +185,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(ArkadColors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                ArkadColors.white),
                           ),
                         )
                       : const Text(
