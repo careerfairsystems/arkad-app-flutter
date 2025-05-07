@@ -4,11 +4,7 @@ class LoadingIndicator extends StatelessWidget {
   final String? message;
   final double size;
 
-  const LoadingIndicator({
-    super.key,
-    this.message,
-    this.size = 36.0,
-  });
+  const LoadingIndicator({super.key, this.message, this.size = 36.0});
 
   @override
   Widget build(BuildContext context) {
@@ -16,11 +12,7 @@ class LoadingIndicator extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(
-          width: size,
-          height: size,
-          child: CircularProgressIndicator(),
-        ),
+        SizedBox(width: size, height: size, child: CircularProgressIndicator()),
         if (message != null) ...[
           const SizedBox(height: 16),
           Text(

@@ -17,8 +17,8 @@ class UserService {
   UserService({
     required AuthService authService,
     required ApiService apiService,
-  })  : _authService = authService,
-        _apiService = apiService;
+  }) : _authService = authService,
+       _apiService = apiService;
 
   // Get user profile
   Future<User> getUserProfile() async {
@@ -86,8 +86,9 @@ class UserService {
   Future<bool> uploadProfilePicture(File imageFile) async {
     try {
       // Create a multipart request
-      final uri =
-          Uri.parse('${AppConfig.baseUrl}${ApiEndpoints.profilePicture}');
+      final uri = Uri.parse(
+        '${AppConfig.baseUrl}${ApiEndpoints.profilePicture}',
+      );
       final request = http.MultipartRequest('POST', uri);
 
       // Add JWT authorization

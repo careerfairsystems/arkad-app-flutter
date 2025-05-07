@@ -53,57 +53,57 @@ const programs = [
   {'label': "Civil Engineering", 'value': Programme.civilEngineering},
   {
     'label': "Computer Science and Engineering",
-    'value': Programme.computerScienceEngineering
+    'value': Programme.computerScienceEngineering,
   },
   {
     'label': "Construction and Architecture",
-    'value': Programme.constructionAndArchitecture
+    'value': Programme.constructionAndArchitecture,
   },
   {
     'label': "Construction and Railway Construction",
-    'value': Programme.constructionAndRailwayConstruction
+    'value': Programme.constructionAndRailwayConstruction,
   },
   {'label': "Traffic and Road", 'value': Programme.roadAndTrafficTechnology},
   {'label': "Electrical Engineering", 'value': Programme.electricalEngineering},
   {
     'label': "Engineering Biotechnology",
-    'value': Programme.engineeringBiotechnology
+    'value': Programme.engineeringBiotechnology,
   },
   {
     'label': "Information and Communication Engineering",
-    'value': Programme.informationAndCommunicationEngineering
+    'value': Programme.informationAndCommunicationEngineering,
   },
   {
     'label': "Engineering Mathematics",
-    'value': Programme.engineeringMathematics
+    'value': Programme.engineeringMathematics,
   },
   {
     'label': "Engineering Nanoscience",
-    'value': Programme.engineeringNanoscience
+    'value': Programme.engineeringNanoscience,
   },
   {'label': "Engineering Physics", 'value': Programme.engineeringPhysics},
   {
     'label': "Environmental Engineering",
-    'value': Programme.environmentalEngineering
+    'value': Programme.environmentalEngineering,
   },
   {
     'label': "Fire Protection Engineering",
-    'value': Programme.fireProtectionEngineering
+    'value': Programme.fireProtectionEngineering,
   },
   {'label': "Industrial Design", 'value': Programme.industrialDesign},
   {
     'label': "Industrial Engineering and Management",
-    'value': Programme.industrialEconomicsAndManagement
+    'value': Programme.industrialEconomicsAndManagement,
   },
   {'label': "Surveying", 'value': Programme.surveying},
   {'label': "Mechanical Engineering", 'value': Programme.mechanicalEngineering},
   {
     'label': "Mechanical Engineering with Technical Design",
-    'value': Programme.mechanicalEngineeringWithIndustrialDesign
+    'value': Programme.mechanicalEngineeringWithIndustrialDesign,
   },
   {
     'label': "Risk, Safety and Crisis Management",
-    'value': Programme.riskSafetyAndCrisisManagement
+    'value': Programme.riskSafetyAndCrisisManagement,
   },
 ];
 
@@ -164,7 +164,8 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed to load profile data: ${e.toString()}')),
+            content: Text('Failed to load profile data: ${e.toString()}'),
+          ),
         );
       }
     } finally {
@@ -269,9 +270,9 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
 
   void _showErrorSnackbar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -351,74 +352,79 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
         // No additional action needed as canPop handles the dismissal
         // logic. Just leave the body empty or keep your comment.
       },
-      // ──────────────────────────────────────────────────────────
 
+      // ──────────────────────────────────────────────────────────
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: SingleChildScrollView(
           child: Container(
             width: double.maxFinite,
             padding: const EdgeInsets.all(16),
-            child: _isLoading || _isUploading
-                ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 16),
-                      Text(_isUploading ? 'Uploading files...' : 'Loading...'),
-                    ],
-                  )
-                : Form(
-                    key: _formKey,
-                    child: Column(
+            child:
+                _isLoading || _isUploading
+                    ? Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              isProfileComplete
-                                  ? 'Update Your Profile'
-                                  : 'Complete Your Profile',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            // Only show close button if profile is complete
-                            if (isProfileComplete)
-                              IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: () =>
-                                    Navigator.of(context).pop(false),
-                                tooltip: 'Close',
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 16),
                         Text(
-                          isProfileComplete
-                              ? 'Update your profile information anytime.'
-                              : 'Please complete the missing fields to activate your profile.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-
-                        // Dynamically build form based on missing fields
-                        const SizedBox(height: 24),
-                        _buildDynamicForm(missingFields),
-                        const SizedBox(height: 24),
-
-                        // Dynamic submit button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _submitForm,
-                            child: Text(isProfileComplete
-                                ? 'Update Profile'
-                                : 'Complete Profile'),
-                          ),
+                          _isUploading ? 'Uploading files...' : 'Loading...',
                         ),
                       ],
+                    )
+                    : Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                isProfileComplete
+                                    ? 'Update Your Profile'
+                                    : 'Complete Your Profile',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              // Only show close button if profile is complete
+                              if (isProfileComplete)
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed:
+                                      () => Navigator.of(context).pop(false),
+                                  tooltip: 'Close',
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            isProfileComplete
+                                ? 'Update your profile information anytime.'
+                                : 'Please complete the missing fields to activate your profile.',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+
+                          // Dynamically build form based on missing fields
+                          const SizedBox(height: 24),
+                          _buildDynamicForm(missingFields),
+                          const SizedBox(height: 24),
+
+                          // Dynamic submit button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _submitForm,
+                              child: Text(
+                                isProfileComplete
+                                    ? 'Update Profile'
+                                    : 'Complete Profile',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
           ),
         ),
       ),
@@ -436,27 +442,19 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
           ExpansionTile(
             title: const Text('Basic Information'),
             initiallyExpanded: true,
-            children: [
-              _buildBasicInfoFields(),
-            ],
+            children: [_buildBasicInfoFields()],
           ),
           ExpansionTile(
             title: const Text('Education'),
-            children: [
-              _buildEducationFields(),
-            ],
+            children: [_buildEducationFields()],
           ),
           ExpansionTile(
             title: const Text('Preferences'),
-            children: [
-              _buildPreferencesFields(),
-            ],
+            children: [_buildPreferencesFields()],
           ),
           ExpansionTile(
             title: const Text('Media & Documents (Optional)'),
-            children: [
-              _buildUploadsFields(),
-            ],
+            children: [_buildUploadsFields()],
           ),
         ],
       );
@@ -470,9 +468,7 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
           ExpansionTile(
             title: const Text('Basic Information'),
             initiallyExpanded: true,
-            children: [
-              _buildBasicInfoFields(),
-            ],
+            children: [_buildBasicInfoFields()],
           ),
         if (missingFields.contains('Programme') ||
             missingFields.contains('Master Title') ||
@@ -480,25 +476,19 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
           ExpansionTile(
             title: const Text('Education'),
             initiallyExpanded: true,
-            children: [
-              _buildEducationFields(),
-            ],
+            children: [_buildEducationFields()],
           ),
         if (missingFields.contains('LinkedIn') ||
             missingFields.contains('Food Preferences'))
           ExpansionTile(
             title: const Text('Preferences'),
             initiallyExpanded: true,
-            children: [
-              _buildPreferencesFields(),
-            ],
+            children: [_buildPreferencesFields()],
           ),
         // Always show optional media section but mark as optional
         ExpansionTile(
           title: const Text('Media & Documents (Optional)'),
-          children: [
-            _buildUploadsFields(),
-          ],
+          children: [_buildUploadsFields()],
         ),
       ],
     );
@@ -550,10 +540,12 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
           setState(() {
             _selectedProgramme = newValue;
             if (newValue != null) {
-              _programmeController.text = programs
-                  .firstWhere(
-                      (program) => program['value'] == newValue)['label']
-                  .toString();
+              _programmeController.text =
+                  programs
+                      .firstWhere(
+                        (program) => program['value'] == newValue,
+                      )['label']
+                      .toString();
             }
           });
         },
@@ -569,7 +561,8 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
     final currentUser = authProvider.user;
     final bool needsLinkedin =
         currentUser?.linkedin == null || currentUser!.linkedin!.isEmpty;
-    final bool needsFoodPreferences = currentUser?.foodPreferences == null ||
+    final bool needsFoodPreferences =
+        currentUser?.foodPreferences == null ||
         currentUser!.foodPreferences!.isEmpty;
 
     return Padding(
@@ -592,13 +585,17 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Profile Media (Optional)',
-              style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text(
+            'Profile Media (Optional)',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 16),
 
           // Profile Picture Section
-          const Text('Profile Picture',
-              style: TextStyle(fontWeight: FontWeight.normal)),
+          const Text(
+            'Profile Picture',
+            style: TextStyle(fontWeight: FontWeight.normal),
+          ),
           const SizedBox(height: 8),
           ProfileFormComponents.buildProfilePictureSection(
             selectedProfileImage: _selectedProfileImage,
@@ -610,8 +607,10 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
           const SizedBox(height: 16),
 
           // CV Section
-          const Text('CV / Resume',
-              style: TextStyle(fontWeight: FontWeight.normal)),
+          const Text(
+            'CV / Resume',
+            style: TextStyle(fontWeight: FontWeight.normal),
+          ),
           const SizedBox(height: 8),
           ProfileFormComponents.buildCVSection(
             context: context,

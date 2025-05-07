@@ -114,12 +114,15 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
     if (_searchQuery.isEmpty) {
       _filteredOptions = List.from(widget.options);
     } else {
-      _filteredOptions = widget.options
-          .where((option) => widget
-              .displayStringForOption(option)
-              .toLowerCase()
-              .contains(_searchQuery))
-          .toList();
+      _filteredOptions =
+          widget.options
+              .where(
+                (option) => widget
+                    .displayStringForOption(option)
+                    .toLowerCase()
+                    .contains(_searchQuery),
+              )
+              .toList();
     }
   }
 
@@ -144,10 +147,7 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildDropdownHeader(context),
-        _buildExpandableContent(),
-      ],
+      children: [_buildDropdownHeader(context), _buildExpandableContent()],
     );
   }
 
@@ -238,18 +238,17 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
           prefixIcon: const Icon(Icons.search, size: 20),
           contentPadding: const EdgeInsets.symmetric(),
           isDense: true,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear, size: 20),
-                  onPressed: () {
-                    _searchController.clear();
-                    _updateSearch('');
-                  },
-                )
-              : null,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          suffixIcon:
+              _searchQuery.isNotEmpty
+                  ? IconButton(
+                    icon: const Icon(Icons.clear, size: 20),
+                    onPressed: () {
+                      _searchController.clear();
+                      _updateSearch('');
+                    },
+                  )
+                  : null,
         ),
         onChanged: _updateSearch,
       ),
@@ -265,10 +264,7 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildClearAllButton(),
-            _buildOptionsList(),
-          ],
+          children: [_buildClearAllButton(), _buildOptionsList()],
         ),
       ),
     );
@@ -331,12 +327,12 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
           contentPadding: const EdgeInsets.symmetric(),
           controlAffinity: ListTileControlAffinity.leading,
           activeColor: Theme.of(context).colorScheme.primary,
-          tileColor: isSelected
-              ? Theme.of(context)
-                  .colorScheme
-                  .primaryContainer
-                  .withValues(alpha: .2)
-              : null,
+          tileColor:
+              isSelected
+                  ? Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withValues(alpha: .2)
+                  : null,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4.0),
           ),

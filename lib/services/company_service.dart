@@ -7,9 +7,7 @@ class CompanyService {
   List<Company> _companies = [];
   bool _isLoaded = false;
 
-  CompanyService({
-    required ApiService apiService,
-  }) : _apiService = apiService;
+  CompanyService({required ApiService apiService}) : _apiService = apiService;
 
   // Getter for cached companies
   List<Company> get companies => _companies;
@@ -25,16 +23,15 @@ class CompanyService {
     }
 
     try {
-      final response = await _apiService.get(
-        ApiEndpoints.companies,
-      );
+      final response = await _apiService.get(ApiEndpoints.companies);
 
       if (response.isSuccess && response.data != null) {
         // The data is already parsed as a List<dynamic>
         final List<dynamic> companiesJson = response.data as List<dynamic>;
-        _companies = companiesJson
-            .map((json) => Company.fromJson(json as Map<String, dynamic>))
-            .toList();
+        _companies =
+            companiesJson
+                .map((json) => Company.fromJson(json as Map<String, dynamic>))
+                .toList();
         _isLoaded = true;
         return _companies;
       } else {
@@ -49,7 +46,8 @@ class CompanyService {
   Company? getCompanyById(int id) {
     if (!_isLoaded) {
       throw Exception(
-          'Companies not loaded yet. Call getAllCompanies() first.');
+        'Companies not loaded yet. Call getAllCompanies() first.',
+      );
     }
 
     try {
@@ -63,7 +61,8 @@ class CompanyService {
   List<Company> searchCompanies(String query) {
     if (!_isLoaded) {
       throw Exception(
-          'Companies not loaded yet. Call getAllCompanies() first.');
+        'Companies not loaded yet. Call getAllCompanies() first.',
+      );
     }
 
     if (query.isEmpty) {
@@ -78,15 +77,17 @@ class CompanyService {
       }
 
       // Search in industries
-      if (company.industries
-          .any((industry) => industry.toLowerCase().contains(queryLower))) {
+      if (company.industries.any(
+        (industry) => industry.toLowerCase().contains(queryLower),
+      )) {
         return true;
       }
 
       // Search in job locations
       for (var job in company.jobs) {
-        if (job.location
-            .any((location) => location.toLowerCase().contains(queryLower))) {
+        if (job.location.any(
+          (location) => location.toLowerCase().contains(queryLower),
+        )) {
           return true;
         }
       }
@@ -113,7 +114,8 @@ class CompanyService {
   }) {
     if (!_isLoaded && companies == null) {
       throw Exception(
-          'Companies not loaded yet. Call getAllCompanies() first.');
+        'Companies not loaded yet. Call getAllCompanies() first.',
+      );
     }
 
     final List<Company> companiesToFilter = companies ?? _companies;

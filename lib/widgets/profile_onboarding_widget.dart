@@ -64,8 +64,10 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
       _populateFields(widget.user);
 
       // Initialize the onboarding provider
-      final onboardingProvider =
-          Provider.of<ProfileOnboardingProvider>(context, listen: false);
+      final onboardingProvider = Provider.of<ProfileOnboardingProvider>(
+        context,
+        listen: false,
+      );
       onboardingProvider.initialize(widget.user);
     });
   }
@@ -115,18 +117,16 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
       }
     }
   }
 
   Future<void> _pickCV() async {
     try {
-      final pickedFile = await ProfileUtils.pickCVFile(
-        context: context,
-      );
+      final pickedFile = await ProfileUtils.pickCVFile(context: context);
 
       if (pickedFile != null) {
         setState(() {
@@ -136,9 +136,9 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking CV: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking CV: $e')));
       }
     }
   }
@@ -162,26 +162,32 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                     width: isCurrent ? 36.0 : 30.0,
                     height: isCurrent ? 36.0 : 30.0,
                     decoration: BoxDecoration(
-                      color: isActive
-                          ? ArkadColors.arkadTurkos
-                          : Colors.grey.shade200,
+                      color:
+                          isActive
+                              ? ArkadColors.arkadTurkos
+                              : Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(18),
-                      border: isCurrent
-                          ? Border.all(
-                              color: ArkadColors.arkadTurkos
-                                  .withValues(alpha: 0.3),
-                              width: 4)
-                          : null,
-                      boxShadow: isCurrent
-                          ? [
-                              BoxShadow(
-                                color: ArkadColors.arkadTurkos
-                                    .withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                      border:
+                          isCurrent
+                              ? Border.all(
+                                color: ArkadColors.arkadTurkos.withValues(
+                                  alpha: 0.3,
+                                ),
+                                width: 4,
                               )
-                            ]
-                          : null,
+                              : null,
+                      boxShadow:
+                          isCurrent
+                              ? [
+                                BoxShadow(
+                                  color: ArkadColors.arkadTurkos.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                              : null,
                     ),
                     child: Center(
                       child: Text(
@@ -201,9 +207,10 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                       height: 3,
                       margin: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
-                        color: isActive
-                            ? ArkadColors.arkadTurkos
-                            : Colors.grey.shade300,
+                        color:
+                            isActive
+                                ? ArkadColors.arkadTurkos
+                                : Colors.grey.shade300,
                         borderRadius: BorderRadius.circular(1.5),
                       ),
                     ),
@@ -225,17 +232,21 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           CircleAvatar(
             radius: 60,
             backgroundColor: Colors.grey.shade200,
-            backgroundImage: _selectedProfileImage != null
-                ? FileImage(_selectedProfileImage!)
-                : (!_profilePictureDeleted && widget.user.profilePicture != null
-                    ? NetworkImage(widget.user.profilePicture!) as ImageProvider
-                    : null),
-            child: (_selectedProfileImage == null &&
-                    (_profilePictureDeleted ||
-                        widget.user.profilePicture == null ||
-                        widget.user.profilePicture!.isEmpty))
-                ? const Icon(Icons.person, size: 60, color: Colors.grey)
-                : null,
+            backgroundImage:
+                _selectedProfileImage != null
+                    ? FileImage(_selectedProfileImage!)
+                    : (!_profilePictureDeleted &&
+                            widget.user.profilePicture != null
+                        ? NetworkImage(widget.user.profilePicture!)
+                            as ImageProvider
+                        : null),
+            child:
+                (_selectedProfileImage == null &&
+                        (_profilePictureDeleted ||
+                            widget.user.profilePicture == null ||
+                            widget.user.profilePicture!.isEmpty))
+                    ? const Icon(Icons.person, size: 60, color: Colors.grey)
+                    : null,
           ),
 
           // Edit button
@@ -252,11 +263,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                 splashColor: Colors.white24,
                 child: Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: Icon(
-                    Icons.camera_alt,
-                    size: 22,
-                    color: Colors.white,
-                  ),
+                  child: Icon(Icons.camera_alt, size: 22, color: Colors.white),
                 ),
               ),
             ),
@@ -267,10 +274,12 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
   }
 
   Widget _buildBasicInfoStep(ProfileOnboardingProvider provider) {
-    final bool needsFirstName =
-        provider.missingRequiredFields.contains('First Name');
-    final bool needsLastName =
-        provider.missingRequiredFields.contains('Last Name');
+    final bool needsFirstName = provider.missingRequiredFields.contains(
+      'First Name',
+    );
+    final bool needsLastName = provider.missingRequiredFields.contains(
+      'Last Name',
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -279,16 +288,17 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           Text(
             'Personal Information',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: ArkadColors.arkadNavy,
-                ),
+              fontWeight: FontWeight.bold,
+              color: ArkadColors.arkadNavy,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
             'Let\'s get to know you better',
-            style:
-                Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 15),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontSize: 15),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 30),
@@ -306,8 +316,10 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                 });
               },
               icon: const Icon(Icons.delete_outline, color: Colors.red),
-              label: const Text('Remove Picture',
-                  style: TextStyle(color: Colors.red)),
+              label: const Text(
+                'Remove Picture',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
 
           const SizedBox(height: 24),
@@ -320,8 +332,9 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
               controller: _firstNameController,
               decoration: InputDecoration(
                 labelText: 'First Name *',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 filled: true,
                 fillColor: Colors.grey.shade50,
                 prefixIcon: const Icon(Icons.person_outline),
@@ -343,8 +356,9 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
               controller: _lastNameController,
               decoration: InputDecoration(
                 labelText: 'Last Name *',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 filled: true,
                 fillColor: Colors.grey.shade50,
                 prefixIcon: const Icon(Icons.person_outline),
@@ -387,10 +401,12 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
   }
 
   Widget _buildEducationStep(ProfileOnboardingProvider provider) {
-    final bool needsProgramme =
-        provider.missingRequiredFields.contains('Programme');
-    final bool needsStudyYear =
-        provider.missingRequiredFields.contains('Study Year');
+    final bool needsProgramme = provider.missingRequiredFields.contains(
+      'Programme',
+    );
+    final bool needsStudyYear = provider.missingRequiredFields.contains(
+      'Study Year',
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -399,16 +415,17 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           Text(
             'Education Details',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: ArkadColors.arkadNavy,
-                ),
+              fontWeight: FontWeight.bold,
+              color: ArkadColors.arkadNavy,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
             'Tell us about your academic background',
-            style:
-                Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 15),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontSize: 15),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 30),
@@ -418,14 +435,17 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
             DropdownButtonFormField<Programme>(
               decoration: InputDecoration(
                 labelText: 'Programme *',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 filled: true,
                 fillColor: Colors.grey.shade50,
                 prefixIcon: const Icon(Icons.school_outlined),
                 helperText: 'Required',
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
               ),
               value: _selectedProgramme,
               hint: const Text('Select your programme'),
@@ -438,24 +458,27 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
               isExpanded: true,
               icon: const Icon(Icons.arrow_drop_down),
               menuMaxHeight: 350,
-              items: programs.map((program) {
-                return DropdownMenuItem<Programme>(
-                  value: program['value'] as Programme,
-                  child: Text(
-                    program['label'] as String,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                );
-              }).toList(),
+              items:
+                  programs.map((program) {
+                    return DropdownMenuItem<Programme>(
+                      value: program['value'] as Programme,
+                      child: Text(
+                        program['label'] as String,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    );
+                  }).toList(),
               onChanged: (Programme? newValue) {
                 setState(() {
                   _selectedProgramme = newValue;
                   if (newValue != null) {
-                    _programmeController.text = programs
-                        .firstWhere(
-                            (program) => program['value'] == newValue)['label']
-                        .toString();
+                    _programmeController.text =
+                        programs
+                            .firstWhere(
+                              (program) => program['value'] == newValue,
+                            )['label']
+                            .toString();
                   }
                 });
               },
@@ -468,8 +491,9 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
             DropdownButtonFormField<int>(
               decoration: InputDecoration(
                 labelText: 'Study Year *',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 filled: true,
                 fillColor: Colors.grey.shade50,
                 prefixIcon: const Icon(Icons.calendar_today_outlined),
@@ -483,12 +507,13 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                 }
                 return null;
               },
-              items: [1, 2, 3, 4, 5].map((year) {
-                return DropdownMenuItem<int>(
-                  value: year,
-                  child: Text('Year $year'),
-                );
-              }).toList(),
+              items:
+                  [1, 2, 3, 4, 5].map((year) {
+                    return DropdownMenuItem<int>(
+                      value: year,
+                      child: Text('Year $year'),
+                    );
+                  }).toList(),
               onChanged: (int? newValue) {
                 setState(() {
                   _studyYear = newValue;
@@ -503,8 +528,9 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
             controller: _masterTitleController,
             decoration: InputDecoration(
               labelText: 'Master Title',
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               filled: true,
               fillColor: Colors.grey.shade50,
               prefixIcon: const Icon(Icons.school),
@@ -542,8 +568,9 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
   }
 
   Widget _buildAdditionalInfoStep(ProfileOnboardingProvider provider) {
-    final bool needsFoodPreferences =
-        provider.missingRequiredFields.contains('Food Preferences');
+    final bool needsFoodPreferences = provider.missingRequiredFields.contains(
+      'Food Preferences',
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -552,16 +579,17 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           Text(
             'Additional Information',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: ArkadColors.arkadNavy,
-                ),
+              fontWeight: FontWeight.bold,
+              color: ArkadColors.arkadNavy,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
             'Help us accommodate your needs and connect with you',
-            style:
-                Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 15),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontSize: 15),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 30),
@@ -572,8 +600,9 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
               controller: _foodPreferencesController,
               decoration: InputDecoration(
                 labelText: 'Food Preferences *',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 filled: true,
                 fillColor: Colors.grey.shade50,
                 prefixIcon: const Icon(Icons.restaurant_menu),
@@ -594,8 +623,9 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
             controller: _linkedinController,
             decoration: InputDecoration(
               labelText: 'LinkedIn URL',
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               filled: true,
               fillColor: Colors.grey.shade50,
               prefixIcon: const Icon(Icons.link),
@@ -638,12 +668,13 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                                     widget.user.cv!.isNotEmpty)
                             ? Icons.check_circle
                             : Icons.upload_file,
-                        color: _selectedCV != null ||
-                                (!_cvDeleted &&
-                                    widget.user.cv != null &&
-                                    widget.user.cv!.isNotEmpty)
-                            ? Colors.green
-                            : Colors.grey,
+                        color:
+                            _selectedCV != null ||
+                                    (!_cvDeleted &&
+                                        widget.user.cv != null &&
+                                        widget.user.cv!.isNotEmpty)
+                                ? Colors.green
+                                : Colors.grey,
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -695,8 +726,10 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                             _cvDeleted = true;
                           });
                         },
-                        icon:
-                            const Icon(Icons.delete_outline, color: Colors.red),
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
                         tooltip: 'Remove CV',
                       ),
                     ],
@@ -742,8 +775,9 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
       String stepId = step['id'] as String;
 
       // Check if this step has any required fields that are missing
-      bool hasRequiredFieldsMissing = (step['requiredFields'] as List)
-          .any((field) => provider.missingRequiredFields.contains(field));
+      bool hasRequiredFieldsMissing = (step['requiredFields'] as List).any(
+        (field) => provider.missingRequiredFields.contains(field),
+      );
 
       // Check if this step has any optional fields
       bool hasOptionalFields = (step['optionalFields'] as List).isNotEmpty;
@@ -788,9 +822,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
       builder: (context, onboardingProvider, _) {
         if (onboardingProvider.isLoading) {
           return Center(
-            child: CircularProgressIndicator(
-              color: ArkadColors.arkadTurkos,
-            ),
+            child: CircularProgressIndicator(color: ArkadColors.arkadTurkos),
           );
         }
 
@@ -813,8 +845,9 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
                 side: BorderSide(
-                    color: ArkadColors.arkadTurkos.withValues(alpha: 0.5),
-                    width: 1.5),
+                  color: ArkadColors.arkadTurkos.withValues(alpha: 0.5),
+                  width: 1.5,
+                ),
               ),
               elevation: 8,
               shadowColor: ArkadColors.arkadTurkos.withValues(alpha: 0.2),
@@ -836,7 +869,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(24)),
+                          top: Radius.circular(24),
+                        ),
                       ),
                       child: Row(
                         children: [
@@ -846,32 +880,31 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                               children: [
                                 Text(
                                   'Complete Your Profile',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
                                   'Unlock all features by completing your profile',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        color: Colors.white
-                                            .withValues(alpha: 0.85),
-                                        fontSize: 14,
-                                      ),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
@@ -884,7 +917,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                                 fontSize: 16,
                               ),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -899,7 +932,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                     Flexible(
                       child: ClipRRect(
                         borderRadius: const BorderRadius.vertical(
-                            bottom: Radius.circular(24)),
+                          bottom: Radius.circular(24),
+                        ),
                         child: SingleChildScrollView(
                           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                           child: AnimatedSize(
@@ -907,8 +941,10 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                             curve: Curves.easeInOut,
                             child: AnimatedSwitcher(
                               duration: const Duration(milliseconds: 300),
-                              transitionBuilder:
-                                  (Widget child, Animation<double> animation) {
+                              transitionBuilder: (
+                                Widget child,
+                                Animation<double> animation,
+                              ) {
                                 return FadeTransition(
                                   opacity: animation,
                                   child: child,
@@ -916,9 +952,11 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                               },
                               child: Container(
                                 key: ValueKey<int>(
-                                    onboardingProvider.currentStep),
-                                constraints:
-                                    const BoxConstraints(minHeight: 400),
+                                  onboardingProvider.currentStep,
+                                ),
+                                constraints: const BoxConstraints(
+                                  minHeight: 400,
+                                ),
                                 child: steps[onboardingProvider.currentStep],
                               ),
                             ),
@@ -951,13 +989,17 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                               style: TextButton.styleFrom(
                                 foregroundColor: ArkadColors.arkadNavy,
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 12),
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                                 textStyle: const TextStyle(
-                                    fontWeight: FontWeight.bold),
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              onPressed: _isSubmitting
-                                  ? null
-                                  : () => _previousStep(onboardingProvider),
+                              onPressed:
+                                  _isSubmitting
+                                      ? null
+                                      : () => _previousStep(onboardingProvider),
                             )
                           else
                             const SizedBox.shrink(),
@@ -969,7 +1011,9 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                               foregroundColor: Colors.white,
                               elevation: 2,
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 32, vertical: 16),
+                                horizontal: 32,
+                                vertical: 16,
+                              ),
                               textStyle: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -979,37 +1023,42 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                                 borderRadius: BorderRadius.circular(14),
                               ),
                             ),
-                            onPressed: _isSubmitting
-                                ? null
-                                : () => _nextStep(onboardingProvider),
-                            child: _isSubmitting
-                                ? SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 3,
-                                    ),
-                                  )
-                                : Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        onboardingProvider.currentStep <
-                                                onboardingProvider.totalSteps -
-                                                    1
-                                            ? 'Continue'
-                                            : 'Complete',
+                            onPressed:
+                                _isSubmitting
+                                    ? null
+                                    : () => _nextStep(onboardingProvider),
+                            child:
+                                _isSubmitting
+                                    ? SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 3,
                                       ),
-                                      if (onboardingProvider.currentStep <
-                                          onboardingProvider.totalSteps -
-                                              1) ...[
-                                        const SizedBox(width: 8),
-                                        const Icon(Icons.arrow_forward,
-                                            size: 18),
+                                    )
+                                    : Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          onboardingProvider.currentStep <
+                                                  onboardingProvider
+                                                          .totalSteps -
+                                                      1
+                                              ? 'Continue'
+                                              : 'Complete',
+                                        ),
+                                        if (onboardingProvider.currentStep <
+                                            onboardingProvider.totalSteps -
+                                                1) ...[
+                                          const SizedBox(width: 8),
+                                          const Icon(
+                                            Icons.arrow_forward,
+                                            size: 18,
+                                          ),
+                                        ],
                                       ],
-                                    ],
-                                  ),
+                                    ),
                           ),
                         ],
                       ),
@@ -1033,8 +1082,10 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
       // Store all context-dependent objects before async operations
       final context = this.context;
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final onboardingProvider =
-          Provider.of<ProfileOnboardingProvider>(context, listen: false);
+      final onboardingProvider = Provider.of<ProfileOnboardingProvider>(
+        context,
+        listen: false,
+      );
       final scaffoldMessenger = ScaffoldMessenger.of(context);
 
       try {
@@ -1087,7 +1138,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
         if (mounted) {
           scaffoldMessenger.showSnackBar(
             SnackBar(
-                content: Text('Failed to update profile: ${e.toString()}')),
+              content: Text('Failed to update profile: ${e.toString()}'),
+            ),
           );
         }
       } finally {

@@ -39,29 +39,32 @@ class User {
     required this.isStaff,
     this.foodPreferences,
     bool? isVerified,
-  }) : isVerified = isVerified ??
-            _calculateVerificationStatus(
-                firstName,
-                lastName,
-                cv,
-                profilePicture,
-                programme,
-                linkedin,
-                masterTitle,
-                studyYear,
-                foodPreferences);
+  }) : isVerified =
+           isVerified ??
+           _calculateVerificationStatus(
+             firstName,
+             lastName,
+             cv,
+             profilePicture,
+             programme,
+             linkedin,
+             masterTitle,
+             studyYear,
+             foodPreferences,
+           );
 
   // Helper method to calculate verification status based on required fields
   static bool _calculateVerificationStatus(
-      String? firstName,
-      String? lastName,
-      String? cv,
-      String? profilePicture,
-      String? programme,
-      String? linkedin,
-      String? masterTitle,
-      int? studyYear,
-      String? foodPreferences) {
+    String? firstName,
+    String? lastName,
+    String? cv,
+    String? profilePicture,
+    String? programme,
+    String? linkedin,
+    String? masterTitle,
+    int? studyYear,
+    String? foodPreferences,
+  ) {
     return firstName != null &&
         firstName.isNotEmpty &&
         lastName != null &&
@@ -84,20 +87,22 @@ class User {
     User user = _$UserFromJson(json);
 
     String? processedCv = user.cv != null ? _prependMediaUrl(user.cv!) : null;
-    String? processedProfilePic = user.profilePicture != null
-        ? _prependMediaUrl(user.profilePicture!)
-        : null;
+    String? processedProfilePic =
+        user.profilePicture != null
+            ? _prependMediaUrl(user.profilePicture!)
+            : null;
 
     bool isVerified = _calculateVerificationStatus(
-        user.firstName,
-        user.lastName,
-        processedCv,
-        processedProfilePic,
-        user.programme,
-        user.linkedin,
-        user.masterTitle,
-        user.studyYear,
-        user.foodPreferences);
+      user.firstName,
+      user.lastName,
+      processedCv,
+      processedProfilePic,
+      user.programme,
+      user.linkedin,
+      user.masterTitle,
+      user.studyYear,
+      user.foodPreferences,
+    );
 
     return User(
       id: user.id,

@@ -50,10 +50,11 @@ class AppRouter {
     initialLocation: '/companies',
     routes: [
       StatefulShellRoute.indexedStack(
-        builder: (context, state, shell) => _AppBottomNavShell(
-          navigationShell: shell,
-          isAuthenticated: _auth.isAuthenticated,
-        ),
+        builder:
+            (context, state, shell) => _AppBottomNavShell(
+              navigationShell: shell,
+              isAuthenticated: _auth.isAuthenticated,
+            ),
         branches: [
           // Companies
           StatefulShellBranch(
@@ -151,8 +152,9 @@ class AppRouter {
               ),
               GoRoute(
                 path: '/auth/reset-password',
-                pageBuilder:
-                    _slide((context, _) => const ResetPasswordScreen()),
+                pageBuilder: _slide(
+                  (context, _) => const ResetPasswordScreen(),
+                ),
               ),
             ],
           ),
@@ -160,9 +162,9 @@ class AppRouter {
       ),
       GoRoute(
         path: '/:_(.*)',
-        builder: (ctx, state) => const Scaffold(
-          body: Center(child: Text('Page not found')),
-        ),
+        builder:
+            (ctx, state) =>
+                const Scaffold(body: Center(child: Text('Page not found'))),
       ),
     ],
   );
@@ -172,27 +174,32 @@ class AppRouter {
 // Page‑builder helpers
 // ──────────────────────────────────────────────────────────────
 Page<dynamic> Function(BuildContext, GoRouterState) _noAnim(
-        Widget Function(BuildContext) builder) =>
-    (context, state) => NoTransitionPage(child: builder(context));
+  Widget Function(BuildContext) builder,
+) => (context, state) => NoTransitionPage(child: builder(context));
 
 Page<dynamic> Function(BuildContext, GoRouterState) _fade(
-        Widget Function(BuildContext) builder) =>
+  Widget Function(BuildContext) builder,
+) =>
     (context, state) => CustomTransitionPage(
-          child: builder(context),
-          transitionsBuilder: (_, anim, __, child) =>
-              FadeTransition(opacity: anim, child: child),
-        );
+      child: builder(context),
+      transitionsBuilder:
+          (_, anim, __, child) => FadeTransition(opacity: anim, child: child),
+    );
 
 Page<dynamic> Function(BuildContext, GoRouterState) _slide(
-        Widget Function(BuildContext, GoRouterState) builder) =>
+  Widget Function(BuildContext, GoRouterState) builder,
+) =>
     (context, state) => CustomTransitionPage(
-          child: builder(context, state),
-          transitionsBuilder: (_, anim, __, child) => SlideTransition(
-            position: Tween(begin: const Offset(1, 0), end: Offset.zero)
-                .animate(anim),
+      child: builder(context, state),
+      transitionsBuilder:
+          (_, anim, __, child) => SlideTransition(
+            position: Tween(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(anim),
             child: child,
           ),
-        );
+    );
 
 // ──────────────────────────────────────────────────────────────
 // Bottom‑navigation shell
@@ -223,10 +230,11 @@ class _AppBottomNavShell extends StatelessWidget {
       bottomNavigationBar: AppBottomNavigation(
         currentIndex: safeTabIndex,
         items: items,
-        onTap: (i) => navigationShell.goBranch(
-          items[i].branchIndex,
-          initialLocation: true,
-        ),
+        onTap:
+            (i) => navigationShell.goBranch(
+              items[i].branchIndex,
+              initialLocation: true,
+            ),
       ),
     );
   }

@@ -31,8 +31,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final user = authProvider.user;
       if (user != null) {
-        final onboardingProvider =
-            Provider.of<ProfileOnboardingProvider>(context, listen: false);
+        final onboardingProvider = Provider.of<ProfileOnboardingProvider>(
+          context,
+          listen: false,
+        );
         onboardingProvider.initialize(user);
 
         // Register listener for user state changes to keep verification and onboarding in sync
@@ -60,8 +62,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final onboardingProvider =
-        Provider.of<ProfileOnboardingProvider>(context, listen: false);
+    final onboardingProvider = Provider.of<ProfileOnboardingProvider>(
+      context,
+      listen: false,
+    );
     final user = authProvider.user;
 
     // Immediately update onboarding state when verification status changes
@@ -76,8 +80,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final onboardingProvider =
-        Provider.of<ProfileOnboardingProvider>(context, listen: false);
+    final onboardingProvider = Provider.of<ProfileOnboardingProvider>(
+      context,
+      listen: false,
+    );
     final messenger = ScaffoldMessenger.of(context);
 
     await authProvider.refreshUserProfile();
@@ -141,13 +147,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             tag: 'profilePicture',
                             child: CircleAvatar(
                               radius: 60,
-                              backgroundImage: currentUser.profilePicture !=
-                                      null
-                                  ? NetworkImage(currentUser.profilePicture!)
-                                  : null,
-                              child: currentUser.profilePicture == null
-                                  ? const Icon(Icons.person, size: 60)
-                                  : null,
+                              backgroundImage:
+                                  currentUser.profilePicture != null
+                                      ? NetworkImage(
+                                        currentUser.profilePicture!,
+                                      )
+                                      : null,
+                              child:
+                                  currentUser.profilePicture == null
+                                      ? const Icon(Icons.person, size: 60)
+                                      : null,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -181,13 +190,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         currentUser.linkedin!.isNotEmpty)
                       InkWell(
                         onTap: () => _launchUrl(context, currentUser.linkedin!),
-                        child: _buildInfoTile("LinkedIn", currentUser.linkedin!,
-                            isLink: true),
+                        child: _buildInfoTile(
+                          "LinkedIn",
+                          currentUser.linkedin!,
+                          isLink: true,
+                        ),
                       ),
 
                     if (currentUser.studyYear != null)
                       _buildInfoTile(
-                          "Study Year", "Year ${currentUser.studyYear}"),
+                        "Study Year",
+                        "Year ${currentUser.studyYear}",
+                      ),
 
                     if (currentUser.masterTitle != null &&
                         currentUser.masterTitle!.isNotEmpty)
@@ -196,7 +210,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (currentUser.foodPreferences != null &&
                         currentUser.foodPreferences!.isNotEmpty)
                       _buildInfoTile(
-                          "Food Preferences", currentUser.foodPreferences!),
+                        "Food Preferences",
+                        currentUser.foodPreferences!,
+                      ),
 
                     if (currentUser.cv != null &&
                         currentUser.cv!.isNotEmpty) ...[
@@ -231,8 +247,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Widget to show optional fields completion card
   Widget _buildOptionalFieldsCard(
-      BuildContext context, ProfileOnboardingProvider provider) {
-    double completionPercentage = provider.completedOptionalFields.length /
+    BuildContext context,
+    ProfileOnboardingProvider provider,
+  ) {
+    double completionPercentage =
+        provider.completedOptionalFields.length /
         provider.optionalFields.length;
 
     return Card(
@@ -251,10 +270,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Text(
                   'Profile completion',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   '${(completionPercentage * 100).toInt()}%',
@@ -319,24 +337,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Check if the URL can be launched
       if (await canLaunchUrl(uri)) {
         // Launch URL in external browser
-        await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication,
-        );
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         // Show error if URL can't be launched
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not open: $urlString')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Could not open: $urlString')));
         }
       }
     } catch (e) {
       // Show error on exception (e.g., malformed URL)
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invalid URL: $urlString')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Invalid URL: $urlString')));
       }
     }
   }
@@ -348,9 +363,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     // Then navigate using MaterialPageRoute instead of named route
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => const LoginScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
       (route) => false,
     );
   }
@@ -361,17 +374,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
+          Text(label, style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 4),
           Text(
             value,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  decoration: isLink ? TextDecoration.underline : null,
-                  color: isLink ? Colors.blue : null,
-                ),
+              decoration: isLink ? TextDecoration.underline : null,
+              color: isLink ? Colors.blue : null,
+            ),
           ),
         ],
       ),

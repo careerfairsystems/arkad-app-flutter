@@ -40,15 +40,11 @@ class ArkadTheme {
           backgroundColor: ArkadColors.arkadTurkos,
           foregroundColor: ArkadColors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: ArkadColors.arkadTurkos,
-        ),
+        style: TextButton.styleFrom(foregroundColor: ArkadColors.arkadTurkos),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -79,28 +75,44 @@ class ArkadTheme {
   // Create text theme with the specified color
   static TextTheme _createTextTheme(Color textColor) {
     return TextTheme(
-      displayLarge:
-          TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
-      displayMedium:
-          TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
-      displaySmall:
-          TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
-      headlineLarge:
-          TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
-      headlineMedium:
-          TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
-      headlineSmall:
-          TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
+      displayLarge: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        color: textColor,
+      ),
+      displayMedium: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        color: textColor,
+      ),
+      displaySmall: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        color: textColor,
+      ),
+      headlineLarge: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        color: textColor,
+      ),
+      headlineMedium: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        color: textColor,
+      ),
+      headlineSmall: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        color: textColor,
+      ),
       titleLarge: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
-      titleMedium:
-          TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
+      titleMedium: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        color: textColor,
+      ),
       titleSmall: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
       bodyLarge: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
       bodyMedium: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
       bodySmall: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
       labelLarge: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
-      labelMedium:
-          TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
+      labelMedium: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        color: textColor,
+      ),
       labelSmall: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
     );
   }

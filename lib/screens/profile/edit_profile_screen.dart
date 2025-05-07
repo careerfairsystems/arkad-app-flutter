@@ -54,25 +54,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController = TextEditingController(text: widget.user.email);
     _firstNameController = TextEditingController(text: widget.user.firstName);
     _lastNameController = TextEditingController(text: widget.user.lastName);
-    _programmeController =
-        TextEditingController(text: widget.user.programme ?? '');
-    _linkedinController =
-        TextEditingController(text: widget.user.linkedin ?? '');
-    _masterTitleController =
-        TextEditingController(text: widget.user.masterTitle ?? '');
-    _foodPreferencesController =
-        TextEditingController(text: widget.user.foodPreferences ?? '');
+    _programmeController = TextEditingController(
+      text: widget.user.programme ?? '',
+    );
+    _linkedinController = TextEditingController(
+      text: widget.user.linkedin ?? '',
+    );
+    _masterTitleController = TextEditingController(
+      text: widget.user.masterTitle ?? '',
+    );
+    _foodPreferencesController = TextEditingController(
+      text: widget.user.foodPreferences ?? '',
+    );
 
     _studyYear = widget.user.studyYear;
 
     // Convert string programme to enum if it exists
-    _selectedProgramme =
-        ProfileUtils.programmeStringToEnum(widget.user.programme);
+    _selectedProgramme = ProfileUtils.programmeStringToEnum(
+      widget.user.programme,
+    );
   }
 
   Future<void> _pickImage() async {
     final File? image = await ProfileUtils.pickProfileImage(
-        context: context, imagePicker: _imagePicker);
+      context: context,
+      imagePicker: _imagePicker,
+    );
 
     if (image != null) {
       setState(() {
@@ -167,7 +174,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Profile picture will be removed when you save')),
+            content: Text('Profile picture will be removed when you save'),
+          ),
         );
       }
     } finally {
@@ -203,175 +211,182 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Profile'),
-      ),
-      body: _isUploading
-          ? const Center(
-              child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Updating profile...'),
-              ],
-            ))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
+      appBar: AppBar(title: const Text('Edit Profile')),
+      body:
+          _isUploading
+              ? const Center(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Profile picture section (now optional)
-                    Center(
-                      child: Column(
-                        children: [
-                          ProfileFormComponents.buildProfilePictureSection(
-                            selectedProfileImage: _selectedImage,
-                            onPickImage: _pickImage,
-                            onDeleteImage: _deleteProfilePicture,
-                            profilePictureDeleted: _profilePictureDeleted,
-                            currentProfilePicture: widget.user.profilePicture,
-                          ),
-                          const Text('Profile Picture (Optional)',
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 12)),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Error display
-                    if (_error != null)
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        color: Colors.red.shade100,
-                        child: Text(
-                          _error!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: Colors.red.shade800),
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Updating profile...'),
+                  ],
+                ),
+              )
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Profile picture section (now optional)
+                      Center(
+                        child: Column(
+                          children: [
+                            ProfileFormComponents.buildProfilePictureSection(
+                              selectedProfileImage: _selectedImage,
+                              onPickImage: _pickImage,
+                              onDeleteImage: _deleteProfilePicture,
+                              profilePictureDeleted: _profilePictureDeleted,
+                              currentProfilePicture: widget.user.profilePicture,
+                            ),
+                            const Text(
+                              'Profile Picture (Optional)',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 
-                    const Text(
-                      'Basic Information',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 24),
 
-                    // Email field (always readonly)
-                    TextFormField(
-                      controller: _emailController,
-                      readOnly: true, // Email cannot be changed
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
-                        helperText: 'Email cannot be changed',
+                      // Error display
+                      if (_error != null)
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          color: Colors.red.shade100,
+                          child: Text(
+                            _error!,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Colors.red.shade800),
+                          ),
+                        ),
+
+                      const Text(
+                        'Basic Information',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Basic information fields
-                    ProfileFormComponents.buildBasicInfoFields(
-                      firstNameController: _firstNameController,
-                      lastNameController: _lastNameController,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Education information section
-                    const Text(
-                      'Education Information',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Fields marked with * are required',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    const SizedBox(height: 16),
-
-                    ProfileFormComponents.buildEducationFields(
-                      context: context,
-                      programmeController: _programmeController,
-                      masterTitleController: _masterTitleController,
-                      studyYear: _studyYear,
-                      selectedProgramme: _selectedProgramme,
-                      onStudyYearChanged: (int? newValue) {
-                        setState(() {
-                          _studyYear = newValue;
-                        });
-                      },
-                      onProgrammeChanged: (Programme? newValue) {
-                        setState(() {
-                          _selectedProgramme = newValue;
-                          if (newValue != null) {
-                            _programmeController.text = programs
-                                .firstWhere((program) =>
-                                    program['value'] == newValue)['label']
-                                .toString();
-                          }
-                        });
-                      },
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Professional information section
-                    const Text(
-                      'Professional Information',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Fields marked with * are required',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    const SizedBox(height: 16),
-
-                    ProfileFormComponents.buildPreferencesFields(
-                      linkedinController: _linkedinController,
-                      foodPreferencesController: _foodPreferencesController,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // CV management (now optional)
-                    const Text(
-                      'CV / Resume (Optional)',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-
-                    ProfileFormComponents.buildCVSection(
-                      context: context,
-                      selectedCV: _selectedCV,
-                      onPickCV: _pickCV,
-                      onDeleteCV: _deleteCV,
-                      cvDeleted: _cvDeleted,
-                      currentCV: widget.user.cv,
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Save button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _updateProfile,
-                        child: const Text('Save Changes'),
+                      // Email field (always readonly)
+                      TextFormField(
+                        controller: _emailController,
+                        readOnly: true, // Email cannot be changed
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          border: OutlineInputBorder(),
+                          helperText: 'Email cannot be changed',
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+
+                      // Basic information fields
+                      ProfileFormComponents.buildBasicInfoFields(
+                        firstNameController: _firstNameController,
+                        lastNameController: _lastNameController,
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Education information section
+                      const Text(
+                        'Education Information',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Fields marked with * are required',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 16),
+
+                      ProfileFormComponents.buildEducationFields(
+                        context: context,
+                        programmeController: _programmeController,
+                        masterTitleController: _masterTitleController,
+                        studyYear: _studyYear,
+                        selectedProgramme: _selectedProgramme,
+                        onStudyYearChanged: (int? newValue) {
+                          setState(() {
+                            _studyYear = newValue;
+                          });
+                        },
+                        onProgrammeChanged: (Programme? newValue) {
+                          setState(() {
+                            _selectedProgramme = newValue;
+                            if (newValue != null) {
+                              _programmeController.text =
+                                  programs
+                                      .firstWhere(
+                                        (program) =>
+                                            program['value'] == newValue,
+                                      )['label']
+                                      .toString();
+                            }
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Professional information section
+                      const Text(
+                        'Professional Information',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Fields marked with * are required',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 16),
+
+                      ProfileFormComponents.buildPreferencesFields(
+                        linkedinController: _linkedinController,
+                        foodPreferencesController: _foodPreferencesController,
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // CV management (now optional)
+                      const Text(
+                        'CV / Resume (Optional)',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      ProfileFormComponents.buildCVSection(
+                        context: context,
+                        selectedCV: _selectedCV,
+                        onPickCV: _pickCV,
+                        onDeleteCV: _deleteCV,
+                        cvDeleted: _cvDeleted,
+                        currentCV: widget.user.cv,
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Save button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _updateProfile,
+                          child: const Text('Save Changes'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 

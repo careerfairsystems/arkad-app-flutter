@@ -67,12 +67,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
     });
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     try {
-      final success =
-          await authProvider.requestNewVerificationCode(widget.email);
+      final success = await authProvider.requestNewVerificationCode(
+        widget.email,
+      );
       if (mounted) {
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('A new verification code has been sent')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('A new verification code has been sent'),
+            ),
+          );
         } else if (authProvider.error != null) {
           setState(() => _errorMessage = authProvider.error);
         }
@@ -80,7 +84,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
     } catch (e) {
       if (mounted) {
         setState(
-            () => _errorMessage = 'Failed to resend code: ${e.toString()}');
+          () => _errorMessage = 'Failed to resend code: ${e.toString()}',
+        );
       }
     } finally {
       if (mounted) {
@@ -108,10 +113,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                 Text(
                   widget.email,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
@@ -132,9 +136,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.grey.shade300,
-                        ),
+                        border: Border.all(color: Colors.grey.shade300),
                       ),
                       child: TextField(
                         controller: _codeController,
@@ -143,12 +145,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         decoration: const InputDecoration(
                           hintText: 'Enter 6-digit code',
                           counterText: '',
-                          contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 16.0,
+                            horizontal: 16.0,
+                          ),
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
                         ),
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 18,
@@ -167,7 +174,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 const SizedBox(height: 30),
 
                 ElevatedButton(
-                  onPressed: _isVerifying || !_isCodeComplete ? null : _verifyCode,
+                  onPressed:
+                      _isVerifying || !_isCodeComplete ? null : _verifyCode,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ArkadColors.arkadTurkos,
                     foregroundColor: Colors.white,
@@ -178,22 +186,25 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     elevation: 0,
                     disabledBackgroundColor: Colors.grey.shade300,
                   ),
-                  child: _isVerifying
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  child:
+                      _isVerifying
+                          ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                          : const Text(
+                            'Verify',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Verify',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
                 ),
 
                 const SizedBox(height: 24),
@@ -203,9 +214,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   style: TextButton.styleFrom(
                     foregroundColor: ArkadColors.arkadTurkos,
                   ),
-                  child: _isResending
-                      ? const Text('Sending...')
-                      : const Text("Didn't receive the code? Send again"),
+                  child:
+                      _isResending
+                          ? const Text('Sending...')
+                          : const Text("Didn't receive the code? Send again"),
                 ),
               ],
             ),

@@ -6,9 +6,7 @@ class StudentSessionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Student Sessions'),
-      ),
+      appBar: AppBar(title: const Text('Student Sessions')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -35,9 +33,7 @@ class StudentSessionsScreen extends StatelessWidget {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 16),
                     child: ListTile(
-                      leading: CircleAvatar(
-                        child: Icon(Icons.calendar_today),
-                      ),
+                      leading: CircleAvatar(child: Icon(Icons.calendar_today)),
                       title: Text('Session with Company ${index + 1}'),
                       subtitle: Text('Date: Nov ${index + 10}, 2023'),
                       trailing: const Icon(Icons.chevron_right),

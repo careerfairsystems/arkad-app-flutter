@@ -11,9 +11,7 @@ class CompanyDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(company.name),
-      ),
+      appBar: AppBar(title: Text(company.name)),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,8 +47,11 @@ class CompanyDetailScreen extends StatelessWidget {
                     height: 120,
                     width: 120,
                     color: Colors.grey[200],
-                    child: const Icon(Icons.business,
-                        size: 60, color: Colors.grey),
+                    child: const Icon(
+                      Icons.business,
+                      size: 60,
+                      color: Colors.grey,
+                    ),
                   );
                 },
               ),
@@ -65,9 +66,9 @@ class CompanyDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             company.industriesString,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           if (company.website != null) ...[
@@ -93,10 +94,7 @@ class CompanyDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'About',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          Text('About', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(company.description!),
         ],
@@ -116,10 +114,7 @@ class CompanyDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Company Facts',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          Text('Company Facts', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           if (company.didYouKnow != null && company.didYouKnow!.isNotEmpty) ...[
             Text(
@@ -135,21 +130,21 @@ class CompanyDetailScreen extends StatelessWidget {
           ],
           if (company.employeesGlobally != null) ...[
             _buildInfoRow(
-                'Employees globally:', '${company.employeesGlobally}'),
+              'Employees globally:',
+              '${company.employeesGlobally}',
+            ),
           ],
           const SizedBox(height: 8),
           if (company.positions.isNotEmpty) ...[
-            Text(
-              'Positions',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Positions', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: company.positions
-                  .map((position) => Chip(label: Text(position)))
-                  .toList(),
+              children:
+                  company.positions
+                      .map((position) => Chip(label: Text(position)))
+                      .toList(),
             ),
           ],
         ],
@@ -247,7 +242,9 @@ class CompanyDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _buildInfoRow(
-              'Days with sessions:', '${company.daysWithStudentsession}'),
+            'Days with sessions:',
+            '${company.daysWithStudentsession}',
+          ),
           const SizedBox(height: 8),
           if (company.studentSessionMotivation != null) ...[
             Text(
@@ -300,9 +297,9 @@ class CompanyDetailScreen extends StatelessWidget {
           children: [
             Text(
               job.title ?? 'Untitled Position',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             if (job.location.isNotEmpty) ...[
@@ -310,9 +307,7 @@ class CompanyDetailScreen extends StatelessWidget {
                 children: [
                   const Icon(Icons.location_on, size: 16),
                   const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(job.location.join(', ')),
-                  ),
+                  Expanded(child: Text(job.location.join(', '))),
                 ],
               ),
               const SizedBox(height: 4),
@@ -322,9 +317,7 @@ class CompanyDetailScreen extends StatelessWidget {
                 children: [
                   const Icon(Icons.work, size: 16),
                   const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(job.jobType.join(', ')),
-                  ),
+                  Expanded(child: Text(job.jobType.join(', '))),
                 ],
               ),
               const SizedBox(height: 8),
@@ -368,7 +361,11 @@ class CompanyDetailScreen extends StatelessWidget {
   }
 
   Widget _buildSocialButton(
-      BuildContext context, IconData icon, String platform, String url) {
+    BuildContext context,
+    IconData icon,
+    String platform,
+    String url,
+  ) {
     return InkWell(
       onTap: () => _launchUrl(url),
       borderRadius: BorderRadius.circular(8),

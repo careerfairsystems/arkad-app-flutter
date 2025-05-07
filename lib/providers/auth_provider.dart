@@ -7,11 +7,7 @@ import '../services/user_service.dart';
 import 'profile_onboarding_provider.dart';
 
 /// Authentication status states
-enum AuthStatus {
-  initial,
-  authenticated,
-  unauthenticated,
-}
+enum AuthStatus { initial, authenticated, unauthenticated }
 
 /// AuthProvider manages authentication state throughout the app
 class AuthProvider with ChangeNotifier {
@@ -146,8 +142,8 @@ class AuthProvider with ChangeNotifier {
       _initializeOnboarding(user);
       return true;
     } catch (e) {
-      await _authService.logout(); 
-      _setUnauthenticated(); 
+      await _authService.logout();
+      _setUnauthenticated();
       _setError('Login failed: ${e.toString()}');
       return false;
     } finally {

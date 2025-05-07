@@ -6,9 +6,7 @@ class EventScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Events'),
-      ),
+      appBar: AppBar(title: const Text('Events')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -41,7 +39,8 @@ class EventScreen extends StatelessWidget {
                       ),
                       title: Text('Event ${index + 1}'),
                       subtitle: Text(
-                          'Location: Building ${index + 1}, Room ${(index + 1) * 100}'),
+                        'Location: Building ${index + 1}, Room ${(index + 1) * 100}',
+                      ),
                       trailing: const Icon(Icons.chevron_right),
                     ),
                   );

@@ -24,7 +24,7 @@ class AppBottomNavigation extends StatelessWidget {
       showUnselectedLabels: true,
       items: [
         for (final item in items)
-          BottomNavigationBarItem(icon: Icon(item.icon), label: item.label)
+          BottomNavigationBarItem(icon: Icon(item.icon), label: item.label),
       ],
     );
   }

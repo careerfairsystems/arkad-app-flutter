@@ -17,25 +17,21 @@ class _MapScreenState extends State<MapScreen> {
     'Building A',
     'Building B',
     'Building C',
-    'Building D'
+    'Building D',
   ];
   String _selectedLocation = 'Building A';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Event Map'),
-      ),
+      appBar: AppBar(title: const Text('Event Map')),
       body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_errorMessage != null) {
@@ -43,8 +39,11 @@ class _MapScreenState extends State<MapScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline,
-                size: 60, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline,
+              size: 60,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16),
             Text(
               _errorMessage!,
@@ -75,15 +74,10 @@ class _MapScreenState extends State<MapScreen> {
         ),
 
         // Map display area
-        Expanded(
-          child: _buildMapPlaceholder(),
-        ),
+        Expanded(child: _buildMapPlaceholder()),
 
         // Legend or additional info
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: _buildMapLegend(),
-        ),
+        Padding(padding: const EdgeInsets.all(16.0), child: _buildMapLegend()),
       ],
     );
   }
@@ -106,12 +100,13 @@ class _MapScreenState extends State<MapScreen> {
               _selectedLocation = newValue!;
             });
           },
-          items: _locations.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
+          items:
+              _locations.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
         ),
       ),
     );
@@ -191,28 +186,31 @@ class _MapScreenState extends State<MapScreen> {
   void _showBuildingInfo() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(_selectedLocation),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Opening Hours: 9:00 AM - 5:00 PM'),
-            const SizedBox(height: 8),
-            const Text('Number of Companies: 42'),
-            const SizedBox(height: 8),
-            const Text('Facilities: Restrooms, Refreshments, Information Desk'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Close'),
+      builder:
+          (context) => AlertDialog(
+            title: Text(_selectedLocation),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Opening Hours: 9:00 AM - 5:00 PM'),
+                const SizedBox(height: 8),
+                const Text('Number of Companies: 42'),
+                const SizedBox(height: 8),
+                const Text(
+                  'Facilities: Restrooms, Refreshments, Information Desk',
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Close'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }

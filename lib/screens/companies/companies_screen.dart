@@ -85,17 +85,19 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     }
 
     // First filter by search query if present
-    List<Company> searchResults = _searchQuery.isEmpty
-        ? List.from(_companies)
-        : _companyService.searchCompanies(_searchQuery);
+    List<Company> searchResults =
+        _searchQuery.isEmpty
+            ? List.from(_companies)
+            : _companyService.searchCompanies(_searchQuery);
 
     // Then apply additional filters
     final filteredResults = _companyService.filterCompanies(
       companies: searchResults,
       degrees: _selectedDegrees.isNotEmpty ? _selectedDegrees.toList() : null,
-      competences: _selectedCompetences.isNotEmpty
-          ? _selectedCompetences.toList()
-          : null,
+      competences:
+          _selectedCompetences.isNotEmpty
+              ? _selectedCompetences.toList()
+              : null,
       positions:
           _selectedPositions.isNotEmpty ? _selectedPositions.toList() : null,
       industries:
@@ -183,18 +185,19 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _searchQuery = '';
-                            _applyFilters();
-                          });
-                        },
-                      )
-                    : null,
+                suffixIcon:
+                    _searchQuery.isNotEmpty
+                        ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                              _applyFilters();
+                            });
+                          },
+                        )
+                        : null,
               ),
               onChanged: (value) {
                 setState(() {
@@ -209,16 +212,15 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
           AnimatedCrossFade(
             firstChild: _buildScrollableFilterSection(),
             secondChild: const SizedBox.shrink(),
-            crossFadeState: _showFilters
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
+            crossFadeState:
+                _showFilters
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
             duration: const Duration(milliseconds: 300),
           ),
 
           // Companies list
-          Expanded(
-            child: _buildContent(),
-          ),
+          Expanded(child: _buildContent()),
         ],
       ),
     );
@@ -245,7 +247,8 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
 
   Widget _buildFilterContent() {
     // Count total active filters for the badge
-    int totalActiveFilters = _selectedDegrees.length +
+    int totalActiveFilters =
+        _selectedDegrees.length +
         _selectedCompetences.length +
         _selectedPositions.length +
         _selectedIndustries.length +
@@ -259,15 +262,14 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
           children: [
             Row(
               children: [
-                Text(
-                  'Filters',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+                Text('Filters', style: Theme.of(context).textTheme.titleLarge),
                 if (totalActiveFilters > 0)
                   Container(
                     margin: const EdgeInsets.only(left: 8),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(12),
@@ -424,7 +426,8 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     }
 
     // Display result count
-    int totalFilters = _selectedDegrees.length +
+    int totalFilters =
+        _selectedDegrees.length +
         _selectedCompetences.length +
         _selectedPositions.length +
         _selectedIndustries.length +
@@ -434,17 +437,18 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       children: [
         if (totalFilters > 0 || _searchQuery.isNotEmpty)
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Row(
               children: [
                 Text(
                   'Showing ${_filteredCompanies.length} of ${_companies.length} companies',
                   style: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: .6),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: .6),
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -472,36 +476,34 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
-        leading: company.fullLogoUrl != null
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  company.fullLogoUrl!,
+        leading:
+            company.fullLogoUrl != null
+                ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    company.fullLogoUrl!,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 60,
+                        height: 60,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.business, color: Colors.grey),
+                      );
+                    },
+                  ),
+                )
+                : Container(
                   width: 60,
                   height: 60,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 60,
-                      height: 60,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.business, color: Colors.grey),
-                    );
-                  },
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.business, color: Colors.grey),
                 ),
-              )
-            : Container(
-                width: 60,
-                height: 60,
-                color: Colors.grey[200],
-                child: const Icon(Icons.business, color: Colors.grey),
-              ),
         title: Text(
           company.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -509,10 +511,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             const SizedBox(height: 4),
             Text(
               company.industriesString,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
             if (company.locationsString.isNotEmpty) ...[
               const SizedBox(height: 4),
@@ -523,10 +522,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
                   Expanded(
                     child: Text(
                       company.locationsString,
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

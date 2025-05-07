@@ -34,7 +34,7 @@ class ProfileOnboardingProvider with ChangeNotifier {
       'title': 'Additional Information',
       'requiredFields': ['Food Preferences'],
       'optionalFields': ['LinkedIn', 'CV'],
-    }
+    },
   ];
 
   // Keys for SharedPreferences
@@ -61,7 +61,8 @@ class ProfileOnboardingProvider with ChangeNotifier {
           (step['optionalFields'].length as int);
     });
 
-    int missingFields = _missingRequiredFields.length +
+    int missingFields =
+        _missingRequiredFields.length +
         (_optionalFields.length - _completedOptionalFields.length);
 
     return totalFields > 0 ? (totalFields - missingFields) / totalFields : 1.0;
@@ -91,11 +92,13 @@ class ProfileOnboardingProvider with ChangeNotifier {
       if (_initializationAttempts < _maxInitAttempts) {
         _initializationAttempts++;
         print(
-            'Retrying initialization attempt $_initializationAttempts of $_maxInitAttempts');
+          'Retrying initialization attempt $_initializationAttempts of $_maxInitAttempts',
+        );
 
         // Wait briefly before retrying
         await Future.delayed(
-            Duration(milliseconds: 300 * _initializationAttempts));
+          Duration(milliseconds: 300 * _initializationAttempts),
+        );
 
         // Try again
         return initialize(user);
@@ -166,8 +169,9 @@ class ProfileOnboardingProvider with ChangeNotifier {
 
     for (var step in _steps) {
       // Check if this step has any required fields that are missing
-      bool hasRequiredFieldsMissing = step['requiredFields']
-          .any((field) => _missingRequiredFields.contains(field));
+      bool hasRequiredFieldsMissing = step['requiredFields'].any(
+        (field) => _missingRequiredFields.contains(field),
+      );
 
       // Check if this step has any optional fields that could be filled
       bool hasOptionalFields = step['optionalFields'].isNotEmpty;

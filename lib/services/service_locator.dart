@@ -17,7 +17,8 @@ final GetIt serviceLocator = GetIt.instance;
 // We could have used InheritedWidget or riverpod package to handle state, but GetIt with provider is a solid combo to my understanding.
 void setupServiceLocator() {
   serviceLocator.registerLazySingleton<FlutterSecureStorage>(
-      () => const FlutterSecureStorage());
+    () => const FlutterSecureStorage(),
+  );
   serviceLocator.registerLazySingleton<http.Client>(() => http.Client());
 
   serviceLocator.registerLazySingleton<ApiService>(
@@ -39,9 +40,7 @@ void setupServiceLocator() {
   );
 
   serviceLocator.registerLazySingleton<CompanyService>(
-    () => CompanyService(
-      apiService: serviceLocator<ApiService>(),
-    ),
+    () => CompanyService(apiService: serviceLocator<ApiService>()),
   );
 
   serviceLocator.registerLazySingleton<AuthProvider>(
@@ -51,9 +50,7 @@ void setupServiceLocator() {
     ),
   );
 
-  serviceLocator.registerLazySingleton<ThemeProvider>(
-    () => ThemeProvider(),
-  );
+  serviceLocator.registerLazySingleton<ThemeProvider>(() => ThemeProvider());
 
   serviceLocator.registerLazySingleton<ProfileOnboardingProvider>(
     () => ProfileOnboardingProvider(),

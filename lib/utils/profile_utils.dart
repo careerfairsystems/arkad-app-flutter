@@ -33,9 +33,7 @@ class ProfileUtils {
     return null;
   }
 
-  static Future<File?> pickCVFile({
-    required BuildContext context,
-  }) async {
+  static Future<File?> pickCVFile({required BuildContext context}) async {
     try {
       // attempt with file_picker
       try {
@@ -69,7 +67,9 @@ class ProfileUtils {
 
       if (context.mounted) {
         _showErrorSnackbar(
-            context, 'Could not select CV file. Please try again.');
+          context,
+          'Could not select CV file. Please try again.',
+        );
       }
     } catch (e) {
       if (context.mounted) {
@@ -81,9 +81,9 @@ class ProfileUtils {
 
   static void _showErrorSnackbar(BuildContext context, String message) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -101,10 +101,13 @@ class ProfileUtils {
       'first_name': firstName.trim(),
       'last_name': lastName.trim(),
       // Get the label from the selected programme enum
-      'programme': selectedProgramme != null
-          ? programs.firstWhere(
-              (prog) => prog['value'] == selectedProgramme)['label'] as String
-          : programmeText.trim(),
+      'programme':
+          selectedProgramme != null
+              ? programs.firstWhere(
+                    (prog) => prog['value'] == selectedProgramme,
+                  )['label']
+                  as String
+              : programmeText.trim(),
       'linkedin': linkedin.trim(),
       'master_title': masterTitle.trim(),
       'study_year': studyYear,
@@ -113,7 +116,8 @@ class ProfileUtils {
 
     // Remove null values to avoid overwriting with null
     profileData.removeWhere(
-        (key, value) => value == null || (value is String && value.isEmpty));
+      (key, value) => value == null || (value is String && value.isEmpty),
+    );
 
     return profileData;
   }
@@ -126,9 +130,10 @@ class ProfileUtils {
 
     try {
       return programs.firstWhere(
-        (prog) => prog['label'] == programmeString,
-        orElse: () => programs[0],
-      )['value'] as Programme;
+            (prog) => prog['label'] == programmeString,
+            orElse: () => programs[0],
+          )['value']
+          as Programme;
     } catch (e) {
       return null;
     }

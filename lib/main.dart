@@ -40,7 +40,8 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider.value(value: serviceLocator<ThemeProvider>()),
         ChangeNotifierProvider.value(value: serviceLocator<AuthProvider>()),
         ChangeNotifierProvider.value(
-            value: serviceLocator<ProfileOnboardingProvider>()),
+          value: serviceLocator<ProfileOnboardingProvider>(),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (ctx, themeProvider, _) {

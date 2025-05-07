@@ -19,9 +19,9 @@ class ApiService {
   ApiService({required http.Client client}) : _client = client;
 
   Map<String, String> get _defaultHeaders => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      };
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
 
   Uri _buildUrl(String endpoint) => Uri.parse('${AppConfig.baseUrl}$endpoint');
 
@@ -57,11 +57,13 @@ class ApiService {
     );
   }
 
-  Future<ApiResponse<T>> put<T>(String endpoint,
-      {Map<String, String>? headers,
-      Object? body,
-      T Function(Map<String, dynamic>)? fromJson,
-      Duration? timeout}) {
+  Future<ApiResponse<T>> put<T>(
+    String endpoint, {
+    Map<String, String>? headers,
+    Object? body,
+    T Function(Map<String, dynamic>)? fromJson,
+    Duration? timeout,
+  }) {
     return _sendRequest<T>(
       method: 'PUT',
       endpoint: endpoint,
@@ -72,11 +74,13 @@ class ApiService {
     );
   }
 
-  Future<ApiResponse<T>> patch<T>(String endpoint,
-      {Map<String, String>? headers,
-      Object? body,
-      T Function(Map<String, dynamic>)? fromJson,
-      Duration? timeout}) {
+  Future<ApiResponse<T>> patch<T>(
+    String endpoint, {
+    Map<String, String>? headers,
+    Object? body,
+    T Function(Map<String, dynamic>)? fromJson,
+    Duration? timeout,
+  }) {
     return _sendRequest<T>(
       method: 'PATCH',
       endpoint: endpoint,
@@ -87,11 +91,13 @@ class ApiService {
     );
   }
 
-  Future<ApiResponse<T>> delete<T>(String endpoint,
-      {Map<String, String>? headers,
-      Object? body,
-      T Function(Map<String, dynamic>)? fromJson,
-      Duration? timeout}) {
+  Future<ApiResponse<T>> delete<T>(
+    String endpoint, {
+    Map<String, String>? headers,
+    Object? body,
+    T Function(Map<String, dynamic>)? fromJson,
+    Duration? timeout,
+  }) {
     return _sendRequest<T>(
       method: 'DELETE',
       endpoint: endpoint,
@@ -120,28 +126,40 @@ class ApiService {
 
       switch (method.toUpperCase()) {
         case 'GET':
-          response = await _client.get(uri, headers: combinedHeaders).timeout(
-              timeout ?? Duration(seconds: AppConfig.connectionTimeoutSeconds));
+          response = await _client
+              .get(uri, headers: combinedHeaders)
+              .timeout(
+                timeout ??
+                    Duration(seconds: AppConfig.connectionTimeoutSeconds),
+              );
         case 'POST':
           response = await _client
               .post(uri, headers: combinedHeaders, body: encodedBody)
-              .timeout(timeout ??
-                  Duration(seconds: AppConfig.connectionTimeoutSeconds));
+              .timeout(
+                timeout ??
+                    Duration(seconds: AppConfig.connectionTimeoutSeconds),
+              );
         case 'PUT':
           response = await _client
               .put(uri, headers: combinedHeaders, body: encodedBody)
-              .timeout(timeout ??
-                  Duration(seconds: AppConfig.connectionTimeoutSeconds));
+              .timeout(
+                timeout ??
+                    Duration(seconds: AppConfig.connectionTimeoutSeconds),
+              );
         case 'PATCH':
           response = await _client
               .patch(uri, headers: combinedHeaders, body: encodedBody)
-              .timeout(timeout ??
-                  Duration(seconds: AppConfig.connectionTimeoutSeconds));
+              .timeout(
+                timeout ??
+                    Duration(seconds: AppConfig.connectionTimeoutSeconds),
+              );
         case 'DELETE':
           response = await _client
               .delete(uri, headers: combinedHeaders, body: encodedBody)
-              .timeout(timeout ??
-                  Duration(seconds: AppConfig.connectionTimeoutSeconds));
+              .timeout(
+                timeout ??
+                    Duration(seconds: AppConfig.connectionTimeoutSeconds),
+              );
         default:
           throw UnsupportedError('Unsupported HTTP method: $method');
       }

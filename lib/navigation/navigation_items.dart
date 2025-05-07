@@ -28,25 +28,44 @@ class NavigationItem {
 
 class NavigationItems {
   static const _companies = NavigationItem(
-      label: 'Companies',
-      route: '/companies',
-      icon: Icons.business,
-      branchIndex: 0);
+    label: 'Companies',
+    route: '/companies',
+    icon: Icons.business,
+    branchIndex: 0,
+  );
   static const _map = NavigationItem(
-      label: 'Map', route: '/map', icon: Icons.map, branchIndex: 1);
+    label: 'Map',
+    route: '/map',
+    icon: Icons.map,
+    branchIndex: 1,
+  );
   static const _sessions = NavigationItem(
-      label: 'Sessions',
-      route: '/sessions',
-      icon: Icons.people,
-      branchIndex: 2);
+    label: 'Sessions',
+    route: '/sessions',
+    icon: Icons.people,
+    branchIndex: 2,
+  );
   static const _events = NavigationItem(
-      label: 'Events', route: '/events', icon: Icons.event, branchIndex: 3);
+    label: 'Events',
+    route: '/events',
+    icon: Icons.event,
+    branchIndex: 3,
+  );
   static const _profile = NavigationItem(
-      label: 'Profile', route: '/profile', icon: Icons.person, branchIndex: 4);
+    label: 'Profile',
+    route: '/profile',
+    icon: Icons.person,
+    branchIndex: 4,
+  );
   static const _login = NavigationItem(
-      label: 'Login', route: '/auth/login', icon: Icons.login, branchIndex: 5);
+    label: 'Login',
+    route: '/auth/login',
+    icon: Icons.login,
+    branchIndex: 5,
+  );
 
-  static List<NavigationItem> forAuth(bool authenticated) => authenticated
-      ? const [_companies, _map, _sessions, _events, _profile]
-      : const [_companies, _map, _login];
+  static List<NavigationItem> forAuth(bool authenticated) =>
+      authenticated
+          ? const [_companies, _map, _sessions, _events, _profile]
+          : const [_companies, _map, _login];
 }

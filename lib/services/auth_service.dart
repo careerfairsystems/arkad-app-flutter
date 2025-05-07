@@ -15,18 +15,15 @@ class AuthService {
   AuthService({
     required FlutterSecureStorage storage,
     required ApiService apiService,
-  })  : _storage = storage,
-        _apiService = apiService;
+  }) : _storage = storage,
+       _apiService = apiService;
 
   /// Starts signup by sending credentials and storing them temporarily.
   Future<void> beginSignup(String email, String password) async {
     try {
       final response = await _apiService.post(
         ApiEndpoints.beginSignup,
-        body: {
-          'email': email,
-          'password': password,
-        },
+        body: {'email': email, 'password': password},
       );
 
       if (response.isError) {
@@ -71,10 +68,7 @@ class AuthService {
     try {
       final response = await _apiService.post(
         ApiEndpoints.signin,
-        body: {
-          'email': email,
-          'password': password,
-        },
+        body: {'email': email, 'password': password},
       );
 
       if (response.isError) {
@@ -103,10 +97,7 @@ class AuthService {
       throw AuthException('Not authenticated');
     }
 
-    final allHeaders = {
-      'Authorization': token,
-      ...?headers,
-    };
+    final allHeaders = {'Authorization': token, ...?headers};
 
     final uri = Uri.parse('${AppConfig.baseUrl}$endpoint');
 
@@ -148,7 +139,10 @@ class AuthService {
   // Private Helpers
 
   Future<void> _storeAuthData(
-      String token, String email, String password) async {
+    String token,
+    String email,
+    String password,
+  ) async {
     await _storage.write(key: _tokenKey, value: token);
     await _storage.write(key: _emailKey, value: email);
     await _storage.write(key: _passwordKey, value: password);

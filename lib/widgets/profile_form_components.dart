@@ -56,7 +56,8 @@ class ProfileFormComponents {
           const Padding(
             padding: EdgeInsets.all(8.0),
             child: Text(
-                'Your basic information is complete. You can update it if needed.'),
+              'Your basic information is complete. You can update it if needed.',
+            ),
           ),
       ],
     );
@@ -86,8 +87,10 @@ class ProfileFormComponents {
               labelText: 'Programme *',
               border: OutlineInputBorder(),
               helperText: 'Required',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 16,
+              ),
             ),
             value: selectedProgramme,
             hint: const Text('Select your programme'),
@@ -100,16 +103,17 @@ class ProfileFormComponents {
             isExpanded: true,
             icon: const Icon(Icons.arrow_drop_down),
             menuMaxHeight: 350,
-            items: programs.map((program) {
-              return DropdownMenuItem<Programme>(
-                value: program['value'] as Programme,
-                child: Text(
-                  program['label'] as String,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              );
-            }).toList(),
+            items:
+                programs.map((program) {
+                  return DropdownMenuItem<Programme>(
+                    value: program['value'] as Programme,
+                    child: Text(
+                      program['label'] as String,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  );
+                }).toList(),
             onChanged: readOnlyMode ? null : onProgrammeChanged,
           ),
           const SizedBox(height: 16),
@@ -144,12 +148,13 @@ class ProfileFormComponents {
               }
               return null;
             },
-            items: studyYearOptions.map((year) {
-              return DropdownMenuItem<int>(
-                value: year,
-                child: Text('Year $year'),
-              );
-            }).toList(),
+            items:
+                studyYearOptions.map((year) {
+                  return DropdownMenuItem<int>(
+                    value: year,
+                    child: Text('Year $year'),
+                  );
+                }).toList(),
             onChanged: readOnlyMode ? null : onStudyYearChanged,
           ),
         ],
@@ -159,7 +164,8 @@ class ProfileFormComponents {
           const Padding(
             padding: EdgeInsets.all(8.0),
             child: Text(
-                'Your education information is complete. You can update it if needed.'),
+              'Your education information is complete. You can update it if needed.',
+            ),
           ),
       ],
     );
@@ -214,7 +220,8 @@ class ProfileFormComponents {
           const Padding(
             padding: EdgeInsets.all(8.0),
             child: Text(
-                'Your preferences are complete. You can update them if needed.'),
+              'Your preferences are complete. You can update them if needed.',
+            ),
           ),
       ],
     );
@@ -233,19 +240,22 @@ class ProfileFormComponents {
           children: [
             CircleAvatar(
               radius: 60,
-              backgroundImage: selectedProfileImage != null
-                  ? FileImage(selectedProfileImage)
-                  : (!profilePictureDeleted &&
-                          currentProfilePicture != null &&
-                          currentProfilePicture.isNotEmpty
-                      ? NetworkImage(currentProfilePicture)
-                      : null) as ImageProvider<Object>?,
-              child: (selectedProfileImage == null &&
-                      (profilePictureDeleted ||
-                          currentProfilePicture == null ||
-                          currentProfilePicture.isEmpty))
-                  ? const Icon(Icons.person, size: 60)
-                  : null,
+              backgroundImage:
+                  selectedProfileImage != null
+                      ? FileImage(selectedProfileImage)
+                      : (!profilePictureDeleted &&
+                                  currentProfilePicture != null &&
+                                  currentProfilePicture.isNotEmpty
+                              ? NetworkImage(currentProfilePicture)
+                              : null)
+                          as ImageProvider<Object>?,
+              child:
+                  (selectedProfileImage == null &&
+                          (profilePictureDeleted ||
+                              currentProfilePicture == null ||
+                              currentProfilePicture.isEmpty))
+                      ? const Icon(Icons.person, size: 60)
+                      : null,
             ),
             Positioned(
               bottom: 0,
@@ -269,8 +279,10 @@ class ProfileFormComponents {
             onDeleteImage != null)
           TextButton.icon(
             icon: const Icon(Icons.delete, color: Colors.red),
-            label: const Text('Remove Picture',
-                style: TextStyle(color: Colors.red)),
+            label: const Text(
+              'Remove Picture',
+              style: TextStyle(color: Colors.red),
+            ),
             onPressed: onDeleteImage,
           ),
       ],
@@ -303,12 +315,13 @@ class ProfileFormComponents {
                             currentCV.isNotEmpty)
                     ? Icons.check_circle
                     : Icons.upload_file,
-                color: selectedCV != null ||
-                        (!cvDeleted &&
-                            currentCV != null &&
-                            currentCV.isNotEmpty)
-                    ? Colors.green
-                    : Colors.grey,
+                color:
+                    selectedCV != null ||
+                            (!cvDeleted &&
+                                currentCV != null &&
+                                currentCV.isNotEmpty)
+                        ? Colors.green
+                        : Colors.grey,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -334,9 +347,11 @@ class ProfileFormComponents {
               child: ElevatedButton.icon(
                 onPressed: onPickCV,
                 icon: const Icon(Icons.attach_file),
-                label: Text(currentCV != null && currentCV.isNotEmpty
-                    ? 'Change CV'
-                    : 'Select CV File'),
+                label: Text(
+                  currentCV != null && currentCV.isNotEmpty
+                      ? 'Change CV'
+                      : 'Select CV File',
+                ),
               ),
             ),
             if (!cvDeleted &&
@@ -347,8 +362,10 @@ class ProfileFormComponents {
               TextButton.icon(
                 onPressed: onDeleteCV,
                 icon: const Icon(Icons.delete, color: Colors.red),
-                label:
-                    const Text('Remove', style: TextStyle(color: Colors.red)),
+                label: const Text(
+                  'Remove',
+                  style: TextStyle(color: Colors.red),
+                ),
               ),
             ],
           ],
