@@ -1,13 +1,10 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-
 import '../config/api_endpoints.dart';
 import '../config/app_config.dart';
 import 'api_service.dart';
 
-/// Service responsible for authentication operations
 class AuthService {
-  // Storage Keys
   static const String _tokenKey = 'auth_token';
   static const String _emailKey = 'temp_email';
   static const String _passwordKey = 'temp_password';
@@ -15,17 +12,13 @@ class AuthService {
   final FlutterSecureStorage _storage;
   final ApiService _apiService;
 
-  /// Creates an instance of AuthService with required dependencies
   AuthService({
     required FlutterSecureStorage storage,
     required ApiService apiService,
   })  : _storage = storage,
         _apiService = apiService;
 
-  /// Begins the signup process
-  ///
-  /// Sends email and password to the backend and stores credentials temporarily
-  /// for the complete-signup step
+  /// Starts signup by sending credentials and storing them temporarily.
   Future<void> beginSignup(String email, String password) async {
     try {
       final response = await _apiService.post(
@@ -37,57 +30,43 @@ class AuthService {
       );
 
       if (response.isError) {
-        throw AuthException('Failed to initiate signup: ${response.error}');
+        throw AuthException('Signup initiation failed: ${response.error}');
       }
 
-      // Extract token directly from the response
-      final token = response.data;
-
-      if (token == null) {
-        throw AuthException('Failed to extract token');
-      }
-
-      // Store auth token and credentials for verification step
+      final token = _parseTokenFromResponse(response);
       await _storeAuthData(token, email, password);
     } catch (e) {
-      throw AuthException('Failed to initiate signup: ${e.toString()}');
+      throw AuthException('Signup initiation failed: ${e.toString()}');
     }
   }
 
-  /// Completes the signup process with verification code
+  /// Completes signup by verifying the code.
   Future<void> completeSignup(String code) async {
     try {
-      final token = await _storage.read(key: _tokenKey);
-      final email = await _storage.read(key: _emailKey);
-      final password = await _storage.read(key: _passwordKey);
-
-      if (token == null || email == null || password == null) {
-        throw AuthException('Missing authentication data');
+      final authData = await _getStoredCredential();
+      if (authData == null) {
+        throw AuthException('Missing temporary authentication data');
       }
 
       final response = await _apiService.post(
         ApiEndpoints.completeSignup,
         body: {
-          'token': token,
+          'token': authData.token,
           'code': code,
-          'email': email,
-          'password': password,
+          'email': authData.email,
+          'password': authData.password,
         },
       );
 
       if (response.isError) {
-        throw AuthException('Failed to verify signup: ${response.error}');
+        throw AuthException('Signup verification failed: ${response.error}');
       }
-
-      // No need to store anything here - we'll signin next
     } catch (e) {
       throw AuthException('Verification failed: ${e.toString()}');
     }
   }
 
-  /// Signs in a user with email and password
-  ///
-  /// Returns the authentication token
+  /// Signs in the user and stores token.
   Future<String> signin(String email, String password) async {
     try {
       final response = await _apiService.post(
@@ -99,29 +78,20 @@ class AuthService {
       );
 
       if (response.isError) {
-        throw AuthException('Authentication failed: ${response.error}');
+        throw AuthException('Signin failed: ${response.error}');
       }
 
-      final token = response.data;
-
-      // Store the token
+      final token = _parseTokenFromResponse(response);
       await _storage.write(key: _tokenKey, value: token);
-
-      // Clear temporary credentials (cleanup)
       await _clearTemporaryData();
 
       return token;
     } catch (e) {
-      throw AuthException('Authentication failed: ${e.toString()}');
+      throw AuthException('Signin failed: ${e.toString()}');
     }
   }
 
-  /// Gets the stored authentication token
-  Future<String?> getToken() async {
-    return await _storage.read(key: _tokenKey);
-  }
-
-  /// Makes an authenticated request to the API
+  /// Makes a raw HTTP call with Authorization header (fallback).
   Future<http.Response> authenticatedRequest(
     String method,
     String endpoint, {
@@ -143,15 +113,15 @@ class AuthService {
     try {
       switch (method.toUpperCase()) {
         case 'GET':
-          return await http.get(uri, headers: allHeaders);
+          return http.get(uri, headers: allHeaders);
         case 'POST':
-          return await http.post(uri, headers: allHeaders, body: body);
+          return http.post(uri, headers: allHeaders, body: body);
         case 'PUT':
-          return await http.put(uri, headers: allHeaders, body: body);
+          return http.put(uri, headers: allHeaders, body: body);
         case 'PATCH':
-          return await http.patch(uri, headers: allHeaders, body: body);
+          return http.patch(uri, headers: allHeaders, body: body);
         case 'DELETE':
-          return await http.delete(uri, headers: allHeaders);
+          return http.delete(uri, headers: allHeaders);
         default:
           throw ArgumentError('Unsupported HTTP method: $method');
       }
@@ -160,7 +130,23 @@ class AuthService {
     }
   }
 
-  /// Stores authentication data in secure storage
+  /// Reads the stored authentication token.
+  Future<String?> getToken() async => _storage.read(key: _tokenKey);
+
+  /// Logs out the user and clears all stored data.
+  Future<void> logout() async {
+    await _storage.delete(key: _tokenKey);
+    await _clearTemporaryData();
+  }
+
+  /// Retrieves stored email.
+  Future<String?> getStoredEmail() async => _storage.read(key: _emailKey);
+
+  /// Retrieves stored password.
+  Future<String?> getStoredPassword() async => _storage.read(key: _passwordKey);
+
+  // Private Helpers
+
   Future<void> _storeAuthData(
       String token, String email, String password) async {
     await _storage.write(key: _tokenKey, value: token);
@@ -168,30 +154,37 @@ class AuthService {
     await _storage.write(key: _passwordKey, value: password);
   }
 
-  /// Clears temporary authentication data
   Future<void> _clearTemporaryData() async {
     await _storage.delete(key: _emailKey);
     await _storage.delete(key: _passwordKey);
   }
 
-  /// Retrieves stored email
-  Future<String?> getStoredEmail() async {
-    return await _storage.read(key: _emailKey);
+  String _parseTokenFromResponse(ApiResponse response) {
+    final token = response.data;
+    if (token == null || token is! String) {
+      throw AuthException('Missing or invalid token in response');
+    }
+    return token;
   }
 
-  /// Retrieves stored password
-  Future<String?> getStoredPassword() async {
-    return await _storage.read(key: _passwordKey);
-  }
+  Future<_TempAuthData?> _getStoredCredential() async {
+    final token = await _storage.read(key: _tokenKey);
+    final email = await _storage.read(key: _emailKey);
+    final password = await _storage.read(key: _passwordKey);
 
-  /// Completely logs out the user and clears all stored data
-  Future<void> logout() async {
-    await _storage.delete(key: _tokenKey);
-    await _clearTemporaryData();
+    if (token == null || email == null || password == null) return null;
+    return _TempAuthData(token, email, password);
   }
 }
 
-/// Custom exception class for authentication errors
+class _TempAuthData {
+  final String token;
+  final String email;
+  final String password;
+
+  _TempAuthData(this.token, this.email, this.password);
+}
+
 class AuthException implements Exception {
   final String message;
 

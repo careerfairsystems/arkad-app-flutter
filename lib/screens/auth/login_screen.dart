@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart'; // Add go_router import
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../config/theme_config.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/validation_utils.dart';
+import '../../widgets/auth/auth_form_widgets.dart';
 
 /// Login screen for user authentication.
 ///
@@ -22,25 +23,48 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   bool _obscurePassword = true;
+  bool _isEmailValid = false;
 
-  /// Handles login logic and navigation on success.
+  @override
+  void initState() {
+    super.initState();
+    // Add listener for real-time email validation
+    _emailController.addListener(_validateEmail);
+  }
+
+  /// Validates the email field in real time
+  void _validateEmail() {
+    setState(() {
+      _isEmailValid = ValidationUtils.isValidEmail(_emailController.text);
+    });
+  }
+
+  /// Toggles password visibility
+  void _togglePasswordVisibility() {
+    setState(() {
+      _obscurePassword = !_obscurePassword;
+    });
+  }
+
+  /// Handles login logic and navigation on success
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     try {
-      final success = await authProvider.login(
+      final success = await authProvider.signIn(
         _emailController.text.trim(),
         _passwordController.text,
       );
+
       if (mounted) {
-        if (success) {
-          // The GoRouter will automatically redirect to the appropriate screen
-          // No need to push a route manually
-        } else if (authProvider.error != null) {
+        if (!success && authProvider.error != null) {
           setState(() => _errorMessage = authProvider.error);
         }
       }
@@ -51,24 +75,14 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
-  }
-
-  /// Navigates to the signup screen.
-  void _navigateToSignup() {
-    context.push('/auth/signup');
-  }
-
-  /// Navigates to the reset password screen.
-  void _navigateToResetPassword() {
-    context.push('/auth/reset-password');
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       body: SafeArea(
         child: Form(
@@ -78,150 +92,51 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 40),
-                // App logo
-                Center(
-                  child: Image.asset(
-                    'assets/icons/arkad_logo_inverted.png',
-                    height: 120,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                // Welcome text
-                Text(
+                AuthFormWidgets.buildLogoHeader(),
+                AuthFormWidgets.buildHeading(
                   'Welcome Back',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
                   'Sign in to continue',
-                  style: theme.textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
-                // Email field
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Enter your email',
-                    prefixIcon:
-                        Icon(Icons.email, color: ArkadColors.arkadTurkos),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
-                  textInputAction: TextInputAction.next,
+                AuthFormWidgets.buildEmailField(
+                  _emailController,
+                  isValid:
+                      _emailController.text.isNotEmpty ? _isEmailValid : null,
+                  onChanged: (_) => _formKey.currentState?.validate(),
                 ),
                 const SizedBox(height: 20),
-                // Password field
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    hintText: 'Enter your password',
-                    prefixIcon:
-                        Icon(Icons.lock, color: ArkadColors.arkadTurkos),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: ArkadColors.arkadTurkos,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
+
+                AuthFormWidgets.buildPasswordField(
+                  _passwordController,
                   obscureText: _obscurePassword,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
+                  onToggleVisibility: _togglePasswordVisibility,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleLogin(),
                 ),
-                // Error message
-                if (_errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    child: Text(
-                      _errorMessage!,
-                      style: TextStyle(color: ArkadColors.lightRed),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                // Forgot password link
+
+                AuthFormWidgets.buildErrorMessage(_errorMessage),
+
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: _navigateToResetPassword,
-                    child: Text("Forgot password?"),
+                    onPressed: () => context.push('/auth/reset-password'),
+                    child: const Text("Forgot password?"),
                   ),
                 ),
+
                 const SizedBox(height: 30),
-                // Login button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _handleLogin,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ArkadColors.arkadTurkos,
-                    foregroundColor: ArkadColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                ArkadColors.white),
-                          ),
-                        )
-                      : const Text(
-                          'Sign In',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+
+                AuthFormWidgets.buildSubmitButton(
+                  text: 'Sign In',
+                  onPressed: _handleLogin,
+                  isLoading: _isLoading,
                 ),
+
                 const SizedBox(height: 24),
-                // Sign up link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Don't have an account?",
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    TextButton(
-                      onPressed: _navigateToSignup,
-                      child: Text(
-                        "Sign up",
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
+
+                AuthFormWidgets.buildAuthLinkRow(
+                  question: "Don't have an account?",
+                  linkText: "Sign up",
+                  onPressed: () => context.push('/auth/signup'),
                 ),
               ],
             ),

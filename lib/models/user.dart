@@ -6,28 +6,18 @@ part 'user.g.dart';
 class User {
   final int id;
   final String email;
-  @JsonKey(name: 'first_name')
   final String? firstName;
-  @JsonKey(name: 'last_name')
   final String? lastName;
-  @JsonKey(name: 'is_student')
   final bool isStudent;
   final String? cv;
-  @JsonKey(name: 'profile_picture')
   final String? profilePicture;
   final String? programme;
   final String? linkedin;
-  @JsonKey(name: 'master_title')
   final String? masterTitle;
-  @JsonKey(name: 'study_year')
   final int? studyYear;
-  @JsonKey(name: 'is_active')
   final bool isActive;
-  @JsonKey(name: 'is_staff')
   final bool isStaff;
-  @JsonKey(name: 'food_preferences')
   final String? foodPreferences;
-  @JsonKey(name: 'is_verified')
   final bool isVerified;
 
   static const String _baseMediaUrl =
@@ -72,7 +62,6 @@ class User {
       String? masterTitle,
       int? studyYear,
       String? foodPreferences) {
-    // Only first name, last name, programme, study year, and food preferences are required
     return firstName != null &&
         firstName.isNotEmpty &&
         lastName != null &&
@@ -82,7 +71,6 @@ class User {
         studyYear != null &&
         foodPreferences != null &&
         foodPreferences.isNotEmpty;
-    // CV, profile picture, LinkedIn, and master title are no longer required
   }
 
   static String _prependMediaUrl(String? url) {
@@ -93,16 +81,13 @@ class User {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
-    // First use the generated function as a base
     User user = _$UserFromJson(json);
 
-    // Process media URLs (preserve existing functionality)
     String? processedCv = user.cv != null ? _prependMediaUrl(user.cv!) : null;
     String? processedProfilePic = user.profilePicture != null
         ? _prependMediaUrl(user.profilePicture!)
         : null;
 
-    // Calculate verification status
     bool isVerified = _calculateVerificationStatus(
         user.firstName,
         user.lastName,
@@ -114,7 +99,6 @@ class User {
         user.studyYear,
         user.foodPreferences);
 
-    // Return a new User with the processed data
     return User(
       id: user.id,
       email: user.email,

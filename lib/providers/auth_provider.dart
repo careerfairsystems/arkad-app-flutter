@@ -18,6 +18,10 @@ class AuthProvider with ChangeNotifier {
   final AuthService _authService;
   final UserService _userService;
 
+  // Public value notifier for widgets that only need to know if user is authenticated
+  final ValueNotifier<bool> authState = ValueNotifier<bool>(false);
+
+  // Private state variables
   AuthStatus _status = AuthStatus.initial;
   User? _user;
   bool _loading = true;
@@ -68,7 +72,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Request a new verification code by repeating the initial signup
+  /// Request a new verification code
   Future<bool> requestNewVerificationCode(String email) async {
     _setLoading(true);
     _clearError();
@@ -91,8 +95,8 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Complete signup with verification code (step 2)
-  Future<bool> verifyCode(String code) async {
+  /// Complete signup with verification code
+  Future<bool> completeSignup(String code) async {
     _setLoading(true);
     _clearError();
 
@@ -110,34 +114,13 @@ class AuthProvider with ChangeNotifier {
         throw Exception('Missing authentication data');
       }
 
-      // Sign in to get the authentication token
       await _authService.signin(email, password);
 
-      // Get user profile
-      try {
-        final user = await _userService.getUserProfile();
-        _authenticate(user);
+      final user = await _getUserProfileOrCreateMinimal(email);
+      _authenticate(user);
 
-        // Initialize onboarding process for new user
-        _initializeOnboarding(user);
-      } catch (e) {
-        // If profile fetch fails, create minimal user
-        final user = User(
-          id: 0,
-          email: email,
-          firstName: '',
-          lastName: '',
-          isStudent: true,
-          isActive: true,
-          isStaff: false,
-        );
-        _authenticate(user);
+      _initializeOnboarding(user);
 
-        // Initialize onboarding process for new user
-        _initializeOnboarding(user);
-      }
-
-      // Clear temporary data
       _verificationEmail = null;
       _verificationPassword = null;
 
@@ -151,23 +134,20 @@ class AuthProvider with ChangeNotifier {
   }
 
   /// Sign in an existing user
-  Future<bool> login(String email, String password) async {
+  Future<bool> signIn(String email, String password) async {
     _setLoading(true);
     _clearError();
 
     try {
-      // Sign in to get the authentication token
       await _authService.signin(email, password);
 
-      // Get user profile
       final user = await _userService.getUserProfile();
       _authenticate(user);
-
-      // Initialize onboarding for existing user
       _initializeOnboarding(user);
-
       return true;
     } catch (e) {
+      await _authService.logout(); 
+      _setUnauthenticated(); 
       _setError('Login failed: ${e.toString()}');
       return false;
     } finally {
@@ -180,17 +160,33 @@ class AuthProvider with ChangeNotifier {
     _setLoading(true);
     await _authService.logout();
 
-    // Reset onboarding state when user logs out
-    try {
-      final onboardingProvider = serviceLocator<ProfileOnboardingProvider>();
-      await onboardingProvider.resetOnboarding();
-    } catch (e) {
-      print('Error resetting onboarding state: $e');
-    }
+    await _resetOnboardingState();
 
     _setUnauthenticated();
     _setLoading(false);
   }
+
+  /// Refresh the user profile data
+  Future<void> refreshUserProfile() async {
+    if (_status != AuthStatus.authenticated) return;
+
+    _setLoading(true);
+
+    try {
+      final user = await _userService.getUserProfile();
+      _user = user;
+
+      _updateOnboardingState(user);
+
+      notifyListeners();
+    } catch (e) {
+      _setError('Failed to refresh profile: ${e.toString()}');
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Private helper methods
 
   /// Check if a user is already logged in
   Future<void> _checkAuthStatus() async {
@@ -203,12 +199,8 @@ class AuthProvider with ChangeNotifier {
         try {
           final user = await _userService.getUserProfile();
           _authenticate(user);
-
-          // Initialize onboarding for existing session
           _initializeOnboarding(user);
         } catch (e) {
-          // If we have a token but can't get the profile,
-          // token might be invalid
           await _authService.logout();
           _setUnauthenticated();
         }
@@ -222,24 +214,21 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Refresh the user profile data
-  Future<void> refreshUserProfile() async {
-    if (_status != AuthStatus.authenticated) return;
-
-    _setLoading(true);
-
+  /// Attempt to get user profile or create a minimal user object if that fails
+  Future<User> _getUserProfileOrCreateMinimal(String email) async {
     try {
-      final user = await _userService.getUserProfile();
-      _user = user;
-
-      // Update onboarding state with refreshed user data
-      _updateOnboardingState(user);
-
-      notifyListeners();
+      return await _userService.getUserProfile();
     } catch (e) {
-      _setError('Failed to refresh profile');
-    } finally {
-      _setLoading(false);
+      // If profile fetch fails, create minimal user
+      return User(
+        id: 0,
+        email: email,
+        firstName: '',
+        lastName: '',
+        isStudent: true,
+        isActive: true,
+        isStaff: false,
+      );
     }
   }
 
@@ -253,6 +242,16 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  /// Reset onboarding state when user logs out
+  Future<void> _resetOnboardingState() async {
+    try {
+      final onboardingProvider = serviceLocator<ProfileOnboardingProvider>();
+      await onboardingProvider.resetOnboarding();
+    } catch (e) {
+      print('Error resetting onboarding state: $e');
+    }
+  }
+
   /// Update the onboarding state with refreshed user data
   void _updateOnboardingState(User user) {
     try {
@@ -263,7 +262,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // Helper methods
+  // State management helpers
   void _setLoading(bool loading) {
     _loading = loading;
     notifyListeners();
@@ -281,12 +280,14 @@ class AuthProvider with ChangeNotifier {
   void _authenticate(User user) {
     _status = AuthStatus.authenticated;
     _user = user;
+    authState.value = true;
     notifyListeners();
   }
 
   void _setUnauthenticated() {
     _status = AuthStatus.unauthenticated;
     _user = null;
+    authState.value = false;
     notifyListeners();
   }
 }

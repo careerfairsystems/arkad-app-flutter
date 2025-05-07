@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart'; // Add go_router import
 
 import '../../config/theme_config.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/auth/auth_form_widgets.dart';
 
 /// Verification screen for email confirmation during authentication.
 ///
@@ -30,10 +31,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
     super.dispose();
   }
 
-  /// Returns true if the code is 6 digits long.
   bool get _isCodeComplete => _codeController.text.length == 6;
 
-  /// Handles code verification and navigation on success.
   Future<void> _verifyCode() async {
     if (!_isCodeComplete) return;
     setState(() {
@@ -42,11 +41,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
     });
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     try {
-      final success = await authProvider.verifyCode(_codeController.text);
+      final success = await authProvider.completeSignup(_codeController.text);
       if (mounted) {
         if (success) {
-          // Let GoRouter handle navigation based on authentication state
-          // No need to manually navigate here
+          context.go('/profile');
         } else if (authProvider.error != null) {
           setState(() => _errorMessage = authProvider.error);
         }
@@ -62,7 +60,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
     }
   }
 
-  /// Handles resending the verification code.
   Future<void> _resendCode() async {
     setState(() {
       _isResending = true;
@@ -94,8 +91,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       body: SafeArea(
         child: GestureDetector(
@@ -104,38 +99,23 @@ class _VerificationScreenState extends State<VerificationScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               children: [
-                const SizedBox(height: 40),
-                // App logo
-                Center(
-                  child: Image.asset(
-                    'assets/icons/arkad_logo_inverted.png',
-                    height: 120,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                // Verification title
-                Text(
+                AuthFormWidgets.buildLogoHeader(),
+
+                AuthFormWidgets.buildHeading(
                   'Verify Your Email',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Text(
                   "We've sent a verification code to",
-                  style: theme.textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+
                 Text(
                   widget.email,
-                  style: theme.textTheme.bodyLarge
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
                       ?.copyWith(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
-                // Verification code input
+
                 TextField(
                   controller: _codeController,
                   keyboardType: TextInputType.number,
@@ -144,62 +124,32 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     labelText: 'Verification Code',
                     hintText: 'Enter 6-digit code',
                     counterText: '',
-                    prefixIcon: Icon(Icons.lock_outline,
-                        color: ArkadColors.arkadTurkos),
+                    prefixIcon: const Icon(Icons.lock_outline),
                   ),
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   textAlign: TextAlign.center,
                   onChanged: (_) => setState(() {}),
                   autofillHints: const [AutofillHints.oneTimeCode],
                 ),
-                if (_errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    child: Text(
-                      _errorMessage!,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: ArkadColors.lightRed),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+
+                AuthFormWidgets.buildErrorMessage(_errorMessage),
+
                 const SizedBox(height: 40),
-                // Verify button
-                ElevatedButton(
+
+                AuthFormWidgets.buildSubmitButton(
+                  text: 'Verify',
                   onPressed:
                       _isVerifying || !_isCodeComplete ? null : _verifyCode,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ArkadColors.arkadTurkos,
-                    foregroundColor: ArkadColors.white,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isVerifying
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                ArkadColors.white),
-                          ),
-                        )
-                      : const Text(
-                          'Verify',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                  isLoading: _isVerifying,
                 ),
+
                 const SizedBox(height: 24),
-                // Resend code button
+
                 TextButton(
                   onPressed: _isResending ? null : _resendCode,
                   child: _isResending
-                      ? Text('Sending...')
-                      : Text("Didn't receive the code? Send again"),
+                      ? const Text('Sending...')
+                      : const Text("Didn't receive the code? Send again"),
                 ),
               ],
             ),

@@ -18,211 +18,183 @@ class ApiService {
 
   ApiService({required http.Client client}) : _client = client;
 
-  // Default headers
   Map<String, String> get _defaultHeaders => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       };
 
-  // Build full URL from endpoint
-  Uri _buildUrl(String endpoint) {
-    String baseUrl = AppConfig.baseUrl;
-    return Uri.parse('$baseUrl$endpoint');
-  }
+  Uri _buildUrl(String endpoint) => Uri.parse('${AppConfig.baseUrl}$endpoint');
 
-  // GET request
   Future<ApiResponse<T>> get<T>(
     String endpoint, {
     Map<String, String>? headers,
     T Function(Map<String, dynamic>)? fromJson,
     Duration? timeout,
-  }) async {
-    try {
-      final response = await _client.get(
-        _buildUrl(endpoint),
-        headers: {..._defaultHeaders, ...?headers},
-      ).timeout(
-          timeout ?? Duration(seconds: AppConfig.connectionTimeoutSeconds));
-
-      return _processResponse<T>(response, fromJson);
-    } catch (e) {
-      return ApiResponse(
-        error: 'Network error: $e',
-        statusCode: 0,
-      );
-    }
+  }) {
+    return _sendRequest<T>(
+      method: 'GET',
+      endpoint: endpoint,
+      headers: headers,
+      timeout: timeout,
+      fromJson: fromJson,
+    );
   }
 
-  // POST request
   Future<ApiResponse<T>> post<T>(
     String endpoint, {
     Map<String, String>? headers,
     Object? body,
     T Function(Map<String, dynamic>)? fromJson,
     Duration? timeout,
-  }) async {
-    try {
-      final response = await _client
-          .post(
-            _buildUrl(endpoint),
-            headers: {..._defaultHeaders, ...?headers},
-            body: body is String ? body : jsonEncode(body),
-          )
-          .timeout(
-              timeout ?? Duration(seconds: AppConfig.connectionTimeoutSeconds));
-
-      return _processResponse<T>(response, fromJson);
-    } catch (e) {
-      return ApiResponse(
-        error: 'Network error: $e',
-        statusCode: 0,
-      );
-    }
+  }) {
+    return _sendRequest<T>(
+      method: 'POST',
+      endpoint: endpoint,
+      headers: headers,
+      body: body,
+      timeout: timeout,
+      fromJson: fromJson,
+    );
   }
 
-  // PUT request
-  Future<ApiResponse<T>> put<T>(
-    String endpoint, {
+  Future<ApiResponse<T>> put<T>(String endpoint,
+      {Map<String, String>? headers,
+      Object? body,
+      T Function(Map<String, dynamic>)? fromJson,
+      Duration? timeout}) {
+    return _sendRequest<T>(
+      method: 'PUT',
+      endpoint: endpoint,
+      headers: headers,
+      body: body,
+      timeout: timeout,
+      fromJson: fromJson,
+    );
+  }
+
+  Future<ApiResponse<T>> patch<T>(String endpoint,
+      {Map<String, String>? headers,
+      Object? body,
+      T Function(Map<String, dynamic>)? fromJson,
+      Duration? timeout}) {
+    return _sendRequest<T>(
+      method: 'PATCH',
+      endpoint: endpoint,
+      headers: headers,
+      body: body,
+      timeout: timeout,
+      fromJson: fromJson,
+    );
+  }
+
+  Future<ApiResponse<T>> delete<T>(String endpoint,
+      {Map<String, String>? headers,
+      Object? body,
+      T Function(Map<String, dynamic>)? fromJson,
+      Duration? timeout}) {
+    return _sendRequest<T>(
+      method: 'DELETE',
+      endpoint: endpoint,
+      headers: headers,
+      body: body,
+      timeout: timeout,
+      fromJson: fromJson,
+    );
+  }
+
+  Future<ApiResponse<T>> _sendRequest<T>({
+    required String method,
+    required String endpoint,
     Map<String, String>? headers,
     Object? body,
-    T Function(Map<String, dynamic>)? fromJson,
     Duration? timeout,
+    T Function(Map<String, dynamic>)? fromJson,
   }) async {
     try {
-      final response = await _client
-          .put(
-            _buildUrl(endpoint),
-            headers: {..._defaultHeaders, ...?headers},
-            body: body is String ? body : jsonEncode(body),
-          )
-          .timeout(
+      final uri = _buildUrl(endpoint);
+      final combinedHeaders = {..._defaultHeaders, ...?headers};
+      final encodedBody =
+          body != null && body is! String ? jsonEncode(body) : body;
+
+      late http.Response response;
+
+      switch (method.toUpperCase()) {
+        case 'GET':
+          response = await _client.get(uri, headers: combinedHeaders).timeout(
               timeout ?? Duration(seconds: AppConfig.connectionTimeoutSeconds));
+        case 'POST':
+          response = await _client
+              .post(uri, headers: combinedHeaders, body: encodedBody)
+              .timeout(timeout ??
+                  Duration(seconds: AppConfig.connectionTimeoutSeconds));
+        case 'PUT':
+          response = await _client
+              .put(uri, headers: combinedHeaders, body: encodedBody)
+              .timeout(timeout ??
+                  Duration(seconds: AppConfig.connectionTimeoutSeconds));
+        case 'PATCH':
+          response = await _client
+              .patch(uri, headers: combinedHeaders, body: encodedBody)
+              .timeout(timeout ??
+                  Duration(seconds: AppConfig.connectionTimeoutSeconds));
+        case 'DELETE':
+          response = await _client
+              .delete(uri, headers: combinedHeaders, body: encodedBody)
+              .timeout(timeout ??
+                  Duration(seconds: AppConfig.connectionTimeoutSeconds));
+        default:
+          throw UnsupportedError('Unsupported HTTP method: $method');
+      }
 
       return _processResponse<T>(response, fromJson);
     } catch (e) {
-      return ApiResponse(
-        error: 'Network error: $e',
-        statusCode: 0,
-      );
+      return ApiResponse(error: 'Network error: $e', statusCode: 0);
     }
   }
 
-  // PATCH request
-  Future<ApiResponse<T>> patch<T>(
-    String endpoint, {
-    Map<String, String>? headers,
-    Object? body,
-    T Function(Map<String, dynamic>)? fromJson,
-    Duration? timeout,
-  }) async {
-    try {
-      final response = await _client
-          .patch(
-            _buildUrl(endpoint),
-            headers: {..._defaultHeaders, ...?headers},
-            body: body is String ? body : jsonEncode(body),
-          )
-          .timeout(
-              timeout ?? Duration(seconds: AppConfig.connectionTimeoutSeconds));
-
-      return _processResponse<T>(response, fromJson);
-    } catch (e) {
-      return ApiResponse(
-        error: 'Network error: $e',
-        statusCode: 0,
-      );
-    }
-  }
-
-  // DELETE request
-  Future<ApiResponse<T>> delete<T>(
-    String endpoint, {
-    Map<String, String>? headers,
-    Object? body,
-    T Function(Map<String, dynamic>)? fromJson,
-    Duration? timeout,
-  }) async {
-    try {
-      final response = await _client
-          .delete(
-            _buildUrl(endpoint),
-            headers: {..._defaultHeaders, ...?headers},
-            body: body != null && body is! String ? jsonEncode(body) : body,
-          )
-          .timeout(
-              timeout ?? Duration(seconds: AppConfig.connectionTimeoutSeconds));
-
-      return _processResponse<T>(response, fromJson);
-    } catch (e) {
-      return ApiResponse(
-        error: 'Network error: $e',
-        statusCode: 0,
-      );
-    }
-  }
-
-  // Process response helper
   ApiResponse<T> _processResponse<T>(
     http.Response response,
     T Function(Map<String, dynamic>)? fromJson,
   ) {
-    try {
-      final statusCode = response.statusCode;
+    final statusCode = response.statusCode;
 
-      if (statusCode < 200 || statusCode >= 300) {
-        return ApiResponse(
-          error: _parseErrorMessage(response),
-          statusCode: statusCode,
-        );
-      }
-
-      // Handle empty responses
-      if (response.body.isEmpty) {
-        return ApiResponse<T>(
-          statusCode: statusCode,
-        );
-      }
-
-      // Parse JSON response
-      final jsonData = jsonDecode(response.body);
-
-      // Convert to model if fromJson is provided
-      if (fromJson != null && jsonData is Map<String, dynamic>) {
-        final T model = fromJson(jsonData);
-        return ApiResponse<T>(
-          data: model,
-          statusCode: statusCode,
-        );
-      }
-
-      // Return raw data if no conversion needed
-      return ApiResponse<T>(
-        data: jsonData as T,
+    if (statusCode < 200 || statusCode >= 300) {
+      return ApiResponse(
+        error: _parseErrorMessage(response),
         statusCode: statusCode,
       );
+    }
+
+    if (response.body.isEmpty) {
+      return ApiResponse<T>(statusCode: statusCode);
+    }
+
+    try {
+      final jsonData = jsonDecode(response.body);
+      if (fromJson != null && jsonData is Map<String, dynamic>) {
+        return ApiResponse<T>(data: fromJson(jsonData), statusCode: statusCode);
+      }
+      return ApiResponse<T>(data: jsonData as T, statusCode: statusCode);
     } catch (e) {
       return ApiResponse(
-        error: 'Failed to process response: $e',
-        statusCode: response.statusCode,
+        error: 'Failed to parse response: $e',
+        statusCode: statusCode,
       );
     }
   }
 
-  // Extract error message from response
   String _parseErrorMessage(http.Response response) {
     try {
       final jsonData = jsonDecode(response.body);
-      if (jsonData is Map<String, dynamic> && jsonData.containsKey('message')) {
-        return jsonData['message'];
-      } else {
-        return response.body;
-      }
-    } catch (e) {
+      return (jsonData is Map<String, dynamic> &&
+              jsonData.containsKey('message'))
+          ? jsonData['message']
+          : response.body;
+    } catch (_) {
       return 'Error ${response.statusCode}: ${response.body}';
     }
   }
 
-  // Close client when done
   void dispose() {
     _client.close();
   }
