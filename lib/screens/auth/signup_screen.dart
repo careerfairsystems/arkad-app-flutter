@@ -27,6 +27,11 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _policyAccepted = false;
   String? _errorMessage;
 
+  String? _emailErrorText;
+  String? _passwordErrorText;
+  String? _confirmPasswordErrorText;
+  String? _policyErrorText;
+
   // Form validation states
   bool _isEmailValid = false;
   bool _isPasswordValid = false;
@@ -52,18 +57,29 @@ class _SignupScreenState extends State<SignupScreen> {
   void _validateEmail() {
     setState(() {
       _isEmailValid = ValidationUtils.isValidEmail(_emailController.text);
+      if (_emailController.text.isNotEmpty) {
+        _emailErrorText = null;
+      }
     });
   }
 
   void _validatePassword() {
     setState(() {
-      _passwordStrength =
-          ValidationUtils.checkPasswordStrength(_passwordController.text);
+      _passwordStrength = ValidationUtils.checkPasswordStrength(
+        _passwordController.text,
+      );
       _isPasswordValid = _passwordStrength.values.every((isValid) => isValid);
+
+      if (_passwordController.text.isNotEmpty) {
+        _passwordErrorText = null;
+      }
 
       if (_confirmPasswordController.text.isNotEmpty) {
         _isConfirmPasswordValid = ValidationUtils.doPasswordsMatch(
-            _passwordController.text, _confirmPasswordController.text);
+          _passwordController.text,
+          _confirmPasswordController.text,
+        );
+        _validateConfirmPassword();
       }
     });
   }
@@ -71,21 +87,62 @@ class _SignupScreenState extends State<SignupScreen> {
   void _validateConfirmPassword() {
     setState(() {
       _isConfirmPasswordValid = ValidationUtils.doPasswordsMatch(
-          _passwordController.text, _confirmPasswordController.text);
+        _passwordController.text,
+        _confirmPasswordController.text,
+      );
+
+      if (_confirmPasswordController.text.isNotEmpty) {
+        if (_isConfirmPasswordValid) {
+          _confirmPasswordErrorText = null;
+        } else {
+          _confirmPasswordErrorText = 'Passwords do not match';
+        }
+      } else if (_confirmPasswordErrorText != null) {
+        _confirmPasswordErrorText = null;
+      }
     });
   }
 
-  bool _validateAndShowErrors() {
-    if (!_formKey.currentState!.validate()) return false;
-    if (!_policyAccepted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please accept the privacy policy'),
-        ),
-      );
-      return false;
-    }
-    return true;
+  bool _validateFields() {
+    bool isValid = true;
+
+    setState(() {
+      _emailErrorText = null;
+      _passwordErrorText = null;
+      _confirmPasswordErrorText = null;
+      _policyErrorText = null;
+
+      if (_emailController.text.isEmpty) {
+        _emailErrorText = 'Email is required';
+        isValid = false;
+      } else if (!ValidationUtils.isValidEmail(_emailController.text)) {
+        _emailErrorText = 'Please enter a valid email';
+        isValid = false;
+      }
+
+      if (_passwordController.text.isEmpty) {
+        _passwordErrorText = 'Password is required';
+        isValid = false;
+      } else if (!_isPasswordValid) {
+        _passwordErrorText = 'Password does not meet requirements';
+        isValid = false;
+      }
+
+      if (_confirmPasswordController.text.isEmpty) {
+        _confirmPasswordErrorText = 'Please confirm your password';
+        isValid = false;
+      } else if (!_isConfirmPasswordValid) {
+        _confirmPasswordErrorText = 'Passwords do not match';
+        isValid = false;
+      }
+
+      if (!_policyAccepted) {
+        _policyErrorText = 'You must accept the privacy policy';
+        isValid = false;
+      }
+    });
+
+    return isValid;
   }
 
   void _navigateToLogin() {
@@ -93,7 +150,8 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _handleSignup() async {
-    if (!_validateAndShowErrors()) return;
+    if (!_validateFields()) return;
+
     setState(() => _isLoading = true);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
@@ -105,7 +163,8 @@ class _SignupScreenState extends State<SignupScreen> {
       if (mounted) {
         if (success) {
           await context.push(
-              '/auth/verification?email=${Uri.encodeComponent(_emailController.text.trim())}');
+            '/auth/verification?email=${Uri.encodeComponent(_emailController.text.trim())}',
+          );
         } else if (authProvider.error != null) {
           setState(() => _errorMessage = authProvider.error);
         }
@@ -141,14 +200,26 @@ class _SignupScreenState extends State<SignupScreen> {
                   _emailController,
                   isValid:
                       _emailController.text.isNotEmpty ? _isEmailValid : null,
-                  onChanged: (_) => _formKey.currentState?.validate(),
+                  onChanged: (value) {
+                    if (_emailErrorText != null) {
+                      setState(() => _emailErrorText = null);
+                    }
+                  },
+                  errorText: _emailErrorText,
                 ),
                 const SizedBox(height: 20),
                 AuthFormWidgets.buildPasswordField(
                   _passwordController,
-                  isValid: _passwordController.text.isNotEmpty
-                      ? _isPasswordValid
-                      : null,
+                  isValid:
+                      _passwordController.text.isNotEmpty
+                          ? _isPasswordValid
+                          : null,
+                  onChanged: (value) {
+                    if (_passwordErrorText != null) {
+                      setState(() => _passwordErrorText = null);
+                    }
+                  },
+                  errorText: _passwordErrorText,
                 ),
                 if (_passwordController.text.isNotEmpty)
                   Padding(
@@ -195,56 +266,63 @@ class _SignupScreenState extends State<SignupScreen> {
                   _confirmPasswordController,
                   labelText: 'Confirm Password',
                   hintText: 'Confirm your password',
-                  isValid: _confirmPasswordController.text.isNotEmpty
-                      ? _isConfirmPasswordValid
-                      : null,
+                  isValid:
+                      _confirmPasswordController.text.isNotEmpty
+                          ? _isConfirmPasswordValid
+                          : null,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleSignup(),
+                  onChanged: (value) {
+                    if (_confirmPasswordErrorText != null) {
+                      setState(() => _confirmPasswordErrorText = null);
+                    }
+                  },
+                  errorText: _confirmPasswordErrorText,
                 ),
 
                 const SizedBox(height: 20),
 
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _policyAccepted,
-                      onChanged: (value) {
-                        setState(() {
-                          _policyAccepted = value ?? false;
-                        });
-                      },
-                      activeColor: ArkadColors.arkadTurkos,
-                    ),
-                    Expanded(
-                      child: Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          const Text(
-                            'I accept the ',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          GestureDetector(
-                            onTap: () async {
-                              final url = Uri.parse(
-                                  'https://www.arkadtlth.se/privacypolicy');
-                              if (await canLaunchUrl(url)) {
-                                await launchUrl(url,
-                                    mode: LaunchMode.externalApplication);
-                              }
-                            },
-                            child: Text(
-                              'privacy policy',
-                              style: TextStyle(
-                                color: ArkadColors.arkadTurkos,
-                                fontSize: 12,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ),
-                        ],
+                AuthFormWidgets.buildCheckboxWithError(
+                  value: _policyAccepted,
+                  onChanged: (value) {
+                    setState(() {
+                      _policyAccepted = value ?? false;
+                      if (_policyAccepted && _policyErrorText != null) {
+                        _policyErrorText = null;
+                      }
+                    });
+                  },
+                  errorText: _policyErrorText,
+                  label: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      const Text(
+                        'I accept the ',
+                        style: TextStyle(fontSize: 12),
                       ),
-                    ),
-                  ],
+                      GestureDetector(
+                        onTap: () async {
+                          final url = Uri.parse(
+                            'https://www.arkadtlth.se/privacypolicy',
+                          );
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(
+                              url,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          }
+                        },
+                        child: Text(
+                          'privacy policy',
+                          style: TextStyle(
+                            color: ArkadColors.arkadTurkos,
+                            fontSize: 12,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
 
                 AuthFormWidgets.buildErrorMessage(_errorMessage),

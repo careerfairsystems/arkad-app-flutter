@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart'; // Add go_router import
+import 'package:provider/provider.dart';
 
 import '../../config/theme_config.dart';
 import '../../providers/auth_provider.dart';
@@ -116,37 +116,93 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                TextField(
-                  controller: _codeController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                  decoration: InputDecoration(
-                    labelText: 'Verification Code',
-                    hintText: 'Enter 6-digit code',
-                    counterText: '',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                  ),
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  textAlign: TextAlign.center,
-                  onChanged: (_) => setState(() {}),
-                  autofillHints: const [AutofillHints.oneTimeCode],
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+                      child: Text(
+                        'Verification Code',
+                        style: TextStyle(
+                          color: ArkadColors.arkadTurkos,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                        ),
+                      ),
+                      child: TextField(
+                        controller: _codeController,
+                        keyboardType: TextInputType.number,
+                        maxLength: 6,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter 6-digit code',
+                          counterText: '',
+                          contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                        ),
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          letterSpacing: 10.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        onChanged: (_) => setState(() {}),
+                        autofillHints: const [AutofillHints.oneTimeCode],
+                      ),
+                    ),
+                  ],
                 ),
 
                 AuthFormWidgets.buildErrorMessage(_errorMessage),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 30),
 
-                AuthFormWidgets.buildSubmitButton(
-                  text: 'Verify',
-                  onPressed:
-                      _isVerifying || !_isCodeComplete ? null : _verifyCode,
-                  isLoading: _isVerifying,
+                ElevatedButton(
+                  onPressed: _isVerifying || !_isCodeComplete ? null : _verifyCode,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ArkadColors.arkadTurkos,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                  ),
+                  child: _isVerifying
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Verify',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
 
                 const SizedBox(height: 24),
 
                 TextButton(
                   onPressed: _isResending ? null : _resendCode,
+                  style: TextButton.styleFrom(
+                    foregroundColor: ArkadColors.arkadTurkos,
+                  ),
                   child: _isResending
                       ? const Text('Sending...')
                       : const Text("Didn't receive the code? Send again"),

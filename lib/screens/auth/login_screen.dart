@@ -25,6 +25,9 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isEmailValid = false;
 
+  String? _emailErrorText;
+  String? _passwordErrorText;
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +39,9 @@ class _LoginScreenState extends State<LoginScreen> {
   void _validateEmail() {
     setState(() {
       _isEmailValid = ValidationUtils.isValidEmail(_emailController.text);
+      if (_emailController.text.isNotEmpty) {
+        _emailErrorText = null;
+      }
     });
   }
 
@@ -46,9 +52,33 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
+  bool _validateFields() {
+    bool isValid = true;
+
+    setState(() {
+      _emailErrorText = null;
+      _passwordErrorText = null;
+
+      if (_emailController.text.isEmpty) {
+        _emailErrorText = 'Email is required';
+        isValid = false;
+      } else if (!ValidationUtils.isValidEmail(_emailController.text)) {
+        _emailErrorText = 'Please enter a valid email';
+        isValid = false;
+      }
+
+      if (_passwordController.text.isEmpty) {
+        _passwordErrorText = 'Password is required';
+        isValid = false;
+      }
+    });
+
+    return isValid;
+  }
+
   /// Handles login logic and navigation on success
   Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_validateFields()) return;
 
     setState(() {
       _isLoading = true;
@@ -56,7 +86,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
     try {
       final success = await authProvider.signIn(
         _emailController.text.trim(),
@@ -64,7 +93,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (mounted) {
-        if (!success && authProvider.error != null) {
+        if (success) {
+          context.go('/profile'); 
+        } else if (authProvider.error != null) {
           setState(() => _errorMessage = authProvider.error);
         }
       }
@@ -101,7 +132,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   _emailController,
                   isValid:
                       _emailController.text.isNotEmpty ? _isEmailValid : null,
-                  onChanged: (_) => _formKey.currentState?.validate(),
+                  onChanged: (value) {
+                    if (_emailErrorText != null) {
+                      setState(() => _emailErrorText = null);
+                    }
+                  },
+                  errorText: _emailErrorText,
+                  validator: ValidationUtils.validateEmail,
                 ),
                 const SizedBox(height: 20),
 
@@ -111,6 +148,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   onToggleVisibility: _togglePasswordVisibility,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleLogin(),
+                  onChanged: (value) {
+                    if (_passwordErrorText != null) {
+                      setState(() => _passwordErrorText = null);
+                    }
+                  },
+                  errorText: _passwordErrorText,
+                  validator: ValidationUtils.validateLoginPassword,
                 ),
 
                 AuthFormWidgets.buildErrorMessage(_errorMessage),
