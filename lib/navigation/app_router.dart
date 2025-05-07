@@ -28,41 +28,34 @@ class AppRouter {
   // ────────────────────────────────────────────────────────────
   String? _redirect(BuildContext context, GoRouterState state) {
     final loggedIn = _auth.isAuthenticated;
-    final path = state.uri.path; // e.g. /auth/login
-    final inAuthFlow = path.startsWith('/auth');
+    final path = state.uri.path;
 
-    if (!loggedIn) {
-      // Allow public pages and auth flow
-      if (inAuthFlow || _isPublic(path)) return null;
-      // Anything else is protected
-      return '/auth/login';
-    }
+    const publicPrefixes = ['/companies', '/map', '/auth'];
 
-    // If logged‑in but still on auth pages → bounce to main tab
-    if (inAuthFlow) return '/companies';
+    bool isPublic(String path) =>
+        publicPrefixes.any((base) => path == base || path.startsWith('$base/'));
+
+    if (!loggedIn && !isPublic(path)) return '/auth/login';
+
     return null;
   }
-
-  bool _isPublic(String path) => ['/companies', '/map', '/auth']
-      .any((p) => path == p || path.startsWith('$p/'));
 
   // ────────────────────────────────────────────────────────────
   // GoRouter
   // ────────────────────────────────────────────────────────────
   late final GoRouter router = GoRouter(
     debugLogDiagnostics: true,
-    refreshListenable: _auth,
+    refreshListenable: _auth.authState,
     redirect: _redirect,
     initialLocation: '/companies',
     routes: [
-      // ── STATEFUL SHELL WITH 6 FIXED BRANCHES ───────────────────────────
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => _AppBottomNavShell(
           navigationShell: shell,
           isAuthenticated: _auth.isAuthenticated,
         ),
         branches: [
-          // 0 ▸ Companies
+          // Companies
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -86,7 +79,7 @@ class AppRouter {
             ],
           ),
 
-          // 1 ▸ Map
+          // Map
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -96,7 +89,7 @@ class AppRouter {
             ],
           ),
 
-          // 2 ▸ Sessions (protected)
+          // Sessions
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -106,7 +99,7 @@ class AppRouter {
             ],
           ),
 
-          // 3 ▸ Events (protected)
+          // Events
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -116,7 +109,7 @@ class AppRouter {
             ],
           ),
 
-          // 4 ▸ Profile (protected)
+          // Profile
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -138,7 +131,7 @@ class AppRouter {
             ],
           ),
 
-          // 5 ▸ AUTH FLOW  (public, but still inside the shell → bottom bar stays)
+          // AUTH FLOW
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -164,6 +157,12 @@ class AppRouter {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: '/:_(.*)',
+        builder: (ctx, state) => const Scaffold(
+          body: Center(child: Text('Page not found')),
+        ),
       ),
     ],
   );

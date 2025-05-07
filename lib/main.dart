@@ -16,29 +16,38 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final AppRouter _appRouter;
+
+  @override
+  void initState() {
+    super.initState();
+    // Grab the AuthProvider (already registered as singleton in serviceLocator)
+    final auth = serviceLocator<AuthProvider>();
+    _appRouter = AppRouter(auth); // only once, here
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Use providers from the service locator, but wrap them with ChangeNotifierProvider
-    // so the widgets can still consume them using Provider.of<T>
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: serviceLocator<ThemeProvider>()),
         ChangeNotifierProvider.value(value: serviceLocator<AuthProvider>()),
-        // Use the singleton instance from service locator
         ChangeNotifierProvider.value(
             value: serviceLocator<ProfileOnboardingProvider>()),
       ],
-      child: Consumer2<ThemeProvider, AuthProvider>(
-        builder: (context, themeProvider, auth, _) {
-          // Create a new AppRouter instance with auth
-          final router = AppRouter(auth).router;
+      child: Consumer<ThemeProvider>(
+        builder: (ctx, themeProvider, _) {
           return MaterialApp.router(
             title: 'Arkad App',
             theme: themeProvider.getTheme(),
-            routerConfig: router,
+            routerConfig: _appRouter.router,
           );
         },
       ),
