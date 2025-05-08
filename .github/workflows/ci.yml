@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [android, ios, web]
+        platform: [android, ios]
 
     steps:
       - name: Checkout code
@@ -55,10 +55,8 @@ jobs:
 
       - name: Build for ${{ matrix.platform }}
         run: |
-          if [ "${{ matrix.platform }}" = "web" ]; then
-            flutter build web --release
-          elif [ "${{ matrix.platform }}" = "android" ]; then
+          if [ "${{ matrix.platform }}" = "android" ]; then
             flutter build apk --release
           elif [ "${{ matrix.platform }}" = "ios" ]; then
-            flutter build ios --release --no-codesign
+            flutter build ios --no-codesign
           fi

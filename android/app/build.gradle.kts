@@ -35,8 +35,18 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            
+            // Fix for R8 issues
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
+}
+
+dependencies {
+    // Add missing annotation libraries
+    implementation("com.google.errorprone:error_prone_annotations:2.18.0")
+    implementation("com.google.code.findbugs:jsr305:3.0.2")
+    implementation("javax.annotation:javax.annotation-api:1.3.2")
 }
 
 flutter {
