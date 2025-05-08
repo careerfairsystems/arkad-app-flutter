@@ -52,3 +52,8 @@ ios/Runner/GoogleService-Info.plist
 
 # Backup files
 *.bak
+arkad/android
+arkad/ios
+arkad/linux/flutter/ephemeral/.plugin_symlinks
+arkad/macos
+arkad/windows/flutter/ephemeral/.plugin_symlinks
