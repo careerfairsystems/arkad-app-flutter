@@ -6,6 +6,7 @@ import 'providers/profile_provider.dart';
 import 'providers/theme_provider.dart';
 import 'services/service_locator.dart';
 
+var apiKey = "Qxti7dhve39&NwiW5inp";
 void main() async {
   // Good pratice, harmless to include. Ensure that the Flutter engine is initialized before running the app. In simplier terms if you need to do any native setup or asynchronous work such as reading local storage before showing the UI, this call ensures that the Flutter engine is ready to handle it.
   WidgetsFlutterBinding.ensureInitialized();
