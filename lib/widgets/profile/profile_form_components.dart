@@ -186,10 +186,10 @@ class ProfileFormComponents {
             controller: linkedinController,
             readOnly: readOnlyMode,
             decoration: const InputDecoration(
-              labelText:
-                  'LinkedIn Profile URL', // Removed asterisk for optional field
+              labelText: 'LinkedIn Username',
               border: OutlineInputBorder(),
-              helperText: 'Optional',
+              helperText:
+                  'Optional - Just enter your username, not the full URL',
               prefixIcon: Icon(Icons.link),
             ),
             // No validator required since field is optional
