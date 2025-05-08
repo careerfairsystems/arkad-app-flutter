@@ -11,7 +11,7 @@ import '../models/user.dart';
 import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../utils/profile_utils.dart';
-import 'profile_form_components.dart';
+import 'profile/profile_form_components.dart';
 
 class ProfileCompletionDialog extends StatefulWidget {
   const ProfileCompletionDialog({super.key});

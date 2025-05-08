@@ -1,16 +1,15 @@
 import 'dart:io';
 
-import 'package:arkad/models/programme.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../config/theme_config.dart';
-import '../models/user.dart';
-import '../providers/auth_provider.dart';
-import '../providers/profile_provider.dart';
-import '../utils/profile_utils.dart';
-// For the Programme enum and PROGRAMS
+import '../../config/theme_config.dart';
+import '../../models/programme.dart';
+import '../../models/user.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/profile_provider.dart';
+import '../../utils/profile_utils.dart';
 
 class ProfileOnboardingWidget extends StatefulWidget {
   final User user;
@@ -81,7 +80,6 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     _masterTitleController.dispose();
     _foodPreferencesController.dispose();
 
-    // Bug fix: Properly handle file resources to prevent memory leaks
     _selectedProfileImage = null;
     _selectedCV = null;
 
@@ -142,87 +140,80 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     }
   }
 
-  Widget _buildCustomStepIndicator(int currentStep, int totalSteps) {
-    return Column(
-      children: [
-        // Animated step progress indicator
-        Padding(
-          padding: const EdgeInsets.only(top: 8.0, bottom: 24.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(totalSteps, (index) {
-              bool isActive = index <= currentStep;
-              bool isCurrent = index == currentStep;
+  Widget _buildStepIndicator(int currentStep, int totalSteps) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0, bottom: 24.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(totalSteps, (index) {
+          bool isActive = index <= currentStep;
+          bool isCurrent = index == currentStep;
 
-              return Row(
-                children: [
-                  // Step circle
-                  Container(
-                    width: isCurrent ? 36.0 : 30.0,
-                    height: isCurrent ? 36.0 : 30.0,
-                    decoration: BoxDecoration(
-                      color:
-                          isActive
-                              ? ArkadColors.arkadTurkos
-                              : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(18),
-                      border:
-                          isCurrent
-                              ? Border.all(
-                                color: ArkadColors.arkadTurkos.withValues(
-                                  alpha: 0.3,
-                                ),
-                                width: 4,
-                              )
-                              : null,
-                      boxShadow:
-                          isCurrent
-                              ? [
-                                BoxShadow(
-                                  color: ArkadColors.arkadTurkos.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ]
-                              : null,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
-                        style: TextStyle(
-                          color: isActive ? Colors.white : Colors.grey.shade600,
-                          fontWeight: FontWeight.bold,
-                          fontSize: isCurrent ? 16 : 14,
-                        ),
-                      ),
+          return Row(
+            children: [
+              // Step circle
+              Container(
+                width: isCurrent ? 36.0 : 30.0,
+                height: isCurrent ? 36.0 : 30.0,
+                decoration: BoxDecoration(
+                  color:
+                      isActive ? ArkadColors.arkadTurkos : Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(18),
+                  border:
+                      isCurrent
+                          ? Border.all(
+                            color: ArkadColors.arkadTurkos.withValues(
+                              alpha: .3,
+                            ),
+                            width: 4,
+                          )
+                          : null,
+                  boxShadow:
+                      isCurrent
+                          ? [
+                            BoxShadow(
+                              color: ArkadColors.arkadTurkos.withValues(
+                                alpha: .3,
+                              ),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                          : null,
+                ),
+                child: Center(
+                  child: Text(
+                    '${index + 1}',
+                    style: TextStyle(
+                      color: isActive ? Colors.white : Colors.grey.shade600,
+                      fontWeight: FontWeight.bold,
+                      fontSize: isCurrent ? 16 : 14,
                     ),
                   ),
-                  // Connector line
-                  if (index < totalSteps - 1)
-                    Container(
-                      width: 50,
-                      height: 3,
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(
-                        color:
-                            isActive
-                                ? ArkadColors.arkadTurkos
-                                : Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(1.5),
-                      ),
-                    ),
-                ],
-              );
-            }),
-          ),
-        ),
-      ],
+                ),
+              ),
+              // Connector line
+              if (index < totalSteps - 1)
+                Container(
+                  width: 50,
+                  height: 3,
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color:
+                        isActive
+                            ? ArkadColors.arkadTurkos
+                            : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(1.5),
+                  ),
+                ),
+            ],
+          );
+        }),
+      ),
     );
   }
 
-  Widget _buildCenteredProfilePicture() {
+  Widget _buildProfilePicture() {
     return Center(
       child: Stack(
         alignment: Alignment.center,
@@ -260,8 +251,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                 onTap: _pickImage,
                 customBorder: const CircleBorder(),
                 splashColor: Colors.white24,
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
+                child: const Padding(
+                  padding: EdgeInsets.all(10.0),
                   child: Icon(Icons.camera_alt, size: 22, color: Colors.white),
                 ),
               ),
@@ -302,8 +293,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           ),
           const SizedBox(height: 30),
 
-          // Centered profile picture with modern styling
-          _buildCenteredProfilePicture(),
+          // Profile picture with editing capability
+          _buildProfilePicture(),
 
           // Profile picture removal
           if (widget.user.profilePicture != null && !_profilePictureDeleted)
@@ -325,7 +316,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           const Divider(),
           const SizedBox(height: 24),
 
-          // Name fields with improved styling
+          // Name fields
           if (needsFirstName)
             TextFormField(
               controller: _firstNameController,
@@ -372,27 +363,10 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
               },
             ),
 
-          // Show message if all fields in this section are complete
+          // Completion message
           if (!needsFirstName && !needsLastName)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.shade200),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Your basic information is complete. You can update it if needed.',
-                      style: TextStyle(color: Colors.green.shade800),
-                    ),
-                  ),
-                ],
-              ),
+            _buildCompletionMessage(
+              'Your basic information is complete. You can update it if needed.',
             ),
         ],
       ),
@@ -429,7 +403,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           ),
           const SizedBox(height: 30),
 
-          // Programme field with improved styling
+          // Programme field
           if (needsProgramme) ...[
             DropdownButtonFormField<Programme>(
               decoration: InputDecoration(
@@ -485,7 +459,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
             const SizedBox(height: 24),
           ],
 
-          // Study year field with improved styling
+          // Study year field
           if (needsStudyYear) ...[
             DropdownButtonFormField<int>(
               decoration: InputDecoration(
@@ -522,7 +496,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
             const SizedBox(height: 24),
           ],
 
-          // Master title field (always shown as optional)
+          // Master title field (optional)
           TextFormField(
             controller: _masterTitleController,
             decoration: InputDecoration(
@@ -538,28 +512,10 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
             textCapitalization: TextCapitalization.words,
           ),
 
-          // Show message if all required fields in this section are complete
+          // Completion message
           if (!needsProgramme && !needsStudyYear)
-            Container(
-              margin: const EdgeInsets.only(top: 24),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.shade200),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Your education information is complete. You can update it if needed.',
-                      style: TextStyle(color: Colors.green.shade800),
-                    ),
-                  ),
-                ],
-              ),
+            _buildCompletionMessage(
+              'Your education information is complete. You can update it if needed.',
             ),
         ],
       ),
@@ -593,7 +549,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           ),
           const SizedBox(height: 30),
 
-          // Food preferences field with improved styling
+          // Food preferences field
           if (needsFoodPreferences) ...[
             TextFormField(
               controller: _foodPreferencesController,
@@ -617,7 +573,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
             const SizedBox(height: 24),
           ],
 
-          // LinkedIn field with improved styling
+          // LinkedIn field (optional)
           TextFormField(
             controller: _linkedinController,
             decoration: InputDecoration(
@@ -633,134 +589,143 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           ),
           const SizedBox(height: 24),
 
-          // CV upload with improved styling
+          // CV upload section
+          _buildCVUploadSection(),
+
+          // Completion message
+          if (!needsFoodPreferences)
+            _buildCompletionMessage(
+              'Your required information is complete. Optional fields can still be updated.',
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCVUploadSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Resume / CV', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 12),
+
+          // Current CV status
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  'Resume / CV',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Icon(
+                  _selectedCV != null ||
+                          (!_cvDeleted &&
+                              widget.user.cv != null &&
+                              widget.user.cv!.isNotEmpty)
+                      ? Icons.check_circle
+                      : Icons.upload_file,
+                  color:
+                      _selectedCV != null ||
+                              (!_cvDeleted &&
+                                  widget.user.cv != null &&
+                                  widget.user.cv!.isNotEmpty)
+                          ? Colors.green
+                          : Colors.grey,
                 ),
-                const SizedBox(height: 12),
-
-                // Current CV status
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade200),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    _getCVStatusText(),
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _selectedCV != null ||
-                                (!_cvDeleted &&
-                                    widget.user.cv != null &&
-                                    widget.user.cv!.isNotEmpty)
-                            ? Icons.check_circle
-                            : Icons.upload_file,
-                        color:
-                            _selectedCV != null ||
-                                    (!_cvDeleted &&
-                                        widget.user.cv != null &&
-                                        widget.user.cv!.isNotEmpty)
-                                ? Colors.green
-                                : Colors.grey,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          _selectedCV != null
-                              ? 'Selected: ${_selectedCV!.path.split('/').last}'
-                              : (_cvDeleted
-                                  ? 'No CV selected yet (PDF format)'
-                                  : (widget.user.cv != null &&
-                                          widget.user.cv!.isNotEmpty
-                                      ? 'Current: ${widget.user.cv!.split('/').last}'
-                                      : 'No CV selected yet (PDF format)')),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // CV actions
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: ArkadColors.arkadTurkos,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        onPressed: _pickCV,
-                        icon: const Icon(Icons.file_upload),
-                        label: Text(
-                          widget.user.cv != null && widget.user.cv!.isNotEmpty
-                              ? 'Change CV'
-                              : 'Upload CV',
-                        ),
-                      ),
-                    ),
-                    if (!_cvDeleted &&
-                        widget.user.cv != null &&
-                        widget.user.cv!.isNotEmpty) ...[
-                      const SizedBox(width: 12),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedCV = null;
-                            _cvDeleted = true;
-                          });
-                        },
-                        icon: const Icon(
-                          Icons.delete_outline,
-                          color: Colors.red,
-                        ),
-                        tooltip: 'Remove CV',
-                      ),
-                    ],
-                  ],
                 ),
               ],
             ),
           ),
 
-          // Show message if all required fields in this section are complete
-          if (!needsFoodPreferences)
-            Container(
-              margin: const EdgeInsets.only(top: 24),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.shade200),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Your required information is complete. Optional fields can still be updated.',
-                      style: TextStyle(color: Colors.green.shade800),
-                    ),
+          const SizedBox(height: 16),
+
+          // CV actions
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ArkadColors.arkadTurkos,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                ],
+                  onPressed: _pickCV,
+                  icon: const Icon(Icons.file_upload),
+                  label: Text(
+                    widget.user.cv != null && widget.user.cv!.isNotEmpty
+                        ? 'Change CV'
+                        : 'Upload CV',
+                  ),
+                ),
               ),
+              if (!_cvDeleted &&
+                  widget.user.cv != null &&
+                  widget.user.cv!.isNotEmpty) ...[
+                const SizedBox(width: 12),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedCV = null;
+                      _cvDeleted = true;
+                    });
+                  },
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  tooltip: 'Remove CV',
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getCVStatusText() {
+    if (_selectedCV != null) {
+      return 'Selected: ${_selectedCV!.path.split('/').last}';
+    } else if (_cvDeleted) {
+      return 'No CV selected yet (PDF format)';
+    } else if (widget.user.cv != null && widget.user.cv!.isNotEmpty) {
+      return 'Current: ${widget.user.cv!.split('/').last}';
+    } else {
+      return 'No CV selected yet (PDF format)';
+    }
+  }
+
+  Widget _buildCompletionMessage(String message) {
+    return Container(
+      margin: const EdgeInsets.only(top: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green.shade200),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: Colors.green),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: Colors.green.shade800),
             ),
+          ),
         ],
       ),
     );
@@ -825,7 +790,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           );
         }
 
-        // If all required fields are completed, don't show the widget
+        // Don't show the widget if all required fields are completed
         if (!profileProvider.hasIncompleteRequiredFields) {
           return const SizedBox.shrink();
         }
@@ -833,7 +798,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
         final steps = _buildSteps(profileProvider);
 
         if (steps.isEmpty) {
-          return const SizedBox.shrink(); // No steps needed
+          return const SizedBox.shrink();
         }
 
         return Center(
@@ -844,85 +809,22 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
                 side: BorderSide(
-                  color: ArkadColors.arkadTurkos.withValues(alpha: 0.5),
+                  color: ArkadColors.arkadTurkos.withValues(alpha: .5),
                   width: 1.5,
                 ),
               ),
               elevation: 8,
-              shadowColor: ArkadColors.arkadTurkos.withValues(alpha: 0.2),
+              shadowColor: ArkadColors.arkadTurkos.withValues(alpha: .2),
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Header with gradient
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            ArkadColors.arkadNavy,
-                            ArkadColors.arkadTurkos,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(24),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Complete Your Profile',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.headlineSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Unlock all features by completing your profile',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.85),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '${(profileProvider.currentStep + 1)}/${profileProvider.totalSteps}',
-                              style: TextStyle(
-                                color: ArkadColors.arkadNavy,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildHeader(profileProvider),
 
                     // Step indicator
-                    _buildCustomStepIndicator(
+                    _buildStepIndicator(
                       profileProvider.currentStep,
                       profileProvider.totalSteps,
                     ),
@@ -963,100 +865,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                     ),
 
                     // Navigation buttons
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.shade300,
-                            blurRadius: 4,
-                            offset: const Offset(0, -2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Back button
-                          if (profileProvider.currentStep > 0)
-                            TextButton.icon(
-                              icon: const Icon(Icons.arrow_back),
-                              label: const Text('Back'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: ArkadColors.arkadNavy,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                textStyle: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              onPressed:
-                                  _isSubmitting
-                                      ? null
-                                      : () => _previousStep(profileProvider),
-                            )
-                          else
-                            const SizedBox.shrink(),
-
-                          // Next/Submit button
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: ArkadColors.arkadTurkos,
-                              foregroundColor: Colors.white,
-                              elevation: 2,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 16,
-                              ),
-                              textStyle: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                letterSpacing: 0.5,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            onPressed:
-                                _isSubmitting
-                                    ? null
-                                    : () => _nextStep(profileProvider),
-                            child:
-                                _isSubmitting
-                                    ? SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 3,
-                                      ),
-                                    )
-                                    : Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          profileProvider.currentStep <
-                                                  profileProvider.totalSteps - 1
-                                              ? 'Continue'
-                                              : 'Complete',
-                                        ),
-                                        if (profileProvider.currentStep <
-                                            profileProvider.totalSteps - 1) ...[
-                                          const SizedBox(width: 8),
-                                          const Icon(
-                                            Icons.arrow_forward,
-                                            size: 18,
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildNavigationFooter(profileProvider),
                   ],
                 ),
               ),
@@ -1064,6 +873,145 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildHeader(ProfileProvider profileProvider) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [ArkadColors.arkadNavy, ArkadColors.arkadTurkos],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Complete Your Profile',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Unlock all features by completing your profile',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: .85),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '${(profileProvider.currentStep + 1)}/${profileProvider.totalSteps}',
+              style: TextStyle(
+                color: ArkadColors.arkadNavy,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavigationFooter(ProfileProvider profileProvider) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Back button
+          if (profileProvider.currentStep > 0)
+            TextButton.icon(
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Back'),
+              style: TextButton.styleFrom(
+                foregroundColor: ArkadColors.arkadNavy,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onPressed:
+                  _isSubmitting ? null : () => _previousStep(profileProvider),
+            )
+          else
+            const SizedBox.shrink(),
+
+          // Next/Submit button
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ArkadColors.arkadTurkos,
+              foregroundColor: Colors.white,
+              elevation: 2,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              textStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                letterSpacing: 0.5,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            onPressed: _isSubmitting ? null : () => _nextStep(profileProvider),
+            child:
+                _isSubmitting
+                    ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                    )
+                    : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          profileProvider.currentStep <
+                                  profileProvider.totalSteps - 1
+                              ? 'Continue'
+                              : 'Complete',
+                        ),
+                        if (profileProvider.currentStep <
+                            profileProvider.totalSteps - 1) ...[
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward, size: 18),
+                        ],
+                      ],
+                    ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1119,9 +1067,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
       } catch (e) {
         if (mounted) {
           scaffoldMessenger.showSnackBar(
-            SnackBar(
-              content: Text('Failed to update profile: ${e.toString()}'),
-            ),
+            SnackBar(content: Text('Failed to update profile: $e')),
           );
         }
       } finally {

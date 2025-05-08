@@ -9,7 +9,7 @@ import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../utils/profile_utils.dart';
-import '../../widgets/profile_form_components.dart';
+import '../../widgets/profile/profile_form_components.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final User user;
@@ -22,6 +22,7 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
+  final ImagePicker _imagePicker = ImagePicker();
 
   // Form field controllers
   late TextEditingController _emailController;
@@ -38,15 +39,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   File? _selectedImage;
   File? _selectedCV;
 
-  // Add these flags to track local UI state
+  // Track local UI state
   bool _profilePictureDeleted = false;
   bool _cvDeleted = false;
-
-  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
+    _initializeControllers();
+  }
+
+  void _initializeControllers() {
     _emailController = TextEditingController(text: widget.user.email);
     _firstNameController = TextEditingController(text: widget.user.firstName);
     _lastNameController = TextEditingController(text: widget.user.lastName);
@@ -158,7 +161,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  Future<void> _deleteProfilePicture() async {
+  void _deleteProfilePicture() {
     setState(() {
       _profilePictureDeleted = true;
     });
@@ -172,7 +175,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  Future<void> _deleteCV() async {
+  void _deleteCV() {
     setState(() {
       _cvDeleted = true;
     });
@@ -211,7 +214,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Profile picture section (now optional)
+                      // Profile picture section
                       Center(
                         child: Column(
                           children: [
@@ -334,7 +337,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                       const SizedBox(height: 24),
 
-                      // CV management (now optional)
+                      // CV management section
                       const Text(
                         'CV / Resume (Optional)',
                         style: TextStyle(
@@ -360,6 +363,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _updateProfile,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
                           child: const Text('Save Changes'),
                         ),
                       ),
