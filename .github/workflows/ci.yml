@@ -7,6 +7,21 @@ on:
     branches: [main]
 
 jobs:
+  gitleaks:
+    name: Gitleaks scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Only required for Organizations, not personal accounts.
+
   analyze:
     name: Analyze code
     runs-on: ubuntu-latest
@@ -32,37 +47,37 @@ jobs:
         run: flutter analyze --no-fatal-infos
 
   build:
-  name: Build application
-  needs: analyze
-  strategy:
-    matrix:
-      include:
-        - platform: android
-          os: ubuntu-latest
-        - platform: ios
-          os: macos-latest
+    name: Build application
+    needs: analyze
+    strategy:
+      matrix:
+        include:
+          - platform: android
+            os: ubuntu-latest
+          - platform: ios
+            os: macos-latest
 
-  runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
 
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: "3.29.0"
-        channel: "stable"
-        cache: true
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.29.0"
+          channel: "stable"
+          cache: true
 
-    - name: Install dependencies
-      run: flutter pub get
+      - name: Install dependencies
+        run: flutter pub get
 
-    - name: Build for ${{ matrix.platform }}
-      run: |
-        PLATFORM=${{ matrix.platform }}
-        if [ "$PLATFORM" = "android" ]; then
-          flutter build apk --release
-        elif [ "$PLATFORM" = "ios" ]; then
-          flutter build ios --no-codesign
-        fi
+      - name: Build for ${{ matrix.platform }}
+        run: |
+          PLATFORM=${{ matrix.platform }}
+          if [ "$PLATFORM" = "android" ]; then
+            flutter build apk --release
+          elif [ "$PLATFORM" = "ios" ]; then
+            flutter build ios --no-codesign
+          fi
