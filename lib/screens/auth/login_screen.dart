@@ -3,12 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../utils/login_manager.dart';
 import '../../utils/validation_utils.dart';
 import '../../widgets/auth/auth_form_widgets.dart';
 
-/// Login screen for user authentication.
-///
-/// Provides email and password fields, error handling, and navigation to signup/reset password.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -18,8 +16,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _emailController = LoginManager.emailController;
+  final _passwordController = LoginManager.passwordController;
+
   bool _isLoading = false;
   String? _errorMessage;
   bool _obscurePassword = true;
@@ -31,11 +30,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Add listener for real-time email validation
+    LoginManager.clearCredentials();
     _emailController.addListener(_validateEmail);
   }
 
-  /// Validates the email field in real time
   void _validateEmail() {
     setState(() {
       _isEmailValid = ValidationUtils.isValidEmail(_emailController.text);
@@ -45,7 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  /// Toggles password visibility
   void _togglePasswordVisibility() {
     setState(() {
       _obscurePassword = !_obscurePassword;
@@ -76,7 +73,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return isValid;
   }
 
-  /// Handles login logic and navigation on success
   Future<void> _handleLogin() async {
     if (!_validateFields()) return;
 
@@ -192,8 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _emailController.removeListener(_validateEmail);
     super.dispose();
   }
 }

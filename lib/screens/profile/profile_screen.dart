@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -6,6 +7,7 @@ import '../../config/theme_config.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_onboarding_provider.dart';
+import '../../utils/login_manager.dart';
 import '../../widgets/profile_onboarding_widget.dart';
 import '../auth/login_screen.dart';
 import 'edit_profile_screen.dart';
@@ -27,7 +29,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Initialize the onboarding provider when the screen loads
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final user = authProvider.user;
       if (user != null) {
@@ -322,7 +323,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Fixed URL launching function
   Future<void> _launchUrl(BuildContext context, String urlString) async {
     // Ensure URL has proper scheme
     String fixedUrl = urlString;
@@ -358,14 +358,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Helper method to handle logout
   void _handleLogout(BuildContext context, AuthProvider authProvider) {
-    // First handle the synchronous part
+    // Clear auth data
     authProvider.logout();
 
-    // Then navigate using MaterialPageRoute instead of named route
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-      (route) => false,
-    );
+    // Clear text field values
+    LoginManager.clearCredentials();
+
+    // Navigate to login screen
+    context.go('/auth/login');
   }
 
   Widget _buildInfoTile(String label, String value, {bool isLink = false}) {
