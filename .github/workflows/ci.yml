@@ -32,31 +32,37 @@ jobs:
         run: flutter analyze --no-fatal-infos
 
   build:
-    name: Build application
-    needs: analyze
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform: [android, ios]
+  name: Build application
+  needs: analyze
+  strategy:
+    matrix:
+      include:
+        - platform: android
+          os: ubuntu-latest
+        - platform: ios
+          os: macos-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  runs-on: ${{ matrix.os }}
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.29.0"
-          channel: "stable"
-          cache: true
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: flutter pub get
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: "3.29.0"
+        channel: "stable"
+        cache: true
 
-      - name: Build for ${{ matrix.platform }}
-        run: |
-          if [ "${{ matrix.platform }}" = "android" ]; then
-            flutter build apk --release
-          elif [ "${{ matrix.platform }}" = "ios" ]; then
-            flutter build ios --no-codesign
-          fi
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Build for ${{ matrix.platform }}
+      run: |
+        PLATFORM=${{ matrix.platform }}
+        if [ "$PLATFORM" = "android" ]; then
+          flutter build apk --release
+        elif [ "$PLATFORM" = "ios" ]; then
+          flutter build ios --no-codesign
+        fi
