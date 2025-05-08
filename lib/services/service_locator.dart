@@ -3,7 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 
 import '../providers/auth_provider.dart';
-import '../providers/profile_onboarding_provider.dart';
+import '../providers/profile_provider.dart';
 import '../providers/theme_provider.dart';
 import 'api_service.dart';
 import 'auth_service.dart';
@@ -52,8 +52,8 @@ void setupServiceLocator() {
 
   serviceLocator.registerLazySingleton<ThemeProvider>(() => ThemeProvider());
 
-  serviceLocator.registerLazySingleton<ProfileOnboardingProvider>(
-    () => ProfileOnboardingProvider(),
+  serviceLocator.registerLazySingleton<ProfileProvider>(
+    () => ProfileProvider(),
   );
 
   // Initialize providers that need immediate initialization

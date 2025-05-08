@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'navigation/app_router.dart';
 import 'providers/auth_provider.dart';
-import 'providers/profile_onboarding_provider.dart';
+import 'providers/profile_provider.dart';
 import 'providers/theme_provider.dart';
 import 'services/service_locator.dart';
 
@@ -39,9 +39,7 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider.value(value: serviceLocator<ThemeProvider>()),
         ChangeNotifierProvider.value(value: serviceLocator<AuthProvider>()),
-        ChangeNotifierProvider.value(
-          value: serviceLocator<ProfileOnboardingProvider>(),
-        ),
+        ChangeNotifierProvider.value(value: serviceLocator<ProfileProvider>()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (ctx, themeProvider, _) {

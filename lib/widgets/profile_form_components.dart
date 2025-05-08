@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../widgets/profile_completion_dialog.dart';
+import '../models/programme.dart';
 
 class ProfileFormComponents {
   static Widget buildBasicInfoFields({

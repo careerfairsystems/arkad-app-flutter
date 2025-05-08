@@ -1,19 +1,33 @@
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user.dart';
+import 'dart:io';
 
-class ProfileOnboardingProvider with ChangeNotifier {
+import 'package:arkad/models/programme.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/user.dart';
+import '../services/user_service.dart';
+import '../utils/profile_utils.dart';
+import '../utils/service_helper.dart';
+
+/// Comprehensive provider for handling all profile-related functionality
+/// including onboarding, profile updates, and media management
+class ProfileProvider with ChangeNotifier {
+  // State variables for onboarding
   int _currentStep = 0;
   bool _onboardingCompleted = false;
   int _totalSteps = 0;
   List<String> _missingRequiredFields = [];
   List<String> _optionalFields = [];
   List<String> _completedOptionalFields = [];
-  bool _isLoading = false;
 
-  // Track initialization attempts to implement retry mechanism
-  int _initializationAttempts = 0;
-  static const int _maxInitAttempts = 3;
+  // Profile update state
+  bool _isLoading = false;
+  bool _isUploading = false;
+  String? _error;
+
+  // Form data state (for centralized access)
+  User? _currentUser;
 
   // Categorized steps - each represents a page in the onboarding flow
   final List<Map<String, dynamic>> _steps = [
@@ -41,7 +55,7 @@ class ProfileOnboardingProvider with ChangeNotifier {
   static const String _currentStepKey = 'profile_onboarding_current_step';
   static const String _onboardingCompletedKey = 'profile_onboarding_completed';
 
-  // Getters
+  // Getters for onboarding
   int get currentStep => _currentStep;
   bool get onboardingCompleted => _onboardingCompleted;
   int get totalSteps => _totalSteps;
@@ -49,13 +63,17 @@ class ProfileOnboardingProvider with ChangeNotifier {
   List<String> get optionalFields => _optionalFields;
   List<String> get completedOptionalFields => _completedOptionalFields;
   List<Map<String, dynamic>> get steps => _steps;
-  bool get isLoading => _isLoading;
   bool get hasIncompleteRequiredFields => _missingRequiredFields.isNotEmpty;
+
+  // Getters for profile state
+  bool get isLoading => _isLoading;
+  bool get isUploading => _isUploading;
+  String? get error => _error;
+  User? get user => _currentUser;
 
   // Calculate completion percentage including both required and optional fields
   double get completionPercentage {
     int totalFields = _steps.fold(0, (total, step) {
-      // Fix: Explicitly cast the result to int
       return total +
           (step['requiredFields'].length as int) +
           (step['optionalFields'].length as int);
@@ -68,10 +86,9 @@ class ProfileOnboardingProvider with ChangeNotifier {
     return totalFields > 0 ? (totalFields - missingFields) / totalFields : 1.0;
   }
 
-  // Initialize provider by loading saved data with retry mechanism
+  // Initialize provider by loading saved data
   Future<void> initialize(User? user) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -82,36 +99,17 @@ class ProfileOnboardingProvider with ChangeNotifier {
 
       // Update fields based on current user data
       _updateFields(user);
-
-      // Reset initialization attempts on success
-      _initializationAttempts = 0;
+      _currentUser = user;
     } catch (e) {
-      print('Error initializing onboarding provider: $e');
+      print('Error initializing profile provider: $e');
+      _setError('Failed to initialize profile: $e');
 
-      // Retry logic for handling race conditions
-      if (_initializationAttempts < _maxInitAttempts) {
-        _initializationAttempts++;
-        print(
-          'Retrying initialization attempt $_initializationAttempts of $_maxInitAttempts',
-        );
-
-        // Wait briefly before retrying
-        await Future.delayed(
-          Duration(milliseconds: 300 * _initializationAttempts),
-        );
-
-        // Try again
-        return initialize(user);
-      } else {
-        // Reset to default state after max retries
-        _currentStep = 0;
-        _onboardingCompleted = false;
-        _updateFields(user);
-        print('Max initialization attempts reached. Using default values.');
-      }
+      // Use default values if initialization fails
+      _currentStep = 0;
+      _onboardingCompleted = false;
+      _updateFields(user);
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
@@ -122,10 +120,13 @@ class ProfileOnboardingProvider with ChangeNotifier {
       _optionalFields = [];
       _completedOptionalFields = [];
       _totalSteps = 0;
-      // Bug fix: Add notifyListeners() to ensure UI is updated when user is null
+      _currentUser = null;
       notifyListeners();
       return;
     }
+
+    // Store current user
+    _currentUser = user;
 
     // Get missing required fields
     _missingRequiredFields = user.getMissingFields();
@@ -284,5 +285,141 @@ class ProfileOnboardingProvider with ChangeNotifier {
     } catch (e) {
       print('Error resetting onboarding: $e');
     }
+  }
+
+  // ============= PROFILE MANAGEMENT METHODS =============
+
+  /// Update user profile with provided data and optionally upload media files
+  Future<bool> updateProfile({
+    required Map<String, dynamic> profileData,
+    File? profilePicture,
+    bool deleteProfilePicture = false,
+    File? cv,
+    bool deleteCV = false,
+  }) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      final userService = ServiceHelper.getService<UserService>();
+
+      // Update profile fields
+      await userService.updateProfileFields(profileData);
+
+      // Handle profile picture
+      if (profilePicture != null) {
+        _setUploading(true);
+        await userService.uploadProfilePicture(profilePicture);
+      } else if (deleteProfilePicture) {
+        await userService.deleteProfilePicture();
+      }
+
+      // Handle CV
+      if (cv != null) {
+        _setUploading(true);
+        await userService.uploadCV(cv);
+      } else if (deleteCV) {
+        await userService.deleteCV();
+      }
+
+      return true;
+    } catch (e) {
+      _setError('Failed to update profile: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+      _setUploading(false);
+    }
+  }
+
+  /// Prepare profile data from form inputs
+  Map<String, dynamic> prepareProfileData({
+    required String firstName,
+    required String lastName,
+    required Programme? selectedProgramme,
+    required String programmeText,
+    required String linkedin,
+    required String masterTitle,
+    required int? studyYear,
+    required String foodPreferences,
+  }) {
+    return ProfileUtils.prepareProfileData(
+      firstName: firstName,
+      lastName: lastName,
+      selectedProgramme: selectedProgramme,
+      programmeText: programmeText,
+      linkedin: linkedin,
+      masterTitle: masterTitle,
+      studyYear: studyYear,
+      foodPreferences: foodPreferences,
+    );
+  }
+
+  /// Pick a profile image using the centralized image picker
+  Future<File?> pickProfileImage(BuildContext context) async {
+    try {
+      final ImagePicker imagePicker = ImagePicker();
+      return await ProfileUtils.pickProfileImage(
+        context: context,
+        imagePicker: imagePicker,
+      );
+    } catch (e) {
+      _setError('Failed to pick profile image: $e');
+      return null;
+    }
+  }
+
+  /// Pick a CV file using the centralized CV picker
+  Future<File?> pickCVFile(BuildContext context) async {
+    try {
+      return await ProfileUtils.pickCVFile(context: context);
+    } catch (e) {
+      _setError('Failed to pick CV: $e');
+      return null;
+    }
+  }
+
+  /// Format LinkedIn URL to ensure proper format
+  String formatLinkedInUrl(String url) {
+    if (url.isEmpty) return '';
+
+    // If URL doesn't start with http or https, assume it's just the username
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      // If it starts with www or linkedin.com, add https
+      if (url.startsWith('www.') || url.startsWith('linkedin.com')) {
+        return 'https://$url';
+      }
+      // Otherwise assume it's just the username or profile path
+      else {
+        // Remove leading @ or / if present
+        String username =
+            url.startsWith('@') || url.startsWith('/') ? url.substring(1) : url;
+
+        return 'https://linkedin.com/in/$username';
+      }
+    }
+
+    // URL already has http/https, return as is
+    return url;
+  }
+
+  // State management helpers
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setUploading(bool uploading) {
+    _isUploading = uploading;
+    notifyListeners();
+  }
+
+  void _setError(String? errorMessage) {
+    _error = errorMessage;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _error = null;
   }
 }

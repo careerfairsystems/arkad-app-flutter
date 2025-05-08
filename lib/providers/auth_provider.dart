@@ -4,7 +4,7 @@ import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/service_locator.dart';
 import '../services/user_service.dart';
-import 'profile_onboarding_provider.dart';
+import 'profile_provider.dart';
 
 /// Authentication status states
 enum AuthStatus { initial, authenticated, unauthenticated }
@@ -115,7 +115,9 @@ class AuthProvider with ChangeNotifier {
       final user = await _getUserProfileOrCreateMinimal(email);
       _authenticate(user);
 
-      _initializeOnboarding(user);
+      // Initialize profile state with the new user
+      final profileProvider = serviceLocator<ProfileProvider>();
+      await profileProvider.initialize(user);
 
       _verificationEmail = null;
       _verificationPassword = null;
@@ -139,7 +141,11 @@ class AuthProvider with ChangeNotifier {
 
       final user = await _userService.getUserProfile();
       _authenticate(user);
-      _initializeOnboarding(user);
+
+      // Initialize profile state with the user
+      final profileProvider = serviceLocator<ProfileProvider>();
+      await profileProvider.initialize(user);
+
       return true;
     } catch (e) {
       await _authService.logout();
@@ -156,7 +162,9 @@ class AuthProvider with ChangeNotifier {
     _setLoading(true);
     await _authService.logout();
 
-    await _resetOnboardingState();
+    // Reset profile state when logging out
+    final profileProvider = serviceLocator<ProfileProvider>();
+    await profileProvider.resetOnboarding();
 
     _setUnauthenticated();
     _setLoading(false);
@@ -172,7 +180,9 @@ class AuthProvider with ChangeNotifier {
       final user = await _userService.getUserProfile();
       _user = user;
 
-      _updateOnboardingState(user);
+      // Update profile provider with refreshed user data
+      final profileProvider = serviceLocator<ProfileProvider>();
+      await profileProvider.refreshOnboardingState(user);
 
       notifyListeners();
     } catch (e) {
@@ -195,7 +205,10 @@ class AuthProvider with ChangeNotifier {
         try {
           final user = await _userService.getUserProfile();
           _authenticate(user);
-          _initializeOnboarding(user);
+
+          // Initialize profile provider with authenticated user
+          final profileProvider = serviceLocator<ProfileProvider>();
+          await profileProvider.initialize(user);
         } catch (e) {
           await _authService.logout();
           _setUnauthenticated();
@@ -225,36 +238,6 @@ class AuthProvider with ChangeNotifier {
         isActive: true,
         isStaff: false,
       );
-    }
-  }
-
-  /// Initialize the onboarding process with current user data
-  void _initializeOnboarding(User user) {
-    try {
-      final onboardingProvider = serviceLocator<ProfileOnboardingProvider>();
-      onboardingProvider.initialize(user);
-    } catch (e) {
-      print('Error initializing onboarding state: $e');
-    }
-  }
-
-  /// Reset onboarding state when user logs out
-  Future<void> _resetOnboardingState() async {
-    try {
-      final onboardingProvider = serviceLocator<ProfileOnboardingProvider>();
-      await onboardingProvider.resetOnboarding();
-    } catch (e) {
-      print('Error resetting onboarding state: $e');
-    }
-  }
-
-  /// Update the onboarding state with refreshed user data
-  void _updateOnboardingState(User user) {
-    try {
-      final onboardingProvider = serviceLocator<ProfileOnboardingProvider>();
-      onboardingProvider.refreshOnboardingState(user);
-    } catch (e) {
-      print('Error updating onboarding state: $e');
     }
   }
 

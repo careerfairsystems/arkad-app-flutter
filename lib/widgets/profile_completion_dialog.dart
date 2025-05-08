@@ -1,111 +1,17 @@
 import 'dart:io';
 
-import 'package:arkad/models/user.dart';
-import 'package:arkad/services/user_service.dart';
-import 'package:arkad/utils/profile_utils.dart';
-import 'package:arkad/utils/service_helper.dart';
-import 'package:arkad/widgets/profile_form_components.dart';
-// We'll still use file_picker but with a fallback approach
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-// Import updated packages
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
+import '../models/programme.dart';
+import '../models/user.dart';
 import '../providers/auth_provider.dart';
-
-// Define the Programme enum
-enum Programme {
-  architecture,
-  automotive,
-  automation,
-  biomedicalEngineering,
-  chemicalEngineering,
-  civilEngineering,
-  computerScienceEngineering,
-  constructionAndArchitecture,
-  constructionAndRailwayConstruction,
-  roadAndTrafficTechnology,
-  electricalEngineering,
-  engineeringBiotechnology,
-  informationAndCommunicationEngineering,
-  engineeringMathematics,
-  engineeringNanoscience,
-  engineeringPhysics,
-  environmentalEngineering,
-  fireProtectionEngineering,
-  industrialDesign,
-  industrialEconomicsAndManagement,
-  surveying,
-  mechanicalEngineering,
-  mechanicalEngineeringWithIndustrialDesign,
-  riskSafetyAndCrisisManagement,
-}
-
-// Program options
-const programs = [
-  {'label': "Architecture", 'value': Programme.architecture},
-  {'label': "Automotive", 'value': Programme.automotive},
-  {'label': "Automation", 'value': Programme.automation},
-  {'label': "Biomedical Engineering", 'value': Programme.biomedicalEngineering},
-  {'label': "Chemical Engineering", 'value': Programme.chemicalEngineering},
-  {'label': "Civil Engineering", 'value': Programme.civilEngineering},
-  {
-    'label': "Computer Science and Engineering",
-    'value': Programme.computerScienceEngineering,
-  },
-  {
-    'label': "Construction and Architecture",
-    'value': Programme.constructionAndArchitecture,
-  },
-  {
-    'label': "Construction and Railway Construction",
-    'value': Programme.constructionAndRailwayConstruction,
-  },
-  {'label': "Traffic and Road", 'value': Programme.roadAndTrafficTechnology},
-  {'label': "Electrical Engineering", 'value': Programme.electricalEngineering},
-  {
-    'label': "Engineering Biotechnology",
-    'value': Programme.engineeringBiotechnology,
-  },
-  {
-    'label': "Information and Communication Engineering",
-    'value': Programme.informationAndCommunicationEngineering,
-  },
-  {
-    'label': "Engineering Mathematics",
-    'value': Programme.engineeringMathematics,
-  },
-  {
-    'label': "Engineering Nanoscience",
-    'value': Programme.engineeringNanoscience,
-  },
-  {'label': "Engineering Physics", 'value': Programme.engineeringPhysics},
-  {
-    'label': "Environmental Engineering",
-    'value': Programme.environmentalEngineering,
-  },
-  {
-    'label': "Fire Protection Engineering",
-    'value': Programme.fireProtectionEngineering,
-  },
-  {'label': "Industrial Design", 'value': Programme.industrialDesign},
-  {
-    'label': "Industrial Engineering and Management",
-    'value': Programme.industrialEconomicsAndManagement,
-  },
-  {'label': "Surveying", 'value': Programme.surveying},
-  {'label': "Mechanical Engineering", 'value': Programme.mechanicalEngineering},
-  {
-    'label': "Mechanical Engineering with Technical Design",
-    'value': Programme.mechanicalEngineeringWithIndustrialDesign,
-  },
-  {
-    'label': "Risk, Safety and Crisis Management",
-    'value': Programme.riskSafetyAndCrisisManagement,
-  },
-];
+import '../providers/profile_provider.dart';
+import '../utils/profile_utils.dart';
+import 'profile_form_components.dart';
 
 class ProfileCompletionDialog extends StatefulWidget {
   const ProfileCompletionDialog({super.key});
@@ -132,9 +38,8 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
 
   File? _selectedProfileImage;
   File? _selectedCV;
-  bool _isUploading = false;
-
   bool _isLoading = false;
+
   User? _initialUserData;
 
   final ImagePicker _imagePicker = ImagePicker();
@@ -279,17 +184,20 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // ── capture everything that needs BuildContext ────────────
+    // Capture everything that needs BuildContext
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    final userService = ServiceHelper.getService<UserService>();
+    final profileProvider = Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    );
 
     setState(() => _isLoading = true);
 
     try {
-      // ── build the payload synchronously ─────────────────────
-      final profileData = ProfileUtils.prepareProfileData(
+      // Generate profile data using the ProfileProvider
+      final profileData = profileProvider.prepareProfileData(
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         selectedProgramme: _selectedProgramme,
@@ -300,27 +208,34 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
         foodPreferences: _foodPreferencesController.text,
       );
 
-      // ── perform the asynchronous work ───────────────────────
-      await userService.updateProfileFields(profileData);
+      // Update profile using the centralized provider
+      final success = await profileProvider.updateProfile(
+        profileData: profileData,
+        profilePicture: _selectedProfileImage,
+        deleteProfilePicture: _profilePictureDeleted,
+        cv: _selectedCV,
+        deleteCV: _cvDeleted,
+      );
 
-      if (_selectedProfileImage != null) {
-        setState(() => _isUploading = true);
-        await userService.uploadProfilePicture(_selectedProfileImage!);
-      }
-      if (_selectedCV != null) {
-        setState(() => _isUploading = true);
-        await userService.uploadCV(_selectedCV!);
-      }
-
-      // optional: a single guard after the last await
+      // Bail out if the widget was disposed
       if (!mounted) return;
 
-      await auth.refreshUserProfile();
+      if (success) {
+        // Refresh the user profile in auth provider
+        await auth.refreshUserProfile();
 
-      navigator.pop(true); // use captured navigator
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
-      );
+        // Return to previous screen with success result
+        navigator.pop(true);
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully!')),
+        );
+      } else if (profileProvider.error != null) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Failed to update profile: ${profileProvider.error}'),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
@@ -330,7 +245,6 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _isUploading = false;
         });
       }
     }
@@ -339,21 +253,22 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final profileProvider = Provider.of<ProfileProvider>(context);
     final currentUser = authProvider.user;
     final List<String> missingFields = currentUser?.getMissingFields() ?? [];
     final bool isProfileComplete = missingFields.isEmpty;
+    final bool isLoading =
+        _isLoading || profileProvider.isLoading || profileProvider.isUploading;
 
     return PopScope<Object?>(
       // Only allow dismiss if profile is complete
       canPop: isProfileComplete,
 
-      // ── new API ───────────────────────────────────────────────
+      // New API
       onPopInvokedWithResult: (bool didPop, Object? result) {
-        // No additional action needed as canPop handles the dismissal
-        // logic. Just leave the body empty or keep your comment.
+        // No additional action needed as canPop handles the dismissal logic
       },
 
-      // ──────────────────────────────────────────────────────────
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: SingleChildScrollView(
@@ -361,14 +276,16 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
             width: double.maxFinite,
             padding: const EdgeInsets.all(16),
             child:
-                _isLoading || _isUploading
+                isLoading
                     ? Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const CircularProgressIndicator(),
                         const SizedBox(height: 16),
                         Text(
-                          _isUploading ? 'Uploading files...' : 'Loading...',
+                          profileProvider.isUploading
+                              ? 'Uploading files...'
+                              : 'Loading...',
                         ),
                       ],
                     )
@@ -409,6 +326,19 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
                           const SizedBox(height: 24),
                           _buildDynamicForm(missingFields),
                           const SizedBox(height: 24),
+
+                          // Error display
+                          if (profileProvider.error != null)
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              margin: const EdgeInsets.only(bottom: 16),
+                              color: Colors.red.shade100,
+                              child: Text(
+                                profileProvider.error!,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: Colors.red.shade800),
+                              ),
+                            ),
 
                           // Dynamic submit button
                           SizedBox(

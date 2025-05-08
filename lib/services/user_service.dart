@@ -10,7 +10,11 @@ import '../models/user.dart';
 import '../services/auth_service.dart';
 import 'api_service.dart';
 
+/// Service for handling user profile data and operations
 class UserService {
+  static const String _profilePictureField = 'profile_picture';
+  static const String _cvField = 'cv';
+
   final AuthService _authService;
   final ApiService _apiService;
 
@@ -20,155 +24,171 @@ class UserService {
   }) : _authService = authService,
        _apiService = apiService;
 
-  // Get user profile
+  /// Retrieves the current user's profile
   Future<User> getUserProfile() async {
-    final token = await _authService.getToken();
-    if (token == null) {
-      throw Exception('Not authenticated');
-    }
+    try {
+      final token = await _getAuthToken();
 
-    final response = await _apiService.get(
-      ApiEndpoints.userProfile,
-      headers: {'Authorization': token},
-      fromJson: User.fromJson,
-    );
+      final response = await _apiService.get(
+        ApiEndpoints.userProfile,
+        headers: {'Authorization': token},
+        fromJson: User.fromJson,
+      );
 
-    if (response.isSuccess && response.data != null) {
-      return response.data!;
-    } else {
-      throw Exception('Failed to get user profile: ${response.error}');
+      if (response.isSuccess && response.data != null) {
+        return response.data!;
+      } else {
+        throw UserException('Failed to get user profile: ${response.error}');
+      }
+    } catch (e) {
+      if (e is UserException) rethrow;
+      throw UserException('Error retrieving user profile: ${e.toString()}');
     }
   }
 
-  // Update complete profile
+  /// Updates the entire profile at once
   Future<User> updateProfile(Map<String, dynamic> profileData) async {
-    final token = await _authService.getToken();
-    if (token == null) {
-      throw Exception('Not authenticated');
-    }
+    try {
+      final token = await _getAuthToken();
 
-    final response = await _apiService.put(
-      ApiEndpoints.userProfile,
-      headers: {'Authorization': token},
-      body: profileData,
-      fromJson: User.fromJson,
-    );
+      final response = await _apiService.put(
+        ApiEndpoints.userProfile,
+        headers: {'Authorization': token},
+        body: profileData,
+        fromJson: User.fromJson,
+      );
 
-    if (response.isSuccess && response.data != null) {
-      return response.data!;
-    } else {
-      throw Exception('Failed to update profile: ${response.error}');
+      if (response.isSuccess && response.data != null) {
+        return response.data!;
+      } else {
+        throw UserException('Failed to update profile: ${response.error}');
+      }
+    } catch (e) {
+      if (e is UserException) rethrow;
+      throw UserException('Error updating profile: ${e.toString()}');
     }
   }
 
-  // Update individual profile fields
+  /// Updates specified profile fields
   Future<User> updateProfileFields(Map<String, dynamic> fields) async {
-    final token = await _authService.getToken();
-    if (token == null) {
-      throw Exception('Not authenticated');
-    }
+    try {
+      final token = await _getAuthToken();
 
-    final response = await _apiService.patch(
-      ApiEndpoints.userProfile,
-      headers: {'Authorization': token},
-      body: fields,
-      fromJson: User.fromJson,
-    );
+      final response = await _apiService.patch(
+        ApiEndpoints.userProfile,
+        headers: {'Authorization': token},
+        body: fields,
+        fromJson: User.fromJson,
+      );
 
-    if (response.isSuccess && response.data != null) {
-      return response.data!;
-    } else {
-      throw Exception('Failed to update profile fields: ${response.error}');
+      if (response.isSuccess && response.data != null) {
+        return response.data!;
+      } else {
+        throw UserException(
+          'Failed to update profile fields: ${response.error}',
+        );
+      }
+    } catch (e) {
+      if (e is UserException) rethrow;
+      throw UserException('Error updating profile fields: ${e.toString()}');
     }
   }
 
-  // Upload profile picture with improved error handling
+  /// Uploads a profile picture
   Future<bool> uploadProfilePicture(File imageFile) async {
     try {
-      // Create a multipart request
-      final uri = Uri.parse(
-        '${AppConfig.baseUrl}${ApiEndpoints.profilePicture}',
+      return await _uploadFile(
+        imageFile,
+        ApiEndpoints.profilePicture,
+        _profilePictureField,
       );
-      final request = http.MultipartRequest('POST', uri);
-
-      // Add JWT authorization
-      final token = await _authService.getToken();
-      if (token == null) {
-        throw Exception('Authorization token is missing');
-      }
-      request.headers['Authorization'] = token;
-
-      // Determine mime type
-      final mimeType = lookupMimeType(imageFile.path) ?? 'image/jpeg';
-      final fileType = mimeType.split('/');
-
-      // Add the file
-      final fileBytes = await imageFile.readAsBytes();
-
-      final multipartFile = http.MultipartFile.fromBytes(
-        'profile_picture',
-        fileBytes,
-        filename: imageFile.path.split('/').last,
-        contentType: MediaType(fileType[0], fileType[1]),
-      );
-
-      request.files.add(multipartFile);
-
-      // Send the request
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
-      // Just check if successful, don't try to parse User object
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        throw Exception('Failed to upload profile picture: ${response.body}');
-      }
     } catch (e) {
-      throw Exception('Error uploading profile picture: $e');
+      if (e is UserException) rethrow;
+      throw UserException('Error uploading profile picture: ${e.toString()}');
     }
   }
 
-  // Delete profile picture
+  /// Deletes the current profile picture
   Future<bool> deleteProfilePicture() async {
-    final token = await _authService.getToken();
-    if (token == null) {
-      throw Exception('Not authenticated');
+    try {
+      final token = await _getAuthToken();
+
+      final response = await _apiService.delete(
+        ApiEndpoints.profilePicture,
+        headers: {'Authorization': token},
+      );
+
+      return response.isSuccess;
+    } catch (e) {
+      if (e is UserException) rethrow;
+      throw UserException('Error deleting profile picture: ${e.toString()}');
     }
-
-    final response = await _apiService.delete(
-      ApiEndpoints.profilePicture,
-      headers: {'Authorization': token},
-    );
-
-    return response.isSuccess;
   }
 
-  // Upload CV with improved error handling
+  /// Uploads a CV file
   Future<bool> uploadCV(File cvFile) async {
     try {
+      return await _uploadFile(cvFile, ApiEndpoints.cv, _cvField);
+    } catch (e) {
+      if (e is UserException) rethrow;
+      throw UserException('Error uploading CV: ${e.toString()}');
+    }
+  }
+
+  /// Deletes the current CV
+  Future<bool> deleteCV() async {
+    try {
+      final token = await _getAuthToken();
+
+      final response = await _apiService.delete(
+        ApiEndpoints.cv,
+        headers: {'Authorization': token},
+      );
+
+      return response.isSuccess;
+    } catch (e) {
+      if (e is UserException) rethrow;
+      throw UserException('Error deleting CV: ${e.toString()}');
+    }
+  }
+
+  // Private helper methods
+
+  /// Gets the auth token or throws an exception if not available
+  Future<String> _getAuthToken() async {
+    final token = await _authService.getToken();
+    if (token == null) {
+      throw UserException('Not authenticated');
+    }
+    return token;
+  }
+
+  /// Generic file upload method to handle both CV and profile picture uploads
+  Future<bool> _uploadFile(File file, String endpoint, String fieldName) async {
+    try {
       // Create a multipart request
-      final uri = Uri.parse('${AppConfig.baseUrl}${ApiEndpoints.cv}');
+      final uri = Uri.parse('${AppConfig.baseUrl}$endpoint');
       final request = http.MultipartRequest('POST', uri);
 
       // Add JWT authorization
-      final token = await _authService.getToken();
-      if (token == null) {
-        throw Exception('Authorization token is missing');
-      }
+      final token = await _getAuthToken();
       request.headers['Authorization'] = token;
 
       // Determine mime type
-      final mimeType = lookupMimeType(cvFile.path) ?? 'application/pdf';
+      final mimeType =
+          lookupMimeType(file.path) ??
+          (fieldName == _profilePictureField
+              ? 'image/jpeg'
+              : 'application/pdf');
       final fileType = mimeType.split('/');
 
       // Add the file
-      final fileBytes = await cvFile.readAsBytes();
+      final fileBytes = await file.readAsBytes();
 
       final multipartFile = http.MultipartFile.fromBytes(
-        'cv',
+        fieldName,
         fileBytes,
-        filename: cvFile.path.split('/').last,
+        filename: file.path.split('/').last,
         contentType: MediaType(fileType[0], fileType[1]),
       );
 
@@ -178,29 +198,24 @@ class UserService {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      // Just check if successful, don't try to parse User object
       if (response.statusCode == 200) {
         return true;
       } else {
-        throw Exception('Failed to upload CV: ${response.body}');
+        throw UserException('Failed to upload file: ${response.body}');
       }
     } catch (e) {
-      throw Exception('Error uploading CV: $e');
+      if (e is UserException) rethrow;
+      throw UserException('Error uploading file: ${e.toString()}');
     }
   }
+}
 
-  // Delete CV
-  Future<bool> deleteCV() async {
-    final token = await _authService.getToken();
-    if (token == null) {
-      throw Exception('Not authenticated');
-    }
+/// Custom exception class for user-related errors
+class UserException implements Exception {
+  final String message;
 
-    final response = await _apiService.delete(
-      ApiEndpoints.cv,
-      headers: {'Authorization': token},
-    );
+  UserException(this.message);
 
-    return response.isSuccess;
-  }
+  @override
+  String toString() => message;
 }

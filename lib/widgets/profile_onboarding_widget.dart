@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:arkad/models/programme.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -7,11 +8,9 @@ import 'package:provider/provider.dart';
 import '../config/theme_config.dart';
 import '../models/user.dart';
 import '../providers/auth_provider.dart';
-import '../providers/profile_onboarding_provider.dart';
-import '../services/user_service.dart';
+import '../providers/profile_provider.dart';
 import '../utils/profile_utils.dart';
-import '../utils/service_helper.dart';
-import '../widgets/profile_completion_dialog.dart'; // For the Programme enum and PROGRAMS
+// For the Programme enum and PROGRAMS
 
 class ProfileOnboardingWidget extends StatefulWidget {
   final User user;
@@ -63,12 +62,12 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _populateFields(widget.user);
 
-      // Initialize the onboarding provider
-      final onboardingProvider = Provider.of<ProfileOnboardingProvider>(
+      // Initialize the profile provider
+      final profileProvider = Provider.of<ProfileProvider>(
         context,
         listen: false,
       );
-      onboardingProvider.initialize(widget.user);
+      profileProvider.initialize(widget.user);
     });
   }
 
@@ -273,7 +272,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     );
   }
 
-  Widget _buildBasicInfoStep(ProfileOnboardingProvider provider) {
+  Widget _buildBasicInfoStep(ProfileProvider provider) {
     final bool needsFirstName = provider.missingRequiredFields.contains(
       'First Name',
     );
@@ -400,7 +399,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     );
   }
 
-  Widget _buildEducationStep(ProfileOnboardingProvider provider) {
+  Widget _buildEducationStep(ProfileProvider provider) {
     final bool needsProgramme = provider.missingRequiredFields.contains(
       'Programme',
     );
@@ -567,7 +566,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     );
   }
 
-  Widget _buildAdditionalInfoStep(ProfileOnboardingProvider provider) {
+  Widget _buildAdditionalInfoStep(ProfileProvider provider) {
     final bool needsFoodPreferences = provider.missingRequiredFields.contains(
       'Food Preferences',
     );
@@ -767,7 +766,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     );
   }
 
-  List<Widget> _buildSteps(ProfileOnboardingProvider provider) {
+  List<Widget> _buildSteps(ProfileProvider provider) {
     final List<Widget> stepWidgets = [];
 
     for (int i = 0; i < provider.steps.length; i++) {
@@ -798,7 +797,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     return stepWidgets;
   }
 
-  Future<void> _nextStep(ProfileOnboardingProvider provider) async {
+  Future<void> _nextStep(ProfileProvider provider) async {
     if (_formKey.currentState!.validate()) {
       if (provider.currentStep < provider.totalSteps - 1) {
         await provider.nextStep();
@@ -809,7 +808,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     }
   }
 
-  Future<void> _previousStep(ProfileOnboardingProvider provider) async {
+  Future<void> _previousStep(ProfileProvider provider) async {
     if (provider.currentStep > 0) {
       await provider.previousStep();
       await _animationController.forward(from: 0.0);
@@ -818,20 +817,20 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProfileOnboardingProvider>(
-      builder: (context, onboardingProvider, _) {
-        if (onboardingProvider.isLoading) {
+    return Consumer<ProfileProvider>(
+      builder: (context, profileProvider, _) {
+        if (profileProvider.isLoading) {
           return Center(
             child: CircularProgressIndicator(color: ArkadColors.arkadTurkos),
           );
         }
 
         // If all required fields are completed, don't show the widget
-        if (!onboardingProvider.hasIncompleteRequiredFields) {
+        if (!profileProvider.hasIncompleteRequiredFields) {
           return const SizedBox.shrink();
         }
 
-        final steps = _buildSteps(onboardingProvider);
+        final steps = _buildSteps(profileProvider);
 
         if (steps.isEmpty) {
           return const SizedBox.shrink(); // No steps needed
@@ -910,7 +909,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              '${(onboardingProvider.currentStep + 1)}/${onboardingProvider.totalSteps}',
+                              '${(profileProvider.currentStep + 1)}/${profileProvider.totalSteps}',
                               style: TextStyle(
                                 color: ArkadColors.arkadNavy,
                                 fontWeight: FontWeight.bold,
@@ -924,8 +923,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
 
                     // Step indicator
                     _buildCustomStepIndicator(
-                      onboardingProvider.currentStep,
-                      onboardingProvider.totalSteps,
+                      profileProvider.currentStep,
+                      profileProvider.totalSteps,
                     ),
 
                     // Content area with scrolling
@@ -951,13 +950,11 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                                 );
                               },
                               child: Container(
-                                key: ValueKey<int>(
-                                  onboardingProvider.currentStep,
-                                ),
+                                key: ValueKey<int>(profileProvider.currentStep),
                                 constraints: const BoxConstraints(
                                   minHeight: 400,
                                 ),
-                                child: steps[onboardingProvider.currentStep],
+                                child: steps[profileProvider.currentStep],
                               ),
                             ),
                           ),
@@ -982,7 +979,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           // Back button
-                          if (onboardingProvider.currentStep > 0)
+                          if (profileProvider.currentStep > 0)
                             TextButton.icon(
                               icon: const Icon(Icons.arrow_back),
                               label: const Text('Back'),
@@ -999,7 +996,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                               onPressed:
                                   _isSubmitting
                                       ? null
-                                      : () => _previousStep(onboardingProvider),
+                                      : () => _previousStep(profileProvider),
                             )
                           else
                             const SizedBox.shrink(),
@@ -1026,7 +1023,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                             onPressed:
                                 _isSubmitting
                                     ? null
-                                    : () => _nextStep(onboardingProvider),
+                                    : () => _nextStep(profileProvider),
                             child:
                                 _isSubmitting
                                     ? SizedBox(
@@ -1041,16 +1038,13 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          onboardingProvider.currentStep <
-                                                  onboardingProvider
-                                                          .totalSteps -
-                                                      1
+                                          profileProvider.currentStep <
+                                                  profileProvider.totalSteps - 1
                                               ? 'Continue'
                                               : 'Complete',
                                         ),
-                                        if (onboardingProvider.currentStep <
-                                            onboardingProvider.totalSteps -
-                                                1) ...[
+                                        if (profileProvider.currentStep <
+                                            profileProvider.totalSteps - 1) ...[
                                           const SizedBox(width: 8),
                                           const Icon(
                                             Icons.arrow_forward,
@@ -1082,17 +1076,15 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
       // Store all context-dependent objects before async operations
       final context = this.context;
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final onboardingProvider = Provider.of<ProfileOnboardingProvider>(
+      final profileProvider = Provider.of<ProfileProvider>(
         context,
         listen: false,
       );
       final scaffoldMessenger = ScaffoldMessenger.of(context);
 
       try {
-        final userService = ServiceHelper.getService<UserService>();
-
-        // Use the ProfileUtils helper to prepare data
-        final profileData = ProfileUtils.prepareProfileData(
+        // Prepare profile data
+        final profileData = profileProvider.prepareProfileData(
           firstName: _firstNameController.text,
           lastName: _lastNameController.text,
           selectedProgramme: _selectedProgramme,
@@ -1103,28 +1095,18 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           foodPreferences: _foodPreferencesController.text,
         );
 
-        // Update the user profile
-        await userService.updateProfileFields(profileData);
+        // Update the user profile using the centralized provider
+        final success = await profileProvider.updateProfile(
+          profileData: profileData,
+          profilePicture: _selectedProfileImage,
+          deleteProfilePicture: _profilePictureDeleted,
+          cv: _selectedCV,
+          deleteCV: _cvDeleted,
+        );
 
-        // Handle profile image and CV uploads if selected
-        if (_selectedProfileImage != null) {
-          await userService.uploadProfilePicture(_selectedProfileImage!);
-        } else if (_profilePictureDeleted) {
-          await userService.deleteProfilePicture();
-        }
-
-        if (_selectedCV != null) {
-          await userService.uploadCV(_selectedCV!);
-        } else if (_cvDeleted) {
-          await userService.deleteCV();
-        }
-
-        if (mounted) {
+        if (success && mounted) {
           // Refresh the user profile in the auth provider
           await authProvider.refreshUserProfile();
-
-          // Refresh the onboarding state
-          await onboardingProvider.refreshOnboardingState(authProvider.user);
 
           // Notify parent that profile was updated
           widget.onProfileUpdated();

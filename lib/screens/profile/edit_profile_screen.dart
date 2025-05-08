@@ -1,15 +1,14 @@
 import 'dart:io';
 
-import 'package:arkad/services/user_service.dart';
+import 'package:arkad/models/programme.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../utils/profile_utils.dart';
-import '../../utils/service_helper.dart';
-import '../../widgets/profile_completion_dialog.dart';
 import '../../widgets/profile_form_components.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -23,7 +22,6 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _userService = ServiceHelper.getService<UserService>();
 
   // Form field controllers
   late TextEditingController _emailController;
@@ -39,14 +37,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   File? _selectedImage;
   File? _selectedCV;
-  bool _isUploading = false;
-  String? _error;
-
-  final ImagePicker _imagePicker = ImagePicker();
 
   // Add these flags to track local UI state
   bool _profilePictureDeleted = false;
   bool _cvDeleted = false;
+
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -104,18 +100,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // #1 capture references that don’t change
+    // Get references to providers and other objects
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final auth = Provider.of<AuthProvider>(context, listen: false);
-
-    setState(() {
-      _isUploading = true;
-      _error = null;
-    });
+    final profileProvider = Provider.of<ProfileProvider>(
+      context,
+      listen: false,
+    );
 
     try {
-      final profileData = ProfileUtils.prepareProfileData(
+      // Generate profile data
+      final profileData = profileProvider.prepareProfileData(
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         selectedProgramme: _selectedProgramme,
@@ -126,94 +122,78 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         foodPreferences: _foodPreferencesController.text,
       );
 
-      await _userService.updateProfileFields(profileData);
-      if (_selectedImage != null) {
-        await _userService.uploadProfilePicture(_selectedImage!);
-      } else if (_profilePictureDeleted) {
-        await _userService.deleteProfilePicture();
-      }
-
-      if (_selectedCV != null) {
-        await _userService.uploadCV(_selectedCV!);
-      } else if (_cvDeleted) {
-        await _userService.deleteCV();
-      }
-
-      await auth.refreshUserProfile();
-
-      // #2 bail out if the widget got disposed while we were waiting
-      if (!mounted) return;
-
-      navigator.pop(); // uses captured Navigator
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
+      // Update profile using the centralized provider
+      final success = await profileProvider.updateProfile(
+        profileData: profileData,
+        profilePicture: _selectedImage,
+        deleteProfilePicture: _profilePictureDeleted,
+        cv: _selectedCV,
+        deleteCV: _cvDeleted,
       );
+
+      if (success) {
+        // Refresh user data
+        await auth.refreshUserProfile();
+
+        // Bail out if the widget got disposed while we were waiting
+        if (!mounted) return;
+
+        // Return to previous screen
+        navigator.pop();
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully!')),
+        );
+      } else if (profileProvider.error != null && mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Failed to update profile: ${profileProvider.error}'),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text('Failed to update profile: $e')),
+        SnackBar(content: Text('Error updating profile: $e')),
       );
-    } finally {
-      if (mounted) {
-        setState(() => _isUploading = false);
-      }
     }
   }
 
   Future<void> _deleteProfilePicture() async {
-    try {
-      setState(() {
-        _isUploading = true;
-      });
+    setState(() {
+      _profilePictureDeleted = true;
+    });
 
-      // Immediately update local state for visual feedback
-      setState(() {
-        _profilePictureDeleted = true;
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile picture will be removed when you save'),
-          ),
-        );
-      }
-    } finally {
-      setState(() {
-        _isUploading = false;
-      });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile picture will be removed when you save'),
+        ),
+      );
     }
   }
 
   Future<void> _deleteCV() async {
-    try {
-      setState(() {
-        _isUploading = true;
-      });
+    setState(() {
+      _cvDeleted = true;
+    });
 
-      // Immediately update local state for visual feedback
-      setState(() {
-        _cvDeleted = true;
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('CV will be removed when you save')),
-        );
-      }
-    } finally {
-      setState(() {
-        _isUploading = false;
-      });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('CV will be removed when you save')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final profileProvider = Provider.of<ProfileProvider>(context);
+    final bool isLoading =
+        profileProvider.isLoading || profileProvider.isUploading;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Profile')),
       body:
-          _isUploading
+          isLoading
               ? const Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -256,13 +236,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       const SizedBox(height: 24),
 
                       // Error display
-                      if (_error != null)
+                      if (profileProvider.error != null)
                         Container(
                           padding: const EdgeInsets.all(8),
                           margin: const EdgeInsets.only(bottom: 16),
                           color: Colors.red.shade100,
                           child: Text(
-                            _error!,
+                            profileProvider.error!,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: Colors.red.shade800),
                           ),

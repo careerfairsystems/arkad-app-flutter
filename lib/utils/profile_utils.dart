@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../widgets/profile_completion_dialog.dart';
+import '../models/programme.dart';
 
 class ProfileUtils {
   static Future<File?> pickProfileImage({

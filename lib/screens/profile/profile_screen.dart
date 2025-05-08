@@ -6,10 +6,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../config/theme_config.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/profile_onboarding_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../utils/login_manager.dart';
 import '../../widgets/profile_onboarding_widget.dart';
-import '../auth/login_screen.dart';
+
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -32,16 +32,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final user = authProvider.user;
       if (user != null) {
-        final onboardingProvider = Provider.of<ProfileOnboardingProvider>(
+        final profileProvider = Provider.of<ProfileProvider>(
           context,
           listen: false,
         );
-        onboardingProvider.initialize(user);
+        profileProvider.initialize(user);
 
-        // Register listener for user state changes to keep verification and onboarding in sync
+        // Register listener for user state changes to keep verification and profile in sync
         if (!_isUserStateListenerRegistered) {
           _isUserStateListenerRegistered = true;
-          authProvider.addListener(_syncVerificationWithOnboarding);
+          authProvider.addListener(_syncVerificationWithProfile);
         }
       }
     });
@@ -52,28 +52,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Unregister the listener when the widget is disposed
     if (_isUserStateListenerRegistered) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      authProvider.removeListener(_syncVerificationWithOnboarding);
+      authProvider.removeListener(_syncVerificationWithProfile);
       _isUserStateListenerRegistered = false;
     }
     super.dispose();
   }
 
-  // Sync verification status with onboarding state
-  void _syncVerificationWithOnboarding() {
+  // Sync verification status with profile state
+  void _syncVerificationWithProfile() {
     if (!mounted) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final onboardingProvider = Provider.of<ProfileOnboardingProvider>(
+    final profileProvider = Provider.of<ProfileProvider>(
       context,
       listen: false,
     );
     final user = authProvider.user;
 
-    // Immediately update onboarding state when verification status changes
+    // Immediately update profile state when verification status changes
     if (user != null && user.isVerified) {
-      onboardingProvider.completeOnboarding();
+      profileProvider.completeOnboarding();
     } else if (user != null) {
-      onboardingProvider.refreshOnboardingState(user);
+      profileProvider.refreshOnboardingState(user);
     }
   }
 
@@ -81,14 +81,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final onboardingProvider = Provider.of<ProfileOnboardingProvider>(
+    final profileProvider = Provider.of<ProfileProvider>(
       context,
       listen: false,
     );
     final messenger = ScaffoldMessenger.of(context);
 
     await authProvider.refreshUserProfile();
-    await onboardingProvider.refreshOnboardingState(authProvider.user);
+    await profileProvider.refreshOnboardingState(authProvider.user);
 
     if (!mounted) return;
 
@@ -102,8 +102,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final currentUser = authProvider.user ?? widget.user;
 
-    // Access the onboarding provider to check profile completion status
-    final onboardingProvider = Provider.of<ProfileOnboardingProvider>(context);
+    // Access the profile provider to check profile completion status
+    final profileProvider = Provider.of<ProfileProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -132,13 +132,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (!currentUser.isVerified &&
-                  onboardingProvider.hasIncompleteRequiredFields)
+                  profileProvider.hasIncompleteRequiredFields)
                 ProfileOnboardingWidget(
                   user: currentUser,
                   onProfileUpdated: _onProfileUpdated,
                 )
               else if (currentUser.isVerified &&
-                  !onboardingProvider.hasIncompleteRequiredFields)
+                  !profileProvider.hasIncompleteRequiredFields)
                 Column(
                   children: [
                     Center(
@@ -235,10 +235,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ],
                 )
-              else if (!onboardingProvider.hasIncompleteRequiredFields &&
-                  onboardingProvider.optionalFields.length >
-                      onboardingProvider.completedOptionalFields.length)
-                _buildOptionalFieldsCard(context, onboardingProvider),
+              else if (!profileProvider.hasIncompleteRequiredFields &&
+                  profileProvider.optionalFields.length >
+                      profileProvider.completedOptionalFields.length)
+                _buildOptionalFieldsCard(context, profileProvider),
             ],
           ),
         ),
@@ -249,7 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Widget to show optional fields completion card
   Widget _buildOptionalFieldsCard(
     BuildContext context,
-    ProfileOnboardingProvider provider,
+    ProfileProvider provider,
   ) {
     double completionPercentage =
         provider.completedOptionalFields.length /
