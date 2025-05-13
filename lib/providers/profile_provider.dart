@@ -343,12 +343,14 @@ class ProfileProvider with ChangeNotifier {
     required int? studyYear,
     required String foodPreferences,
   }) {
+    String formattedLinkedin = formatLinkedInUrl(linkedin);
+
     return ProfileUtils.prepareProfileData(
       firstName: firstName,
       lastName: lastName,
       selectedProgramme: selectedProgramme,
       programmeText: programmeText,
-      linkedin: linkedin,
+      linkedin: formattedLinkedin,
       masterTitle: masterTitle,
       studyYear: studyYear,
       foodPreferences: foodPreferences,

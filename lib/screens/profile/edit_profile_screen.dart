@@ -56,9 +56,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _programmeController = TextEditingController(
       text: widget.user.programme ?? '',
     );
-    _linkedinController = TextEditingController(
-      text: widget.user.linkedin ?? '',
-    );
+
+    // Extract LinkedIn username from URL if it exists
+    String linkedinUsername = '';
+    if (widget.user.linkedin != null && widget.user.linkedin!.isNotEmpty) {
+      final url = widget.user.linkedin!;
+      if (url.contains('linkedin.com/in/')) {
+        final parts = url.split('/in/');
+        if (parts.length > 1) {
+          linkedinUsername = parts[1].split('/').first.split('?').first;
+        }
+      } else {
+        linkedinUsername = widget.user.linkedin!;
+      }
+    }
+
+    _linkedinController = TextEditingController(text: linkedinUsername);
+
     _masterTitleController = TextEditingController(
       text: widget.user.masterTitle ?? '',
     );
