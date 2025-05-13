@@ -286,6 +286,19 @@ class AuthFormWidgets {
     );
   }
 
+  static Widget buildSuccessMessage(String? errorMessage) {
+    if (errorMessage == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Text(
+        errorMessage,
+        style: TextStyle(color: ArkadColors.arkadGreen, fontSize: 18),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
   static Widget buildCheckboxWithError({
     required bool value,
     required ValueChanged<bool?> onChanged,
