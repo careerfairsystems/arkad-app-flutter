@@ -3,6 +3,7 @@ class ApiEndpoints {
   static const String beginSignup = '/user/begin-signup';
   static const String completeSignup = '/user/complete-signup';
   static const String signin = '/user/signin';
+  static const String resetPassword = '/user/reset-password';
 
   // User profile endpoints
   static const String userProfile = '/user/profile';

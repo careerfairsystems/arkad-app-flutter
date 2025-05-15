@@ -241,6 +241,20 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  /// Sign in an existing user
+  Future<bool> resetPassword(String email) async {
+    /* _setLoading(true);
+    _clearError(); */
+
+    try {
+      await _authService.resetPassword(email);
+      return true;
+    } catch (e) {
+      _setError('Reset failed: ${e.toString()}');
+      return false;
+    }
+  }
+
   // State management helpers
   void _setLoading(bool loading) {
     _loading = loading;

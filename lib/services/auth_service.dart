@@ -85,6 +85,23 @@ class AuthService {
     }
   }
 
+  Future<bool> resetPassword(String email) async {
+    try {
+      final response = await _apiService.post(
+        ApiEndpoints.resetPassword,
+        body: {'email': email},
+      );
+
+      if (response.isError) {
+        throw AuthException('Password reset failed: ${response.error}');
+      }
+
+      return true;
+    } catch (e) {
+      throw AuthException('Password reset failed: ${e.toString()}');
+    }
+  }
+
   /// Makes a raw HTTP call with Authorization header (fallback).
   Future<http.Response> authenticatedRequest(
     String method,
