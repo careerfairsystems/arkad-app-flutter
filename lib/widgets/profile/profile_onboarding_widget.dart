@@ -936,6 +936,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.shade300,
