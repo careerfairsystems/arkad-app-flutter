@@ -157,9 +157,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           FilteringTextInputFormatter.digitsOnly,
                         ],
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
-                          letterSpacing: 10.0,
+                          letterSpacing:
+                              _codeController.text.isEmpty ? 0.5 : 10,
                           fontWeight: FontWeight.bold,
                         ),
                         onChanged: (_) => setState(() {}),
