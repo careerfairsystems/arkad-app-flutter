@@ -1,3 +1,4 @@
+import '../../utils/sentry_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -172,7 +173,8 @@ class ProfileInfoWidget extends StatelessWidget {
           ).showSnackBar(SnackBar(content: Text('Could not open: $urlString')));
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       // Show error on exception (e.g., malformed URL)
       if (context.mounted) {
         ScaffoldMessenger.of(

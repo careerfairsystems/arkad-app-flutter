@@ -1,3 +1,4 @@
+import 'sentry_utils.dart';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -25,7 +26,8 @@ class ProfileUtils {
       if (image != null) {
         return File(image.path);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       if (context.mounted) {
         _showErrorSnackbar(context, 'Failed to pick image: $e');
       }
@@ -60,7 +62,8 @@ class ProfileUtils {
           await file.writeAsBytes(result.files.first.bytes!);
           return file;
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        SentryUtils.captureException(e, stackTrace: stackTrace);
         // fall through to snackbar
         debugPrint('File picker error: $e');
       }
@@ -71,7 +74,8 @@ class ProfileUtils {
           'Could not select CV file. Please try again.',
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       if (context.mounted) {
         _showErrorSnackbar(context, 'Failed to pick CV: $e');
       }
