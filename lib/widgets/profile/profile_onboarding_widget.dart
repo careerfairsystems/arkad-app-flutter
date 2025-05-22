@@ -1,3 +1,4 @@
+import '../../utils/sentry_utils.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -112,7 +113,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           _profilePictureDeleted = false;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -131,7 +133,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           _cvDeleted = false;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(
           context,

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import '../utils/sentry_utils.dart';
+
 import 'package:arkad/models/programme.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -100,7 +102,8 @@ class ProfileProvider with ChangeNotifier {
       // Update fields based on current user data
       _updateFields(user);
       _currentUser = user;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       print('Error initializing profile provider: $e');
       _setError('Failed to initialize profile: $e');
 

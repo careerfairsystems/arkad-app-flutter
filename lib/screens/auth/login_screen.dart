@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../utils/sentry_utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -95,7 +97,8 @@ class _LoginScreenState extends State<LoginScreen> {
           setState(() => _errorMessage = authProvider.error);
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       if (mounted) {
         setState(() {
           _errorMessage = e.toString();
