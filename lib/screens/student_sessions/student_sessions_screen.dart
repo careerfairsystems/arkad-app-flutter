@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class StudentSessionsScreen extends StatelessWidget {
   const StudentSessionsScreen({super.key});
@@ -37,6 +38,7 @@ class StudentSessionsScreen extends StatelessWidget {
                       title: Text('Session with Company ${index + 1}'),
                       subtitle: Text('Date: Nov ${index + 10}, 2023'),
                       trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push('/sessions/form/${index + 1}'),
                     ),
                   );
                 },

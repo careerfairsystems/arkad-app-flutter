@@ -15,6 +15,7 @@ import '../screens/map/map_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/student_sessions/student_sessions_screen.dart';
+import '../screens/student_sessions/student_session_form.dart';
 import '../widgets/app_bottom_navigation.dart';
 import 'navigation_items.dart';
 
@@ -96,6 +97,15 @@ class AppRouter {
               GoRoute(
                 path: '/sessions',
                 pageBuilder: _noAnim((_) => const StudentSessionsScreen()),
+              ),
+              GoRoute(
+                path: '/sessions/form/:companyId',
+                builder: (context, state) {
+                  final companyId =
+                      state
+                          .pathParameters["companyId"]!; // Get "id" param from URL
+                  return StudentSessionFormScreen(id: companyId);
+                },
               ),
             ],
           ),
