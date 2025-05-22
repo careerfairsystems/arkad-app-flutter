@@ -6,11 +6,12 @@ import '../../services/company_service.dart';
 import 'package:flutter/material.dart';
 
 class StudentSessionsScreen extends StatelessWidget {
-  const StudentSessionsScreen({super.key});
+  StudentSessionsScreen({super.key});
 
   // Dummy data for companies with sessions
-  final List<Company> companiesWithSessions = [];
-  final List<Company> companiesWithSessionsIcons = [];
+  //List<Company> _companies = []
+  final List<String> companiesWithSessions = ['Volvo', 'Scania', 'Ericsson'];
+  final List<String> companiesWithSessionsIcons = [];
 
   //fångar upp alla företag med sessions
   // try {
