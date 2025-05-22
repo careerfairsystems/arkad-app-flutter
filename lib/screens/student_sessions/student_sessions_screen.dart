@@ -1,19 +1,62 @@
+import 'dart:io';
+
 import 'package:arkad/config/theme_config.dart';
 import 'package:flutter/material.dart';
 
-//import '../../models/company.dart';
-//import '../../services/company_service.dart';
-//import 'package:flutter/material.dart';
+import '../../models/company.dart';
+import '../../services/student_sessions_service.dart';
+import '../../utils/service_helper.dart';
 
-class StudentSessionsScreen extends StatelessWidget {
+class StudentSessionsScreen extends StatefulWidget {
   const StudentSessionsScreen({super.key});
 
-  static const List<String> companiesWithSessions = [
-    'Volvo',
-    'Scania',
-    'Ericsson',
-  ];
-  static const List<String> companiesWithSessionsIcons = [];
+  @override
+  State<StudentSessionsScreen> createState() => _StudentSessionsScreen();
+}
+
+class _StudentSessionsScreen extends State<StudentSessionsScreen> {
+  late final StudentSessionsService _studentSessionsService;
+
+  List<Company> _companies = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _studentSessionsService =
+        ServiceHelper.getService<StudentSessionsService>();
+    _loadCompanies();
+  }
+
+  /*
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+  */
+
+  Future<void> _loadCompanies() async {
+    setState(() {
+      //_isLoading = true;
+      //_hasError = false;
+    });
+
+    try {
+      final allCompanies = await _studentSessionsService.getAllCompanies();
+      final companies =
+          allCompanies.where((i) => i.daysWithStudentsession > 0).toList();
+      setState(() {
+        _companies = companies;
+        //_applyFilters();
+        //_isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        //_isLoading = false;
+        //_hasError = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +65,9 @@ class StudentSessionsScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView.builder(
-          itemCount: companiesWithSessions.length,
+          itemCount: _companies.length,
           itemBuilder: (context, index) {
-            final companyName = companiesWithSessions[index];
+            final company = _companies[index];
             return Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -35,7 +78,7 @@ class StudentSessionsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 onTap: () {
                   // TODO: Handle button press
-                  print('Selected $companyName');
+                  print('Selected $company');
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -60,7 +103,7 @@ class StudentSessionsScreen extends StatelessWidget {
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(
-                          'View sessions for $companyName',
+                          'SS ${company.name} ${company.daysWithStudentsession}',
                           style: const TextStyle(
                             color: ArkadColors.white,
                             fontSize: 18,

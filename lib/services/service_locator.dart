@@ -1,3 +1,4 @@
+import 'package:arkad/screens/student_sessions/student_sessions_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
@@ -8,6 +9,7 @@ import '../providers/theme_provider.dart';
 import 'api_service.dart';
 import 'auth_service.dart';
 import 'company_service.dart';
+import 'student_sessions_service.dart';
 import 'user_service.dart';
 
 final GetIt serviceLocator = GetIt.instance;
@@ -41,6 +43,10 @@ void setupServiceLocator() {
 
   serviceLocator.registerLazySingleton<CompanyService>(
     () => CompanyService(apiService: serviceLocator<ApiService>()),
+  );
+
+  serviceLocator.registerLazySingleton<StudentSessionsService>(
+    () => StudentSessionsService(apiService: serviceLocator<ApiService>()),
   );
 
   serviceLocator.registerLazySingleton<AuthProvider>(
