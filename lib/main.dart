@@ -4,6 +4,7 @@ import 'navigation/app_router.dart';
 import 'providers/auth_provider.dart';
 import 'providers/profile_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/student_session_provider.dart';
 import 'services/service_locator.dart';
 
 var apiKey = "Qxti7dhve39&NwiW5inp";
@@ -41,6 +42,9 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider.value(value: serviceLocator<ThemeProvider>()),
         ChangeNotifierProvider.value(value: serviceLocator<AuthProvider>()),
         ChangeNotifierProvider.value(value: serviceLocator<ProfileProvider>()),
+        ChangeNotifierProvider.value(
+          value: serviceLocator<StudentSessionProvider>(),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (ctx, themeProvider, _) {
