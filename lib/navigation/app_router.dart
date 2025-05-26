@@ -1,3 +1,4 @@
+import 'package:arkad/screens/event/scan_event_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -106,6 +107,12 @@ class AppRouter {
               GoRoute(
                 path: '/events',
                 pageBuilder: _noAnim((_) => const EventScreen()),
+                routes: [
+                  GoRoute(
+                    path: 'scan',
+                    pageBuilder: _noAnim((_) => const ScanEventScreen()),
+                  ),
+                ],
               ),
             ],
           ),
