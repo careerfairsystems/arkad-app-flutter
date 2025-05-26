@@ -1,4 +1,3 @@
-import 'package:arkad/screens/student_sessions/student_sessions_screen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;

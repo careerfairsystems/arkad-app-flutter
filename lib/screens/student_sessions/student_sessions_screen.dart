@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:arkad/config/theme_config.dart';
 import 'package:flutter/material.dart';
 
