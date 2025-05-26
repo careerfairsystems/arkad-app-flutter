@@ -38,7 +38,7 @@ class StudentSessionsScreen extends StatelessWidget {
                       title: Text('Session with Company ${index + 1}'),
                       subtitle: Text('Date: Nov ${index + 10}, 2023'),
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push('/sessions/apply/${index + 1}'),
+                      onTap: () => context.push('/sessions/form/${index + 1}'),
                     ),
                   );
                 },
