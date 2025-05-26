@@ -12,13 +12,6 @@ class EventScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextButton.icon(
-              onPressed: () {
-                context.go('/events/scan');
-              },
-              icon: const Icon(Icons.crop_free),
-              label: const Text("Scan QR code"),
-            ),
             const Icon(Icons.event, size: 80),
             const SizedBox(height: 16),
             const Text(
@@ -29,6 +22,26 @@ class EventScreen extends StatelessWidget {
             Text(
               'Check out all the events happening in ARKAD',
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton.icon(
+                  onPressed: () {
+                    context.go('/events/scan');
+                  },
+                  icon: const Icon(Icons.crop_free),
+                  // make only visible for some users
+                  label: const Text("Scan QR code"),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    context.go('/events/tickets');
+                  },
+                  icon: const Icon(Icons.restaurant),
+                  label: const Text("My tickets"),
+                ),
+              ],
             ),
             const SizedBox(height: 32),
             Padding(
