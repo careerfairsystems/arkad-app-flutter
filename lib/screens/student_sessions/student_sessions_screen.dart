@@ -42,9 +42,10 @@ class _StudentSessionsScreen extends State<StudentSessionsScreen> {
     });
 
     try {
-      final allCompanies = await _studentSessionsService.getAllCompanies();
       final companies =
-          allCompanies.where((i) => i.daysWithStudentsession > 0).toList();
+          (await _studentSessionsService.getAllCompanies())
+              .where((i) => i.daysWithStudentsession > 0)
+              .toList();
       setState(() {
         _companies = companies;
         //_applyFilters();
@@ -103,7 +104,7 @@ class _StudentSessionsScreen extends State<StudentSessionsScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(
-                          'SS ${company.name} ${company.daysWithStudentsession}',
+                          company.name,
                           style: const TextStyle(
                             color: ArkadColors.white,
                             fontSize: 18,
