@@ -14,8 +14,9 @@ import '../screens/event/event_screen.dart';
 import '../screens/map/map_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/student_sessions/student_sessions_form.dart';
+import '../screens/student_sessions/student_session_time_selection.dart';
 import '../screens/student_sessions/student_sessions_screen.dart';
-import '../screens/student_sessions/student_session_form.dart';
 import '../widgets/app_bottom_navigation.dart';
 import 'navigation_items.dart';
 
@@ -105,6 +106,15 @@ class AppRouter {
                       state
                           .pathParameters["companyId"]!; // Get "id" param from URL
                   return StudentSessionFormScreen(id: companyId);
+                },
+              ),
+              GoRoute(
+                path: '/sessions/apply/:companyId',
+                builder: (context, state) {
+                  final companyId =
+                      state
+                          .pathParameters["companyId"]!; // Get "id" param from URL
+                  return StudentSessionTimeSelectionScreen(id: companyId);
                 },
               ),
             ],
