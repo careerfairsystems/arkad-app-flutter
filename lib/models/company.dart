@@ -80,7 +80,7 @@ class Company {
       urlYoutube: json['url_youtube'],
       website: json['website'],
       studentSessionMotivation: json['student_session_motivation'],
-      daysWithStudentsession: json['days_with_studentsession'] ?? 0,
+      daysWithStudentsession: json['daysWithStudentsession'] ?? 0,
       desiredDegrees: List<String>.from(json['desired_degrees'] ?? []),
       desiredProgramme: List<String>.from(json['desired_programme'] ?? []),
       desiredCompetences: List<String>.from(json['desired_competences'] ?? []),
