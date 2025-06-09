@@ -19,11 +19,23 @@ class AuthService {
        _apiService = apiService;
 
   /// Starts signup by sending credentials and storing them temporarily.
-  Future<void> beginSignup(String email, String password) async {
+  Future<void> beginSignup(
+    String email,
+    String password, {
+    String? firstName,
+    String? lastName,
+    String? foodPreferences,
+  }) async {
     try {
       final response = await _apiService.post(
         ApiEndpoints.beginSignup,
-        body: {'email': email, 'password': password},
+        body: {
+          'email': email,
+          'password': password,
+          'firstName': firstName,
+          'lastName': lastName,
+          'foodPreferences': foodPreferences,
+        },
       );
 
       if (response.isError) {
@@ -31,7 +43,7 @@ class AuthService {
       }
 
       final token = _parseTokenFromResponse(response);
-      await _storeAuthData(token, email, password);
+      await _storeAuthData(token, email, password, firstName, lastName, foodPreferences);
     } catch (e) {
       throw AuthException('Signup initiation failed: ${e.toString()}');
     }
@@ -52,6 +64,9 @@ class AuthService {
           'code': code,
           'email': authData.email,
           'password': authData.password,
+          'firstName': authData.firstName,
+          'lastName': authData.lastName,
+          'foodPreferences': authData.foodPreferences,
         },
       );
 
@@ -159,10 +174,16 @@ class AuthService {
     String token,
     String email,
     String password,
+    String? firstName,
+    String? lastName,
+    String? foodPreferences,
   ) async {
     await _storage.write(key: _tokenKey, value: token);
     await _storage.write(key: _emailKey, value: email);
     await _storage.write(key: _passwordKey, value: password);
+    if (firstName != null) await _storage.write(key: 'firstName', value: firstName);
+    if (lastName != null) await _storage.write(key: 'lastName', value: lastName);
+    if (foodPreferences != null) await _storage.write(key: 'foodPreferences', value: foodPreferences);
   }
 
   Future<void> _clearTemporaryData() async {
@@ -182,9 +203,11 @@ class AuthService {
     final token = await _storage.read(key: _tokenKey);
     final email = await _storage.read(key: _emailKey);
     final password = await _storage.read(key: _passwordKey);
-
+    final firstName = await _storage.read(key: 'firstName');
+    final lastName = await _storage.read(key: 'lastName');
+    final foodPreferences = await _storage.read(key: 'foodPreferences');
     if (token == null || email == null || password == null) return null;
-    return _TempAuthData(token, email, password);
+    return _TempAuthData(token, email, password, firstName, lastName, foodPreferences);
   }
 }
 
@@ -192,8 +215,11 @@ class _TempAuthData {
   final String token;
   final String email;
   final String password;
+  final String? firstName;
+  final String? lastName;
+  final String? foodPreferences;
 
-  _TempAuthData(this.token, this.email, this.password);
+  _TempAuthData(this.token, this.email, this.password, this.firstName, this.lastName, this.foodPreferences);
 }
 
 class AuthException implements Exception {

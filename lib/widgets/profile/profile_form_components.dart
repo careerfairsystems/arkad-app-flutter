@@ -7,58 +7,42 @@ class ProfileFormComponents {
     required TextEditingController firstNameController,
     required TextEditingController lastNameController,
     bool readOnlyMode = false,
-    bool needsFirstName = true,
-    bool needsLastName = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (needsFirstName) ...[
-          TextFormField(
-            controller: firstNameController,
-            readOnly: readOnlyMode,
-            decoration: const InputDecoration(
-              labelText: 'First Name *',
-              border: OutlineInputBorder(),
-              helperText: 'Required',
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'First name is required';
-              }
-              return null;
-            },
+        TextFormField(
+          controller: firstNameController,
+          readOnly: readOnlyMode,
+          decoration: const InputDecoration(
+            labelText: 'First Name *',
+            border: OutlineInputBorder(),
+            helperText: 'Required',
           ),
-          const SizedBox(height: 16),
-        ],
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'First name is required';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
 
-        if (needsLastName) ...[
-          TextFormField(
-            controller: lastNameController,
-            readOnly: readOnlyMode,
-            decoration: const InputDecoration(
-              labelText: 'Last Name *',
-              border: OutlineInputBorder(),
-              helperText: 'Required',
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Last name is required';
-              }
-              return null;
-            },
+        TextFormField(
+          controller: lastNameController,
+          readOnly: readOnlyMode,
+          decoration: const InputDecoration(
+            labelText: 'Last Name *',
+            border: OutlineInputBorder(),
+            helperText: 'Required',
           ),
-          if (needsFirstName || needsLastName) const SizedBox(height: 16),
-        ],
-
-        // Show message if all fields in this section are provided but not needed
-        if (!needsFirstName && !needsLastName)
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text(
-              'Your basic information is complete. You can update it if needed.',
-            ),
-          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Last name is required';
+            }
+            return null;
+          },
+        ),
       ],
     );
   }
@@ -68,105 +52,66 @@ class ProfileFormComponents {
     required TextEditingController programmeController,
     required TextEditingController masterTitleController,
     required int? studyYear,
-    required Function(int?) onStudyYearChanged,
     required Programme? selectedProgramme,
+    required Function(int?) onStudyYearChanged,
     required Function(Programme?) onProgrammeChanged,
     bool readOnlyMode = false,
-    bool needsProgramme = true,
-    bool needsMasterTitle = true,
-    bool needsStudyYear = true,
   }) {
-    final List<int> studyYearOptions = [1, 2, 3, 4, 5];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (needsProgramme) ...[
-          DropdownButtonFormField<Programme>(
-            decoration: const InputDecoration(
-              labelText: 'Programme *',
-              border: OutlineInputBorder(),
-              helperText: 'Required',
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 16,
+        // Programme dropdown
+        DropdownButtonFormField<Programme>(
+          decoration: const InputDecoration(
+            labelText: 'Programme',
+            border: OutlineInputBorder(),
+            helperText: 'Optional',
+          ),
+          value: selectedProgramme,
+          hint: const Text('Select your programme'),
+          items: programs.map((program) {
+            return DropdownMenuItem<Programme>(
+              value: program['value'] as Programme,
+              child: Text(
+                program['label'] as String,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-            ),
-            value: selectedProgramme,
-            hint: const Text('Select your programme'),
-            validator: (value) {
-              if (value == null) {
-                return 'Programme is required';
-              }
-              return null;
-            },
-            isExpanded: true,
-            icon: const Icon(Icons.arrow_drop_down),
-            menuMaxHeight: 350,
-            items:
-                programs.map((program) {
-                  return DropdownMenuItem<Programme>(
-                    value: program['value'] as Programme,
-                    child: Text(
-                      program['label'] as String,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  );
-                }).toList(),
-            onChanged: readOnlyMode ? null : onProgrammeChanged,
-          ),
-          const SizedBox(height: 16),
-        ],
+            );
+          }).toList(),
+          onChanged: readOnlyMode ? null : onProgrammeChanged,
+        ),
+        const SizedBox(height: 16),
 
-        if (needsMasterTitle) ...[
-          TextFormField(
-            controller: masterTitleController,
-            readOnly: readOnlyMode,
-            decoration: const InputDecoration(
-              labelText: 'Master Title', // Removed asterisk for optional field
-              border: OutlineInputBorder(),
-              helperText: 'Optional',
-            ),
-            // No validator required since field is optional
+        // Study year dropdown
+        DropdownButtonFormField<int>(
+          decoration: const InputDecoration(
+            labelText: 'Study Year',
+            border: OutlineInputBorder(),
+            helperText: 'Optional',
           ),
-          const SizedBox(height: 16),
-        ],
+          value: studyYear,
+          hint: const Text('Select your study year'),
+          items: [1, 2, 3, 4, 5].map((year) {
+            return DropdownMenuItem<int>(
+              value: year,
+              child: Text('Year $year'),
+            );
+          }).toList(),
+          onChanged: readOnlyMode ? null : onStudyYearChanged,
+        ),
+        const SizedBox(height: 16),
 
-        if (needsStudyYear) ...[
-          DropdownButtonFormField<int>(
-            decoration: const InputDecoration(
-              labelText: 'Study Year *',
-              border: OutlineInputBorder(),
-              helperText: 'Required',
-            ),
-            value: studyYear,
-            hint: const Text('Select your study year'),
-            validator: (value) {
-              if (value == null) {
-                return 'Study year is required';
-              }
-              return null;
-            },
-            items:
-                studyYearOptions.map((year) {
-                  return DropdownMenuItem<int>(
-                    value: year,
-                    child: Text('Year $year'),
-                  );
-                }).toList(),
-            onChanged: readOnlyMode ? null : onStudyYearChanged,
+        // Master title field
+        TextFormField(
+          controller: masterTitleController,
+          readOnly: readOnlyMode,
+          decoration: const InputDecoration(
+            labelText: 'Master Title',
+            border: OutlineInputBorder(),
+            helperText: 'Optional',
           ),
-        ],
-
-        // Show message if all fields in this section are provided but not needed
-        if (!needsProgramme && !needsMasterTitle && !needsStudyYear)
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text(
-              'Your education information is complete. You can update it if needed.',
-            ),
-          ),
+        ),
       ],
     );
   }
@@ -175,54 +120,36 @@ class ProfileFormComponents {
     required TextEditingController linkedinController,
     required TextEditingController foodPreferencesController,
     bool readOnlyMode = false,
-    bool needsLinkedin = true,
-    bool needsFoodPreferences = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (needsLinkedin) ...[
-          TextFormField(
-            controller: linkedinController,
-            readOnly: readOnlyMode,
-            decoration: const InputDecoration(
-              labelText: 'LinkedIn Username',
-              border: OutlineInputBorder(),
-              helperText:
-                  'Optional - Just enter your username, not the full URL',
-              prefixIcon: Icon(Icons.link),
-            ),
-            // No validator required since field is optional
+        TextFormField(
+          controller: linkedinController,
+          readOnly: readOnlyMode,
+          decoration: const InputDecoration(
+            labelText: 'LinkedIn',
+            border: OutlineInputBorder(),
+            helperText: 'Optional - Enter your LinkedIn username or URL',
           ),
-          const SizedBox(height: 16),
-        ],
+        ),
+        const SizedBox(height: 16),
 
-        if (needsFoodPreferences) ...[
-          TextFormField(
-            controller: foodPreferencesController,
-            readOnly: readOnlyMode,
-            decoration: const InputDecoration(
-              labelText: 'Food Preferences *',
-              border: OutlineInputBorder(),
-              helperText: 'Required (allergies, vegetarian, etc. or "None")',
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Food preferences are required (put "None" if not applicable)';
-              }
-              return null;
-            },
+        TextFormField(
+          controller: foodPreferencesController,
+          readOnly: readOnlyMode,
+          decoration: const InputDecoration(
+            labelText: 'Food Preferences *',
+            border: OutlineInputBorder(),
+            helperText: 'Required - Enter any dietary restrictions or preferences (or "None")',
           ),
-        ],
-
-        // Show message if all fields in this section are provided but not needed
-        if (!needsLinkedin && !needsFoodPreferences)
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text(
-              'Your preferences are complete. You can update them if needed.',
-            ),
-          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Food preferences are required (put "None" if not applicable)';
+            }
+            return null;
+          },
+        ),
       ],
     );
   }

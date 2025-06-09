@@ -293,13 +293,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                       // Education information section
                       const Text(
-                        'Education Information',
+                        'Education Information (Optional)',
                         style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Fields marked with * are required',
-                        style: TextStyle(fontSize: 12),
                       ),
                       const SizedBox(height: 16),
 
@@ -334,12 +329,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                       // Professional information section
                       const Text(
-                        'Professional Information',
+                        'Additional Information',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Fields marked with * are required',
+                        'Food preferences are required, other fields are optional',
                         style: TextStyle(fontSize: 12),
                       ),
                       const SizedBox(height: 16),
