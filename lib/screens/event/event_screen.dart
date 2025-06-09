@@ -51,25 +51,29 @@ class EventScreen extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: 4,
                 itemBuilder: (context, index) {
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.amber,
-                        child: Icon(Icons.star, color: Colors.white),
-                      ),
-                      title: Text('Event ${index + 1}'),
-                      subtitle: Text(
-                        'Location: Building ${index + 1}, Room ${(index + 1) * 100}',
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                    ),
-                  );
+                  return _buildEventCard(index);
                 },
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEventCard(index) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.amber,
+          child: Icon(Icons.star, color: Colors.white),
+        ),
+        title: Text('Event ${index + 1}'),
+        subtitle: Text(
+          'Location: Building ${index + 1}, Room ${(index + 1) * 100}',
+        ),
+        trailing: const Icon(Icons.chevron_right),
       ),
     );
   }
