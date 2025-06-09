@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/user.dart';
 import '../services/auth_service.dart';
-import '../services/service_locator.dart';
 import '../services/user_service.dart';
-import 'profile_provider.dart';
 
 /// Authentication status states
 enum AuthStatus { initial, authenticated, unauthenticated }
@@ -47,13 +45,25 @@ class AuthProvider with ChangeNotifier {
   }
 
   /// Sign up a new user (step 1)
-  Future<bool> initialSignUp(String email, String password) async {
+  Future<bool> initialSignUp(
+    String email,
+    String password, {
+    String? firstName,
+    String? lastName,
+    String? foodPreferences,
+  }) async {
     _setLoading(true);
     _clearError();
 
     try {
       // Begin signup process
-      await _authService.beginSignup(email, password);
+      await _authService.beginSignup(
+        email,
+        password,
+        firstName: firstName,
+        lastName: lastName,
+        foodPreferences: foodPreferences,
+      );
 
       // Store for later verification
       _verificationEmail = email;
@@ -115,10 +125,6 @@ class AuthProvider with ChangeNotifier {
       final user = await _getUserProfileOrCreateMinimal(email);
       _authenticate(user);
 
-      // Initialize profile state with the new user
-      final profileProvider = serviceLocator<ProfileProvider>();
-      await profileProvider.initialize(user);
-
       _verificationEmail = null;
       _verificationPassword = null;
 
@@ -142,10 +148,6 @@ class AuthProvider with ChangeNotifier {
       final user = await _userService.getUserProfile();
       _authenticate(user);
 
-      // Initialize profile state with the user
-      final profileProvider = serviceLocator<ProfileProvider>();
-      await profileProvider.initialize(user);
-
       return true;
     } catch (e) {
       await _authService.logout();
@@ -162,10 +164,6 @@ class AuthProvider with ChangeNotifier {
     _setLoading(true);
     await _authService.logout();
 
-    // Reset profile state when logging out
-    final profileProvider = serviceLocator<ProfileProvider>();
-    await profileProvider.resetOnboarding();
-
     _setUnauthenticated();
     _setLoading(false);
   }
@@ -179,10 +177,6 @@ class AuthProvider with ChangeNotifier {
     try {
       final user = await _userService.getUserProfile();
       _user = user;
-
-      // Update profile provider with refreshed user data
-      final profileProvider = serviceLocator<ProfileProvider>();
-      await profileProvider.refreshOnboardingState(user);
 
       notifyListeners();
     } catch (e) {
@@ -205,10 +199,6 @@ class AuthProvider with ChangeNotifier {
         try {
           final user = await _userService.getUserProfile();
           _authenticate(user);
-
-          // Initialize profile provider with authenticated user
-          final profileProvider = serviceLocator<ProfileProvider>();
-          await profileProvider.initialize(user);
         } catch (e) {
           await _authService.logout();
           _setUnauthenticated();
