@@ -1,9 +1,9 @@
+import 'package:arkad/view_models/company_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../models/company.dart';
-import '../../services/company_service.dart';
 import '../../utils/service_helper.dart';
 import '../../widgets/filter_dropdown.dart';
 import '../../widgets/filter_dropdown_controller.dart';
@@ -19,7 +19,7 @@ class CompaniesScreen extends StatefulWidget {
 }
 
 class _CompaniesScreenState extends State<CompaniesScreen> {
-  final CompanyService _companyService = GetIt.I<CompanyService>();
+  final CompanyModel _companyService = GetIt.I<CompanyModel>();
   List<CompanyOut> _companies = [];
   List<CompanyOut> _filteredCompanies = [];
   bool _isLoading = true;
