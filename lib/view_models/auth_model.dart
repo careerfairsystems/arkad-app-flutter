@@ -1,9 +1,8 @@
+import 'package:arkad/view_models/profile_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
-
-import 'profile_provider.dart';
 
 const String _tokenKey = 'auth_token';
 const String _emailKey = 'temp_email';
@@ -13,7 +12,7 @@ const String _passwordKey = 'temp_password';
 enum AuthStatus { initial, authenticated, unauthenticated }
 
 /// AuthProvider manages authentication state throughout the app
-class AuthProvider with ChangeNotifier {
+class AuthModel with ChangeNotifier {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final ArkadApi _apiService = GetIt.I<ArkadApi>();
   String token = "";
@@ -32,7 +31,7 @@ class AuthProvider with ChangeNotifier {
   String? _verificationPassword;
 
   /// Creates a new AuthProvider with required services
-  AuthProvider() {
+  AuthModel() {
     // Auto-check if user is logged in on startup
     _checkAuthStatus();
   }
@@ -64,14 +63,16 @@ class AuthProvider with ChangeNotifier {
       final res = await _apiService
           .getAuthenticationApi()
           .userModelsApiBeginSignup(signupSchema: signupSchema);
-          
+
       if (res.statusCode == 401) {
         _setError('Invalid credentials or user already exists');
         return false;
       }
-      
+
       if (res.statusCode != 200) {
-        _setError('Failed to initiate signup: ${res.statusMessage ?? 'Unknown error'}');
+        _setError(
+          'Failed to initiate signup: ${res.statusMessage ?? 'Unknown error'}',
+        );
         return false;
       }
 
@@ -97,7 +98,9 @@ class AuthProvider with ChangeNotifier {
       String? password = _verificationPassword ?? await getStoredPassword();
 
       if (password == null || password.isEmpty) {
-        _setError('Missing password for verification code request. Please try signing up again.');
+        _setError(
+          'Missing password for verification code request. Please try signing up again.',
+        );
         return false;
       }
 
@@ -108,17 +111,19 @@ class AuthProvider with ChangeNotifier {
       final res = await _apiService
           .getAuthenticationApi()
           .userModelsApiBeginSignup(signupSchema: signupSchema);
-          
+
       if (res.statusCode == 401) {
         _setError('Invalid credentials. Please try signing up again.');
         return false;
       }
-      
+
       if (res.statusCode != 200) {
-        _setError('Failed to send verification code: ${res.statusMessage ?? 'Unknown error'}');
+        _setError(
+          'Failed to send verification code: ${res.statusMessage ?? 'Unknown error'}',
+        );
         return false;
       }
-      
+
       return true;
     } catch (e) {
       _setError('Failed to request verification code: ${e.toString()}');
@@ -138,12 +143,15 @@ class AuthProvider with ChangeNotifier {
       // Get stored email/password or use the ones we saved
       final email = _verificationEmail ?? await getStoredEmail();
       final password = _verificationPassword ?? await getStoredPassword();
-      
-      if (email == null || email.isEmpty || password == null || password.isEmpty) {
+
+      if (email == null ||
+          email.isEmpty ||
+          password == null ||
+          password.isEmpty) {
         _setError('Missing authentication data. Please try signing up again.');
         return false;
       }
-      
+
       final CompleteSignupSchema completeSignupSchema = CompleteSignupSchema((
         b,
       ) {
@@ -156,21 +164,23 @@ class AuthProvider with ChangeNotifier {
           .userModelsApiCompleteSignup(
             completeSignupSchema: completeSignupSchema,
           );
-          
+
       if (res.statusCode == 401) {
         _setError('Invalid verification code or expired session');
         return false;
       }
-      
+
       if (res.statusCode != 200) {
-        _setError('Failed to complete signup: ${res.statusMessage ?? 'Unknown error'}');
+        _setError(
+          'Failed to complete signup: ${res.statusMessage ?? 'Unknown error'}',
+        );
         return false;
       }
 
       _authenticate();
 
       // Initialize profile state with the new user
-      final profileProvider = GetIt.I<ProfileProvider>();
+      final profileProvider = GetIt.I<ProfileModel>();
       await profileProvider.initialize();
 
       _verificationEmail = null;
@@ -197,18 +207,18 @@ class AuthProvider with ChangeNotifier {
           b.password = password;
         }),
       );
-      
+
       // Check for authentication errors
       if (res.statusCode == 401) {
         _setError('Invalid email or password. Please check your credentials.');
         return false;
       }
-      
+
       if (res.statusCode != 200 || res.data == null) {
         _setError('Login failed: ${res.statusMessage ?? 'Unknown error'}');
         return false;
       }
-      
+
       final userToken = res.data!;
       await _storage.write(key: _tokenKey, value: userToken);
       token = userToken;
@@ -217,7 +227,7 @@ class AuthProvider with ChangeNotifier {
       _authenticate();
 
       // Initialize profile state with the user
-      final profileProvider = GetIt.I<ProfileProvider>();
+      final profileProvider = GetIt.I<ProfileModel>();
       await profileProvider.initialize();
 
       return true;
@@ -240,16 +250,16 @@ class AuthProvider with ChangeNotifier {
     try {
       // Load token from secure storage
       final storedToken = await _storage.read(key: _tokenKey);
-      
+
       if (storedToken != null && storedToken.isNotEmpty) {
         token = storedToken;
         _apiService.setBearerAuth("Authorization", storedToken);
-        
+
         try {
           _authenticate();
 
           // Initialize profile provider with authenticated user
-          final profileProvider = GetIt.I<ProfileProvider>();
+          final profileProvider = GetIt.I<ProfileModel>();
           await profileProvider.initialize();
         } catch (e) {
           // If authentication verification fails, logout and go to unauthenticated state
@@ -320,7 +330,7 @@ class AuthProvider with ChangeNotifier {
     await _storage.delete(key: _passwordKey);
 
     // Reset profile state when logging out
-    final profileProvider = GetIt.I<ProfileProvider>();
+    final profileProvider = GetIt.I<ProfileModel>();
     await profileProvider.resetOnboarding();
 
     _setUnauthenticated();
@@ -334,7 +344,7 @@ class AuthProvider with ChangeNotifier {
   Future<String?> getStoredPassword() async => _storage.read(key: _passwordKey);
 
   Future<void> refreshUserProfile() async {
-    final profileProvider = GetIt.I<ProfileProvider>();
+    final profileProvider = GetIt.I<ProfileModel>();
     await profileProvider.initialize();
   }
 }

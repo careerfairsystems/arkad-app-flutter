@@ -1,13 +1,14 @@
 import 'dart:io';
 
 import 'package:arkad/models/programme.dart';
+import 'package:arkad/view_models/auth_model.dart';
+import 'package:arkad/view_models/profile_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/auth_provider.dart';
-import '../../providers/profile_provider.dart';
 import '../../utils/profile_utils.dart';
 import '../../widgets/profile/profile_form_components.dart';
 
@@ -123,11 +124,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     // Get references to providers and other objects
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final profileProvider = Provider.of<ProfileProvider>(
-      context,
-      listen: false,
-    );
+    final auth = GetIt.I<AuthModel>();
+    final profileProvider = GetIt.I<ProfileModel>();
 
     try {
       // Generate profile data
@@ -206,7 +204,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final profileProvider = Provider.of<ProfileProvider>(context);
+    final profileProvider = Provider.of<ProfileModel>(context);
     final bool isLoading =
         profileProvider.isLoading || profileProvider.isUploading;
 

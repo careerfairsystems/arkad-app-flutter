@@ -1,10 +1,10 @@
+import 'package:arkad/view_models/auth_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../models/company.dart';
-import '../providers/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/signup_screen.dart';
@@ -22,7 +22,7 @@ import 'navigation_items.dart';
 class AppRouter {
   AppRouter(this._auth);
 
-  final AuthProvider _auth;
+  final AuthModel _auth;
 
   // ────────────────────────────────────────────────────────────
   // Redirect rules
@@ -117,14 +117,14 @@ class AppRouter {
               GoRoute(
                 path: '/profile',
                 pageBuilder: _noAnim((context) {
-                  final user = context.read<AuthProvider>().user!;
+                  final user = context.read<AuthModel>().user!;
                   return ProfileScreen(profile: user);
                 }),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     pageBuilder: _slide((context, _) {
-                      final user = context.read<AuthProvider>().user!;
+                      final user = context.read<AuthModel>().user!;
                       return EditProfileScreen(profile: user);
                     }),
                   ),

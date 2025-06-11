@@ -48,7 +48,7 @@ extension ProfileSchemaExtension on ProfileSchema {
 
 /// Comprehensive provider for handling all profile-related functionality
 /// including onboarding, profile updates, and media management
-class ProfileProvider with ChangeNotifier {
+class ProfileModel with ChangeNotifier {
   // State variables for onboarding
   int _currentStep = 0;
   bool _onboardingCompleted = false;

@@ -1,9 +1,9 @@
+import 'package:arkad/view_models/auth_model.dart';
+import 'package:arkad/view_models/profile_model.dart';
+import 'package:arkad/view_models/theme_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'navigation/app_router.dart';
-import 'providers/auth_provider.dart';
-import 'providers/profile_provider.dart';
-import 'providers/theme_provider.dart';
 import 'services/service_locator.dart';
 
 void main() async {
@@ -29,7 +29,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     // Grab the AuthProvider (already registered as singleton in serviceLocator)
-    final auth = serviceLocator<AuthProvider>();
+    final auth = serviceLocator<AuthModel>();
     _appRouter = AppRouter(auth); // only once, here
   }
 
@@ -37,11 +37,11 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: serviceLocator<ThemeProvider>()),
-        ChangeNotifierProvider.value(value: serviceLocator<AuthProvider>()),
-        ChangeNotifierProvider.value(value: serviceLocator<ProfileProvider>()),
+        ChangeNotifierProvider.value(value: serviceLocator<ThemeModel>()),
+        ChangeNotifierProvider.value(value: serviceLocator<AuthModel>()),
+        ChangeNotifierProvider.value(value: serviceLocator<ProfileModel>()),
       ],
-      child: Consumer<ThemeProvider>(
+      child: Consumer<ThemeModel>(
         builder: (ctx, themeProvider, _) {
           return MaterialApp.router(
             title: 'Arkad App',

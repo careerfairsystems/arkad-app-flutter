@@ -1,10 +1,10 @@
+import 'package:arkad/view_models/auth_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart'; // Add go_router import
 import 'package:provider/provider.dart';
 
 import '../../config/theme_config.dart';
-import '../../providers/auth_provider.dart';
 import '../../widgets/auth/auth_form_widgets.dart';
 
 /// Verification screen for email confirmation during authentication.
@@ -39,7 +39,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
       _isVerifying = true;
       _errorMessage = null;
     });
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthModel>(context, listen: false);
     try {
       final success = await authProvider.completeSignup(_codeController.text);
       if (mounted) {
@@ -65,7 +65,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
       _isResending = true;
       _errorMessage = null;
     });
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthModel>(context, listen: false);
     try {
       final success = await authProvider.requestNewVerificationCode(
         widget.email,
