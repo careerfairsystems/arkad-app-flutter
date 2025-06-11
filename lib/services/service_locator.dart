@@ -1,5 +1,5 @@
-import 'package:arkad/services/company_service.dart';
 import 'package:arkad/view_models/auth_model.dart';
+import 'package:arkad/view_models/company_model.dart';
 import 'package:arkad/view_models/profile_model.dart';
 import 'package:arkad/view_models/student_session_model.dart';
 import 'package:arkad/view_models/theme_model.dart';
@@ -23,8 +23,7 @@ void setupServiceLocator() {
   serviceLocator.registerLazySingleton<http.Client>(() => http.Client());
 
   serviceLocator.registerLazySingleton<ThemeModel>(() => ThemeModel());
-  serviceLocator.registerLazySingleton<CompanyService>(() => CompanyService());
-
+  serviceLocator.registerLazySingleton<CompanyModel>(() => CompanyModel());
   serviceLocator.registerLazySingleton<ProfileModel>(() => ProfileModel());
   serviceLocator.registerLazySingleton<StudentSessionModel>(
     () => StudentSessionModel(),

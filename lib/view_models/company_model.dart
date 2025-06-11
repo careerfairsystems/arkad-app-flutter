@@ -2,12 +2,12 @@ import 'package:arkad/api/extensions.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:get_it/get_it.dart';
 
-class CompanyService {
+class CompanyModel {
   final ArkadApi _apiService = GetIt.I<ArkadApi>();
   List<CompanyOut> _companies = [];
   bool _isLoaded = false;
 
-  CompanyService();
+  CompanyModel();
 
   // Getter for cached companies
   List<CompanyOut> get companies => _companies;
