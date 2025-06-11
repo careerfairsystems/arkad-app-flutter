@@ -1,63 +1,24 @@
-import 'job.dart';
+import 'package:arkad_api/arkad_api.dart';
 
-class Company {
-  final int id;
-  final String name;
-  final String? description;
-  final String? didYouKnow;
-  final String? logoUrl;
-  final String? urlLinkedin;
-  final String? urlInstagram;
-  final String? urlFacebook;
-  final String? urlTwitter;
-  final String? urlYoutube;
-  final String? website;
-  final String? studentSessionMotivation;
-  final int daysWithStudentsession;
-  final List<String> desiredDegrees;
-  final List<String> desiredProgramme;
-  final List<String> desiredCompetences;
-  final List<String> positions;
-  final List<String> industries;
-  final int? employeesLocally;
-  final int? employeesGlobally;
-  final List<Job> jobs;
-
-  Company({
-    required this.id,
-    required this.name,
-    this.description,
-    this.didYouKnow,
-    this.logoUrl,
-    this.urlLinkedin,
-    this.urlInstagram,
-    this.urlFacebook,
-    this.urlTwitter,
-    this.urlYoutube,
-    this.website,
-    this.studentSessionMotivation,
-    required this.daysWithStudentsession,
-    required this.desiredDegrees,
-    required this.desiredProgramme,
-    required this.desiredCompetences,
-    required this.positions,
-    required this.industries,
-    this.employeesLocally,
-    this.employeesGlobally,
-    required this.jobs,
-  });
-
+extension CompanyExtension on CompanyOut {
   // Returns the full logo URL with the base media URL prepended
   String? get fullLogoUrl => logoUrl != null ? (logoUrl!) : null;
 
   // Returns a comma-separated string of industries
-  String get industriesString => industries.join(', ');
+  String get industriesString =>
+      industries == null ? "" : industries!.join(', ');
 
   // Returns a comma-separated string of locations from jobs
   String get locationsString {
+    if (jobs == null || jobs!.isEmpty) {
+      return "";
+    }
     Set<String> uniqueLocations = {};
-    for (var job in jobs) {
-      uniqueLocations.addAll(job.location);
+    for (var job in jobs!) {
+      if (job.location == null || job.location!.isEmpty) {
+        continue;
+      }
+      uniqueLocations.addAll(job.location!);
     }
     return uniqueLocations.join(', ');
   }
@@ -80,7 +41,7 @@ class Company {
       urlYoutube: json['url_youtube'],
       website: json['website'],
       studentSessionMotivation: json['student_session_motivation'],
-      daysWithStudentsession: json['days_with_studentsession'] ?? 0,
+      daysWithStudentsession: json['daysWithStudentsession'] ?? 0,
       desiredDegrees: List<String>.from(json['desired_degrees'] ?? []),
       desiredProgramme: List<String>.from(json['desired_programme'] ?? []),
       desiredCompetences: List<String>.from(json['desired_competences'] ?? []),

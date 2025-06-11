@@ -1,9 +1,10 @@
+import 'package:arkad/view_models/auth_model.dart';
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../models/company.dart';
-import '../providers/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/signup_screen.dart';
@@ -23,7 +24,7 @@ import 'navigation_items.dart';
 class AppRouter {
   AppRouter(this._auth);
 
-  final AuthProvider _auth;
+  final AuthModel _auth;
 
   // ────────────────────────────────────────────────────────────
   // Redirect rules
@@ -32,7 +33,7 @@ class AppRouter {
     final loggedIn = _auth.isAuthenticated;
     final path = state.uri.path;
 
-    const publicPrefixes = ['/companies', '/map', '/auth'];
+    const publicPrefixes = ['/companies', '/map', '/auth', '/sessions'];
 
     bool isPublic(String path) =>
         publicPrefixes.any((base) => path == base || path.startsWith('$base/'));
@@ -68,7 +69,7 @@ class AppRouter {
                   GoRoute(
                     path: 'detail',
                     pageBuilder: _slide((context, s) {
-                      final company = s.extra as Company?;
+                      final company = s.extra as CompanyOut?;
                       if (company == null) {
                         return const Scaffold(
                           body: Center(child: Text('Error: company missing')),
@@ -136,15 +137,15 @@ class AppRouter {
               GoRoute(
                 path: '/profile',
                 pageBuilder: _noAnim((context) {
-                  final user = context.read<AuthProvider>().user!;
-                  return ProfileScreen(user: user);
+                  final user = context.read<AuthModel>().user!;
+                  return ProfileScreen(profile: user);
                 }),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     pageBuilder: _slide((context, _) {
-                      final user = context.read<AuthProvider>().user!;
-                      return EditProfileScreen(user: user);
+                      final user = context.read<AuthModel>().user!;
+                      return EditProfileScreen(profile: user);
                     }),
                   ),
                 ],

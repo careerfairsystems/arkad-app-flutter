@@ -1,8 +1,8 @@
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../utils/login_manager.dart';
@@ -10,9 +10,9 @@ import '../../widgets/profile/profile_info_widget.dart';
 import '../../widgets/profile/profile_onboarding_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final User user;
+  final ProfileSchema profile;
 
-  const ProfileScreen({super.key, required this.user});
+  const ProfileScreen({super.key, required this.profile});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -33,7 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           context,
           listen: false,
         );
-        profileProvider.initialize(user);
+        profileProvider.initialize();
 
         // Register listener for user state changes to keep verification and profile in sync
         if (!_isUserStateListenerRegistered) {
@@ -96,7 +96,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _navigateToEditProfile() {
     final user =
-        Provider.of<AuthProvider>(context, listen: false).user ?? widget.user;
+        Provider.of<AuthProvider>(context, listen: false).user ??
+        widget.profile;
     context.push('/profile/edit', extra: user).then((_) => _onProfileUpdated());
   }
 
@@ -111,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final currentUser = authProvider.user ?? widget.user;
+    final currentUser = authProvider.user ?? widget.profile;
 
     final profileProvider = Provider.of<ProfileProvider>(context);
 
@@ -138,14 +139,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (profileProvider.hasIncompleteRequiredFields)
                 // Onboarding wizard for incomplete profiles
                 ProfileOnboardingWidget(
-                  user: currentUser,
+                  profile: currentUser,
                   onProfileUpdated: _onProfileUpdated,
                 )
               else
                 // Full profile view for completed profiles
                 Column(
                   children: [
-                    ProfileInfoWidget(user: currentUser),
+                    ProfileInfoWidget(profile: currentUser),
 
                     const SizedBox(height: 24),
                     Center(

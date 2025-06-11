@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:arkad_api/arkad_api.dart';
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,7 +8,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../models/programme.dart';
-import '../models/user.dart';
 import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../utils/profile_utils.dart';
@@ -40,7 +40,7 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
   File? _selectedCV;
   bool _isLoading = false;
 
-  User? _initialUserData;
+  ProfileSchema? _initialUserData;
 
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -82,7 +82,7 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
     }
   }
 
-  void _populateFields(User user) {
+  void _populateFields(ProfileSchema user) {
     _firstNameController.text = user.firstName ?? '';
     _lastNameController.text = user.lastName ?? '';
     // Use programmeController for storage of the string value, but convert to enum for UI
@@ -429,9 +429,9 @@ class _ProfileCompletionDialogState extends State<ProfileCompletionDialog> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.user;
     final bool needsFirstName =
-        currentUser?.firstName == null || currentUser!.firstName!.isEmpty;
+        currentUser?.firstName == null || currentUser!.firstName.isEmpty;
     final bool needsLastName =
-        currentUser?.lastName == null || currentUser!.lastName!.isEmpty;
+        currentUser?.lastName == null || currentUser!.lastName.isEmpty;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),

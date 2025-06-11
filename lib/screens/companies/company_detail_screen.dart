@@ -1,10 +1,10 @@
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/company.dart';
-import '../../models/job.dart';
 
 class CompanyDetailScreen extends StatelessWidget {
-  final Company company;
+  final CompanyOut company;
 
   const CompanyDetailScreen({super.key, required this.company});
 
@@ -135,14 +135,14 @@ class CompanyDetailScreen extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 8),
-          if (company.positions.isNotEmpty) ...[
+          if (company.positions != null && company.positions!.isNotEmpty) ...[
             Text('Positions', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children:
-                  company.positions
+                  company.positions!
                       .map((position) => Chip(label: Text(position)))
                       .toList(),
             ),
@@ -260,7 +260,7 @@ class CompanyDetailScreen extends StatelessWidget {
   }
 
   Widget _buildJobsSection(BuildContext context) {
-    if (company.jobs.isEmpty) {
+    if (company.jobs == null || company.jobs!.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -277,9 +277,9 @@ class CompanyDetailScreen extends StatelessWidget {
           ListView.builder(
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
-            itemCount: company.jobs.length,
+            itemCount: company.jobs!.length,
             itemBuilder: (context, index) {
-              return _buildJobCard(context, company.jobs[index]);
+              return _buildJobCard(context, company.jobs![index]);
             },
           ),
         ],
@@ -287,7 +287,7 @@ class CompanyDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildJobCard(BuildContext context, Job job) {
+  Widget _buildJobCard(BuildContext context, JobSchema job) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
@@ -302,22 +302,22 @@ class CompanyDetailScreen extends StatelessWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            if (job.location.isNotEmpty) ...[
+            if (job.location != null && job.location!.isNotEmpty) ...[
               Row(
                 children: [
                   const Icon(Icons.location_on, size: 16),
                   const SizedBox(width: 4),
-                  Expanded(child: Text(job.location.join(', '))),
+                  Expanded(child: Text(job.location!.join(', '))),
                 ],
               ),
               const SizedBox(height: 4),
             ],
-            if (job.jobType.isNotEmpty) ...[
+            if (job.jobType != null && job.jobType!.isNotEmpty) ...[
               Row(
                 children: [
                   const Icon(Icons.work, size: 16),
                   const SizedBox(width: 4),
-                  Expanded(child: Text(job.jobType.join(', '))),
+                  Expanded(child: Text(job.jobType!.join(', '))),
                 ],
               ),
               const SizedBox(height: 8),

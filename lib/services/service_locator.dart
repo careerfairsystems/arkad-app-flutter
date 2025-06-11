@@ -1,3 +1,8 @@
+import 'package:arkad/services/company_service.dart';
+import 'package:arkad/view_models/auth_model.dart';
+import 'package:arkad/view_models/profile_model.dart';
+import 'package:arkad/view_models/theme_model.dart';
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
@@ -22,45 +27,17 @@ void setupServiceLocator() {
   );
   serviceLocator.registerLazySingleton<http.Client>(() => http.Client());
 
-  serviceLocator.registerLazySingleton<ApiService>(
-    () => ApiService(client: serviceLocator<http.Client>()),
+  serviceLocator.registerLazySingleton<ArkadApi>(
+    () => ArkadApi(basePathOverride: 'https://staging.backend.arkadtlth.se'),
   );
 
-  serviceLocator.registerLazySingleton<AuthService>(
-    () => AuthService(
-      storage: serviceLocator<FlutterSecureStorage>(),
-      apiService: serviceLocator<ApiService>(),
-    ),
-  );
+  serviceLocator.registerSingleton(AuthModel);
 
-  serviceLocator.registerLazySingleton<UserService>(
-    () => UserService(
-      authService: serviceLocator<AuthService>(),
-      apiService: serviceLocator<ApiService>(),
-    ),
-  );
+  serviceLocator.registerLazySingleton<ThemeModel>(() => ThemeModel());
+  serviceLocator.registerLazySingleton<CompanyService>(() => CompanyService());
 
-  serviceLocator.registerLazySingleton<CompanyService>(
-    () => CompanyService(apiService: serviceLocator<ApiService>()),
-  );
-
-  serviceLocator.registerLazySingleton<AuthProvider>(
-    () => AuthProvider(
-      serviceLocator<AuthService>(),
-      serviceLocator<UserService>(),
-    ),
-  );
-
-  serviceLocator.registerLazySingleton<ThemeProvider>(() => ThemeProvider());
-
-  serviceLocator.registerLazySingleton<ProfileProvider>(
-    () => ProfileProvider(),
-  );
-
-  serviceLocator.registerLazySingleton<StudentSessionProvider>(
+  serviceLocator.registerLazySingleton<ProfileModel>(() => ProfileModel());
+    serviceLocator.registerLazySingleton<StudentSessionProvider>(
     () => StudentSessionProvider(),
   );
-
-  // Initialize providers that need immediate initialization
-  serviceLocator<AuthProvider>().init();
 }

@@ -1,4 +1,6 @@
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 
 import '../../models/company.dart';
 import '../../services/company_service.dart';
@@ -17,9 +19,9 @@ class CompaniesScreen extends StatefulWidget {
 }
 
 class _CompaniesScreenState extends State<CompaniesScreen> {
-  late final CompanyService _companyService;
-  List<Company> _companies = [];
-  List<Company> _filteredCompanies = [];
+  final CompanyService _companyService = GetIt.I<CompanyService>();
+  List<CompanyOut> _companies = [];
+  List<CompanyOut> _filteredCompanies = [];
   bool _isLoading = true;
   bool _hasError = false;
   String _searchQuery = '';
@@ -40,7 +42,6 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   @override
   void initState() {
     super.initState();
-    _companyService = ServiceHelper.getService<CompanyService>();
     _loadCompanies();
   }
 
@@ -64,6 +65,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
         _isLoading = false;
       });
     } catch (e) {
+      print('Error loading companies: $e');
       setState(() {
         _isLoading = false;
         _hasError = true;
@@ -85,7 +87,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     }
 
     // First filter by search query if present
-    List<Company> searchResults =
+    List<CompanyOut> searchResults =
         _searchQuery.isEmpty
             ? List.from(_companies)
             : _companyService.searchCompanies(_searchQuery);
@@ -471,7 +473,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     );
   }
 
-  Widget _buildCompanyCard(Company company) {
+  Widget _buildCompanyCard(CompanyOut company) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(

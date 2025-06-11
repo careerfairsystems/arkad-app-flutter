@@ -1,33 +1,38 @@
-import 'package:arkad/api/extensions.dart';
-import 'package:arkad_api/arkad_api.dart';
-import 'package:get_it/get_it.dart';
+import '../config/api_endpoints.dart';
+import '../models/company.dart';
+import 'api_service.dart';
 
-class CompanyService {
-  final ArkadApi _apiService = GetIt.I<ArkadApi>();
-  List<CompanyOut> _companies = [];
+class StudentSessionsService {
+  final ApiService _apiService;
+  List<Company> _companies = [];
   bool _isLoaded = false;
 
-  CompanyService();
+  StudentSessionsService({required ApiService apiService})
+    : _apiService = apiService;
 
   // Getter for cached companies
-  List<CompanyOut> get companies => _companies;
+  List<Company> get companies => _companies;
 
   // Check if companies are loaded
   bool get isLoaded => _isLoaded;
 
   // Fetch all companies from API and cache them
-  Future<List<CompanyOut>> getAllCompanies({bool forceRefresh = false}) async {
+  Future<List<Company>> getAllCompanies({bool forceRefresh = false}) async {
     // Return cached data if available and no refresh is requested
     if (_isLoaded && !forceRefresh) {
       return _companies;
     }
 
     try {
-      final response =
-          await _apiService.getCompaniesApi().companiesApiGetCompanies();
+      final response = await _apiService.get(ApiEndpoints.companies);
 
       if (response.isSuccess && response.data != null) {
-        _companies = response.data!.toList();
+        // The data is already parsed as a List<dynamic>
+        final List<dynamic> companiesJson = response.data as List<dynamic>;
+        _companies =
+            companiesJson
+                .map((json) => Company.fromJson(json as Map<String, dynamic>))
+                .toList();
         _isLoaded = true;
         return _companies;
       } else {
@@ -39,7 +44,7 @@ class CompanyService {
   }
 
   // Get a single company by ID from cached data
-  CompanyOut? getCompanyById(int id) {
+  Company? getCompanyById(int id) {
     if (!_isLoaded) {
       throw Exception(
         'Companies not loaded yet. Call getAllCompanies() first.',
@@ -54,7 +59,7 @@ class CompanyService {
   }
 
   // Search companies by name, industries, locations, etc.
-  List<CompanyOut> searchCompanies(String query) {
+  List<Company> searchCompanies(String query) {
     if (!_isLoaded) {
       throw Exception(
         'Companies not loaded yet. Call getAllCompanies() first.',
@@ -73,15 +78,15 @@ class CompanyService {
       }
 
       // Search in industries
-      if (company.industries!.any(
+      if (company.industries.any(
         (industry) => industry.toLowerCase().contains(queryLower),
       )) {
         return true;
       }
 
       // Search in job locations
-      for (var job in company.jobs!) {
-        if (job.location!.any(
+      for (var job in company.jobs) {
+        if (job.location.any(
           (location) => location.toLowerCase().contains(queryLower),
         )) {
           return true;
@@ -99,8 +104,8 @@ class CompanyService {
   }
 
   // Filter companies by various criteria with an optional list of companies to filter
-  List<CompanyOut> filterCompanies({
-    List<CompanyOut>? companies,
+  List<Company> filterCompanies({
+    List<Company>? companies,
     List<String>? industries,
     List<String>? programmes,
     List<String>? degrees,
@@ -114,40 +119,40 @@ class CompanyService {
       );
     }
 
-    final List<CompanyOut> companiesToFilter = companies ?? _companies;
+    final List<Company> companiesToFilter = companies ?? _companies;
 
     return companiesToFilter.where((company) {
       // Filter by industries
       if (industries != null && industries.isNotEmpty) {
-        if (!company.industries!.any((i) => industries.contains(i))) {
+        if (!company.industries.any((i) => industries.contains(i))) {
           return false;
         }
       }
 
       // Filter by programmes
       if (programmes != null && programmes.isNotEmpty) {
-        if (!company.desiredProgramme!.any((p) => programmes.contains(p))) {
+        if (!company.desiredProgramme.any((p) => programmes.contains(p))) {
           return false;
         }
       }
 
       // Filter by degrees
       if (degrees != null && degrees.isNotEmpty) {
-        if (!company.desiredDegrees!.any((d) => degrees.contains(d))) {
+        if (!company.desiredDegrees.any((d) => degrees.contains(d))) {
           return false;
         }
       }
 
       // Filter by positions
       if (positions != null && positions.isNotEmpty) {
-        if (!company.positions!.any((p) => positions.contains(p))) {
+        if (!company.positions.any((p) => positions.contains(p))) {
           return false;
         }
       }
 
       // Filter by competences
       if (competences != null && competences.isNotEmpty) {
-        if (!company.desiredCompetences!.any((c) => competences.contains(c))) {
+        if (!company.desiredCompetences.any((c) => competences.contains(c))) {
           return false;
         }
       }

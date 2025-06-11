@@ -1,23 +1,23 @@
 import 'dart:io';
 
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/theme_config.dart';
 import '../../models/programme.dart';
-import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../utils/profile_utils.dart';
 
 class ProfileOnboardingWidget extends StatefulWidget {
-  final User user;
+  final ProfileSchema profile;
   final Function onProfileUpdated;
 
   const ProfileOnboardingWidget({
     super.key,
-    required this.user,
+    required this.profile,
     required this.onProfileUpdated,
   });
 
@@ -59,14 +59,14 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _populateFields(widget.user);
+      _populateFields(widget.profile);
 
       // Initialize the profile provider
       final profileProvider = Provider.of<ProfileProvider>(
         context,
         listen: false,
       );
-      profileProvider.initialize(widget.user);
+      profileProvider.initialize();
     });
   }
 
@@ -86,17 +86,17 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
     super.dispose();
   }
 
-  void _populateFields(User user) {
-    _firstNameController.text = user.firstName ?? '';
-    _lastNameController.text = user.lastName ?? '';
-    _programmeController.text = user.programme ?? '';
-    _linkedinController.text = user.linkedin ?? '';
-    _masterTitleController.text = user.masterTitle ?? '';
-    _foodPreferencesController.text = user.foodPreferences ?? '';
-    _studyYear = user.studyYear;
+  void _populateFields(ProfileSchema profile) {
+    _firstNameController.text = profile.firstName ?? '';
+    _lastNameController.text = profile.lastName ?? '';
+    _programmeController.text = profile.programme ?? '';
+    _linkedinController.text = profile.linkedin ?? '';
+    _masterTitleController.text = profile.masterTitle ?? '';
+    _foodPreferencesController.text = profile.foodPreferences ?? '';
+    _studyYear = profile.studyYear;
 
     // Convert string programme to enum if it exists
-    _selectedProgramme = ProfileUtils.programmeStringToEnum(user.programme);
+    _selectedProgramme = ProfileUtils.programmeStringToEnum(profile.programme);
   }
 
   Future<void> _pickImage() async {
@@ -226,15 +226,15 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                 _selectedProfileImage != null
                     ? FileImage(_selectedProfileImage!)
                     : (!_profilePictureDeleted &&
-                            widget.user.profilePicture != null
-                        ? NetworkImage(widget.user.profilePicture!)
+                            widget.profile.profilePicture != null
+                        ? NetworkImage(widget.profile.profilePicture!)
                             as ImageProvider
                         : null),
             child:
                 (_selectedProfileImage == null &&
                         (_profilePictureDeleted ||
-                            widget.user.profilePicture == null ||
-                            widget.user.profilePicture!.isEmpty))
+                            widget.profile.profilePicture == null ||
+                            widget.profile.profilePicture!.isEmpty))
                     ? const Icon(Icons.person, size: 60, color: Colors.grey)
                     : null,
           ),
@@ -297,7 +297,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
           _buildProfilePicture(),
 
           // Profile picture removal
-          if (widget.user.profilePicture != null && !_profilePictureDeleted)
+          if (widget.profile.profilePicture != null && !_profilePictureDeleted)
             TextButton.icon(
               onPressed: () {
                 setState(() {
@@ -629,15 +629,15 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                 Icon(
                   _selectedCV != null ||
                           (!_cvDeleted &&
-                              widget.user.cv != null &&
-                              widget.user.cv!.isNotEmpty)
+                              widget.profile.cv != null &&
+                              widget.profile.cv!.isNotEmpty)
                       ? Icons.check_circle
                       : Icons.upload_file,
                   color:
                       _selectedCV != null ||
                               (!_cvDeleted &&
-                                  widget.user.cv != null &&
-                                  widget.user.cv!.isNotEmpty)
+                                  widget.profile.cv != null &&
+                                  widget.profile.cv!.isNotEmpty)
                           ? Colors.green
                           : Colors.grey,
                 ),
@@ -667,15 +667,15 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
                   onPressed: _pickCV,
                   icon: const Icon(Icons.file_upload),
                   label: Text(
-                    widget.user.cv != null && widget.user.cv!.isNotEmpty
+                    widget.profile.cv != null && widget.profile.cv!.isNotEmpty
                         ? 'Change CV'
                         : 'Upload CV',
                   ),
                 ),
               ),
               if (!_cvDeleted &&
-                  widget.user.cv != null &&
-                  widget.user.cv!.isNotEmpty) ...[
+                  widget.profile.cv != null &&
+                  widget.profile.cv!.isNotEmpty) ...[
                 const SizedBox(width: 12),
                 IconButton(
                   onPressed: () {
@@ -700,8 +700,8 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
       return 'Selected: ${_selectedCV!.path.split('/').last}';
     } else if (_cvDeleted) {
       return 'No CV selected yet (PDF format)';
-    } else if (widget.user.cv != null && widget.user.cv!.isNotEmpty) {
-      return 'Current: ${widget.user.cv!.split('/').last}';
+    } else if (widget.profile.cv != null && widget.profile.cv!.isNotEmpty) {
+      return 'Current: ${widget.profile.cv!.split('/').last}';
     } else {
       return 'No CV selected yet (PDF format)';
     }
@@ -936,6 +936,7 @@ class _ProfileOnboardingWidgetState extends State<ProfileOnboardingWidget>
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.shade300,
