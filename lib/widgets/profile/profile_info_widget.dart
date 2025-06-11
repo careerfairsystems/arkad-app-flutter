@@ -5,12 +5,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../config/theme_config.dart';
 
 class ProfileInfoWidget extends StatelessWidget {
-  final User user;
+  final ProfileSchema profile;
 
-  const ProfileInfoWidget({
-    super.key,
-    required this.user,
-  });
+  const ProfileInfoWidget({super.key, required this.profile});
 
   Future<void> _launchUrl(BuildContext context, String url) async {
     final Uri uri = Uri.parse(url.startsWith('http') ? url : 'https://$url');
@@ -18,14 +15,19 @@ class ProfileInfoWidget extends StatelessWidget {
       await launchUrl(uri);
     } else {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open $url')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not open $url')));
       }
     }
   }
 
-  Widget _buildInfoTile(BuildContext context, String label, String value, {bool isLink = false}) {
+  Widget _buildInfoTile(
+    BuildContext context,
+    String label,
+    String value, {
+    bool isLink = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -34,18 +36,18 @@ class ProfileInfoWidget extends StatelessWidget {
             width: 120,
             child: Text(
               label,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(color: Colors.grey[600]),
             ),
           ),
           Expanded(
             child: Text(
               value,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: isLink ? ArkadColors.arkadTurkos : null,
-                    decoration: isLink ? TextDecoration.underline : null,
-                  ),
+                color: isLink ? ArkadColors.arkadTurkos : null,
+                decoration: isLink ? TextDecoration.underline : null,
+              ),
             ),
           ),
         ],
@@ -66,12 +68,16 @@ class ProfileInfoWidget extends StatelessWidget {
                 tag: 'profilePicture',
                 child: CircleAvatar(
                   radius: 60,
-                  backgroundImage: user.profilePicture != null && user.profilePicture!.isNotEmpty
-                      ? NetworkImage(user.profilePicture!)
-                      : null,
-                  child: user.profilePicture == null || user.profilePicture!.isEmpty
-                      ? const Icon(Icons.person, size: 60)
-                      : null,
+                  backgroundImage:
+                      profile.profilePicture != null &&
+                              profile.profilePicture!.isNotEmpty
+                          ? NetworkImage(profile.profilePicture!)
+                          : null,
+                  child:
+                      profile.profilePicture == null ||
+                              profile.profilePicture!.isEmpty
+                          ? const Icon(Icons.person, size: 60)
+                          : null,
                 ),
               ),
               const SizedBox(height: 12),
@@ -100,36 +106,37 @@ class ProfileInfoWidget extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Basic information section
-        _buildInfoTile(context, "Email", user.email),
+        _buildInfoTile(context, "Email", profile.email),
 
         // LinkedIn info with clickable link
-        if (user.linkedin != null && user.linkedin!.isNotEmpty)
+        if (profile.linkedin != null && profile.linkedin!.isNotEmpty)
           InkWell(
-            onTap: () => _launchUrl(context, user.linkedin!),
+            onTap: () => _launchUrl(context, profile.linkedin!),
             child: _buildInfoTile(
               context,
               "LinkedIn",
-              user.linkedin!,
+              profile.linkedin!,
               isLink: true,
             ),
           ),
 
         // Education information
-        if (user.studyYear != null)
-          _buildInfoTile(context, "Study Year", "Year ${user.studyYear}"),
+        if (profile.studyYear != null)
+          _buildInfoTile(context, "Study Year", "Year ${profile.studyYear}"),
 
-        if (user.masterTitle != null && user.masterTitle!.isNotEmpty)
-          _buildInfoTile(context, "Master Title", user.masterTitle!),
+        if (profile.masterTitle != null && profile.masterTitle!.isNotEmpty)
+          _buildInfoTile(context, "Master Title", profile.masterTitle!),
 
         // Preference information
-        if (user.foodPreferences != null && user.foodPreferences!.isNotEmpty)
-          _buildInfoTile(context, "Food Preferences", user.foodPreferences!),
+        if (profile.foodPreferences != null &&
+            profile.foodPreferences!.isNotEmpty)
+          _buildInfoTile(context, "Food Preferences", profile.foodPreferences!),
 
         // CV display and link
-        if (user.cv != null && user.cv!.isNotEmpty) ...[
+        if (profile.cv != null && profile.cv!.isNotEmpty) ...[
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () => _launchUrl(context, user.cv!),
+            onPressed: () => _launchUrl(context, profile.cv!),
             icon: const Icon(Icons.description),
             label: const Text("View CV"),
           ),
