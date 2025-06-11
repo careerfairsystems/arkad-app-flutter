@@ -31,7 +31,7 @@ class AppRouter {
     final loggedIn = _auth.isAuthenticated;
     final path = state.uri.path;
 
-    const publicPrefixes = ['/companies', '/map', '/auth'];
+    const publicPrefixes = ['/companies', '/map', '/auth', '/sessions'];
 
     bool isPublic(String path) =>
         publicPrefixes.any((base) => path == base || path.startsWith('$base/'));
