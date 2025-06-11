@@ -3,6 +3,8 @@ import 'package:arkad/models/programme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:arkad/view_models/auth_model.dart'; // For AuthProvider
+import 'package:arkad/view_models/student_session_model.dart'; // For StudentSessionModel
+import 'package:arkad/view_models/company_model.dart';
 // Make sure programme.dart is imported for Programme enum and programs list.
 import '../../utils/profile_utils.dart'; // For file picking and programmeStringToEnum
 
@@ -27,11 +29,55 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
 
   String? _initialCvFileName; // To store CV filename from user's profile
   bool _isLoading = true; // For loading initial data
+  String _companyName = 'Loading...'; // Add company name state variable
+  bool _companyNameLoaded = false; // Track if company name has been loaded
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    // Remove _loadCompanyName() from here
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Load company name here where Provider context is available
+    if (!_companyNameLoaded) {
+      _loadCompanyName();
+    }
+  }
+
+  Future<void> _loadCompanyName() async {
+    if (_companyNameLoaded) return;
+
+    try {
+      // Create CompanyModel instance directly instead of using Provider
+      final companyModel = CompanyModel();
+
+      // Ensure companies are loaded
+      if (!companyModel.isLoaded) {
+        print("Loading companies for the first time...");
+        await companyModel.getAllCompanies();
+      }
+
+      final company = companyModel.getCompanyById(int.parse(widget.id));
+
+      if (mounted) {
+        setState(() {
+          _companyName = company?.name ?? 'Unknown Company';
+          _companyNameLoaded = true;
+        });
+      }
+    } catch (e) {
+      print('Error loading company name: $e');
+      if (mounted) {
+        setState(() {
+          _companyName = 'Unknown Company';
+          _companyNameLoaded = true;
+        });
+      }
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -46,7 +92,7 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
         // If currentUser.programme is already Programme?, direct assignment is fine.
         // The prompt implies conversion is needed.
         _selectedProgramme = ProfileUtils.programmeStringToEnum(
-          currentUser.programme as String?,
+          currentUser.programme,
         );
       }
 
@@ -111,6 +157,38 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
           SnackBar(content: Text('Error picking motivation letter: $e')),
         );
       }
+    }
+  }
+
+  Future<bool> applyToStudentSession(
+    Programme programme,
+    int studyYear,
+    File? cvFile,
+    File? motivationFile,
+  ) async {
+    try {
+      // Get the StudentSessionModel from the Provider
+      final studentSessionModel = Provider.of<StudentSessionModel>(
+        context,
+        listen: false,
+      );
+
+      // Get the company ID from the widget
+      final companyId = int.parse(widget.id);
+
+      // Call the model's applyToSession method
+      final success = await studentSessionModel.applyToSession(
+        companyId: companyId,
+        programme: programme,
+        studyYear: studyYear,
+        cvFile: cvFile,
+        motivationFile: motivationFile,
+      );
+
+      return success;
+    } catch (e) {
+      print('Error in applyToStudentSession: $e');
+      return false;
     }
   }
 
@@ -282,7 +360,7 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Applying for session with Company ID: ${widget.id}',
+                  'Applying for session with: $_companyName',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -376,8 +454,7 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
                         vertical: 15,
                       ),
                     ),
-                    onPressed: () {
-                      // Manually trigger re-evaluation for any conditional UI if needed
+                    onPressed: () async {
                       setState(() {});
                       if (_formKey.currentState!.validate()) {
                         bool isCvProvided =
@@ -392,22 +469,51 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
                               backgroundColor: Colors.red,
                             ),
                           );
-                          return; // Stop submission if CV is missing
+                          return;
                         }
 
-                        // Process data
-                        // _selectedProgramme, _studyYear are already set
-                        // For CV:
-                        // If _cvFile is not null, a new CV has been selected.
-                        // Else if _initialCvFileName is not null, the user is proceeding with their existing CV.
-                        // If both are null (though validation should prevent this if CV is required), it's an issue.
+                        try {
+                          final success = await applyToStudentSession(
+                            _selectedProgramme!,
+                            _studyYear!,
+                            _cvFile,
+                            _motivationFile,
+                          );
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Application Submitted (Simulated)'),
-                          ),
-                        );
-                        // Potentially pop or navigate away
+                          if (mounted) {
+                            if (success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Application submitted successfully!',
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                              Navigator.pop(context);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Failed to submit application. Please try again.',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Error submitting application: $e',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
                       }
                     },
                     child: const Text('Submit Application'),
