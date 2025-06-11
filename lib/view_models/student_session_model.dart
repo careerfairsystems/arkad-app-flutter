@@ -24,12 +24,12 @@ class TimeSlot {
 }
 
 /// AuthProvider manages authentication state throughout the app
-class StudentSessionProvider with ChangeNotifier {
+class StudentSessionModel with ChangeNotifier {
   // Public value notifier for widgets that only need to know if user is authenticated
   final ValueNotifier<bool> authState = ValueNotifier<bool>(false);
 
   /// Creates a new AuthProvider with required services
-  StudentSessionProvider();
+  StudentSessionModel();
 
   Future<bool> resetPassword(
     String? cv,

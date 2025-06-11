@@ -1,18 +1,12 @@
 import 'package:arkad/services/company_service.dart';
 import 'package:arkad/view_models/auth_model.dart';
 import 'package:arkad/view_models/profile_model.dart';
+import 'package:arkad/view_models/student_session_model.dart';
 import 'package:arkad/view_models/theme_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
-
-import '../providers/auth_provider.dart';
-import '../providers/profile_provider.dart';
-import '../providers/theme_provider.dart';
-import '../providers/student_session_provider.dart';
-import 'api_service.dart';
-import 'auth_service.dart';
 import 'company_service.dart';
 import 'user_service.dart';
 
@@ -37,7 +31,7 @@ void setupServiceLocator() {
   serviceLocator.registerLazySingleton<CompanyService>(() => CompanyService());
 
   serviceLocator.registerLazySingleton<ProfileModel>(() => ProfileModel());
-    serviceLocator.registerLazySingleton<StudentSessionProvider>(
-    () => StudentSessionProvider(),
+  serviceLocator.registerLazySingleton<StudentSessionModel>(
+    () => StudentSessionModel(),
   );
 }

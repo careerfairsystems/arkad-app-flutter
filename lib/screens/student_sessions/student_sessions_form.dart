@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:arkad/models/programme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:arkad/view_models/auth_model.dart'; // For AuthProvider
 // Make sure programme.dart is imported for Programme enum and programs list.
-import '../../providers/auth_provider.dart'; // To get user data
 import '../../utils/profile_utils.dart'; // For file picking and programmeStringToEnum
 
 class StudentSessionFormScreen extends StatefulWidget {
@@ -35,7 +35,7 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthModel>(context, listen: false);
     final currentUser = authProvider.user;
 
     if (currentUser != null) {

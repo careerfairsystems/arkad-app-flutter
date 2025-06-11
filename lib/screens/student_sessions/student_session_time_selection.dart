@@ -1,9 +1,8 @@
 import 'package:arkad/config/theme_config.dart';
+import 'package:arkad/view_models/student_session_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-
-import '../../providers/student_session_provider.dart';
 
 class StudentSessionTimeSelectionScreen extends StatefulWidget {
   final String id;
@@ -38,10 +37,7 @@ class _StudentSessionTimeSelection
 
   Future<void> _loadAvailableSlots() async {
     try {
-      final provider = Provider.of<StudentSessionProvider>(
-        context,
-        listen: false,
-      );
+      final provider = Provider.of<StudentSessionModel>(context, listen: false);
       final companyId = int.parse(widget.id);
       final slots = await provider.getAvailableSlots(companyId);
 
