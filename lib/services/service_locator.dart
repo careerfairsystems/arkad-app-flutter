@@ -1,3 +1,5 @@
+import 'package:arkad/services/company_service.dart';
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
@@ -5,10 +7,6 @@ import 'package:http/http.dart' as http;
 import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/theme_provider.dart';
-import 'api_service.dart';
-import 'auth_service.dart';
-import 'company_service.dart';
-import 'user_service.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
@@ -21,36 +19,14 @@ void setupServiceLocator() {
   );
   serviceLocator.registerLazySingleton<http.Client>(() => http.Client());
 
-  serviceLocator.registerLazySingleton<ApiService>(
-    () => ApiService(client: serviceLocator<http.Client>()),
+  serviceLocator.registerLazySingleton<ArkadApi>(
+    () => ArkadApi(basePathOverride: 'https://staging.backend.arkadtlth.se'),
   );
 
-  serviceLocator.registerLazySingleton<AuthService>(
-    () => AuthService(
-      storage: serviceLocator<FlutterSecureStorage>(),
-      apiService: serviceLocator<ApiService>(),
-    ),
-  );
-
-  serviceLocator.registerLazySingleton<UserService>(
-    () => UserService(
-      authService: serviceLocator<AuthService>(),
-      apiService: serviceLocator<ApiService>(),
-    ),
-  );
-
-  serviceLocator.registerLazySingleton<CompanyService>(
-    () => CompanyService(apiService: serviceLocator<ApiService>()),
-  );
-
-  serviceLocator.registerLazySingleton<AuthProvider>(
-    () => AuthProvider(
-      serviceLocator<AuthService>(),
-      serviceLocator<UserService>(),
-    ),
-  );
+  serviceLocator.registerLazySingleton<AuthProvider>(() => AuthProvider());
 
   serviceLocator.registerLazySingleton<ThemeProvider>(() => ThemeProvider());
+  serviceLocator.registerLazySingleton<CompanyService>(() => CompanyService());
 
   serviceLocator.registerLazySingleton<ProfileProvider>(
     () => ProfileProvider(),

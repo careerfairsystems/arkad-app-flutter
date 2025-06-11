@@ -1,14 +1,50 @@
 import 'dart:io';
 
 import 'package:arkad/models/programme.dart';
+import 'package:arkad/utils/validation_utils.dart';
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/user.dart';
-import '../services/user_service.dart';
 import '../utils/profile_utils.dart';
 import '../utils/service_helper.dart';
+
+const String _profilePictureField = 'profile_picture';
+const String _cvField = 'cv';
+
+extension ProfileSchemaExtension on ProfileSchema {
+  // Get missing required fields
+  List<String> getMissingFields() {
+    List<String> missingFields = [];
+
+    if (firstName == null || firstName!.isEmpty) {
+      missingFields.add('First Name');
+    }
+    if (lastName == null || lastName!.isEmpty) missingFields.add('Last Name');
+    if (programme == null || programme!.isEmpty) missingFields.add('Programme');
+    if (studyYear == null) missingFields.add('Study Year');
+    if (foodPreferences == null || foodPreferences!.isEmpty) {
+      missingFields.add('Food Preferences');
+    }
+
+    // CV, profile picture, LinkedIn, and master title are no longer in missing fields list
+    return missingFields;
+  }
+
+  bool get isVerified {
+    return firstName != null &&
+        firstName!.isNotEmpty &&
+        lastName != null &&
+        lastName!.isNotEmpty &&
+        programme != null &&
+        programme!.isNotEmpty &&
+        studyYear != null &&
+        foodPreferences != null &&
+        foodPreferences!.isNotEmpty;
+  }
+}
 
 /// Comprehensive provider for handling all profile-related functionality
 /// including onboarding, profile updates, and media management
@@ -27,7 +63,9 @@ class ProfileProvider with ChangeNotifier {
   String? _error;
 
   // Form data state (for centralized access)
-  User? _currentUser;
+  ProfileSchema? _currentUser;
+
+  ArkadApi _api = GetIt.I<ArkadApi>();
 
   // Categorized steps - each represents a page in the onboarding flow
   final List<Map<String, dynamic>> _steps = [
@@ -69,7 +107,7 @@ class ProfileProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isUploading => _isUploading;
   String? get error => _error;
-  User? get user => _currentUser;
+  ProfileSchema? get user => _currentUser;
 
   // Calculate completion percentage including both required and optional fields
   double get completionPercentage {
@@ -87,10 +125,11 @@ class ProfileProvider with ChangeNotifier {
   }
 
   // Initialize provider by loading saved data
-  Future<void> initialize(User? user) async {
+  Future<void> initialize() async {
     _setLoading(true);
 
     try {
+      final user = await _api.getUserProfileApi().userModelsApiGetUserProfile();
       final prefs = await SharedPreferences.getInstance();
 
       // Get saved step or default to 0
@@ -98,8 +137,8 @@ class ProfileProvider with ChangeNotifier {
       _onboardingCompleted = prefs.getBool(_onboardingCompletedKey) ?? false;
 
       // Update fields based on current user data
-      _updateFields(user);
-      _currentUser = user;
+      _updateFields(user.data!);
+      _currentUser = user.data!;
     } catch (e) {
       print('Error initializing profile provider: $e');
       _setError('Failed to initialize profile: $e');
@@ -114,7 +153,7 @@ class ProfileProvider with ChangeNotifier {
   }
 
   // Update fields when user data changes
-  void _updateFields(User? user) {
+  void _updateFields(ProfileSchema? user) {
     if (user == null) {
       _missingRequiredFields = [];
       _optionalFields = [];
@@ -246,7 +285,7 @@ class ProfileProvider with ChangeNotifier {
   }
 
   // Refresh onboarding state based on updated user data
-  Future<void> refreshOnboardingState(User? user) async {
+  Future<void> refreshOnboardingState(ProfileSchema? user) async {
     _updateFields(user);
     notifyListeners();
   }
@@ -291,7 +330,7 @@ class ProfileProvider with ChangeNotifier {
 
   /// Update user profile with provided data and optionally upload media files
   Future<bool> updateProfile({
-    required Map<String, dynamic> profileData,
+    required profileData,
     File? profilePicture,
     bool deleteProfilePicture = false,
     File? cv,
@@ -301,25 +340,29 @@ class ProfileProvider with ChangeNotifier {
     _clearError();
 
     try {
-      final userService = ServiceHelper.getService<UserService>();
-
       // Update profile fields
-      await userService.updateProfileFields(profileData);
+      await _api.getUserProfileApi().userModelsApiUpdateProfile(
+        updateProfileSchema: profileData,
+      );
 
       // Handle profile picture
       if (profilePicture != null) {
         _setUploading(true);
-        await userService.uploadProfilePicture(profilePicture);
+        await _api.getUserProfileApi().userModelsApiUpdateProfilePicture(
+          profilePicture: await getMultipartFile(profilePicture),
+        );
       } else if (deleteProfilePicture) {
-        await userService.deleteProfilePicture();
+        await _api.getUserProfileApi().userModelsApiDeleteProfilePicture();
       }
 
       // Handle CV
       if (cv != null) {
         _setUploading(true);
-        await userService.uploadCV(cv);
+        await _api.getUserProfileApi().userModelsApiUpdateCv(
+          cv: await getMultipartFile(cv),
+        );
       } else if (deleteCV) {
-        await userService.deleteCV();
+        await _api.getUserProfileApi().userModelsApiDeleteCv();
       }
 
       return true;

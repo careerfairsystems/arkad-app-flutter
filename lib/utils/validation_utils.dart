@@ -1,3 +1,9 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
+
 /// Utility class for form validation in authentication screens
 class ValidationUtils {
   // Regular expressions for validation
@@ -49,4 +55,19 @@ class ValidationUtils {
   static bool doPasswordsMatch(String password, String confirmPassword) {
     return password == confirmPassword;
   }
+}
+
+Future<MultipartFile> getMultipartFile(File file) async {
+  // Determine mime type
+  final mimeType = lookupMimeType(file.path)!;
+  final fileType = mimeType.split('/');
+
+  // Add the file
+  final fileBytes = await file.readAsBytes();
+
+  return MultipartFile.fromBytes(
+    fileBytes,
+    filename: file.path.split('/').last,
+    contentType: MediaType(fileType[0], fileType[1]),
+  );
 }

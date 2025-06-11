@@ -99,6 +99,14 @@ flutter pub get
 
 This will download and install all the required packages for the project.
 
+### Generating API
+
+This project uses the [OpenAPI Generator](https://openapi-generator.tech/) to generate API client code. To generate the API client, follow these steps:
+
+```sh
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
 ### Run the App
 
 Make sure your emulator is running or physical device is connected, then execute:

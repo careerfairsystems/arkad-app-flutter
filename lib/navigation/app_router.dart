@@ -1,3 +1,4 @@
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -66,7 +67,7 @@ class AppRouter {
                   GoRoute(
                     path: 'detail',
                     pageBuilder: _slide((context, s) {
-                      final company = s.extra as Company?;
+                      final company = s.extra as CompanyOut?;
                       if (company == null) {
                         return const Scaffold(
                           body: Center(child: Text('Error: company missing')),
@@ -117,14 +118,14 @@ class AppRouter {
                 path: '/profile',
                 pageBuilder: _noAnim((context) {
                   final user = context.read<AuthProvider>().user!;
-                  return ProfileScreen(user: user);
+                  return ProfileScreen(profile: user);
                 }),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     pageBuilder: _slide((context, _) {
                       final user = context.read<AuthProvider>().user!;
-                      return EditProfileScreen(user: user);
+                      return EditProfileScreen(profile: user);
                     }),
                   ),
                 ],

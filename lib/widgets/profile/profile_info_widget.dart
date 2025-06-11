@@ -1,19 +1,19 @@
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/theme_config.dart';
-import '../../models/user.dart';
 
 /// A reusable widget for displaying user profile information
 /// This can be used in both full profile view
 class ProfileInfoWidget extends StatelessWidget {
-  final User user;
+  final ProfileSchema profile;
   final bool showFullDetails;
   final VoidCallback? onEditPressed;
 
   const ProfileInfoWidget({
     super.key,
-    required this.user,
+    required this.profile,
     this.showFullDetails = true,
     this.onEditPressed,
   });
@@ -32,27 +32,31 @@ class ProfileInfoWidget extends StatelessWidget {
                 child: CircleAvatar(
                   radius: 60,
                   backgroundImage:
-                      user.profilePicture != null &&
-                              user.profilePicture!.isNotEmpty
-                          ? NetworkImage(user.profilePicture!)
+                      profile.profilePicture != null &&
+                              profile.profilePicture!.isNotEmpty
+                          ? NetworkImage(profile.profilePicture!)
                           : null,
                   child:
-                      user.profilePicture == null ||
-                              user.profilePicture!.isEmpty
+                      profile.profilePicture == null ||
+                              profile.profilePicture!.isEmpty
                           ? const Icon(Icons.person, size: 60)
                           : null,
                 ),
               ),
               const SizedBox(height: 12),
               Text(
-                "${user.firstName ?? 'No'} ${user.lastName ?? 'Name'}",
+                "${profile.firstName} ${profile.lastName}",
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              Text(user.email, style: Theme.of(context).textTheme.titleSmall),
-              if (user.programme != null && user.programme!.isNotEmpty) ...[
+              Text(
+                profile.email,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              if (profile.programme != null &&
+                  profile.programme!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
-                  user.programme!,
+                  profile.programme!,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -66,36 +70,41 @@ class ProfileInfoWidget extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Basic information section
-          _buildInfoTile(context, "Email", user.email),
+          _buildInfoTile(context, "Email", profile.email),
 
           // LinkedIn info with clickable link
-          if (user.linkedin != null && user.linkedin!.isNotEmpty)
+          if (profile.linkedin != null && profile.linkedin!.isNotEmpty)
             InkWell(
-              onTap: () => _launchUrl(context, user.linkedin!),
+              onTap: () => _launchUrl(context, profile.linkedin!),
               child: _buildInfoTile(
                 context,
                 "LinkedIn",
-                user.linkedin!,
+                profile.linkedin!,
                 isLink: true,
               ),
             ),
 
           // Education information
-          if (user.studyYear != null)
-            _buildInfoTile(context, "Study Year", "Year ${user.studyYear}"),
+          if (profile.studyYear != null)
+            _buildInfoTile(context, "Study Year", "Year ${profile.studyYear}"),
 
-          if (user.masterTitle != null && user.masterTitle!.isNotEmpty)
-            _buildInfoTile(context, "Master Title", user.masterTitle!),
+          if (profile.masterTitle != null && profile.masterTitle!.isNotEmpty)
+            _buildInfoTile(context, "Master Title", profile.masterTitle!),
 
           // Preference information
-          if (user.foodPreferences != null && user.foodPreferences!.isNotEmpty)
-            _buildInfoTile(context, "Food Preferences", user.foodPreferences!),
+          if (profile.foodPreferences != null &&
+              profile.foodPreferences!.isNotEmpty)
+            _buildInfoTile(
+              context,
+              "Food Preferences",
+              profile.foodPreferences!,
+            ),
 
           // CV display and link
-          if (user.cv != null && user.cv!.isNotEmpty) ...[
+          if (profile.cv != null && profile.cv!.isNotEmpty) ...[
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: () => _launchUrl(context, user.cv!),
+              onPressed: () => _launchUrl(context, profile.cv!),
               icon: const Icon(Icons.description),
               label: const Text("View CV"),
             ),

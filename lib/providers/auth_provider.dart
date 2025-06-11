@@ -1,25 +1,29 @@
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get_it/get_it.dart';
 
-import '../models/user.dart';
-import '../services/auth_service.dart';
-import '../services/service_locator.dart';
-import '../services/user_service.dart';
 import 'profile_provider.dart';
+
+const String _tokenKey = 'auth_token';
+const String _emailKey = 'temp_email';
+const String _passwordKey = 'temp_password';
 
 /// Authentication status states
 enum AuthStatus { initial, authenticated, unauthenticated }
 
 /// AuthProvider manages authentication state throughout the app
 class AuthProvider with ChangeNotifier {
-  final AuthService _authService;
-  final UserService _userService;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final ArkadApi _apiService = GetIt.I<ArkadApi>();
+  String token = "";
 
   // Public value notifier for widgets that only need to know if user is authenticated
   final ValueNotifier<bool> authState = ValueNotifier<bool>(false);
 
   // Private state variables
   AuthStatus _status = AuthStatus.initial;
-  User? _user;
+  ProfileSchema? _user;
   bool _loading = true;
   String? _error;
 
@@ -28,14 +32,14 @@ class AuthProvider with ChangeNotifier {
   String? _verificationPassword;
 
   /// Creates a new AuthProvider with required services
-  AuthProvider(this._authService, this._userService) {
+  AuthProvider() {
     // Auto-check if user is logged in on startup
     _checkAuthStatus();
   }
 
   // Getters
   AuthStatus get status => _status;
-  User? get user => _user;
+  ProfileSchema? get user => _user;
   bool get isLoading => _loading;
   String? get error => _error;
   String? get verificationEmail => _verificationEmail;
@@ -53,7 +57,23 @@ class AuthProvider with ChangeNotifier {
 
     try {
       // Begin signup process
-      await _authService.beginSignup(email, password);
+      final SignupSchema signupSchema = SignupSchema((b) {
+        b.email = email;
+        b.password = password;
+      });
+      final res = await _apiService
+          .getAuthenticationApi()
+          .userModelsApiBeginSignup(signupSchema: signupSchema);
+          
+      if (res.statusCode == 401) {
+        _setError('Invalid credentials or user already exists');
+        return false;
+      }
+      
+      if (res.statusCode != 200) {
+        _setError('Failed to initiate signup: ${res.statusMessage ?? 'Unknown error'}');
+        return false;
+      }
 
       // Store for later verification
       _verificationEmail = email;
@@ -74,14 +94,31 @@ class AuthProvider with ChangeNotifier {
     _clearError();
 
     try {
-      String? password =
-          _verificationPassword ?? await _authService.getStoredPassword();
+      String? password = _verificationPassword ?? await getStoredPassword();
 
-      if (password == null) {
-        throw Exception('Missing password for verification code request');
+      if (password == null || password.isEmpty) {
+        _setError('Missing password for verification code request. Please try signing up again.');
+        return false;
       }
 
-      await _authService.beginSignup(email, password);
+      final SignupSchema signupSchema = SignupSchema((b) {
+        b.email = email;
+        b.password = password;
+      });
+      final res = await _apiService
+          .getAuthenticationApi()
+          .userModelsApiBeginSignup(signupSchema: signupSchema);
+          
+      if (res.statusCode == 401) {
+        _setError('Invalid credentials. Please try signing up again.');
+        return false;
+      }
+      
+      if (res.statusCode != 200) {
+        _setError('Failed to send verification code: ${res.statusMessage ?? 'Unknown error'}');
+        return false;
+      }
+      
       return true;
     } catch (e) {
       _setError('Failed to request verification code: ${e.toString()}');
@@ -98,26 +135,43 @@ class AuthProvider with ChangeNotifier {
 
     try {
       // Complete the signup process with verification code
-      await _authService.completeSignup(code);
-
       // Get stored email/password or use the ones we saved
-      final email =
-          _verificationEmail ?? await _authService.getStoredEmail() ?? '';
-      final password =
-          _verificationPassword ?? await _authService.getStoredPassword() ?? '';
-
-      if (email.isEmpty || password.isEmpty) {
-        throw Exception('Missing authentication data');
+      final email = _verificationEmail ?? await getStoredEmail();
+      final password = _verificationPassword ?? await getStoredPassword();
+      
+      if (email == null || email.isEmpty || password == null || password.isEmpty) {
+        _setError('Missing authentication data. Please try signing up again.');
+        return false;
+      }
+      
+      final CompleteSignupSchema completeSignupSchema = CompleteSignupSchema((
+        b,
+      ) {
+        b.code = code;
+        b.email = email;
+        b.password = password;
+      });
+      final res = await _apiService
+          .getAuthenticationApi()
+          .userModelsApiCompleteSignup(
+            completeSignupSchema: completeSignupSchema,
+          );
+          
+      if (res.statusCode == 401) {
+        _setError('Invalid verification code or expired session');
+        return false;
+      }
+      
+      if (res.statusCode != 200) {
+        _setError('Failed to complete signup: ${res.statusMessage ?? 'Unknown error'}');
+        return false;
       }
 
-      await _authService.signin(email, password);
-
-      final user = await _getUserProfileOrCreateMinimal(email);
-      _authenticate(user);
+      _authenticate();
 
       // Initialize profile state with the new user
-      final profileProvider = serviceLocator<ProfileProvider>();
-      await profileProvider.initialize(user);
+      final profileProvider = GetIt.I<ProfileProvider>();
+      await profileProvider.initialize();
 
       _verificationEmail = null;
       _verificationPassword = null;
@@ -137,56 +191,41 @@ class AuthProvider with ChangeNotifier {
     _clearError();
 
     try {
-      await _authService.signin(email, password);
+      final res = await _apiService.getAuthenticationApi().userModelsApiSignin(
+        signinSchema: SigninSchema((b) {
+          b.email = email;
+          b.password = password;
+        }),
+      );
+      
+      // Check for authentication errors
+      if (res.statusCode == 401) {
+        _setError('Invalid email or password. Please check your credentials.');
+        return false;
+      }
+      
+      if (res.statusCode != 200 || res.data == null) {
+        _setError('Login failed: ${res.statusMessage ?? 'Unknown error'}');
+        return false;
+      }
+      
+      final userToken = res.data!;
+      await _storage.write(key: _tokenKey, value: userToken);
+      token = userToken;
+      _apiService.setBearerAuth("Authorization", userToken);
 
-      final user = await _userService.getUserProfile();
-      _authenticate(user);
+      _authenticate();
 
       // Initialize profile state with the user
-      final profileProvider = serviceLocator<ProfileProvider>();
-      await profileProvider.initialize(user);
+      final profileProvider = GetIt.I<ProfileProvider>();
+      await profileProvider.initialize();
 
       return true;
     } catch (e) {
-      await _authService.logout();
+      await logout();
       _setUnauthenticated();
       _setError('Login failed: ${e.toString()}');
       return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Log out the current user
-  Future<void> logout() async {
-    _setLoading(true);
-    await _authService.logout();
-
-    // Reset profile state when logging out
-    final profileProvider = serviceLocator<ProfileProvider>();
-    await profileProvider.resetOnboarding();
-
-    _setUnauthenticated();
-    _setLoading(false);
-  }
-
-  /// Refresh the user profile data
-  Future<void> refreshUserProfile() async {
-    if (_status != AuthStatus.authenticated) return;
-
-    _setLoading(true);
-
-    try {
-      final user = await _userService.getUserProfile();
-      _user = user;
-
-      // Update profile provider with refreshed user data
-      final profileProvider = serviceLocator<ProfileProvider>();
-      await profileProvider.refreshOnboardingState(user);
-
-      notifyListeners();
-    } catch (e) {
-      _setError('Failed to refresh profile: ${e.toString()}');
     } finally {
       _setLoading(false);
     }
@@ -199,18 +238,22 @@ class AuthProvider with ChangeNotifier {
     _setLoading(true);
 
     try {
-      final token = await _authService.getToken();
-
-      if (token != null) {
+      // Load token from secure storage
+      final storedToken = await _storage.read(key: _tokenKey);
+      
+      if (storedToken != null && storedToken.isNotEmpty) {
+        token = storedToken;
+        _apiService.setBearerAuth("Authorization", storedToken);
+        
         try {
-          final user = await _userService.getUserProfile();
-          _authenticate(user);
+          _authenticate();
 
           // Initialize profile provider with authenticated user
-          final profileProvider = serviceLocator<ProfileProvider>();
-          await profileProvider.initialize(user);
+          final profileProvider = GetIt.I<ProfileProvider>();
+          await profileProvider.initialize();
         } catch (e) {
-          await _authService.logout();
+          // If authentication verification fails, logout and go to unauthenticated state
+          await logout();
           _setUnauthenticated();
         }
       } else {
@@ -223,30 +266,17 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Attempt to get user profile or create a minimal user object if that fails
-  Future<User> _getUserProfileOrCreateMinimal(String email) async {
-    try {
-      return await _userService.getUserProfile();
-    } catch (e) {
-      // If profile fetch fails, create minimal user
-      return User(
-        id: 0,
-        email: email,
-        firstName: '',
-        lastName: '',
-        isStudent: true,
-        isActive: true,
-        isStaff: false,
-      );
-    }
-  }
-
   /// Sign in an existing user
+  ///
   Future<bool> resetPassword(String email) async {
     _setLoading(true);
 
     try {
-      await _authService.resetPassword(email);
+      await _apiService.getAuthenticationApi().userModelsApiResetPassword(
+        resetPasswordSchema: ResetPasswordSchema((b) {
+          b.email = email;
+        }),
+      );
       return true;
     } catch (e) {
       _setError('Reset failed: ${e.toString()}');
@@ -270,9 +300,8 @@ class AuthProvider with ChangeNotifier {
     _error = null;
   }
 
-  void _authenticate(User user) {
+  void _authenticate() {
     _status = AuthStatus.authenticated;
-    _user = user;
     authState.value = true;
     notifyListeners();
   }
@@ -283,4 +312,38 @@ class AuthProvider with ChangeNotifier {
     authState.value = false;
     notifyListeners();
   }
+
+  Future<void> logout() async {
+    _setLoading(true);
+    await _storage.delete(key: _tokenKey);
+    await _storage.delete(key: _emailKey);
+    await _storage.delete(key: _passwordKey);
+
+    // Reset profile state when logging out
+    final profileProvider = GetIt.I<ProfileProvider>();
+    await profileProvider.resetOnboarding();
+
+    _setUnauthenticated();
+    _setLoading(false);
+  }
+
+  /// Retrieves stored email.
+  Future<String?> getStoredEmail() async => _storage.read(key: _emailKey);
+
+  /// Retrieves stored password.
+  Future<String?> getStoredPassword() async => _storage.read(key: _passwordKey);
+
+  Future<void> refreshUserProfile() async {
+    final profileProvider = GetIt.I<ProfileProvider>();
+    await profileProvider.initialize();
+  }
+}
+
+class AuthException implements Exception {
+  final String message;
+
+  AuthException(this.message);
+
+  @override
+  String toString() => message;
 }
