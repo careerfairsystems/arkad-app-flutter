@@ -12,7 +12,7 @@ import '../utils/service_helper.dart';
 
 /// Provider for handling all profile-related functionality including profile updates
 /// and media management
-class ProfileProvider with ChangeNotifier {
+class ProfileModel with ChangeNotifier {
   // Profile update state
   bool _isLoading = false;
   bool _isUploading = false;

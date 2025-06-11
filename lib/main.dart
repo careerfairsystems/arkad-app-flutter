@@ -1,13 +1,10 @@
 import 'package:arkad/view_models/auth_model.dart';
 import 'package:arkad/view_models/profile_model.dart';
+import 'package:arkad/view_models/student_session_model.dart';
 import 'package:arkad/view_models/theme_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'navigation/app_router.dart';
-import 'providers/auth_provider.dart';
-import 'providers/profile_provider.dart';
-import 'providers/theme_provider.dart';
-import 'providers/student_session_provider.dart';
 import 'services/service_locator.dart';
 
 void main() async {
@@ -44,8 +41,8 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider.value(value: serviceLocator<ThemeModel>()),
         ChangeNotifierProvider.value(value: serviceLocator<AuthModel>()),
         ChangeNotifierProvider.value(value: serviceLocator<ProfileModel>()),
-         ChangeNotifierProvider.value(
-          value: serviceLocator<StudentSessionProvider>(),
+        ChangeNotifierProvider.value(
+          value: serviceLocator<StudentSessionModel>(),
         ),
       ],
       child: Consumer<ThemeModel>(
