@@ -1,13 +1,11 @@
+import 'package:arkad/view_models/auth_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/auth_provider.dart';
-import '../../providers/profile_provider.dart';
 import '../../utils/login_manager.dart';
 import '../../widgets/profile/profile_info_widget.dart';
-
 
 class ProfileScreen extends StatefulWidget {
   final ProfileSchema profile;
@@ -19,29 +17,21 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  // Add listener registration flag to prevent duplicate listeners
+  bool _isUserStateListenerRegistered = false;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthModel>(context, listen: false);
       final user = authProvider.user;
       if (user != null) {
-        final profileProvider = Provider.of<ProfileProvider>(
-          context,
-          listen: false,
-        );
-        profileProvider.initialize();
-
-        // Register listener for user state changes to keep verification and profile in sync
-        if (!_isUserStateListenerRegistered) {
-          _isUserStateListenerRegistered = true;
-          authProvider.addListener(_syncVerificationWithProfile);
-        }
+        final authProvider = Provider.of<AuthModel>(context, listen: false);
       }
     });
   }
 
-  void _handleLogout(BuildContext context, AuthProvider authProvider) {
+  void _handleLogout(BuildContext context, AuthModel authProvider) {
     authProvider.logout();
 
     LoginManager.clearCredentials();
@@ -52,7 +42,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _navigateToEditProfile() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.user ?? widget.user;
-    context.push('/profile/edit', extra: user).then((_) => authProvider.refreshUserProfile());
+    context
+        .push('/profile/edit', extra: user)
+        .then((_) => authProvider.refreshUserProfile());
   }
 
   @override
@@ -114,18 +106,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Center(
               child: Text(
                 'Coming Soon',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: ArkadColors.arkadNavy,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(color: ArkadColors.arkadNavy),
               ),
             ),
             // Student Sessions Tab (Placeholder)
             Center(
               child: Text(
                 'Coming Soon',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: ArkadColors.arkadNavy,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(color: ArkadColors.arkadNavy),
               ),
             ),
           ],
