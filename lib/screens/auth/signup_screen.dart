@@ -197,9 +197,6 @@ class _SignupScreenState extends State<SignupScreen> {
       final success = await authProvider.initialSignUp(
         _emailController.text.trim(),
         _passwordController.text,
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        foodPreferences: _foodPreferencesController.text.trim(),
       );
       if (mounted) {
         if (success) {

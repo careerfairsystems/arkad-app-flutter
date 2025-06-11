@@ -329,10 +329,6 @@ class AuthModel with ChangeNotifier {
     await _storage.delete(key: _emailKey);
     await _storage.delete(key: _passwordKey);
 
-    // Reset profile state when logging out
-    final profileProvider = GetIt.I<ProfileModel>();
-    await profileProvider.resetOnboarding();
-
     _setUnauthenticated();
     _setLoading(false);
   }
