@@ -12,4 +12,7 @@ class ApiEndpoints {
 
   // Company endpoints
   static const String companies = '/company/';
+
+  // Event endpoints
+  static const String events = '/events';
 }

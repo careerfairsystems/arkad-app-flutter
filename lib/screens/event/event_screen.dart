@@ -1,8 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class EventScreen extends StatelessWidget {
+import '../../models/event.dart';
+import '../../services/event_service.dart';
+import '../../utils/service_helper.dart';
+
+class EventScreen extends StatefulWidget {
   const EventScreen({super.key});
+
+  @override
+  State<EventScreen> createState() => _EventScreen();
+}
+
+class _EventScreen extends State<EventScreen> {
+  late final EventService _eventService;
+
+  List<Event> _events = List.empty();
+
+  @override
+  void initState() {
+    super.initState();
+    _eventService = ServiceHelper.getService<EventService>();
+    _loadEvents();
+  }
+
+  Future<void> _loadEvents() async {
+    setState(() {});
+
+    try {
+      final events = await _eventService.getAllEvents();
+      setState(() {
+        print(events);
+        _events = events;
+      });
+    } catch (e) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +82,7 @@ class EventScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: ListView.builder(
                 shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: 4,
+                itemCount: _events.length,
                 itemBuilder: (context, index) {
                   return _buildEventCard(index);
                 },

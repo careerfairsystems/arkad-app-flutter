@@ -8,6 +8,7 @@ import '../providers/theme_provider.dart';
 import 'api_service.dart';
 import 'auth_service.dart';
 import 'company_service.dart';
+import 'event_service.dart';
 import 'student_sessions_service.dart';
 import 'user_service.dart';
 
@@ -46,6 +47,10 @@ void setupServiceLocator() {
 
   serviceLocator.registerLazySingleton<StudentSessionsService>(
     () => StudentSessionsService(apiService: serviceLocator<ApiService>()),
+  );
+
+  serviceLocator.registerLazySingleton<EventService>(
+    () => EventService(apiService: serviceLocator<ApiService>()),
   );
 
   serviceLocator.registerLazySingleton<AuthProvider>(
