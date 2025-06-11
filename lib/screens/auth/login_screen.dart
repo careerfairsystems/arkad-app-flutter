@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted) {
         if (success) {
-          context.go('/profile');
+          context.go('/companies');
         } else if (authProvider.error != null) {
           setState(() => _errorMessage = authProvider.error);
         }

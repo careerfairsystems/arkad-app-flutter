@@ -44,7 +44,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
       final success = await authProvider.completeSignup(_codeController.text);
       if (mounted) {
         if (success) {
-          context.go('/profile');
+          context.go('/companies');
         } else if (authProvider.error != null) {
           setState(() => _errorMessage = authProvider.error);
         }

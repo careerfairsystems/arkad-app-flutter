@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../models/company.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/signup_screen.dart';
@@ -33,11 +32,21 @@ class AppRouter {
     final loggedIn = _auth.isAuthenticated;
     final path = state.uri.path;
 
-    const publicPrefixes = ['/companies', '/map', '/auth', '/sessions'];
+    const publicPrefixes = [
+      '/companies',
+      '/map',
+      '/auth',
+      '/sessions',
+      '/events',
+    ];
 
     bool isPublic(String path) =>
         publicPrefixes.any((base) => path == base || path.startsWith('$base/'));
 
+    // Redirect to login if trying to access profile while not authenticated
+    if (!loggedIn && path.startsWith('/profile')) return '/auth/login';
+
+    // For other protected routes (if any), redirect to login
     if (!loggedIn && !isPublic(path)) return '/auth/login';
 
     return null;

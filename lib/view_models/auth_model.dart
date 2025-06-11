@@ -1,4 +1,3 @@
-import 'package:arkad/view_models/profile_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
