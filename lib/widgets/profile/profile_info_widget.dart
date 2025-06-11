@@ -4,19 +4,56 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/theme_config.dart';
 
-/// A reusable widget for displaying user profile information
-/// This can be used in both full profile view
 class ProfileInfoWidget extends StatelessWidget {
   final ProfileSchema profile;
-  final bool showFullDetails;
-  final VoidCallback? onEditPressed;
 
-  const ProfileInfoWidget({
-    super.key,
-    required this.profile,
-    this.showFullDetails = true,
-    this.onEditPressed,
-  });
+  const ProfileInfoWidget({super.key, required this.profile});
+
+  Future<void> _launchUrl(BuildContext context, String url) async {
+    final Uri uri = Uri.parse(url.startsWith('http') ? url : 'https://$url');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not open $url')));
+      }
+    }
+  }
+
+  Widget _buildInfoTile(
+    BuildContext context,
+    String label,
+    String value, {
+    bool isLink = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(color: Colors.grey[600]),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: isLink ? ArkadColors.arkadTurkos : null,
+                decoration: isLink ? TextDecoration.underline : null,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,130 +101,47 @@ class ProfileInfoWidget extends StatelessWidget {
           ),
         ),
 
-        if (showFullDetails) ...[
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 16),
+        const SizedBox(height: 24),
+        const Divider(),
+        const SizedBox(height: 16),
 
-          // Basic information section
-          _buildInfoTile(context, "Email", profile.email),
+        // Basic information section
+        _buildInfoTile(context, "Email", profile.email),
 
-          // LinkedIn info with clickable link
-          if (profile.linkedin != null && profile.linkedin!.isNotEmpty)
-            InkWell(
-              onTap: () => _launchUrl(context, profile.linkedin!),
-              child: _buildInfoTile(
-                context,
-                "LinkedIn",
-                profile.linkedin!,
-                isLink: true,
-              ),
-            ),
-
-          // Education information
-          if (profile.studyYear != null)
-            _buildInfoTile(context, "Study Year", "Year ${profile.studyYear}"),
-
-          if (profile.masterTitle != null && profile.masterTitle!.isNotEmpty)
-            _buildInfoTile(context, "Master Title", profile.masterTitle!),
-
-          // Preference information
-          if (profile.foodPreferences != null &&
-              profile.foodPreferences!.isNotEmpty)
-            _buildInfoTile(
+        // LinkedIn info with clickable link
+        if (profile.linkedin != null && profile.linkedin!.isNotEmpty)
+          InkWell(
+            onTap: () => _launchUrl(context, profile.linkedin!),
+            child: _buildInfoTile(
               context,
-              "Food Preferences",
-              profile.foodPreferences!,
+              "LinkedIn",
+              profile.linkedin!,
+              isLink: true,
             ),
+          ),
 
-          // CV display and link
-          if (profile.cv != null && profile.cv!.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => _launchUrl(context, profile.cv!),
-              icon: const Icon(Icons.description),
-              label: const Text("View CV"),
-            ),
-          ],
-        ],
+        // Education information
+        if (profile.studyYear != null)
+          _buildInfoTile(context, "Study Year", "Year ${profile.studyYear}"),
 
-        // Edit button if provided
-        if (onEditPressed != null) ...[
+        if (profile.masterTitle != null && profile.masterTitle!.isNotEmpty)
+          _buildInfoTile(context, "Master Title", profile.masterTitle!),
+
+        // Preference information
+        if (profile.foodPreferences != null &&
+            profile.foodPreferences!.isNotEmpty)
+          _buildInfoTile(context, "Food Preferences", profile.foodPreferences!),
+
+        // CV display and link
+        if (profile.cv != null && profile.cv!.isNotEmpty) ...[
           const SizedBox(height: 16),
-          Center(
-            child: ElevatedButton.icon(
-              onPressed: onEditPressed,
-              icon: const Icon(Icons.edit),
-              label: const Text("Edit Profile"),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: ArkadColors.arkadTurkos,
-                backgroundColor: Colors.white,
-                side: BorderSide(color: ArkadColors.arkadTurkos),
-              ),
-            ),
+          ElevatedButton.icon(
+            onPressed: () => _launchUrl(context, profile.cv!),
+            icon: const Icon(Icons.description),
+            label: const Text("View CV"),
           ),
         ],
       ],
     );
-  }
-
-  /// Helper method to build an information tile
-  Widget _buildInfoTile(
-    BuildContext context,
-    String label,
-    String value, {
-    bool isLink = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              decoration: isLink ? TextDecoration.underline : null,
-              color: isLink ? Colors.blue : null,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Helper method to launch URLs safely
-  Future<void> _launchUrl(BuildContext context, String urlString) async {
-    // Ensure URL has proper scheme
-    String fixedUrl = urlString;
-    if (!urlString.startsWith('http://') && !urlString.startsWith('https://')) {
-      fixedUrl = 'https://$urlString';
-    }
-
-    try {
-      // Parse the URL with fixed scheme
-      final Uri uri = Uri.parse(fixedUrl);
-
-      // Check if the URL can be launched
-      if (await canLaunchUrl(uri)) {
-        // Launch URL in external browser
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        // Show error if URL can't be launched
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Could not open: $urlString')));
-        }
-      }
-    } catch (e) {
-      // Show error on exception (e.g., malformed URL)
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Invalid URL: $urlString')));
-      }
-    }
   }
 }

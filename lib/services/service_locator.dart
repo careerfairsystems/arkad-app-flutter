@@ -7,9 +7,6 @@ import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
-import 'company_service.dart';
-import 'user_service.dart';
-
 final GetIt serviceLocator = GetIt.instance;
 
 /// Centrialized initialization of all the services and providers. An alternative to Flutter’s inherited widgets and provides a more decoupled way to access services and providers throughout the app. This abstracts the complexity from lower-level components and avoids the need to pass dependencies down the widget tree.
