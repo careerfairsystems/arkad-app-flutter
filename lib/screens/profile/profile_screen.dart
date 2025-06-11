@@ -1,3 +1,4 @@
+import 'package:arkad/config/theme_config.dart';
 import 'package:arkad/view_models/auth_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
@@ -40,8 +41,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _navigateToEditProfile() {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final user = authProvider.user ?? widget.user;
+    final authProvider = Provider.of<AuthModel>(context, listen: false);
+    final user = authProvider.user ?? widget.profile;
     context
         .push('/profile/edit', extra: user)
         .then((_) => authProvider.refreshUserProfile());
@@ -49,7 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<AuthModel>(context);
     final currentUser = authProvider.user ?? widget.profile;
 
     return DefaultTabController(
@@ -86,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    ProfileInfoWidget(user: currentUser),
+                    ProfileInfoWidget(profile: currentUser),
                     const SizedBox(height: 24),
                     Center(
                       child: TextButton.icon(
