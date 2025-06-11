@@ -10,61 +10,17 @@ import 'package:image_picker/image_picker.dart';
 import '../utils/profile_utils.dart';
 import '../utils/service_helper.dart';
 
-const String _profilePictureField = 'profile_picture';
-const String _cvField = 'cv';
-
-extension ProfileSchemaExtension on ProfileSchema {
-  // Get missing required fields
-  List<String> getMissingFields() {
-    List<String> missingFields = [];
-
-    if (firstName == null || firstName!.isEmpty) {
-      missingFields.add('First Name');
-    }
-    if (lastName == null || lastName!.isEmpty) missingFields.add('Last Name');
-    if (programme == null || programme!.isEmpty) missingFields.add('Programme');
-    if (studyYear == null) missingFields.add('Study Year');
-    if (foodPreferences == null || foodPreferences!.isEmpty) {
-      missingFields.add('Food Preferences');
-    }
-
-    // CV, profile picture, LinkedIn, and master title are no longer in missing fields list
-    return missingFields;
-  }
-
-  bool get isVerified {
-    return firstName != null &&
-        firstName!.isNotEmpty &&
-        lastName != null &&
-        lastName!.isNotEmpty &&
-        programme != null &&
-        programme!.isNotEmpty &&
-        studyYear != null &&
-        foodPreferences != null &&
-        foodPreferences!.isNotEmpty;
-  }
-}
-
-/// Comprehensive provider for handling all profile-related functionality
-/// including onboarding, profile updates, and media management
-class ProfileModel with ChangeNotifier {
-  // State variables for onboarding
-  int _currentStep = 0;
-  bool _onboardingCompleted = false;
-  int _totalSteps = 0;
-  List<String> _missingRequiredFields = [];
-  List<String> _optionalFields = [];
-  List<String> _completedOptionalFields = [];
-
+/// Provider for handling all profile-related functionality including profile updates
+/// and media management
+class ProfileProvider with ChangeNotifier {
   // Profile update state
   bool _isLoading = false;
   bool _isUploading = false;
   String? _error;
-
-  // Form data state (for centralized access)
-  ProfileSchema? _currentUser;
-
   ArkadApi _api = GetIt.I<ArkadApi>();
+
+  // Form data state
+  ProfileSchema? _currentUser;
 
   // Required fields
   final List<String> _requiredFields = [
@@ -88,72 +44,36 @@ class ProfileModel with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isUploading => _isUploading;
   String? get error => _error;
-  ProfileSchema? get user => _currentUser;
+  ProfileSchema? get currentUser => _currentUser;
+  List<String> get requiredFields => _requiredFields;
+  List<String> get optionalFields => _optionalFields;
+  List<String> get missingRequiredFields => _getMissingFields();
 
-  // Calculate completion percentage including both required and optional fields
-  double get completionPercentage {
-    int totalFields = _steps.fold(0, (total, step) {
-      return total +
-          (step['requiredFields'].length as int) +
-          (step['optionalFields'].length as int);
-    });
-
-    int missingFields =
-        _missingRequiredFields.length +
-        (_optionalFields.length - _completedOptionalFields.length);
-
-    return totalFields > 0 ? (totalFields - missingFields) / totalFields : 1.0;
-  }
-
-  // Initialize provider by loading saved data
-  Future<void> initialize() async {
-    _setLoading(true);
-
-    try {
-      final user = await _api.getUserProfileApi().userModelsApiGetUserProfile();
-      final prefs = await SharedPreferences.getInstance();
-
-      // Get saved step or default to 0
-      _currentStep = prefs.getInt(_currentStepKey) ?? 0;
-      _onboardingCompleted = prefs.getBool(_onboardingCompletedKey) ?? false;
-
-      // Update fields based on current user data
-      _updateFields(user.data!);
-      _currentUser = user.data!;
-    } catch (e) {
-      print('Error initializing profile provider: $e');
-      _setError('Failed to initialize profile: $e');
-
-      // Use default values if initialization fails
-      _currentStep = 0;
-      _onboardingCompleted = false;
-      _updateFields(user);
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Update fields when user data changes
-  void _updateFields(ProfileSchema? user) {
-    if (user == null) {
-      _missingRequiredFields = [];
-      _optionalFields = [];
-      _completedOptionalFields = [];
-      _totalSteps = 0;
-      _currentUser = null;
-      notifyListeners();
-      return;
-    }
-
-    // Store current user
+  void initialize(ProfileSchema user) {
     _currentUser = user;
     notifyListeners();
   }
 
-  // Refresh onboarding state based on updated user data
-  Future<void> refreshOnboardingState(ProfileSchema? user) async {
-    _updateFields(user);
-    notifyListeners();
+  List<String> _getMissingFields() {
+    if (_currentUser == null) return _requiredFields;
+
+    return _requiredFields.where((field) {
+      switch (field) {
+        case 'Email':
+          return _currentUser!.email.isEmpty;
+        case 'First Name':
+          return _currentUser!.firstName == null ||
+              _currentUser!.firstName!.isEmpty;
+        case 'Last Name':
+          return _currentUser!.lastName == null ||
+              _currentUser!.lastName!.isEmpty;
+        case 'Food Preferences':
+          return _currentUser!.foodPreferences == null ||
+              _currentUser!.foodPreferences!.isEmpty;
+        default:
+          return false;
+      }
+    }).toList();
   }
 
   /// Update user profile with provided data and optionally upload media files
