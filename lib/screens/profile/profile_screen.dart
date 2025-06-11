@@ -43,9 +43,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _navigateToEditProfile() {
     final authProvider = Provider.of<AuthModel>(context, listen: false);
     final user = authProvider.user ?? widget.profile;
-    context
-        .push('/profile/edit', extra: user)
-        .then((_) => authProvider.refreshUserProfile());
+    context.push('/profile/edit', extra: user);
   }
 
   @override

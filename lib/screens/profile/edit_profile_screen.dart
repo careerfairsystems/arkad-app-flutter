@@ -151,7 +151,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (success) {
         // Refresh user data
-        await auth.refreshUserProfile();
+        // await auth.refreshUserProfile(); FIX?
 
         // Bail out if the widget got disposed while we were waiting
         if (!mounted) return;

@@ -179,10 +179,6 @@ class AuthModel with ChangeNotifier {
 
       _authenticate();
 
-      // Initialize profile state with the new user
-      final profileProvider = GetIt.I<ProfileModel>();
-      await profileProvider.initialize();
-
       _verificationEmail = null;
       _verificationPassword = null;
 
@@ -226,10 +222,6 @@ class AuthModel with ChangeNotifier {
 
       _authenticate();
 
-      // Initialize profile state with the user
-      final profileProvider = GetIt.I<ProfileModel>();
-      await profileProvider.initialize();
-
       return true;
     } catch (e) {
       await logout();
@@ -257,10 +249,6 @@ class AuthModel with ChangeNotifier {
 
         try {
           _authenticate();
-
-          // Initialize profile provider with authenticated user
-          final profileProvider = GetIt.I<ProfileModel>();
-          await profileProvider.initialize();
         } catch (e) {
           // If authentication verification fails, logout and go to unauthenticated state
           await logout();
@@ -340,8 +328,8 @@ class AuthModel with ChangeNotifier {
   Future<String?> getStoredPassword() async => _storage.read(key: _passwordKey);
 
   Future<void> refreshUserProfile() async {
-    final profileProvider = GetIt.I<ProfileModel>();
-    await profileProvider.initialize();
+    // final profileProvider = GetIt.I<ProfileModel>();
+    // await profileProvider.initialize();
   }
 }
 
