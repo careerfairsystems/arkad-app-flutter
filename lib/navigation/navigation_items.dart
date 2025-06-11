@@ -18,12 +18,12 @@ class NavigationItem {
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Branch order (fixed):
-// 0  Companies   /companies
-// 1  Map         /map
-// 2  Sessions    /sessions
-// 3  Events      /events              (protected)
-// 4  Profile     /profile             (protected)
-// 5  Login       /auth/login
+// 0  Companies   /companies           (public)
+// 1  Map         /map                 (public)
+// 2  Sessions    /sessions            (public)
+// 3  Events      /events              (public)
+// 4  Profile     /profile             (auth required)
+// 5  Login       /auth/login          (when not authenticated)
 // ──────────────────────────────────────────────────────────────────────────────
 
 class NavigationItems {
@@ -67,5 +67,5 @@ class NavigationItems {
   static List<NavigationItem> forAuth(bool authenticated) =>
       authenticated
           ? const [_companies, _map, _sessions, _events, _profile]
-          : const [_companies, _map, _sessions, _login];
+          : const [_companies, _map, _sessions, _events, _login];
 }

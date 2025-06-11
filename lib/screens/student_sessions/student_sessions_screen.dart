@@ -1,8 +1,7 @@
 import 'package:arkad/config/theme_config.dart';
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
-
-import '../../models/company.dart';
-import '../../services/student_sessions_service.dart';
+import 'package:go_router/go_router.dart';
 import '../../utils/service_helper.dart';
 
 class StudentSessionsScreen extends StatefulWidget {
@@ -13,15 +12,14 @@ class StudentSessionsScreen extends StatefulWidget {
 }
 
 class _StudentSessionsScreen extends State<StudentSessionsScreen> {
-  late final StudentSessionsService _studentSessionsService;
+  late final ArkadApi _arkadApi;
 
-  List<Company> _companies = [];
+  List<CompanyOut> _companies = [];
 
   @override
   void initState() {
     super.initState();
-    _studentSessionsService =
-        ServiceHelper.getService<StudentSessionsService>();
+    _arkadApi = ServiceHelper.getService<ArkadApi>();
     _loadCompanies();
   }
 
@@ -40,10 +38,9 @@ class _StudentSessionsScreen extends State<StudentSessionsScreen> {
     });
 
     try {
-      final companies =
-          (await _studentSessionsService.getAllCompanies())
-              .where((i) => i.daysWithStudentsession > 0)
-              .toList();
+      final response =
+          await _arkadApi.getCompaniesApi().companiesApiGetCompanies();
+      final companies = response.data?.toList() ?? [];
       setState(() {
         _companies = companies;
         //_applyFilters();
@@ -62,22 +59,40 @@ class _StudentSessionsScreen extends State<StudentSessionsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Student Sessions')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         child: ListView.builder(
-          itemCount: _companies.length,
+          itemCount: _companies.length + 1, // +1 for header
           itemBuilder: (context, index) {
-            final company = _companies[index];
+            if (index == 0) {
+              // Header content
+              return Column(
+                children: [
+                  const SizedBox(height: 40),
+                  const Icon(Icons.people, size: 80),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Student Sessions',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'View and manage your booked sessions',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              );
+            }
+
+            // Company cards
+            final company = _companies[index - 1];
             return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
               elevation: 4,
               margin: const EdgeInsets.only(bottom: 16),
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
                 onTap: () {
-                  // TODO: Handle button press
-                  print('Selected $company');
+                  context.push('/sessions/form/${company.id}');
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(

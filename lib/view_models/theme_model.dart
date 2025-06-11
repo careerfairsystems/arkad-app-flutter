@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/theme_config.dart';
 
-class ThemeProvider extends ChangeNotifier {
+class ThemeModel extends ChangeNotifier {
   bool _isDarkMode = false;
 
   bool get isDarkMode => _isDarkMode;

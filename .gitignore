@@ -57,3 +57,5 @@ arkad/ios
 arkad/linux/flutter/ephemeral/.plugin_symlinks
 arkad/macos
 arkad/windows/flutter/ephemeral/.plugin_symlinks
+api/arkad_api
+sentry.properties

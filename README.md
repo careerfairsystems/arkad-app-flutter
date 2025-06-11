@@ -99,6 +99,25 @@ flutter pub get
 
 This will download and install all the required packages for the project.
 
+### Generating API
+
+This project uses the [OpenAPI Generator](https://openapi-generator.tech/) to generate API client code. To generate the API client, follow these steps:
+
+1. Comment out the `openapi-generator` section in the `pubspec.yaml`
+
+```
+  arkad_api:
+    path: ./api/arkad_api/
+```
+
+2.
+
+```sh
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+3. Uncomment the `arkad_api` section in the `pubspec.yaml` file.
+
 ### Run the App
 
 Make sure your emulator is running or physical device is connected, then execute:

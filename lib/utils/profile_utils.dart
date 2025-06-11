@@ -33,13 +33,18 @@ class ProfileUtils {
     return null;
   }
 
-  static Future<File?> pickCVFile({required BuildContext context}) async {
+  static Future<File?> pickCVFile({
+    required BuildContext context,
+    List<String>? allowedExtensions,
+    String? dialogTitle,
+  }) async {
     try {
       // attempt with file_picker
       try {
         FilePickerResult? result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
-          allowedExtensions: ['pdf', 'doc', 'docx'],
+          allowedExtensions: allowedExtensions ?? ['pdf'], // Default to PDF if not specified
+          dialogTitle: dialogTitle,
           withData: true,
         );
 

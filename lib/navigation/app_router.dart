@@ -1,9 +1,9 @@
+import 'package:arkad/view_models/auth_model.dart';
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../models/company.dart';
-import '../providers/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/signup_screen.dart';
@@ -14,6 +14,8 @@ import '../screens/event/event_screen.dart';
 import '../screens/map/map_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/student_sessions/student_sessions_form.dart';
+import '../screens/student_sessions/student_session_time_selection.dart';
 import '../screens/student_sessions/student_sessions_screen.dart';
 import '../widgets/app_bottom_navigation.dart';
 import 'navigation_items.dart';
@@ -21,7 +23,7 @@ import 'navigation_items.dart';
 class AppRouter {
   AppRouter(this._auth);
 
-  final AuthProvider _auth;
+  final AuthModel _auth;
 
   // ────────────────────────────────────────────────────────────
   // Redirect rules
@@ -30,11 +32,21 @@ class AppRouter {
     final loggedIn = _auth.isAuthenticated;
     final path = state.uri.path;
 
-    const publicPrefixes = ['/companies', '/map', '/auth', '/sessions'];
+    const publicPrefixes = [
+      '/companies',
+      '/map',
+      '/auth',
+      '/sessions',
+      '/events',
+    ];
 
     bool isPublic(String path) =>
         publicPrefixes.any((base) => path == base || path.startsWith('$base/'));
 
+    // Redirect to login if trying to access profile while not authenticated
+    if (!loggedIn && path.startsWith('/profile')) return '/auth/login';
+
+    // For other protected routes (if any), redirect to login
     if (!loggedIn && !isPublic(path)) return '/auth/login';
 
     return null;
@@ -66,7 +78,7 @@ class AppRouter {
                   GoRoute(
                     path: 'detail',
                     pageBuilder: _slide((context, s) {
-                      final company = s.extra as Company?;
+                      final company = s.extra as CompanyOut?;
                       if (company == null) {
                         return const Scaffold(
                           body: Center(child: Text('Error: company missing')),
@@ -97,6 +109,24 @@ class AppRouter {
                 path: '/sessions',
                 pageBuilder: _noAnim((_) => const StudentSessionsScreen()),
               ),
+              GoRoute(
+                path: '/sessions/form/:companyId',
+                builder: (context, state) {
+                  final companyId =
+                      state
+                          .pathParameters["companyId"]!; // Get "id" param from URL
+                  return StudentSessionFormScreen(id: companyId);
+                },
+              ),
+              GoRoute(
+                path: '/sessions/apply/:companyId',
+                builder: (context, state) {
+                  final companyId =
+                      state
+                          .pathParameters["companyId"]!; // Get "id" param from URL
+                  return StudentSessionTimeSelectionScreen(id: companyId);
+                },
+              ),
             ],
           ),
 
@@ -116,15 +146,15 @@ class AppRouter {
               GoRoute(
                 path: '/profile',
                 pageBuilder: _noAnim((context) {
-                  final user = context.read<AuthProvider>().user!;
-                  return ProfileScreen(user: user);
+                  final user = context.read<AuthModel>().user!;
+                  return ProfileScreen(profile: user);
                 }),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     pageBuilder: _slide((context, _) {
-                      final user = context.read<AuthProvider>().user!;
-                      return EditProfileScreen(user: user);
+                      final user = context.read<AuthModel>().user!;
+                      return EditProfileScreen(profile: user);
                     }),
                   ),
                 ],

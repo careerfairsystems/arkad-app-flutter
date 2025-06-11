@@ -1,8 +1,8 @@
 import 'package:arkad/config/theme_config.dart';
+import 'package:arkad/view_models/auth_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../utils/validation_utils.dart';
 import '../../widgets/auth/auth_form_widgets.dart';
 
@@ -51,7 +51,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthModel>(context, listen: false);
     try {
       final success = await authProvider.resetPassword(
         _emailController.text.trim(),

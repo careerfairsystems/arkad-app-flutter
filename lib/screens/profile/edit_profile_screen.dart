@@ -1,20 +1,21 @@
 import 'dart:io';
 
 import 'package:arkad/models/programme.dart';
+import 'package:arkad/view_models/auth_model.dart';
+import 'package:arkad/view_models/profile_model.dart';
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../models/user.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/profile_provider.dart';
 import '../../utils/profile_utils.dart';
 import '../../widgets/profile/profile_form_components.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  final User user;
+  final ProfileSchema profile;
 
-  const EditProfileScreen({super.key, required this.user});
+  const EditProfileScreen({super.key, required this.profile});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -50,41 +51,44 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _initializeControllers() {
-    _emailController = TextEditingController(text: widget.user.email);
-    _firstNameController = TextEditingController(text: widget.user.firstName);
-    _lastNameController = TextEditingController(text: widget.user.lastName);
+    _emailController = TextEditingController(text: widget.profile.email);
+    _firstNameController = TextEditingController(
+      text: widget.profile.firstName,
+    );
+    _lastNameController = TextEditingController(text: widget.profile.lastName);
     _programmeController = TextEditingController(
-      text: widget.user.programme ?? '',
+      text: widget.profile.programme ?? '',
     );
 
     // Extract LinkedIn username from URL if it exists
     String linkedinUsername = '';
-    if (widget.user.linkedin != null && widget.user.linkedin!.isNotEmpty) {
-      final url = widget.user.linkedin!;
+    if (widget.profile.linkedin != null &&
+        widget.profile.linkedin!.isNotEmpty) {
+      final url = widget.profile.linkedin!;
       if (url.contains('linkedin.com/in/')) {
         final parts = url.split('/in/');
         if (parts.length > 1) {
           linkedinUsername = parts[1].split('/').first.split('?').first;
         }
       } else {
-        linkedinUsername = widget.user.linkedin!;
+        linkedinUsername = widget.profile.linkedin!;
       }
     }
 
     _linkedinController = TextEditingController(text: linkedinUsername);
 
     _masterTitleController = TextEditingController(
-      text: widget.user.masterTitle ?? '',
+      text: widget.profile.masterTitle ?? '',
     );
     _foodPreferencesController = TextEditingController(
-      text: widget.user.foodPreferences ?? '',
+      text: widget.profile.foodPreferences ?? '',
     );
 
-    _studyYear = widget.user.studyYear;
+    _studyYear = widget.profile.studyYear;
 
     // Convert string programme to enum if it exists
     _selectedProgramme = ProfileUtils.programmeStringToEnum(
-      widget.user.programme,
+      widget.profile.programme,
     );
   }
 
@@ -120,11 +124,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     // Get references to providers and other objects
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final profileProvider = Provider.of<ProfileProvider>(
-      context,
-      listen: false,
-    );
+    final auth = GetIt.I<AuthModel>();
+    final profileProvider = GetIt.I<ProfileModel>();
 
     try {
       // Generate profile data
@@ -150,7 +151,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (success) {
         // Refresh user data
-        await auth.refreshUserProfile();
+        // await auth.refreshUserProfile(); FIX?
 
         // Bail out if the widget got disposed while we were waiting
         if (!mounted) return;
@@ -203,7 +204,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final profileProvider = Provider.of<ProfileProvider>(context);
+    final profileProvider = Provider.of<ProfileModel>(context);
     final bool isLoading =
         profileProvider.isLoading || profileProvider.isUploading;
 
@@ -237,7 +238,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               onPickImage: _pickImage,
                               onDeleteImage: _deleteProfilePicture,
                               profilePictureDeleted: _profilePictureDeleted,
-                              currentProfilePicture: widget.user.profilePicture,
+                              currentProfilePicture:
+                                  widget.profile.profilePicture,
                             ),
                             const Text(
                               'Profile Picture (Optional)',
@@ -293,13 +295,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                       // Education information section
                       const Text(
-                        'Education Information',
+                        'Education Information (Optional)',
                         style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Fields marked with * are required',
-                        style: TextStyle(fontSize: 12),
                       ),
                       const SizedBox(height: 16),
 
@@ -334,12 +331,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                       // Professional information section
                       const Text(
-                        'Professional Information',
+                        'Additional Information',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Fields marked with * are required',
+                        'Food preferences are required, other fields are optional',
                         style: TextStyle(fontSize: 12),
                       ),
                       const SizedBox(height: 16),
@@ -367,7 +364,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         onPickCV: _pickCV,
                         onDeleteCV: _deleteCV,
                         cvDeleted: _cvDeleted,
-                        currentCV: widget.user.cv,
+                        currentCV: widget.profile.cv,
                       ),
 
                       const SizedBox(height: 32),
