@@ -1,3 +1,4 @@
+import '../utils/sentry_utils.dart';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -40,8 +41,9 @@ class UserService {
       } else {
         throw UserException('Failed to get user profile: ${response.error}');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is UserException) rethrow;
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       throw UserException('Error retrieving user profile: ${e.toString()}');
     }
   }
@@ -63,8 +65,9 @@ class UserService {
       } else {
         throw UserException('Failed to update profile: ${response.error}');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is UserException) rethrow;
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       throw UserException('Error updating profile: ${e.toString()}');
     }
   }
@@ -88,8 +91,9 @@ class UserService {
           'Failed to update profile fields: ${response.error}',
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is UserException) rethrow;
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       throw UserException('Error updating profile fields: ${e.toString()}');
     }
   }
@@ -102,8 +106,9 @@ class UserService {
         ApiEndpoints.profilePicture,
         _profilePictureField,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is UserException) rethrow;
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       throw UserException('Error uploading profile picture: ${e.toString()}');
     }
   }
@@ -119,8 +124,9 @@ class UserService {
       );
 
       return response.isSuccess;
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is UserException) rethrow;
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       throw UserException('Error deleting profile picture: ${e.toString()}');
     }
   }
@@ -129,8 +135,9 @@ class UserService {
   Future<bool> uploadCV(File cvFile) async {
     try {
       return await _uploadFile(cvFile, ApiEndpoints.cv, _cvField);
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is UserException) rethrow;
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       throw UserException('Error uploading CV: ${e.toString()}');
     }
   }
@@ -146,8 +153,9 @@ class UserService {
       );
 
       return response.isSuccess;
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is UserException) rethrow;
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       throw UserException('Error deleting CV: ${e.toString()}');
     }
   }
@@ -203,8 +211,9 @@ class UserService {
       } else {
         throw UserException('Failed to upload file: ${response.body}');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is UserException) rethrow;
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       throw UserException('Error uploading file: ${e.toString()}');
     }
   }

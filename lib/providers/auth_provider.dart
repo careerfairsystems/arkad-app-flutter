@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/sentry_utils.dart';
+
 import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/service_locator.dart';
@@ -60,7 +62,8 @@ class AuthProvider with ChangeNotifier {
       _verificationPassword = password;
 
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       _setError('Sign up failed: ${e.toString()}');
       return false;
     } finally {
@@ -83,7 +86,8 @@ class AuthProvider with ChangeNotifier {
 
       await _authService.beginSignup(email, password);
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       _setError('Failed to request verification code: ${e.toString()}');
       return false;
     } finally {
@@ -123,7 +127,8 @@ class AuthProvider with ChangeNotifier {
       _verificationPassword = null;
 
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       _setError('Verification failed: ${e.toString()}');
       return false;
     } finally {
@@ -147,7 +152,8 @@ class AuthProvider with ChangeNotifier {
       await profileProvider.initialize(user);
 
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       await _authService.logout();
       _setUnauthenticated();
       _setError('Login failed: ${e.toString()}');
@@ -185,7 +191,8 @@ class AuthProvider with ChangeNotifier {
       await profileProvider.refreshOnboardingState(user);
 
       notifyListeners();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       _setError('Failed to refresh profile: ${e.toString()}');
     } finally {
       _setLoading(false);
@@ -209,14 +216,16 @@ class AuthProvider with ChangeNotifier {
           // Initialize profile provider with authenticated user
           final profileProvider = serviceLocator<ProfileProvider>();
           await profileProvider.initialize(user);
-        } catch (e) {
+        } catch (e, stackTrace) {
+          SentryUtils.captureException(e, stackTrace: stackTrace);
           await _authService.logout();
           _setUnauthenticated();
         }
       } else {
         _setUnauthenticated();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       _setUnauthenticated();
     } finally {
       _setLoading(false);
@@ -227,7 +236,8 @@ class AuthProvider with ChangeNotifier {
   Future<User> _getUserProfileOrCreateMinimal(String email) async {
     try {
       return await _userService.getUserProfile();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       // If profile fetch fails, create minimal user
       return User(
         id: 0,

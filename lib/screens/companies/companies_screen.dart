@@ -1,3 +1,4 @@
+import 'package:arkad/utils/sentry_utils.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/company.dart';
@@ -63,7 +64,8 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
         _applyFilters();
         _isLoading = false;
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
+      SentryUtils.captureException(e, stackTrace: stackTrace);
       setState(() {
         _isLoading = false;
         _hasError = true;
