@@ -1,8 +1,9 @@
 import 'package:arkad/config/theme_config.dart';
 import 'package:arkad/view_models/student_session_model.dart';
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class StudentSessionTimeSelectionScreen extends StatefulWidget {
   final String id;
@@ -16,8 +17,8 @@ class StudentSessionTimeSelectionScreen extends StatefulWidget {
 
 class _StudentSessionTimeSelection
     extends State<StudentSessionTimeSelectionScreen> {
-  List<TimeSlot> _availableSlots = [];
-  TimeSlot? _selectedSlot;
+  List<TimeslotSchema> _availableSlots = [];
+  TimeslotSchema? _selectedSlot;
   bool _isLoading = true;
   bool _hasLoadedData = false;
 
@@ -39,7 +40,8 @@ class _StudentSessionTimeSelection
     try {
       final provider = Provider.of<StudentSessionModel>(context, listen: false);
       final companyId = int.parse(widget.id);
-      final slots = await provider.getAvailableSlots(companyId);
+      await provider.loadTimeslots(companyId);
+      final slots = provider.availableTimeslots;
 
       setState(() {
         _availableSlots = slots;
@@ -54,11 +56,11 @@ class _StudentSessionTimeSelection
     }
   }
 
-  Map<String, List<TimeSlot>> _groupSlotsByWeekday() {
-    final Map<String, List<TimeSlot>> groupedSlots = {};
+  Map<String, List<TimeslotSchema>> _groupSlotsByWeekday() {
+    final Map<String, List<TimeslotSchema>> groupedSlots = {};
 
     for (final slot in _availableSlots) {
-      final weekday = DateFormat('EEEE (dd MMM yyyy)').format(slot.start);
+      final weekday = DateFormat('EEEE (dd MMM yyyy)').format(slot.startTime);
 
       if (!groupedSlots.containsKey(weekday)) {
         groupedSlots[weekday] = [];
@@ -68,28 +70,28 @@ class _StudentSessionTimeSelection
 
     // Sort slots within each day by start time
     for (final daySlots in groupedSlots.values) {
-      daySlots.sort((a, b) => a.start.compareTo(b.start));
+      daySlots.sort((a, b) => a.startTime.compareTo(b.startTime));
     }
 
     return groupedSlots;
   }
 
-  List<String> _getSortedWeekdays(Map<String, List<TimeSlot>> groupedSlots) {
+  List<String> _getSortedWeekdays(Map<String, List<TimeslotSchema>> groupedSlots) {
     return groupedSlots.keys.toList()..sort((a, b) {
       // Get the first slot from each day to compare dates
-      final dateA = groupedSlots[a]!.first.start;
-      final dateB = groupedSlots[b]!.first.start;
+      final dateA = groupedSlots[a]!.first.startTime;
+      final dateB = groupedSlots[b]!.first.startTime;
       return dateA.compareTo(dateB);
     });
   }
 
-  String _formatTimeRange(TimeSlot slot) {
-    final startTime = DateFormat('HH:mm').format(slot.start);
-    final endTime = DateFormat('HH:mm').format(slot.start.add(slot.duration));
+  String _formatTimeRange(TimeslotSchema slot) {
+    final startTime = DateFormat('HH:mm').format(slot.startTime);
+    final endTime = DateFormat('HH:mm').format(slot.startTime.add(Duration(minutes: slot.duration)));
     return '$startTime - $endTime';
   }
 
-  void _selectTimeSlot(TimeSlot slot) {
+  void _selectTimeSlot(TimeslotSchema slot) {
     setState(() {
       _selectedSlot = slot;
     });
@@ -165,10 +167,10 @@ class _StudentSessionTimeSelection
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  leading: Radio<TimeSlot>(
+                                  leading: Radio<TimeslotSchema>(
                                     value: slot,
                                     groupValue: _selectedSlot,
-                                    onChanged: (TimeSlot? value) {
+                                    onChanged: (TimeslotSchema? value) {
                                       if (value != null) {
                                         _selectTimeSlot(value);
                                       }
@@ -182,7 +184,7 @@ class _StudentSessionTimeSelection
                                   onTap: () => _selectTimeSlot(slot),
                                 ),
                               );
-                            }).toList(),
+                            }),
                             const SizedBox(height: 8),
                           ],
                         );

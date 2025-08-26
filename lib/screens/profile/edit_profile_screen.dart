@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:arkad/models/programme.dart';
-import 'package:arkad/view_models/auth_model.dart';
 import 'package:arkad/view_models/profile_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
@@ -124,7 +123,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     // Get references to providers and other objects
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final auth = GetIt.I<AuthModel>();
     final profileProvider = GetIt.I<ProfileModel>();
 
     try {

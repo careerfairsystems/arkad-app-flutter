@@ -1,14 +1,12 @@
 import 'package:arkad/view_models/company_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-import '../../models/company.dart';
-import '../../utils/service_helper.dart';
 import '../../widgets/filter_dropdown.dart';
 import '../../widgets/filter_dropdown_controller.dart';
 import '../../widgets/loading_indicator.dart';
-import 'company_detail_screen.dart';
 import 'filter_options.dart';
 
 class CompaniesScreen extends StatefulWidget {
@@ -19,11 +17,7 @@ class CompaniesScreen extends StatefulWidget {
 }
 
 class _CompaniesScreenState extends State<CompaniesScreen> {
-  final CompanyModel _companyService = GetIt.I<CompanyModel>();
-  List<CompanyOut> _companies = [];
   List<CompanyOut> _filteredCompanies = [];
-  bool _isLoading = true;
-  bool _hasError = false;
   String _searchQuery = '';
   TextEditingController _searchController = TextEditingController();
   bool _showFilters = false;
@@ -42,7 +36,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCompanies();
+    // Load companies after the widget is built to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCompanies();
+    });
   }
 
   @override
@@ -52,28 +49,15 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   Future<void> _loadCompanies() async {
-    setState(() {
-      _isLoading = true;
-      _hasError = false;
-    });
-
-    try {
-      final companies = await _companyService.getAllCompanies();
-      setState(() {
-        _companies = companies;
-        _applyFilters();
-        _isLoading = false;
-      });
-    } catch (e) {
-      print('Error loading companies: $e');
-      setState(() {
-        _isLoading = false;
-        _hasError = true;
-      });
-    }
+    final companyModel = Provider.of<CompanyModel>(context, listen: false);
+    await companyModel.getAllCompanies();
+    _applyFilters();
   }
 
   void _applyFilters() {
+    final companyModel = Provider.of<CompanyModel>(context, listen: false);
+    final companies = companyModel.companies;
+    
     if (_searchQuery.isEmpty &&
         _selectedDegrees.isEmpty &&
         _selectedCompetences.isEmpty &&
@@ -81,7 +65,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
         _selectedIndustries.isEmpty &&
         !_hasStudentSessions) {
       setState(() {
-        _filteredCompanies = List.from(_companies);
+        _filteredCompanies = List.from(companies);
       });
       return;
     }
@@ -89,11 +73,11 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     // First filter by search query if present
     List<CompanyOut> searchResults =
         _searchQuery.isEmpty
-            ? List.from(_companies)
-            : _companyService.searchCompanies(_searchQuery);
+            ? List.from(companies)
+            : companyModel.searchCompanies(_searchQuery);
 
     // Then apply additional filters
-    final filteredResults = _companyService.filterCompanies(
+    final filteredResults = companyModel.filterCompanies(
       companies: searchResults,
       degrees: _selectedDegrees.isNotEmpty ? _selectedDegrees.toList() : null,
       competences:
@@ -163,68 +147,72 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Companies'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _toggleFilters,
-            tooltip: 'Filter companies',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search companies...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                suffixIcon:
-                    _searchQuery.isNotEmpty
-                        ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              _searchQuery = '';
-                              _applyFilters();
-                            });
-                          },
-                        )
-                        : null,
+    return Consumer<CompanyModel>(
+      builder: (context, companyModel, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Companies'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                onPressed: _toggleFilters,
+                tooltip: 'Filter companies',
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                  _applyFilters();
-                });
-              },
-            ),
+            ],
           ),
+          body: Column(
+            children: [
+              // Search bar
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search companies...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    suffixIcon:
+                        _searchQuery.isNotEmpty
+                            ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                  _applyFilters();
+                                });
+                              },
+                            )
+                            : null,
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                      _applyFilters();
+                    });
+                  },
+                ),
+              ),
 
-          // Filter section (collapsible and scrollable)
-          AnimatedCrossFade(
-            firstChild: _buildScrollableFilterSection(),
-            secondChild: const SizedBox.shrink(),
-            crossFadeState:
-                _showFilters
-                    ? CrossFadeState.showFirst
-                    : CrossFadeState.showSecond,
-            duration: const Duration(milliseconds: 300),
+              // Filter section (collapsible and scrollable)
+              AnimatedCrossFade(
+                firstChild: _buildScrollableFilterSection(),
+                secondChild: const SizedBox.shrink(),
+                crossFadeState:
+                    _showFilters
+                        ? CrossFadeState.showFirst
+                        : CrossFadeState.showSecond,
+                duration: const Duration(milliseconds: 300),
+              ),
+
+              // Companies list
+              Expanded(child: _buildContent(companyModel)),
+            ],
           ),
-
-          // Companies list
-          Expanded(child: _buildContent()),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -374,19 +362,19 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
+  Widget _buildContent(CompanyModel companyModel) {
+    if (companyModel.isLoading) {
       return const Center(child: LoadingIndicator());
     }
 
-    if (_hasError) {
+    if (companyModel.error != null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, size: 60, color: Colors.red),
             const SizedBox(height: 16),
-            const Text('Failed to load companies'),
+            Text('Failed to load companies: ${companyModel.error}'),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadCompanies,
@@ -405,7 +393,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             const Icon(Icons.search_off, size: 60, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
-              _companies.isEmpty
+              companyModel.companies.isEmpty
                   ? 'No companies available'
                   : 'No companies match your criteria',
               style: const TextStyle(fontSize: 18, color: Colors.grey),
@@ -446,7 +434,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             child: Row(
               children: [
                 Text(
-                  'Showing ${_filteredCompanies.length} of ${_companies.length} companies',
+                  'Showing ${_filteredCompanies.length} of ${companyModel.companies.length} companies',
                   style: TextStyle(
                     color: Theme.of(
                       context,
@@ -479,11 +467,11 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading:
-            company.fullLogoUrl != null
+            company.logoUrl != null
                 ? ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    company.fullLogoUrl!,
+                    company.logoUrl!,
                     width: 60,
                     height: 60,
                     fit: BoxFit.contain,
@@ -512,10 +500,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
           children: [
             const SizedBox(height: 4),
             Text(
-              company.industriesString,
+              _getIndustriesString(company),
               style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
-            if (company.locationsString.isNotEmpty) ...[
+            if (_getLocationsString(company).isNotEmpty) ...[
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -523,7 +511,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      company.locationsString,
+                      _getLocationsString(company),
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -536,14 +524,33 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CompanyDetailScreen(company: company),
-            ),
-          );
+          context.push('/companies/detail', extra: company);
         },
       ),
     );
+  }
+
+  /// Helper method to convert industries list to display string
+  String _getIndustriesString(CompanyOut company) {
+    if (company.industries == null || company.industries!.isEmpty) {
+      return 'No industries specified';
+    }
+    return company.industries!.join(', ');
+  }
+
+  /// Helper method to extract and format location information from jobs
+  String _getLocationsString(CompanyOut company) {
+    if (company.jobs == null || company.jobs!.isEmpty) {
+      return '';
+    }
+    
+    final Set<String> locations = {};
+    for (final job in company.jobs!) {
+      if (job.location != null && job.location!.isNotEmpty) {
+        locations.addAll(job.location!);
+      }
+    }
+    
+    return locations.join(', ');
   }
 }

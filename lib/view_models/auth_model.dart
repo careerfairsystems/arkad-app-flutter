@@ -1,7 +1,12 @@
 import 'package:arkad_api/arkad_api.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+
+import '../api/extensions.dart';
+import '../shared/errors/app_error.dart';
+import '../shared/errors/error_mapper.dart';
 
 const String _tokenKey = 'auth_token';
 const String _emailKey = 'temp_email';
@@ -23,11 +28,15 @@ class AuthModel with ChangeNotifier {
   AuthStatus _status = AuthStatus.initial;
   ProfileSchema? _user;
   bool _loading = true;
-  String? _error;
+  AppError? _error;
 
   // Temporary variables for signup flow
   String? _verificationEmail;
   String? _verificationPassword;
+  String? _verificationToken;
+  String? _pendingFirstName;
+  String? _pendingLastName;  
+  String? _pendingFoodPreferences;
 
   /// Creates a new AuthProvider with required services
   AuthModel() {
@@ -39,7 +48,7 @@ class AuthModel with ChangeNotifier {
   AuthStatus get status => _status;
   ProfileSchema? get user => _user;
   bool get isLoading => _loading;
-  String? get error => _error;
+  AppError? get error => _error;
   String? get verificationEmail => _verificationEmail;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
 
@@ -48,8 +57,14 @@ class AuthModel with ChangeNotifier {
     await _checkAuthStatus();
   }
 
-  /// Sign up a new user (step 1)
-  Future<bool> initialSignUp(String email, String password) async {
+  /// Begin signup process with email, password, and profile data
+  Future<bool> initialSignUp(
+    String email, 
+    String password, {
+    String? firstName,
+    String? lastName,
+    String? foodPreferences,
+  }) async {
     _setLoading(true);
     _clearError();
 
@@ -58,30 +73,33 @@ class AuthModel with ChangeNotifier {
       final SignupSchema signupSchema = SignupSchema((b) {
         b.email = email;
         b.password = password;
+        b.firstName = firstName;
+        b.lastName = lastName;
+        b.foodPreferences = foodPreferences;
       });
       final res = await _apiService
           .getAuthenticationApi()
           .userModelsApiBeginSignup(signupSchema: signupSchema);
 
-      if (res.statusCode == 401) {
-        _setError('Invalid credentials or user already exists');
+      if (res.isSuccess && res.data != null) {
+        // Store for later verification and completion
+        _verificationEmail = email;
+        _verificationPassword = password;
+        _verificationToken = res.data!; // The token returned by begin-signup
+        _pendingFirstName = firstName;
+        _pendingLastName = lastName;
+        _pendingFoodPreferences = foodPreferences;
+        return true;
+      } else {
+        _setError(ValidationError(res.error));
         return false;
       }
-
-      if (res.statusCode != 200) {
-        _setError(
-          'Failed to initiate signup: ${res.statusMessage ?? 'Unknown error'}',
-        );
-        return false;
-      }
-
-      // Store for later verification
-      _verificationEmail = email;
-      _verificationPassword = password;
-
-      return true;
     } catch (e) {
-      _setError('Sign up failed: ${e.toString()}');
+      if (e is DioException) {
+        _setError(ErrorMapper.fromDioException(e, null, operationContext: 'signup'));
+      } else {
+        _setError(UnknownError(e.toString()));
+      }
       return false;
     } finally {
       _setLoading(false);
@@ -97,9 +115,9 @@ class AuthModel with ChangeNotifier {
       String? password = _verificationPassword ?? await getStoredPassword();
 
       if (password == null || password.isEmpty) {
-        _setError(
+        _setError(ValidationError(
           'Missing password for verification code request. Please try signing up again.',
-        );
+        ));
         return false;
       }
 
@@ -111,21 +129,18 @@ class AuthModel with ChangeNotifier {
           .getAuthenticationApi()
           .userModelsApiBeginSignup(signupSchema: signupSchema);
 
-      if (res.statusCode == 401) {
-        _setError('Invalid credentials. Please try signing up again.');
+      if (res.isSuccess) {
+        return true;
+      } else {
+        _setError(ValidationError(res.error));
         return false;
       }
-
-      if (res.statusCode != 200) {
-        _setError(
-          'Failed to send verification code: ${res.statusMessage ?? 'Unknown error'}',
-        );
-        return false;
-      }
-
-      return true;
     } catch (e) {
-      _setError('Failed to request verification code: ${e.toString()}');
+      if (e is DioException) {
+        _setError(ErrorMapper.fromDioException(e, null, operationContext: 'verification'));
+      } else {
+        _setError(UnknownError(e.toString()));
+      }
       return false;
     } finally {
       _setLoading(false);
@@ -146,17 +161,23 @@ class AuthModel with ChangeNotifier {
       if (email == null ||
           email.isEmpty ||
           password == null ||
-          password.isEmpty) {
-        _setError('Missing authentication data. Please try signing up again.');
+          password.isEmpty ||
+          _verificationToken == null ||
+          _verificationToken!.isEmpty) {
+        _setError(ValidationError('Missing authentication data or token. Please try signing up again.'));
         return false;
       }
 
       final CompleteSignupSchema completeSignupSchema = CompleteSignupSchema((
         b,
       ) {
+        b.token = _verificationToken ?? ''; // Use the token from begin-signup
         b.code = code;
         b.email = email;
         b.password = password;
+        b.firstName = _pendingFirstName;
+        b.lastName = _pendingLastName;
+        b.foodPreferences = _pendingFoodPreferences;
       });
       final res = await _apiService
           .getAuthenticationApi()
@@ -164,26 +185,32 @@ class AuthModel with ChangeNotifier {
             completeSignupSchema: completeSignupSchema,
           );
 
-      if (res.statusCode == 401) {
-        _setError('Invalid verification code or expired session');
+      if (res.isSuccess && res.data != null) {
+        // Complete signup returns ProfileSchema directly
+        // We need to get a token by signing in after successful signup
+        final email = _verificationEmail!;
+        final password = _verificationPassword!;
+        
+        // Clear verification and profile data
+        _verificationEmail = null;
+        _verificationPassword = null;
+        _verificationToken = null;
+        _pendingFirstName = null;
+        _pendingLastName = null;
+        _pendingFoodPreferences = null;
+        
+        // Now sign in to get the token
+        return await signIn(email, password);
+      } else {
+        _setError(ValidationError(res.error));
         return false;
       }
-
-      if (res.statusCode != 200) {
-        _setError(
-          'Failed to complete signup: ${res.statusMessage ?? 'Unknown error'}',
-        );
-        return false;
-      }
-
-      _authenticate();
-
-      _verificationEmail = null;
-      _verificationPassword = null;
-
-      return true;
     } catch (e) {
-      _setError('Verification failed: ${e.toString()}');
+      if (e is DioException) {
+        _setError(ErrorMapper.fromDioException(e, null, operationContext: 'complete_signup'));
+      } else {
+        _setError(UnknownError(e.toString()));
+      }
       return false;
     } finally {
       _setLoading(false);
@@ -203,29 +230,32 @@ class AuthModel with ChangeNotifier {
         }),
       );
 
-      // Check for authentication errors
-      if (res.statusCode == 401) {
-        _setError('Invalid email or password. Please check your credentials.');
+      if (res.isSuccess && res.data != null) {
+        final userToken = res.data!;
+        // Remove "Bearer " prefix if present, as the BearerAuthInterceptor will add it
+        final cleanToken = userToken.startsWith('Bearer ') 
+            ? userToken.substring(7) 
+            : userToken;
+        await _storage.write(key: _tokenKey, value: cleanToken);
+        token = cleanToken;
+        _apiService.setBearerAuth("AuthBearer", cleanToken);
+
+        // Load user profile after successful authentication
+        await _loadUserProfile();
+        
+        return true;
+      } else {
+        _setError(SignInError(details: res.error));
         return false;
       }
-
-      if (res.statusCode != 200 || res.data == null) {
-        _setError('Login failed: ${res.statusMessage ?? 'Unknown error'}');
-        return false;
-      }
-
-      final userToken = res.data!;
-      await _storage.write(key: _tokenKey, value: userToken);
-      token = userToken;
-      _apiService.setBearerAuth("Authorization", userToken);
-
-      _authenticate();
-
-      return true;
     } catch (e) {
       await logout();
       _setUnauthenticated();
-      _setError('Login failed: ${e.toString()}');
+      if (e is DioException) {
+        _setError(ErrorMapper.fromDioException(e, null, operationContext: 'signin'));
+      } else {
+        _setError(UnknownError(e.toString()));
+      }
       return false;
     } finally {
       _setLoading(false);
@@ -243,13 +273,18 @@ class AuthModel with ChangeNotifier {
       final storedToken = await _storage.read(key: _tokenKey);
 
       if (storedToken != null && storedToken.isNotEmpty) {
-        token = storedToken;
-        _apiService.setBearerAuth("Authorization", storedToken);
+        // Ensure the stored token doesn't have "Bearer " prefix
+        final cleanToken = storedToken.startsWith('Bearer ') 
+            ? storedToken.substring(7) 
+            : storedToken;
+        token = cleanToken;
+        _apiService.setBearerAuth("AuthBearer", cleanToken);
 
         try {
-          _authenticate();
+          // Validate token by loading user profile
+          await _loadUserProfile();
         } catch (e) {
-          // If authentication verification fails, logout and go to unauthenticated state
+          // If token validation fails, logout and go to unauthenticated state
           await logout();
           _setUnauthenticated();
         }
@@ -263,22 +298,33 @@ class AuthModel with ChangeNotifier {
     }
   }
 
-  /// Sign in an existing user
-  ///
+  /// Reset user password
   Future<bool> resetPassword(String email) async {
     _setLoading(true);
+    _clearError();
 
     try {
-      await _apiService.getAuthenticationApi().userModelsApiResetPassword(
+      final response = await _apiService.getAuthenticationApi().userModelsApiResetPassword(
         resetPasswordSchema: ResetPasswordSchema((b) {
           b.email = email;
         }),
       );
-      return true;
+      
+      if (response.isSuccess) {
+        return true;
+      } else {
+        _setError(ValidationError(response.error));
+        return false;
+      }
     } catch (e) {
-      _setError('Reset failed: ${e.toString()}');
-      _setLoading(false);
+      if (e is DioException) {
+        _setError(ErrorMapper.fromDioException(e, null, operationContext: 'password_reset'));
+      } else {
+        _setError(UnknownError(e.toString()));
+      }
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -288,8 +334,8 @@ class AuthModel with ChangeNotifier {
     notifyListeners();
   }
 
-  void _setError(String? errorMessage) {
-    _error = errorMessage;
+  void _setError(AppError? error) {
+    _error = error;
     notifyListeners();
   }
 
@@ -297,10 +343,26 @@ class AuthModel with ChangeNotifier {
     _error = null;
   }
 
-  void _authenticate() {
-    _status = AuthStatus.authenticated;
-    authState.value = true;
-    notifyListeners();
+  /// Load user profile and set authenticated state
+  Future<void> _loadUserProfile() async {
+    try {
+      final response = await _apiService.getUserProfileApi().userModelsApiGetUserProfile();
+      
+      if (response.isSuccess && response.data != null) {
+        _user = response.data!;
+        _status = AuthStatus.authenticated;
+        authState.value = true;
+        notifyListeners();
+      } else {
+        throw Exception('Failed to load user profile: ${response.error}');
+      }
+    } catch (e) {
+      // Clear the token if we get a 401 to force re-authentication
+      if (e is DioException && e.response?.statusCode == 401) {
+        await logout();
+      }
+      throw Exception('Profile loading failed: $e');
+    }
   }
 
   void _setUnauthenticated() {
@@ -326,9 +388,19 @@ class AuthModel with ChangeNotifier {
   /// Retrieves stored password.
   Future<String?> getStoredPassword() async => _storage.read(key: _passwordKey);
 
+  /// Refresh user profile data
   Future<void> refreshUserProfile() async {
-    // final profileProvider = GetIt.I<ProfileModel>();
-    // await profileProvider.initialize();
+    if (_status == AuthStatus.authenticated) {
+      try {
+        await _loadUserProfile();
+      } catch (e) {
+        if (e is DioException) {
+          _setError(ErrorMapper.fromDioException(e, null, operationContext: 'profile_refresh'));
+        } else {
+          _setError(ProfileLoadingError(details: e.toString()));
+        }
+      }
+    }
   }
 }
 

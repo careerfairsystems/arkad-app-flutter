@@ -46,7 +46,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         if (success) {
           context.go('/companies');
         } else if (authProvider.error != null) {
-          setState(() => _errorMessage = authProvider.error);
+          setState(() => _errorMessage = authProvider.error!.userMessage);
         }
       }
     } catch (e) {
@@ -78,7 +78,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
           );
         } else if (authProvider.error != null) {
-          setState(() => _errorMessage = authProvider.error);
+          setState(() => _errorMessage = authProvider.error!.userMessage);
         }
       }
     } catch (e) {

@@ -18,18 +18,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Add listener registration flag to prevent duplicate listeners
-  bool _isUserStateListenerRegistered = false;
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authProvider = Provider.of<AuthModel>(context, listen: false);
-      final user = authProvider.user;
-      if (user != null) {
-        final authProvider = Provider.of<AuthModel>(context, listen: false);
-      }
-    });
   }
 
   void _handleLogout(BuildContext context, AuthModel authProvider) {
@@ -70,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Tab(text: "Student Sessions"),
             ],
             labelColor: ArkadColors.white,
-            unselectedLabelColor: ArkadColors.white.withOpacity(0.7),
+            unselectedLabelColor: ArkadColors.white.withValues(alpha: 0.7),
             indicatorColor: ArkadColors.arkadTurkos,
             indicatorWeight: 3,
           ),

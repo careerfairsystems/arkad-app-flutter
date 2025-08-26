@@ -1,10 +1,11 @@
 import 'dart:io';
+
 import 'package:arkad/models/programme.dart';
+import 'package:arkad/view_models/auth_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:arkad/view_models/auth_model.dart'; // For AuthProvider
-// Make sure programme.dart is imported for Programme enum and programs list.
-import '../../utils/profile_utils.dart'; // For file picking and programmeStringToEnum
+
+import '../../utils/profile_utils.dart';
 
 class StudentSessionFormScreen extends StatefulWidget {
   final String id; // Company ID
@@ -46,7 +47,7 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
         // If currentUser.programme is already Programme?, direct assignment is fine.
         // The prompt implies conversion is needed.
         _selectedProgramme = ProfileUtils.programmeStringToEnum(
-          currentUser.programme as String?,
+          currentUser.programme,
         );
       }
 

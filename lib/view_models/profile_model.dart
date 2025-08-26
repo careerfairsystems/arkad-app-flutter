@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../api/extensions.dart';
 import '../utils/profile_utils.dart';
-import '../utils/service_helper.dart';
 
 /// Provider for handling all profile-related functionality including profile updates
 /// and media management
@@ -54,6 +54,30 @@ class ProfileModel with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Refresh user profile from API
+  Future<bool> refreshProfile() async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      final response = await _api.getUserProfileApi().userModelsApiGetUserProfile();
+      
+      if (response.isSuccess && response.data != null) {
+        _currentUser = response.data!;
+        notifyListeners();
+        return true;
+      } else {
+        _setError('Failed to refresh profile: ${response.error}');
+        return false;
+      }
+    } catch (e) {
+      _setError('Failed to refresh profile: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   List<String> _getMissingFields() {
     if (_currentUser == null) return _requiredFields;
 
@@ -62,14 +86,11 @@ class ProfileModel with ChangeNotifier {
         case 'Email':
           return _currentUser!.email.isEmpty;
         case 'First Name':
-          return _currentUser!.firstName == null ||
-              _currentUser!.firstName!.isEmpty;
+          return _currentUser!.firstName.isEmpty;
         case 'Last Name':
-          return _currentUser!.lastName == null ||
-              _currentUser!.lastName!.isEmpty;
+          return _currentUser!.lastName.isEmpty;
         case 'Food Preferences':
-          return _currentUser!.foodPreferences == null ||
-              _currentUser!.foodPreferences!.isEmpty;
+          return _currentUser!.foodPreferences?.isEmpty ?? true;
         default:
           return false;
       }
@@ -78,7 +99,7 @@ class ProfileModel with ChangeNotifier {
 
   /// Update user profile with provided data and optionally upload media files
   Future<bool> updateProfile({
-    required profileData,
+    required UpdateProfileSchema profileData,
     File? profilePicture,
     bool deleteProfilePicture = false,
     File? cv,
@@ -89,28 +110,56 @@ class ProfileModel with ChangeNotifier {
 
     try {
       // Update profile fields
-      await _api.getUserProfileApi().userModelsApiUpdateProfile(
+      final updateResponse = await _api.getUserProfileApi().userModelsApiUpdateProfile(
         updateProfileSchema: profileData,
       );
+      
+      if (!updateResponse.isSuccess) {
+        _setError('Failed to update profile: ${updateResponse.error}');
+        return false;
+      }
 
       // Handle profile picture
       if (profilePicture != null) {
         _setUploading(true);
-        await _api.getUserProfileApi().userModelsApiUpdateProfilePicture(
+        final picResponse = await _api.getUserProfileApi().userModelsApiUpdateProfilePicture(
           profilePicture: await getMultipartFile(profilePicture),
         );
+        if (!picResponse.isSuccess) {
+          _setError('Failed to update profile picture: ${picResponse.error}');
+          return false;
+        }
       } else if (deleteProfilePicture) {
-        await _api.getUserProfileApi().userModelsApiDeleteProfilePicture();
+        final deleteResponse = await _api.getUserProfileApi().userModelsApiDeleteProfilePicture();
+        if (!deleteResponse.isSuccess) {
+          _setError('Failed to delete profile picture: ${deleteResponse.error}');
+          return false;
+        }
       }
 
       // Handle CV
       if (cv != null) {
         _setUploading(true);
-        await _api.getUserProfileApi().userModelsApiUpdateCv(
+        final cvResponse = await _api.getUserProfileApi().userModelsApiUpdateCv(
           cv: await getMultipartFile(cv),
         );
+        if (!cvResponse.isSuccess) {
+          _setError('Failed to update CV: ${cvResponse.error}');
+          return false;
+        }
       } else if (deleteCV) {
-        await _api.getUserProfileApi().userModelsApiDeleteCv();
+        final deleteCvResponse = await _api.getUserProfileApi().userModelsApiDeleteCv();
+        if (!deleteCvResponse.isSuccess) {
+          _setError('Failed to delete CV: ${deleteCvResponse.error}');
+          return false;
+        }
+      }
+
+      // If we get here, everything succeeded
+      // Update the current user with the response data if available
+      if (updateResponse.data != null) {
+        _currentUser = updateResponse.data!;
+        notifyListeners();
       }
 
       return true;
@@ -124,7 +173,7 @@ class ProfileModel with ChangeNotifier {
   }
 
   /// Prepare profile data from form inputs
-  Map<String, dynamic> prepareProfileData({
+  UpdateProfileSchema prepareProfileData({
     required String firstName,
     required String lastName,
     required Programme? selectedProgramme,
@@ -136,7 +185,7 @@ class ProfileModel with ChangeNotifier {
   }) {
     String formattedLinkedin = formatLinkedInUrl(linkedin);
 
-    return ProfileUtils.prepareProfileData(
+    final profileMap = ProfileUtils.prepareProfileData(
       firstName: firstName,
       lastName: lastName,
       selectedProgramme: selectedProgramme,
@@ -145,6 +194,16 @@ class ProfileModel with ChangeNotifier {
       masterTitle: masterTitle,
       studyYear: studyYear,
       foodPreferences: foodPreferences,
+    );
+
+    return UpdateProfileSchema((b) => b
+      ..firstName = profileMap['first_name'] as String?
+      ..lastName = profileMap['last_name'] as String?
+      ..programme = profileMap['programme'] as String?
+      ..linkedin = profileMap['linkedin'] as String?
+      ..masterTitle = profileMap['master_title'] as String?
+      ..studyYear = profileMap['study_year'] as int?
+      ..foodPreferences = profileMap['food_preferences'] as String?
     );
   }
 

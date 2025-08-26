@@ -1,4 +1,5 @@
 import 'package:arkad/view_models/auth_model.dart';
+import 'package:arkad/view_models/company_model.dart';
 import 'package:arkad/view_models/profile_model.dart';
 import 'package:arkad/view_models/student_session_model.dart';
 import 'package:arkad/view_models/theme_model.dart';
@@ -40,6 +41,7 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider.value(value: serviceLocator<ThemeModel>()),
         ChangeNotifierProvider.value(value: serviceLocator<AuthModel>()),
+        ChangeNotifierProvider.value(value: serviceLocator<CompanyModel>()),
         ChangeNotifierProvider.value(value: serviceLocator<ProfileModel>()),
         ChangeNotifierProvider.value(
           value: serviceLocator<StudentSessionModel>(),

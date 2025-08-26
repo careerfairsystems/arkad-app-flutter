@@ -1,19 +1,22 @@
 import 'package:arkad/api/extensions.dart';
 import 'package:arkad_api/arkad_api.dart';
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
-class CompanyModel {
+class CompanyModel with ChangeNotifier {
   final ArkadApi _apiService = GetIt.I<ArkadApi>();
   List<CompanyOut> _companies = [];
   bool _isLoaded = false;
+  bool _isLoading = false;
+  String? _error;
 
   CompanyModel();
 
-  // Getter for cached companies
+  // Getters
   List<CompanyOut> get companies => _companies;
-
-  // Check if companies are loaded
   bool get isLoaded => _isLoaded;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
 
   // Fetch all companies from API and cache them
   Future<List<CompanyOut>> getAllCompanies({bool forceRefresh = false}) async {
@@ -22,6 +25,9 @@ class CompanyModel {
       return _companies;
     }
 
+    _setLoading(true);
+    _clearError();
+
     try {
       final response =
           await _apiService.getCompaniesApi().companiesApiGetCompanies();
@@ -29,12 +35,17 @@ class CompanyModel {
       if (response.isSuccess && response.data != null) {
         _companies = response.data!.toList();
         _isLoaded = true;
+        notifyListeners();
         return _companies;
       } else {
+        _setError('Failed to load companies: ${response.error}');
         throw Exception('Failed to load companies: ${response.error}');
       }
     } catch (e) {
+      _setError('Error fetching companies: $e');
       throw Exception('Error fetching companies: $e');
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -161,5 +172,20 @@ class CompanyModel {
 
       return true;
     }).toList();
+  }
+
+  // State management helpers
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setError(String? error) {
+    _error = error;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _error = null;
   }
 }
