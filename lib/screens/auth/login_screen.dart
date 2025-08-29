@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../features/auth/presentation/view_models/auth_view_model.dart';
 import '../../utils/login_manager.dart';
 import '../../utils/validation_utils.dart';
-import '../../view_models/auth_model.dart';
-import '../../widgets/auth/auth_form_widgets.dart';
+import '../../features/auth/presentation/widgets/auth_form_widgets.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -81,18 +81,19 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    final authProvider = Provider.of<AuthModel>(context, listen: false);
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    
     try {
-      final success = await authProvider.signIn(
+      await authViewModel.signInCommand.execute(
         _emailController.text.trim(),
         _passwordController.text,
       );
 
       if (mounted) {
-        if (success) {
-          context.go('/companies');
-        } else if (authProvider.error != null) {
-          setState(() => _errorMessage = authProvider.error!.userMessage);
+        if (authViewModel.signInCommand.isCompleted) {
+          context.go('/profile');
+        } else if (authViewModel.signInCommand.hasError) {
+          setState(() => _errorMessage = authViewModel.signInCommand.error!.userMessage);
         }
       }
     } catch (e) {

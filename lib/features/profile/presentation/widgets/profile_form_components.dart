@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../../features/profile/domain/entities/programme.dart';
+import '../../domain/entities/programme.dart';
 
 class ProfileFormComponents {
   static Widget buildBasicInfoFields({

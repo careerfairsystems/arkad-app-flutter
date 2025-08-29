@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 
 import '../../features/profile/domain/entities/programme.dart';
 import '../../utils/profile_utils.dart';
-import '../../view_models/auth_model.dart';
+import '../../features/auth/presentation/view_models/auth_view_model.dart';
+import '../../features/profile/presentation/view_models/profile_view_model.dart';
 
 class StudentSessionFormScreen extends StatefulWidget {
   final String id; // Company ID
@@ -36,27 +37,22 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final authProvider = Provider.of<AuthModel>(context, listen: false);
-    final currentUser = authProvider.user;
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    final currentUser = authViewModel.currentUser;
 
     if (currentUser != null) {
-      // Assuming currentUser.programme is a String? that needs conversion
-      // to Programme enum.
-      if (currentUser.programme != null) {
-        // Ensure currentUser.programme is treated as String? for conversion
-        // If currentUser.programme is already Programme?, direct assignment is fine.
-        // The prompt implies conversion is needed.
-        _selectedProgramme = ProfileUtils.programmeStringToEnum(
-          currentUser.programme,
-        );
-      }
-
-      if (currentUser.studyYear != null) {
-        _studyYear = currentUser.studyYear;
-      }
-
-      if (currentUser.cv != null) {
-        _initialCvFileName = currentUser.cv!.split('/').last;
+      // Load detailed profile data for form pre-population
+      await profileViewModel.loadProfile();
+      final profile = profileViewModel.currentProfile;
+      
+      if (profile != null) {
+        _selectedProgramme = profile.programme;
+        _studyYear = profile.studyYear;
+        
+        if (profile.cvUrl != null) {
+          _initialCvFileName = profile.cvUrl!.split('/').last;
+        }
       }
     }
 

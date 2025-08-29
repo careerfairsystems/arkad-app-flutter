@@ -1,8 +1,8 @@
-import 'package:arkad/view_models/auth_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
+
+import '../navigation/router_notifier.dart';
 
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
@@ -21,15 +21,15 @@ import '../widgets/app_bottom_navigation.dart';
 import 'navigation_items.dart';
 
 class AppRouter {
-  AppRouter(this._auth);
+  AppRouter(this._routerNotifier);
 
-  final AuthModel _auth;
+  final RouterNotifier _routerNotifier;
 
   // ────────────────────────────────────────────────────────────
   // Redirect rules
   // ────────────────────────────────────────────────────────────
   String? _redirect(BuildContext context, GoRouterState state) {
-    final loggedIn = _auth.isAuthenticated;
+    final loggedIn = _routerNotifier.isAuthenticated;
     final path = state.uri.path;
 
     const publicPrefixes = [
@@ -57,7 +57,7 @@ class AppRouter {
   // ────────────────────────────────────────────────────────────
   late final GoRouter router = GoRouter(
     debugLogDiagnostics: true,
-    refreshListenable: _auth.authState,
+    refreshListenable: _routerNotifier,
     redirect: _redirect,
     initialLocation: '/companies',
     routes: [
@@ -65,7 +65,7 @@ class AppRouter {
         builder:
             (context, state, shell) => _AppBottomNavShell(
               navigationShell: shell,
-              isAuthenticated: _auth.isAuthenticated,
+              isAuthenticated: _routerNotifier.isAuthenticated,
             ),
         branches: [
           // Companies
@@ -146,15 +146,13 @@ class AppRouter {
               GoRoute(
                 path: '/profile',
                 pageBuilder: _noAnim((context) {
-                  final user = context.read<AuthModel>().user!;
-                  return ProfileScreen(profile: user);
+                  return const ProfileScreen();
                 }),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     pageBuilder: _slide((context, _) {
-                      final user = context.read<AuthModel>().user!;
-                      return EditProfileScreen(profile: user);
+                      return const EditProfileScreen();
                     }),
                   ),
                 ],

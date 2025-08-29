@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../../services/service_locator.dart';
 import '../../../../shared/errors/app_error.dart';
+import '../../../profile/presentation/view_models/profile_view_model.dart';
 import '../../domain/entities/auth_session.dart';
 import '../../domain/entities/signup_data.dart';
 import '../../domain/entities/user.dart';
@@ -197,6 +199,10 @@ class AuthViewModel extends ChangeNotifier {
     if (_signInCommand.isCompleted && _signInCommand.result != null) {
       _currentSession = _signInCommand.result;
       _clearSignupState();
+      
+      // Trigger profile loading after successful sign in
+      _triggerProfileLoad();
+      
       notifyListeners();
     }
   }
@@ -212,6 +218,10 @@ class AuthViewModel extends ChangeNotifier {
     if (_completeSignupCommand.isCompleted && _completeSignupCommand.result != null) {
       _currentSession = _completeSignupCommand.result;
       _clearSignupState();
+      
+      // Trigger profile loading after successful signup completion
+      _triggerProfileLoad();
+      
       notifyListeners();
     }
   }
@@ -229,6 +239,19 @@ class AuthViewModel extends ChangeNotifier {
 
   void _clearGlobalError() {
     _globalError = null;
+  }
+
+  /// Trigger profile loading after successful authentication
+  void _triggerProfileLoad() {
+    try {
+      final profileViewModel = serviceLocator<ProfileViewModel>();
+      // Trigger profile load asynchronously
+      Future.microtask(() => profileViewModel.loadProfile());
+    } catch (e) {
+      // If ProfileViewModel is not available, continue without error
+      // This prevents auth flow from breaking if profile feature is not available
+      debugPrint('ProfileViewModel not available for auto-loading: $e');
+    }
   }
 
   @override

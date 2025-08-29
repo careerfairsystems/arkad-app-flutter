@@ -1,11 +1,11 @@
-import 'package:arkad/view_models/auth_model.dart';
+import '../../features/auth/presentation/view_models/auth_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart'; // Add go_router import
 import 'package:provider/provider.dart';
 
 import '../../config/theme_config.dart';
-import '../../widgets/auth/auth_form_widgets.dart';
+import '../../features/auth/presentation/widgets/auth_form_widgets.dart';
 
 /// Verification screen for email confirmation during authentication.
 ///
@@ -39,14 +39,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
       _isVerifying = true;
       _errorMessage = null;
     });
-    final authProvider = Provider.of<AuthModel>(context, listen: false);
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     try {
-      final success = await authProvider.completeSignup(_codeController.text);
+      await authViewModel.completeSignUp(_codeController.text);
       if (mounted) {
-        if (success) {
-          context.go('/companies');
-        } else if (authProvider.error != null) {
-          setState(() => _errorMessage = authProvider.error!.userMessage);
+        if (authViewModel.completeSignupCommand.isCompleted && authViewModel.completeSignupCommand.error == null) {
+          context.go('/profile');
+        } else if (authViewModel.completeSignupCommand.error != null) {
+          setState(() => _errorMessage = authViewModel.completeSignupCommand.error!.userMessage);
+        } else if (authViewModel.globalError != null) {
+          setState(() => _errorMessage = authViewModel.globalError!.userMessage);
         }
       }
     } catch (e) {
@@ -65,32 +67,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
       _isResending = true;
       _errorMessage = null;
     });
-    final authProvider = Provider.of<AuthModel>(context, listen: false);
-    try {
-      final success = await authProvider.requestNewVerificationCode(
-        widget.email,
+    
+    // For now, show a message that the feature is not yet implemented in clean architecture
+    // TODO: Add resend verification use case to clean architecture
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please check your email for the existing code. Resend feature coming soon.'),
+        ),
       );
-      if (mounted) {
-        if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('A new verification code has been sent'),
-            ),
-          );
-        } else if (authProvider.error != null) {
-          setState(() => _errorMessage = authProvider.error!.userMessage);
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(
-          () => _errorMessage = 'Failed to resend code: ${e.toString()}',
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isResending = false);
-      }
+      setState(() => _isResending = false);
     }
   }
 

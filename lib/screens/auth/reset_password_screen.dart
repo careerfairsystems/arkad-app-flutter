@@ -1,10 +1,10 @@
 import 'package:arkad/config/theme_config.dart';
-import 'package:arkad/view_models/auth_model.dart';
+import '../../features/auth/presentation/view_models/auth_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../utils/validation_utils.dart';
-import '../../widgets/auth/auth_form_widgets.dart';
+import '../../features/auth/presentation/widgets/auth_form_widgets.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -51,31 +51,38 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
-    final authProvider = Provider.of<AuthModel>(context, listen: false);
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     try {
-      final success = await authProvider.resetPassword(
-        _emailController.text.trim(),
-      );
+      await authViewModel.resetPassword(_emailController.text.trim());
 
-      if (success) {
-        setState(() {
-          _isReset = true;
-          _serverError = false;
-        });
-      } else {
+      if (mounted) {
+        if (authViewModel.globalError == null) {
+          setState(() {
+            _isReset = true;
+            _serverError = false;
+          });
+        } else {
+          setState(() {
+            _serverError = true;
+            _isReset = false;
+            _serverErrorText = authViewModel.globalError!.userMessage;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
           _serverError = true;
           _isReset = false;
+          _serverErrorText = 'Failed to reset password: $e';
         });
       }
-      setState(() {
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      return;
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -107,7 +114,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         SizedBox(
           width: 130,
           child: ElevatedButton(
-            onPressed: () => context.go('/login'),
+            onPressed: () => context.go('/auth/login'),
             style: ElevatedButton.styleFrom(
               backgroundColor: ArkadColors.arkadTurkos,
               foregroundColor: ArkadColors.white,

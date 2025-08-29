@@ -4,10 +4,9 @@ import 'package:provider/provider.dart';
 import 'features/auth/presentation/view_models/auth_view_model.dart';
 import 'features/profile/presentation/view_models/profile_view_model.dart';
 import 'navigation/app_router.dart';
+import 'navigation/router_notifier.dart';
 import 'services/service_locator.dart';
-import 'view_models/auth_model.dart';
 import 'view_models/company_model.dart';
-import 'view_models/profile_model.dart';
 import 'view_models/student_session_model.dart';
 import 'view_models/theme_model.dart';
 
@@ -29,13 +28,15 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final AppRouter _appRouter;
+  late final RouterNotifier _routerNotifier;
 
   @override
   void initState() {
     super.initState();
-    // Grab the AuthProvider (already registered as singleton in serviceLocator)
-    final auth = serviceLocator<AuthModel>();
-    _appRouter = AppRouter(auth); // only once, here
+    // Use clean architecture: AuthViewModel → RouterNotifier → AppRouter
+    final authViewModel = serviceLocator<AuthViewModel>();
+    _routerNotifier = RouterNotifier(authViewModel);
+    _appRouter = AppRouter(_routerNotifier);
   }
 
   @override
@@ -44,9 +45,7 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider.value(value: serviceLocator<ThemeModel>()),
         // Legacy models (TODO: Remove after migration)
-        ChangeNotifierProvider.value(value: serviceLocator<AuthModel>()),
         ChangeNotifierProvider.value(value: serviceLocator<CompanyModel>()),
-        ChangeNotifierProvider.value(value: serviceLocator<ProfileModel>()),
         ChangeNotifierProvider.value(
           value: serviceLocator<StudentSessionModel>(),
         ),

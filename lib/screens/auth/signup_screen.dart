@@ -1,4 +1,5 @@
-import 'package:arkad/view_models/auth_model.dart';
+import '../../features/auth/domain/entities/signup_data.dart';
+import '../../features/auth/presentation/view_models/auth_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +9,7 @@ import '../../config/theme_config.dart';
 import '../../shared/errors/app_error.dart';
 import '../../shared/errors/error_mapper.dart';
 import '../../utils/validation_utils.dart';
-import '../../widgets/auth/auth_form_widgets.dart';
+import '../../features/auth/presentation/widgets/auth_form_widgets.dart';
 import '../../widgets/error/error_display.dart';
 
 /// Signup screen for new user registration.
@@ -200,12 +201,12 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _handleSignup() async {
     setState(() => _isLoading = true);
-    final authProvider = Provider.of<AuthModel>(context, listen: false);
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
 
     try {
-      final success = await authProvider.initialSignUp(
-        _emailController.text.trim(),
-        _passwordController.text,
+      final signupData = SignupData(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         foodPreferences: _hasFoodPreferences 
@@ -214,13 +215,19 @@ class _SignupScreenState extends State<SignupScreen> {
                 : null
             : "None",
       );
+      
+      await authViewModel.startSignUp(signupData);
+      
       if (mounted) {
-        if (success) {
+        if (authViewModel.signUpCommand.isCompleted && authViewModel.signUpCommand.error == null) {
           await context.push(
             '/auth/verification?email=${Uri.encodeComponent(_emailController.text.trim())}',
           );
-        } else if (authProvider.error != null) {
-          final errorWithActions = _addRecoveryActions(authProvider.error!);
+        } else if (authViewModel.signUpCommand.error != null) {
+          final errorWithActions = _addRecoveryActions(authViewModel.signUpCommand.error!);
+          setState(() => _error = errorWithActions);
+        } else if (authViewModel.globalError != null) {
+          final errorWithActions = _addRecoveryActions(authViewModel.globalError!);
           setState(() => _error = errorWithActions);
         }
       }

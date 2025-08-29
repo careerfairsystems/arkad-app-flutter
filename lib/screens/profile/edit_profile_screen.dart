@@ -1,21 +1,16 @@
 import 'dart:io';
 
-import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../features/profile/domain/entities/programme.dart';
 import '../../utils/profile_utils.dart';
-import '../../view_models/auth_model.dart';
-import '../../view_models/profile_model.dart';
-import '../../widgets/profile/profile_form_components.dart';
+import '../../features/profile/presentation/view_models/profile_view_model.dart';
+import '../../features/profile/presentation/widgets/profile_form_components.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  final ProfileSchema profile;
-
-  const EditProfileScreen({super.key, required this.profile});
+  const EditProfileScreen({super.key});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -44,52 +39,63 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _profilePictureDeleted = false;
   bool _cvDeleted = false;
 
+  // View model reference
+  late ProfileViewModel _profileViewModel;
+
   @override
   void initState() {
     super.initState();
+    _profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    _profileViewModel.addListener(_onProfileChanged);
     _initializeControllers();
   }
 
+  void _onProfileChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   void _initializeControllers() {
-    _emailController = TextEditingController(text: widget.profile.email);
+    final profile = _profileViewModel.currentProfile;
+    
+    _emailController = TextEditingController(text: profile?.email ?? '');
     _firstNameController = TextEditingController(
-      text: widget.profile.firstName,
+      text: profile?.firstName ?? '',
     );
-    _lastNameController = TextEditingController(text: widget.profile.lastName);
+    _lastNameController = TextEditingController(text: profile?.lastName ?? '');
     _programmeController = TextEditingController(
-      text: widget.profile.programme ?? '',
+      text: profile?.programme?.name ?? '',
     );
 
     // Extract LinkedIn username from URL if it exists
     String linkedinUsername = '';
-    if (widget.profile.linkedin != null &&
-        widget.profile.linkedin!.isNotEmpty) {
-      final url = widget.profile.linkedin!;
+    if (profile?.linkedin != null &&
+        profile!.linkedin!.isNotEmpty) {
+      final url = profile.linkedin!;
       if (url.contains('linkedin.com/in/')) {
         final parts = url.split('/in/');
         if (parts.length > 1) {
           linkedinUsername = parts[1].split('/').first.split('?').first;
         }
       } else {
-        linkedinUsername = widget.profile.linkedin!;
+        linkedinUsername = profile.linkedin!;
       }
     }
 
     _linkedinController = TextEditingController(text: linkedinUsername);
 
     _masterTitleController = TextEditingController(
-      text: widget.profile.masterTitle ?? '',
+      text: profile?.masterTitle ?? '',
     );
     _foodPreferencesController = TextEditingController(
-      text: widget.profile.foodPreferences ?? '',
+      text: profile?.foodPreferences ?? '',
     );
 
-    _studyYear = widget.profile.studyYear;
+    _studyYear = profile?.studyYear;
 
-    // Convert string programme to enum if it exists
-    _selectedProgramme = ProfileUtils.programmeStringToEnum(
-      widget.profile.programme,
-    );
+    // Convert enum programme to selected value if it exists
+    _selectedProgramme = profile?.programme;
   }
 
   Future<void> _pickImage() async {
@@ -124,35 +130,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     // Get references to providers and other objects
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final profileProvider = GetIt.I<ProfileModel>();
-    final authProvider = Provider.of<AuthModel>(context, listen: false);
+    final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    final currentProfile = profileViewModel.currentProfile;
 
     try {
-      // Generate profile data
-      final profileData = profileProvider.prepareProfileData(
+      if (currentProfile == null) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('No profile data available')),
+        );
+        return;
+      }
+
+      // Create updated profile data
+      final updatedProfile = currentProfile.copyWith(
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
-        selectedProgramme: _selectedProgramme,
-        programmeText: _programmeController.text,
-        linkedin: _linkedinController.text,
-        masterTitle: _masterTitleController.text,
+        programme: _selectedProgramme,
+        linkedin: _linkedinController.text.isEmpty ? null : _linkedinController.text,
+        masterTitle: _masterTitleController.text.isEmpty ? null : _masterTitleController.text,
         studyYear: _studyYear,
         foodPreferences: _foodPreferencesController.text,
       );
 
-      // Update profile using the centralized provider
-      final success = await profileProvider.updateProfile(
-        profileData: profileData,
-        profilePicture: _selectedImage,
-        deleteProfilePicture: _profilePictureDeleted,
-        cv: _selectedCV,
-        deleteCV: _cvDeleted,
-      );
+      // Update profile using clean architecture
+      bool success = await profileViewModel.updateProfile(updatedProfile);
+      
+      // Handle file uploads if needed
+      if (success && _selectedImage != null) {
+        success = await profileViewModel.uploadProfilePicture(_selectedImage!);
+      }
+      
+      if (success && _selectedCV != null) {
+        success = await profileViewModel.uploadCV(_selectedCV!);
+      }
+      
+      // Handle file deletions if needed
+      if (success && _profilePictureDeleted) {
+        await profileViewModel.deleteProfilePicture();
+      }
+      
+      if (success && _cvDeleted) {
+        await profileViewModel.deleteCV();
+      }
 
       if (success) {
-        // Refresh user data in auth model
-        await authProvider.refreshUserProfile();
-
         // Bail out if the widget got disposed while we were waiting
         if (!mounted) return;
 
@@ -161,10 +182,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         messenger.showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
         );
-      } else if (profileProvider.error != null && mounted) {
+      } else if (profileViewModel.error != null && mounted) {
         messenger.showSnackBar(
           SnackBar(
-            content: Text('Failed to update profile: ${profileProvider.error}'),
+            content: Text('Failed to update profile: ${profileViewModel.error!.userMessage}'),
           ),
         );
       }
@@ -204,9 +225,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final profileProvider = Provider.of<ProfileModel>(context);
-    final bool isLoading =
-        profileProvider.isLoading || profileProvider.isUploading;
+    final profile = _profileViewModel.currentProfile;
+    final isLoading = _profileViewModel.isLoading;
+    final error = _profileViewModel.error;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Profile')),
@@ -239,7 +260,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               onDeleteImage: _deleteProfilePicture,
                               profilePictureDeleted: _profilePictureDeleted,
                               currentProfilePicture:
-                                  widget.profile.profilePicture,
+                                  profile?.profilePictureUrl,
                             ),
                             const Text(
                               'Profile Picture (Optional)',
@@ -255,13 +276,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       const SizedBox(height: 24),
 
                       // Error display
-                      if (profileProvider.error != null)
+                      if (error != null)
                         Container(
                           padding: const EdgeInsets.all(8),
                           margin: const EdgeInsets.only(bottom: 16),
                           color: Colors.red.shade100,
                           child: Text(
-                            profileProvider.error!,
+                            error.userMessage,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: Colors.red.shade800),
                           ),
@@ -363,7 +384,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         onPickCV: _pickCV,
                         onDeleteCV: _deleteCV,
                         cvDeleted: _cvDeleted,
-                        currentCV: widget.profile.cv,
+                        currentCV: profile?.cvUrl,
                       ),
 
                       const SizedBox(height: 32),
@@ -388,6 +409,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   void dispose() {
+    _profileViewModel.removeListener(_onProfileChanged);
     _emailController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();

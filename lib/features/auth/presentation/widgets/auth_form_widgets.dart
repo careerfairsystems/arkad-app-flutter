@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../config/theme_config.dart';
+import '../../../../config/theme_config.dart';
 
 /// A collection of reusable widgets for authentication screens
 class AuthFormWidgets {

@@ -23,9 +23,7 @@ import '../features/profile/domain/use_cases/update_profile_use_case.dart';
 import '../features/profile/domain/use_cases/upload_cv_use_case.dart';
 import '../features/profile/domain/use_cases/upload_profile_picture_use_case.dart';
 import '../features/profile/presentation/view_models/profile_view_model.dart';
-import '../view_models/auth_model.dart';
 import '../view_models/company_model.dart';
-import '../view_models/profile_model.dart';
 import '../view_models/student_session_model.dart';
 import '../view_models/theme_model.dart';
 
@@ -48,14 +46,12 @@ void setupServiceLocator() {
   _setupAuthFeature();
   _setupProfileFeature();
 
-  // Legacy view models (TODO: Migrate to clean architecture)
+  // Legacy view models (keeping ThemeModel for now)
   serviceLocator.registerLazySingleton<ThemeModel>(() => ThemeModel());
   serviceLocator.registerLazySingleton<CompanyModel>(() => CompanyModel());
-  serviceLocator.registerLazySingleton<ProfileModel>(() => ProfileModel());
   serviceLocator.registerLazySingleton<StudentSessionModel>(
     () => StudentSessionModel(),
   );
-  serviceLocator.registerSingleton(AuthModel());
 }
 
 /// Setup Auth feature with clean architecture

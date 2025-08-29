@@ -43,7 +43,7 @@ class ProfileViewModel extends ChangeNotifier {
         _uploadProfilePictureUseCase = uploadProfilePictureUseCase,
         _uploadCVUseCase = uploadCVUseCase {
     _initializeCommands();
-    _loadInitialProfile();
+    // Profile will be loaded when explicitly requested or after auth success
   }
 
   void _initializeCommands() {
@@ -188,9 +188,6 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _loadInitialProfile() async {
-    await loadProfile();
-  }
 
   @override
   void dispose() {

@@ -1,3 +1,6 @@
+import 'package:arkad_api/arkad_api.dart';
+
+import '../../../../services/service_locator.dart';
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/exception.dart';
@@ -25,8 +28,13 @@ class AuthRepositoryImpl implements AuthRepository {
       // Attempt sign in via remote API
       final token = await _remoteDataSource.signIn(email, password);
       
-      // Set auth token for subsequent API calls
+      // Set auth token for subsequent API calls on ALL API instances
       _remoteDataSource.setBearerAuth("AuthBearer", token);
+      
+      // Also set token on the shared API instance for profile calls
+      // This ensures profile API calls are authenticated
+      final sharedApi = serviceLocator<ArkadApi>();
+      sharedApi.setBearerAuth("AuthBearer", token);
       
       // Load user profile
       final userDto = await _remoteDataSource.getUserProfile();
@@ -172,8 +180,10 @@ class AuthRepositoryImpl implements AuthRepository {
       // Clear local session
       await _localDataSource.clearSession();
       
-      // Clear API auth
+      // Clear API auth on both auth and shared instances
       _remoteDataSource.clearAuth();
+      final sharedApi = serviceLocator<ArkadApi>();
+      sharedApi.setApiKey('AuthBearer', '');
       
       return Result.success(null);
     } catch (e) {
