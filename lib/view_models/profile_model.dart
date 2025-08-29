@@ -1,14 +1,14 @@
 import 'dart:io';
 
-import 'package:arkad/models/programme.dart';
-import 'package:arkad/utils/validation_utils.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../api/extensions.dart';
+import '../features/profile/domain/entities/programme.dart';
 import '../utils/profile_utils.dart';
+import '../utils/validation_utils.dart';
 
 /// Provider for handling all profile-related functionality including profile updates
 /// and media management

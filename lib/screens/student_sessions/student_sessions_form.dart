@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:arkad/models/programme.dart';
-import 'package:arkad/view_models/auth_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../features/profile/domain/entities/programme.dart';
 import '../../utils/profile_utils.dart';
+import '../../view_models/auth_model.dart';
 
 class StudentSessionFormScreen extends StatefulWidget {
   final String id; // Company ID
@@ -314,11 +314,11 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
                   icon: const Icon(Icons.arrow_drop_down),
                   menuMaxHeight: 350,
                   items:
-                      programs.map((program) {
+                      availableProgrammes.map((program) {
                         return DropdownMenuItem<Programme>(
-                          value: program['value'] as Programme,
+                          value: program.value,
                           child: Text(
-                            program['label'] as String, // Label is String
+                            program.label,
                             overflow: TextOverflow.ellipsis,
                           ),
                         );

@@ -1,11 +1,11 @@
-import 'package:arkad/config/theme_config.dart';
-import 'package:arkad/view_models/auth_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../config/theme_config.dart';
 import '../../utils/login_manager.dart';
+import '../../view_models/auth_model.dart';
 import '../../widgets/profile/profile_info_widget.dart';
 
 class ProfileScreen extends StatefulWidget {

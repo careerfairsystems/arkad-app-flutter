@@ -1,12 +1,15 @@
-import 'package:arkad/view_models/auth_model.dart';
-import 'package:arkad/view_models/company_model.dart';
-import 'package:arkad/view_models/profile_model.dart';
-import 'package:arkad/view_models/student_session_model.dart';
-import 'package:arkad/view_models/theme_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'features/auth/presentation/view_models/auth_view_model.dart';
+import 'features/profile/presentation/view_models/profile_view_model.dart';
 import 'navigation/app_router.dart';
 import 'services/service_locator.dart';
+import 'view_models/auth_model.dart';
+import 'view_models/company_model.dart';
+import 'view_models/profile_model.dart';
+import 'view_models/student_session_model.dart';
+import 'view_models/theme_model.dart';
 
 void main() async {
   // Good pratice, harmless to include. Ensure that the Flutter engine is initialized before running the app. In simplier terms if you need to do any native setup or asynchronous work such as reading local storage before showing the UI, this call ensures that the Flutter engine is ready to handle it.
@@ -40,12 +43,16 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: serviceLocator<ThemeModel>()),
+        // Legacy models (TODO: Remove after migration)
         ChangeNotifierProvider.value(value: serviceLocator<AuthModel>()),
         ChangeNotifierProvider.value(value: serviceLocator<CompanyModel>()),
         ChangeNotifierProvider.value(value: serviceLocator<ProfileModel>()),
         ChangeNotifierProvider.value(
           value: serviceLocator<StudentSessionModel>(),
         ),
+        // Clean architecture view models
+        ChangeNotifierProvider.value(value: serviceLocator<AuthViewModel>()),
+        ChangeNotifierProvider.value(value: serviceLocator<ProfileViewModel>()),
       ],
       child: Consumer<ThemeModel>(
         builder: (ctx, themeProvider, _) {

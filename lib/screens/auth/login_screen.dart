@@ -1,10 +1,10 @@
-import 'package:arkad/view_models/auth_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../utils/login_manager.dart';
 import '../../utils/validation_utils.dart';
+import '../../view_models/auth_model.dart';
 import '../../widgets/auth/auth_form_widgets.dart';
 
 class LoginScreen extends StatefulWidget {

@@ -1,6 +1,8 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import '../../models/programme.dart';
+
+import '../../features/profile/domain/entities/programme.dart';
 
 class ProfileFormComponents {
   static Widget buildBasicInfoFields({
@@ -69,11 +71,11 @@ class ProfileFormComponents {
           ),
           value: selectedProgramme,
           hint: const Text('Select your programme'),
-          items: programs.map((program) {
+          items: availableProgrammes.map((program) {
             return DropdownMenuItem<Programme>(
-              value: program['value'] as Programme,
+              value: program.value,
               child: Text(
-                program['label'] as String,
+                program.label,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),

@@ -1,14 +1,15 @@
 import 'dart:io';
 
-import 'package:arkad/models/programme.dart';
-import 'package:arkad/view_models/profile_model.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../features/profile/domain/entities/programme.dart';
 import '../../utils/profile_utils.dart';
+import '../../view_models/auth_model.dart';
+import '../../view_models/profile_model.dart';
 import '../../widgets/profile/profile_form_components.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -124,6 +125,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final profileProvider = GetIt.I<ProfileModel>();
+    final authProvider = Provider.of<AuthModel>(context, listen: false);
 
     try {
       // Generate profile data
@@ -148,8 +150,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
 
       if (success) {
-        // Refresh user data
-        // await auth.refreshUserProfile(); FIX?
+        // Refresh user data in auth model
+        await authProvider.refreshUserProfile();
 
         // Bail out if the widget got disposed while we were waiting
         if (!mounted) return;
@@ -314,12 +316,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             _selectedProgramme = newValue;
                             if (newValue != null) {
                               _programmeController.text =
-                                  programs
+                                  availableProgrammes
                                       .firstWhere(
                                         (program) =>
-                                            program['value'] == newValue,
-                                      )['label']
-                                      .toString();
+                                            program.value == newValue,
+                                      ).label;
                             }
                           });
                         },

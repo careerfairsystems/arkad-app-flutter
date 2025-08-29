@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../models/programme.dart';
+import '../features/profile/domain/entities/programme.dart';
 
 class ProfileUtils {
   static Future<File?> pickProfileImage({
@@ -108,10 +108,7 @@ class ProfileUtils {
       // Get the label from the selected programme enum
       'programme':
           selectedProgramme != null
-              ? programs.firstWhere(
-                    (prog) => prog['value'] == selectedProgramme,
-                  )['label']
-                  as String
+              ? ProgrammeUtils.programmeToLabel(selectedProgramme)
               : programmeText.trim(),
       'linkedin': linkedin.trim(),
       'master_title': masterTitle.trim(),
@@ -129,18 +126,6 @@ class ProfileUtils {
 
   // Helper method to convert string programme to enum
   static Programme? programmeStringToEnum(String? programmeString) {
-    if (programmeString == null || programmeString.isEmpty) {
-      return null;
-    }
-
-    try {
-      return programs.firstWhere(
-            (prog) => prog['label'] == programmeString,
-            orElse: () => programs[0],
-          )['value']
-          as Programme;
-    } catch (e) {
-      return null;
-    }
+    return ProgrammeUtils.labelToProgramme(programmeString);
   }
 }
