@@ -1,3 +1,5 @@
+import '../errors/app_error.dart';
+
 /// Result pattern for handling success and failure cases consistently
 sealed class Result<T> {
   const Result();
@@ -90,6 +92,3 @@ class Failure<T> extends Result<T> {
   @override
   String toString() => 'Failure($error)';
 }
-
-// Import the AppError class
-import '../../shared/errors/app_error.dart';
