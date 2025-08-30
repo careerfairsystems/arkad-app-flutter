@@ -88,10 +88,10 @@ class ProfileViewModel extends ChangeNotifier {
 
   // Computed properties for UI convenience
   bool get isLoading => 
-    _getProfileCommand.isRunning ||
-    _updateProfileCommand.isRunning ||
-    _uploadProfilePictureCommand.isRunning ||
-    _uploadCVCommand.isRunning;
+    _getProfileCommand.isExecuting ||
+    _updateProfileCommand.isExecuting ||
+    _uploadProfilePictureCommand.isExecuting ||
+    _uploadCVCommand.isExecuting;
 
   bool get hasProfile => _currentProfile != null;
 
@@ -114,7 +114,7 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   Future<bool> updateProfile(Profile profile) async {
-    final result = await _updateProfileCommand.execute(profile);
+    final result = await _updateProfileCommand.updateProfile(profile);
     
     if (result) {
       // Fire profile updated event
@@ -126,7 +126,7 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   Future<bool> uploadProfilePicture(File file) async {
-    final result = await _uploadProfilePictureCommand.execute(file);
+    final result = await _uploadProfilePictureCommand.uploadProfilePicture(file);
     
     if (result && _uploadProfilePictureCommand.uploadResult != null) {
       // Fire profile picture uploaded event
@@ -141,7 +141,7 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   Future<bool> uploadCV(File file) async {
-    final result = await _uploadCVCommand.execute(file);
+    final result = await _uploadCVCommand.uploadCV(file);
     
     if (result && _uploadCVCommand.uploadResult != null) {
       // Fire CV uploaded event

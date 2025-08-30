@@ -112,7 +112,7 @@ class AuthViewModel extends ChangeNotifier {
     _clearGlobalError();
     _pendingSignupData = signupData;
     
-    await _signUpCommand.execute(signupData);
+    await _signUpCommand.signUp(signupData);
   }
 
   /// Complete sign up process with verification code
@@ -124,7 +124,7 @@ class AuthViewModel extends ChangeNotifier {
 
     _clearGlobalError();
     
-    await _completeSignupCommand.execute(
+    await _completeSignupCommand.completeSignup(
       signupToken: _signupToken!,
       verificationCode: verificationCode,
       signupData: _pendingSignupData!,
@@ -134,7 +134,7 @@ class AuthViewModel extends ChangeNotifier {
   /// Sign in with email and password
   Future<void> signIn(String email, String password) async {
     _clearGlobalError();
-    await _signInCommand.execute(email, password);
+    await _signInCommand.signIn(email, password);
   }
 
   /// Sign out current user

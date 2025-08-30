@@ -1,78 +1,31 @@
-import 'package:flutter/foundation.dart';
-
-import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/signup_data.dart';
 import '../../domain/use_cases/sign_up_use_case.dart';
 
 /// Command for sign up operation
-class SignUpCommand extends ChangeNotifier {
+class SignUpCommand extends ParameterizedCommand<SignupData, String> {
   SignUpCommand(this._signUpUseCase);
 
   final SignUpUseCase _signUpUseCase;
 
-  bool _isExecuting = false;
-  AppError? _error;
-  String? _result;
+  @override
+  Future<void> executeWithParams(SignupData params) async {
+    if (isExecuting) return; // Prevent multiple concurrent executions
 
-  // Getters
-  bool get isExecuting => _isExecuting;
-  AppError? get error => _error;
-  String? get result => _result; // Returns signup token
-  bool get hasError => _error != null;
-  bool get isCompleted => _result != null && !_isExecuting;
+    setExecuting(true);
 
-  /// Execute sign up command
-  Future<void> execute(SignupData signupData) async {
-    if (_isExecuting) return; // Prevent multiple concurrent executions
-
-    _setExecuting(true);
-    _clearError();
-    _result = null;
-
-    final result = await _signUpUseCase.call(signupData);
+    final result = await _signUpUseCase.call(params);
 
     result.when(
-      success: (token) {
-        _result = token;
-        _error = null;
-      },
-      failure: (error) {
-        _error = error;
-        _result = null;
-      },
+      success: (token) => setResult(token),
+      failure: (error) => setError(error),
     );
 
-    _setExecuting(false);
+    setExecuting(false);
   }
 
-  /// Clear any existing error
-  void clearError() {
-    if (_error != null) {
-      _error = null;
-      notifyListeners();
-    }
-  }
-
-  /// Reset the command state
-  void reset() {
-    _isExecuting = false;
-    _error = null;
-    _result = null;
-    notifyListeners();
-  }
-
-  void _setExecuting(bool executing) {
-    _isExecuting = executing;
-    notifyListeners();
-  }
-
-  void _clearError() {
-    _error = null;
-  }
-
-  @override
-  void dispose() {
-    reset();
-    super.dispose();
+  /// Convenience method for executing with signup data
+  Future<void> signUp(SignupData signupData) async {
+    await executeWithParams(signupData);
   }
 }

@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     
     try {
-      await authViewModel.signInCommand.execute(
+      await authViewModel.signInCommand.signIn(
         _emailController.text.trim(),
         _passwordController.text,
       );
