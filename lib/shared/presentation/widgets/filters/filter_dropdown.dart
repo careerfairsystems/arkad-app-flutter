@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'filter_dropdown_controller.dart';
 
 /// A dropdown widget for filter options with search functionality

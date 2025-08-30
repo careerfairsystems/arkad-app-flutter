@@ -1,15 +1,13 @@
-import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/company/presentation/screens/companies_screen.dart';
+import '../features/company/presentation/screens/company_detail_screen.dart';
 import '../navigation/router_notifier.dart';
-
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/auth/verification_screen.dart';
-import '../screens/companies/companies_screen.dart';
-import '../screens/companies/company_detail_screen.dart';
 import '../screens/event/event_screen.dart';
 import '../screens/map/map_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
@@ -76,15 +74,16 @@ class AppRouter {
                 pageBuilder: _noAnim((_) => const CompaniesScreen()),
                 routes: [
                   GoRoute(
-                    path: 'detail',
+                    path: 'detail/:id',
                     pageBuilder: _slide((context, s) {
-                      final company = s.extra as CompanyOut?;
-                      if (company == null) {
+                      final idStr = s.pathParameters['id'];
+                      final companyId = int.tryParse(idStr ?? '');
+                      if (companyId == null) {
                         return const Scaffold(
-                          body: Center(child: Text('Error: company missing')),
+                          body: Center(child: Text('Error: Invalid company ID')),
                         );
                       }
-                      return CompanyDetailScreen(company: company);
+                      return CompanyDetailScreen(companyId: companyId);
                     }),
                   ),
                 ],

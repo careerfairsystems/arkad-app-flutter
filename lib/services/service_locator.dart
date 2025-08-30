@@ -25,7 +25,23 @@ import '../features/profile/domain/use_cases/upload_cv_use_case.dart';
 import '../features/profile/domain/use_cases/upload_profile_picture_use_case.dart';
 import '../features/profile/presentation/view_models/profile_view_model.dart';
 import '../shared/infrastructure/services/file_service.dart';
-import '../view_models/company_model.dart';
+import '../features/company/data/data_sources/company_local_data_source.dart';
+import '../features/company/data/data_sources/company_remote_data_source.dart';
+import '../features/company/data/mappers/company_mapper.dart';
+import '../features/company/data/repositories/company_repository_impl.dart';
+import '../features/company/domain/repositories/company_repository.dart';
+import '../features/company/domain/use_cases/filter_companies_use_case.dart';
+import '../features/company/domain/use_cases/get_companies_use_case.dart';
+import '../features/company/domain/use_cases/get_company_by_id_use_case.dart';
+import '../features/company/domain/use_cases/search_and_filter_companies_use_case.dart';
+import '../features/company/domain/use_cases/search_companies_use_case.dart';
+import '../features/company/presentation/commands/filter_companies_command.dart';
+import '../features/company/presentation/commands/get_companies_command.dart';
+import '../features/company/presentation/commands/get_company_by_id_command.dart';
+import '../features/company/presentation/commands/search_and_filter_companies_command.dart';
+import '../features/company/presentation/commands/search_companies_command.dart';
+import '../features/company/presentation/view_models/company_detail_view_model.dart';
+import '../features/company/presentation/view_models/company_view_model.dart';
 import '../view_models/student_session_model.dart';
 import '../view_models/theme_model.dart';
 
@@ -53,10 +69,10 @@ void setupServiceLocator() {
   // Clean architecture features
   _setupAuthFeature();
   _setupProfileFeature();
+  _setupCompanyFeature();
 
   // Legacy view models (TODO: Migrate to clean architecture)
   serviceLocator.registerLazySingleton<ThemeModel>(() => ThemeModel());
-  serviceLocator.registerLazySingleton<CompanyModel>(() => CompanyModel());
   serviceLocator.registerLazySingleton<StudentSessionModel>(
     () => StudentSessionModel(),
   );
@@ -152,6 +168,80 @@ void _setupProfileFeature() {
       updateProfileUseCase: serviceLocator<UpdateProfileUseCase>(),
       uploadProfilePictureUseCase: serviceLocator<UploadProfilePictureUseCase>(),
       uploadCVUseCase: serviceLocator<UploadCVUseCase>(),
+    ),
+  );
+}
+
+/// Setup Company feature with clean architecture
+void _setupCompanyFeature() {
+  // Data sources
+  serviceLocator.registerLazySingleton<CompanyRemoteDataSource>(
+    () => CompanyRemoteDataSource(serviceLocator<ArkadApi>()),
+  );
+  serviceLocator.registerLazySingleton<CompanyLocalDataSource>(
+    () => CompanyLocalDataSource(),
+  );
+
+  // Mapper
+  serviceLocator.registerLazySingleton<CompanyMapper>(
+    () => const CompanyMapper(),
+  );
+
+  // Repository
+  serviceLocator.registerLazySingleton<CompanyRepository>(
+    () => CompanyRepositoryImpl(
+      remoteDataSource: serviceLocator<CompanyRemoteDataSource>(),
+      localDataSource: serviceLocator<CompanyLocalDataSource>(),
+      mapper: serviceLocator<CompanyMapper>(),
+    ),
+  );
+
+  // Use cases
+  serviceLocator.registerLazySingleton<GetCompaniesUseCase>(
+    () => GetCompaniesUseCase(serviceLocator<CompanyRepository>()),
+  );
+  serviceLocator.registerLazySingleton<GetCompanyByIdUseCase>(
+    () => GetCompanyByIdUseCase(serviceLocator<CompanyRepository>()),
+  );
+  serviceLocator.registerLazySingleton<SearchCompaniesUseCase>(
+    () => SearchCompaniesUseCase(serviceLocator<CompanyRepository>()),
+  );
+  serviceLocator.registerLazySingleton<FilterCompaniesUseCase>(
+    () => FilterCompaniesUseCase(serviceLocator<CompanyRepository>()),
+  );
+  serviceLocator.registerLazySingleton<SearchAndFilterCompaniesUseCase>(
+    () => SearchAndFilterCompaniesUseCase(serviceLocator<CompanyRepository>()),
+  );
+
+  // Commands
+  serviceLocator.registerLazySingleton<GetCompaniesCommand>(
+    () => GetCompaniesCommand(serviceLocator<GetCompaniesUseCase>()),
+  );
+  serviceLocator.registerLazySingleton<GetCompanyByIdCommand>(
+    () => GetCompanyByIdCommand(serviceLocator<GetCompanyByIdUseCase>()),
+  );
+  serviceLocator.registerLazySingleton<SearchCompaniesCommand>(
+    () => SearchCompaniesCommand(serviceLocator<SearchCompaniesUseCase>()),
+  );
+  serviceLocator.registerLazySingleton<FilterCompaniesCommand>(
+    () => FilterCompaniesCommand(serviceLocator<FilterCompaniesUseCase>()),
+  );
+  serviceLocator.registerLazySingleton<SearchAndFilterCompaniesCommand>(
+    () => SearchAndFilterCompaniesCommand(serviceLocator<SearchAndFilterCompaniesUseCase>()),
+  );
+
+  // View models
+  serviceLocator.registerLazySingleton<CompanyViewModel>(
+    () => CompanyViewModel(
+      getCompaniesCommand: serviceLocator<GetCompaniesCommand>(),
+      searchCompaniesCommand: serviceLocator<SearchCompaniesCommand>(),
+      filterCompaniesCommand: serviceLocator<FilterCompaniesCommand>(),
+      searchAndFilterCommand: serviceLocator<SearchAndFilterCompaniesCommand>(),
+    ),
+  );
+  serviceLocator.registerLazySingleton<CompanyDetailViewModel>(
+    () => CompanyDetailViewModel(
+      getCompanyByIdCommand: serviceLocator<GetCompanyByIdCommand>(),
     ),
   );
 }

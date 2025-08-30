@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'features/auth/presentation/view_models/auth_view_model.dart';
+import 'features/company/presentation/view_models/company_detail_view_model.dart';
+import 'features/company/presentation/view_models/company_view_model.dart';
 import 'features/profile/presentation/view_models/profile_view_model.dart';
 import 'navigation/app_router.dart';
 import 'navigation/router_notifier.dart';
 import 'services/service_locator.dart';
-import 'view_models/company_model.dart';
 import 'view_models/student_session_model.dart';
 import 'view_models/theme_model.dart';
 
@@ -45,13 +46,14 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider.value(value: serviceLocator<ThemeModel>()),
         // Legacy models (TODO: Migrate to clean architecture)
-        ChangeNotifierProvider.value(value: serviceLocator<CompanyModel>()),
         ChangeNotifierProvider.value(
           value: serviceLocator<StudentSessionModel>(),
         ),
         // Clean architecture view models
         ChangeNotifierProvider.value(value: serviceLocator<AuthViewModel>()),
         ChangeNotifierProvider.value(value: serviceLocator<ProfileViewModel>()),
+        ChangeNotifierProvider.value(value: serviceLocator<CompanyViewModel>()),
+        ChangeNotifierProvider.value(value: serviceLocator<CompanyDetailViewModel>()),
       ],
       child: Consumer<ThemeModel>(
         builder: (ctx, themeProvider, _) {
