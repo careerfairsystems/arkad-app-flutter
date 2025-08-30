@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Arkad brand colors
 class ArkadColors {
   static const Color arkadNavy = Color(0xFF041224);
   static const Color arkadTurkos = Color(0xFF19A1DB);
@@ -16,8 +17,9 @@ class ArkadColors {
   static const Color accenture = Color(0xFFA917FE);
 }
 
+/// Arkad app theme configuration
 class ArkadTheme {
-  // Base theme with shared properties
+  /// Base theme with shared properties
   static ThemeData _createBaseTheme({
     required Brightness brightness,
     required ColorScheme colorScheme,
@@ -72,7 +74,7 @@ class ArkadTheme {
     );
   }
 
-  // Create text theme with the specified color
+  /// Create text theme with the specified color
   static TextTheme _createTextTheme(Color textColor) {
     return TextTheme(
       displayLarge: TextStyle(
@@ -117,7 +119,7 @@ class ArkadTheme {
     );
   }
 
-  // Light theme
+  /// Light theme
   static ThemeData get lightTheme {
     return _createBaseTheme(
       brightness: Brightness.light,
@@ -134,7 +136,7 @@ class ArkadTheme {
     );
   }
 
-  // Dark theme
+  /// Dark theme
   static ThemeData get darkTheme {
     return _createBaseTheme(
       brightness: Brightness.dark,

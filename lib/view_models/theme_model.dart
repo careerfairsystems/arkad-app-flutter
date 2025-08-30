@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../config/theme_config.dart';
+import '../shared/presentation/themes/arkad_theme.dart';
 
 class ThemeModel extends ChangeNotifier {
   bool _isDarkMode = false;

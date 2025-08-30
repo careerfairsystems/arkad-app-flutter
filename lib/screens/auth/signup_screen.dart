@@ -5,12 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../config/theme_config.dart';
+import '../../shared/presentation/themes/arkad_theme.dart';
 import '../../shared/errors/app_error.dart';
 import '../../shared/errors/error_mapper.dart';
-import '../../utils/validation_utils.dart';
+import '../../shared/domain/validation/validation_service.dart';
 import '../../features/auth/presentation/widgets/auth_form_widgets.dart';
-import '../../widgets/error/error_display.dart';
+import '../../shared/presentation/widgets/error/error_display.dart';
 
 /// Signup screen for new user registration.
 ///
@@ -74,7 +74,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _validateEmail() {
     setState(() {
-      _isEmailValid = ValidationUtils.isValidEmail(_emailController.text);
+      _isEmailValid = ValidationService.isValidEmail(_emailController.text);
       if (_emailController.text.isNotEmpty) {
         _emailErrorText = null;
       }
@@ -83,7 +83,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _validatePassword() {
     setState(() {
-      _passwordStrength = ValidationUtils.checkPasswordStrength(
+      _passwordStrength = ValidationService.checkPasswordStrength(
         _passwordController.text,
       );
       _isPasswordValid = _passwordStrength.values.every((isValid) => isValid);
@@ -93,7 +93,7 @@ class _SignupScreenState extends State<SignupScreen> {
       }
 
       if (_confirmPasswordController.text.isNotEmpty) {
-        _isConfirmPasswordValid = ValidationUtils.doPasswordsMatch(
+        _isConfirmPasswordValid = ValidationService.doPasswordsMatch(
           _passwordController.text,
           _confirmPasswordController.text,
         );
@@ -104,7 +104,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _validateConfirmPassword() {
     setState(() {
-      _isConfirmPasswordValid = ValidationUtils.doPasswordsMatch(
+      _isConfirmPasswordValid = ValidationService.doPasswordsMatch(
         _passwordController.text,
         _confirmPasswordController.text,
       );
@@ -132,7 +132,7 @@ class _SignupScreenState extends State<SignupScreen> {
       if (_emailController.text.isEmpty) {
         _emailErrorText = 'Email is required';
         isValid = false;
-      } else if (!ValidationUtils.isValidEmail(_emailController.text)) {
+      } else if (!ValidationService.isValidEmail(_emailController.text)) {
         _emailErrorText = 'Please enter a valid email';
         isValid = false;
       }
@@ -316,7 +316,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 5),
                 AuthFormWidgets.buildPasswordRequirementRow(
                   _passwordStrength['minLength']!,
-                  'Be at least ${ValidationUtils.passwordMinLength} characters long',
+                  'Be at least ${ValidationService.passwordMinLength} characters long',
                 ),
                 AuthFormWidgets.buildPasswordRequirementRow(
                   _passwordStrength['hasUppercase']!,

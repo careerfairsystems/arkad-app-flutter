@@ -1,7 +1,7 @@
-import 'package:arkad/config/theme_config.dart';
+import 'package:arkad/shared/presentation/themes/arkad_theme.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
-import '../../utils/service_helper.dart';
+import '../../services/service_locator.dart';
 
 class StudentSessionsScreen extends StatefulWidget {
   const StudentSessionsScreen({super.key});
@@ -18,7 +18,7 @@ class _StudentSessionsScreen extends State<StudentSessionsScreen> {
   @override
   void initState() {
     super.initState();
-    _arkadApi = ServiceHelper.getService<ArkadApi>();
+    _arkadApi = serviceLocator<ArkadApi>();
     _loadCompanies();
   }
 

@@ -3,8 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../features/auth/presentation/view_models/auth_view_model.dart';
-import '../../utils/login_manager.dart';
-import '../../utils/validation_utils.dart';
+import '../../shared/domain/validation/validation_service.dart';
 import '../../features/auth/presentation/widgets/auth_form_widgets.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,8 +15,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = LoginManager.emailController;
-  final _passwordController = LoginManager.passwordController;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -30,13 +29,12 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    LoginManager.clearCredentials();
     _emailController.addListener(_validateEmail);
   }
 
   void _validateEmail() {
     setState(() {
-      _isEmailValid = ValidationUtils.isValidEmail(_emailController.text);
+      _isEmailValid = ValidationService.isValidEmail(_emailController.text);
       if (_emailController.text.isNotEmpty) {
         _emailErrorText = null;
       }
@@ -59,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (_emailController.text.isEmpty) {
         _emailErrorText = 'Email is required';
         isValid = false;
-      } else if (!ValidationUtils.isValidEmail(_emailController.text)) {
+      } else if (!ValidationService.isValidEmail(_emailController.text)) {
         _emailErrorText = 'Please enter a valid email';
         isValid = false;
       }
@@ -135,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                   },
                   errorText: _emailErrorText,
-                  validator: ValidationUtils.validateEmail,
+                  validator: ValidationService.validateEmail,
                 ),
                 const SizedBox(height: 20),
 
@@ -151,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                   },
                   errorText: _passwordErrorText,
-                  validator: ValidationUtils.validateLoginPassword,
+                  validator: ValidationService.validateLoginPassword,
                 ),
 
                 AuthFormWidgets.buildErrorMessage(_errorMessage),
@@ -190,6 +188,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     _emailController.removeListener(_validateEmail);
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../config/theme_config.dart';
+import '../../../shared/presentation/themes/arkad_theme.dart';
 
 /// Unified button system for the Arkad application
 /// Provides consistent styling and behavior across all buttons

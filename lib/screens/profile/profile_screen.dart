@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../config/theme_config.dart';
+import '../../shared/presentation/themes/arkad_theme.dart';
 import '../../features/auth/presentation/view_models/auth_view_model.dart';
 import '../../features/profile/presentation/view_models/profile_view_model.dart';
 import '../../features/profile/presentation/widgets/profile_info_widget.dart';
-import '../../utils/login_manager.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -32,7 +31,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _handleLogout(BuildContext context, AuthViewModel authViewModel) {
     authViewModel.signOut();
-    LoginManager.clearCredentials();
     context.go('/auth/login');
   }
 

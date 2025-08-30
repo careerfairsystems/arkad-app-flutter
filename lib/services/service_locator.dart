@@ -2,6 +2,7 @@ import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 import '../features/auth/data/data_sources/auth_local_data_source.dart';
 import '../features/auth/data/data_sources/auth_remote_data_source.dart';
@@ -23,6 +24,7 @@ import '../features/profile/domain/use_cases/update_profile_use_case.dart';
 import '../features/profile/domain/use_cases/upload_cv_use_case.dart';
 import '../features/profile/domain/use_cases/upload_profile_picture_use_case.dart';
 import '../features/profile/presentation/view_models/profile_view_model.dart';
+import '../shared/infrastructure/services/file_service.dart';
 import '../view_models/company_model.dart';
 import '../view_models/student_session_model.dart';
 import '../view_models/theme_model.dart';
@@ -42,11 +44,17 @@ void setupServiceLocator() {
   );
   serviceLocator.registerLazySingleton<http.Client>(() => http.Client());
 
+  // Shared services
+  serviceLocator.registerLazySingleton<ImagePicker>(() => ImagePicker());
+  serviceLocator.registerLazySingleton<FileService>(
+    () => FileService(serviceLocator<ImagePicker>()),
+  );
+
   // Clean architecture features
   _setupAuthFeature();
   _setupProfileFeature();
 
-  // Legacy view models (keeping ThemeModel for now)
+  // Legacy view models (TODO: Migrate to clean architecture)
   serviceLocator.registerLazySingleton<ThemeModel>(() => ThemeModel());
   serviceLocator.registerLazySingleton<CompanyModel>(() => CompanyModel());
   serviceLocator.registerLazySingleton<StudentSessionModel>(

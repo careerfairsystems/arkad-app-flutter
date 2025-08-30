@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../features/profile/domain/entities/programme.dart';
-import '../../utils/profile_utils.dart';
+import '../../shared/infrastructure/services/file_service.dart';
+import '../../services/service_locator.dart';
 import '../../features/profile/presentation/view_models/profile_view_model.dart';
 import '../../features/profile/presentation/widgets/profile_form_components.dart';
 
@@ -18,7 +18,6 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final ImagePicker _imagePicker = ImagePicker();
 
   // Form field controllers
   late TextEditingController _emailController;
@@ -99,9 +98,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    final File? image = await ProfileUtils.pickProfileImage(
+    final fileService = serviceLocator<FileService>();
+    final File? image = await fileService.pickProfileImage(
       context: context,
-      imagePicker: _imagePicker,
     );
 
     if (image != null) {
@@ -114,7 +113,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickCV() async {
-    final File? cv = await ProfileUtils.pickCVFile(context: context);
+    final fileService = serviceLocator<FileService>();
+    final File? cv = await fileService.pickCVFile(context: context);
 
     if (cv != null) {
       setState(() {

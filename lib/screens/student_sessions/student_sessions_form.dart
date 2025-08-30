@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../features/profile/domain/entities/programme.dart';
-import '../../utils/profile_utils.dart';
+import '../../shared/infrastructure/services/file_service.dart';
+import '../../services/service_locator.dart';
 import '../../features/auth/presentation/view_models/auth_view_model.dart';
 import '../../features/profile/presentation/view_models/profile_view_model.dart';
 
@@ -70,7 +71,7 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
 
   Future<void> _pickCV() async {
     try {
-      final pickedFile = await ProfileUtils.pickCVFile(
+      final pickedFile = await serviceLocator<FileService>().pickCVFile(
         context: context,
         allowedExtensions: ['pdf'],
         dialogTitle: 'Select CV (PDF)', // Corrected dialog title
@@ -92,7 +93,7 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
   Future<void> _pickMotivationLetter() async {
     // Assuming motivation letter is also a PDF, similar to CV
     try {
-      final pickedFile = await ProfileUtils.pickCVFile(
+      final pickedFile = await serviceLocator<FileService>().pickCVFile(
         context: context,
         allowedExtensions: ['pdf'],
         dialogTitle: 'Select Motivation Letter (PDF)',

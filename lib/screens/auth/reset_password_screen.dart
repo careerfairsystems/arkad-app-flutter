@@ -1,9 +1,9 @@
-import 'package:arkad/config/theme_config.dart';
+import '../../shared/presentation/themes/arkad_theme.dart';
 import '../../features/auth/presentation/view_models/auth_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../utils/validation_utils.dart';
+import '../../shared/domain/validation/validation_service.dart';
 import '../../features/auth/presentation/widgets/auth_form_widgets.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -32,7 +32,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   void _validateEmail() {
     setState(() {
-      _isEmailValid = ValidationUtils.isValidEmail(_emailController.text);
+      _isEmailValid = ValidationService.isValidEmail(_emailController.text);
       if (_emailController.text.isNotEmpty) {
         _emailErrorText = null;
       }
@@ -152,7 +152,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               }
             },
             errorText: _emailErrorText,
-            validator: ValidationUtils.validateEmail,
+            validator: ValidationService.validateEmail,
           ),
           const SizedBox(height: 15),
           AuthFormWidgets.buildSubmitButton(

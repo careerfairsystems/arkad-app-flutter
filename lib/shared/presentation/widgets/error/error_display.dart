@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../shared/errors/app_error.dart';
+import '../../../errors/app_error.dart';
 
 /// Flexible, reusable error display widget
 class ErrorDisplay extends StatelessWidget {

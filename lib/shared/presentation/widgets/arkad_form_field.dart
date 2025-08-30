@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../config/theme_config.dart';
+import '../../../shared/presentation/themes/arkad_theme.dart';
 
 /// Unified form field component for the Arkad application
 /// Provides consistent styling, validation, and behavior across all forms

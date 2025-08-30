@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart'; // Add go_router import
 import 'package:provider/provider.dart';
 
-import '../../config/theme_config.dart';
+import '../../shared/presentation/themes/arkad_theme.dart';
 import '../../features/auth/presentation/widgets/auth_form_widgets.dart';
 
 /// Verification screen for email confirmation during authentication.

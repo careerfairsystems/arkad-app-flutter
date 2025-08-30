@@ -44,7 +44,7 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: serviceLocator<ThemeModel>()),
-        // Legacy models (TODO: Remove after migration)
+        // Legacy models (TODO: Migrate to clean architecture)
         ChangeNotifierProvider.value(value: serviceLocator<CompanyModel>()),
         ChangeNotifierProvider.value(
           value: serviceLocator<StudentSessionModel>(),

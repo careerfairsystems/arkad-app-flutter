@@ -2,7 +2,7 @@ import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../config/theme_config.dart';
+import '../../../../shared/presentation/themes/arkad_theme.dart';
 
 class ProfileInfoWidget extends StatelessWidget {
   final ProfileSchema profile;

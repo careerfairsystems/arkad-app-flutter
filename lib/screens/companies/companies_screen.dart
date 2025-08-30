@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 
 import '../../widgets/filter_dropdown.dart';
 import '../../widgets/filter_dropdown_controller.dart';
-import '../../widgets/loading_indicator.dart';
 import 'filter_options.dart';
 
 class CompaniesScreen extends StatefulWidget {
@@ -364,7 +363,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
 
   Widget _buildContent(CompanyModel companyModel) {
     if (companyModel.isLoading) {
-      return const Center(child: LoadingIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (companyModel.error != null) {

@@ -1,11 +1,5 @@
-import 'dart:io';
-
-import 'package:dio/dio.dart';
-import 'package:http_parser/http_parser.dart';
-import 'package:mime/mime.dart';
-
-/// Utility class for form validation in authentication screens
-class ValidationUtils {
+/// Domain validation service for form validation
+class ValidationService {
   // Regular expressions for validation
   static final _emailRegExp = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
   static final _upperCaseRegExp = RegExp(r'[A-Z]');
@@ -20,6 +14,7 @@ class ValidationUtils {
     return _emailRegExp.hasMatch(email.trim());
   }
 
+  /// Validates email for forms
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your email';
@@ -30,6 +25,7 @@ class ValidationUtils {
     return null;
   }
 
+  /// Validates password for login (just checks if not empty)
   static String? validateLoginPassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your password';
@@ -37,6 +33,7 @@ class ValidationUtils {
     return null;
   }
 
+  /// Check password strength criteria
   static Map<String, bool> checkPasswordStrength(String password) {
     return {
       'minLength': password.length >= passwordMinLength,
@@ -47,27 +44,14 @@ class ValidationUtils {
     };
   }
 
+  /// Check if password is strong (meets all criteria)
   static bool isStrongPassword(String password) {
     final strengthChecks = checkPasswordStrength(password);
     return strengthChecks.values.every((isValid) => isValid);
   }
 
+  /// Check if passwords match
   static bool doPasswordsMatch(String password, String confirmPassword) {
     return password == confirmPassword;
   }
-}
-
-Future<MultipartFile> getMultipartFile(File file) async {
-  // Determine mime type
-  final mimeType = lookupMimeType(file.path)!;
-  final fileType = mimeType.split('/');
-
-  // Add the file
-  final fileBytes = await file.readAsBytes();
-
-  return MultipartFile.fromBytes(
-    fileBytes,
-    filename: file.path.split('/').last,
-    contentType: MediaType(fileType[0], fileType[1]),
-  );
 }
