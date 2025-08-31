@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../screens/companies/filter_options.dart';
+import '../widgets/filter_options.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/filters/filter_dropdown.dart';
 import '../../../../shared/presentation/widgets/filters/filter_dropdown_controller.dart';

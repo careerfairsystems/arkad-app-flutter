@@ -42,8 +42,22 @@ import '../features/company/presentation/commands/search_and_filter_companies_co
 import '../features/company/presentation/commands/search_companies_command.dart';
 import '../features/company/presentation/view_models/company_detail_view_model.dart';
 import '../features/company/presentation/view_models/company_view_model.dart';
-import '../view_models/student_session_model.dart';
-import '../view_models/theme_model.dart';
+import '../features/student_session/data/data_sources/student_session_local_data_source.dart';
+import '../features/student_session/data/data_sources/student_session_remote_data_source.dart';
+import '../features/student_session/data/mappers/student_session_mapper.dart';
+import '../features/student_session/data/repositories/student_session_repository_impl.dart';
+import '../features/student_session/domain/repositories/student_session_repository.dart';
+import '../features/student_session/domain/use_cases/apply_for_session_use_case.dart';
+import '../features/student_session/domain/use_cases/cancel_application_use_case.dart';
+import '../features/student_session/domain/use_cases/get_student_sessions_use_case.dart';
+import '../features/student_session/presentation/view_models/student_session_view_model.dart';
+import '../features/event/data/repositories/event_repository_impl.dart';
+import '../features/event/domain/repositories/event_repository.dart';
+import '../features/event/presentation/view_models/event_view_model.dart';
+import '../features/map/data/repositories/map_repository_impl.dart';
+import '../features/map/domain/repositories/map_repository.dart';
+import '../features/map/presentation/view_models/map_view_model.dart';
+import '../shared/presentation/themes/providers/theme_provider.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
@@ -70,12 +84,12 @@ void setupServiceLocator() {
   _setupAuthFeature();
   _setupProfileFeature();
   _setupCompanyFeature();
+  _setupStudentSessionFeature();
+  _setupEventFeature();
+  _setupMapFeature();
 
-  // Legacy view models (TODO: Migrate to clean architecture)
-  serviceLocator.registerLazySingleton<ThemeModel>(() => ThemeModel());
-  serviceLocator.registerLazySingleton<StudentSessionModel>(
-    () => StudentSessionModel(),
-  );
+  // Shared providers
+  serviceLocator.registerLazySingleton<ThemeProvider>(() => ThemeProvider());
 }
 
 /// Setup Auth feature with clean architecture
@@ -242,6 +256,81 @@ void _setupCompanyFeature() {
   serviceLocator.registerLazySingleton<CompanyDetailViewModel>(
     () => CompanyDetailViewModel(
       getCompanyByIdCommand: serviceLocator<GetCompanyByIdCommand>(),
+    ),
+  );
+}
+
+/// Setup Student Session feature with clean architecture
+void _setupStudentSessionFeature() {
+  // Data sources
+  serviceLocator.registerLazySingleton<StudentSessionRemoteDataSource>(
+    () => StudentSessionRemoteDataSource(serviceLocator<ArkadApi>()),
+  );
+  serviceLocator.registerLazySingleton<StudentSessionLocalDataSource>(
+    () => StudentSessionLocalDataSource(),
+  );
+
+  // Mapper
+  serviceLocator.registerLazySingleton<StudentSessionMapper>(
+    () => const StudentSessionMapper(),
+  );
+
+  // Repository
+  serviceLocator.registerLazySingleton<StudentSessionRepository>(
+    () => StudentSessionRepositoryImpl(
+      remoteDataSource: serviceLocator<StudentSessionRemoteDataSource>(),
+      localDataSource: serviceLocator<StudentSessionLocalDataSource>(),
+      mapper: serviceLocator<StudentSessionMapper>(),
+    ),
+  );
+
+  // Use cases
+  serviceLocator.registerLazySingleton<GetStudentSessionsUseCase>(
+    () => GetStudentSessionsUseCase(serviceLocator<StudentSessionRepository>()),
+  );
+  serviceLocator.registerLazySingleton<ApplyForSessionUseCase>(
+    () => ApplyForSessionUseCase(serviceLocator<StudentSessionRepository>()),
+  );
+  serviceLocator.registerLazySingleton<CancelApplicationUseCase>(
+    () => CancelApplicationUseCase(serviceLocator<StudentSessionRepository>()),
+  );
+
+  // View model
+  serviceLocator.registerLazySingleton<StudentSessionViewModel>(
+    () => StudentSessionViewModel(
+      getStudentSessionsUseCase: serviceLocator<GetStudentSessionsUseCase>(),
+      applyForSessionUseCase: serviceLocator<ApplyForSessionUseCase>(),
+      cancelApplicationUseCase: serviceLocator<CancelApplicationUseCase>(),
+    ),
+  );
+}
+
+/// Setup Event feature with minimal clean architecture
+void _setupEventFeature() {
+  // Repository (placeholder implementation)
+  serviceLocator.registerLazySingleton<EventRepository>(
+    () => EventRepositoryImpl(),
+  );
+
+  // View model
+  serviceLocator.registerLazySingleton<EventViewModel>(
+    () => EventViewModel(
+      eventRepository: serviceLocator<EventRepository>(),
+    ),
+  );
+}
+
+/// Setup Map feature with minimal clean architecture
+void _setupMapFeature() {
+  // Repository (placeholder implementation)
+  serviceLocator.registerLazySingleton<MapRepository>(
+    () => MapRepositoryImpl(),
+  );
+
+  // View model
+  serviceLocator.registerLazySingleton<MapViewModel>(
+    () => MapViewModel(
+      mapRepository: serviceLocator<MapRepository>(),
     ),
   );
 }
