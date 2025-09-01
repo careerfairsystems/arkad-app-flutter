@@ -1,40 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
-import '../models/company.dart';
-import '../providers/auth_provider.dart';
-import '../screens/auth/login_screen.dart';
-import '../screens/auth/reset_password_screen.dart';
-import '../screens/auth/signup_screen.dart';
-import '../screens/auth/verification_screen.dart';
-import '../screens/companies/companies_screen.dart';
-import '../screens/companies/company_detail_screen.dart';
-import '../screens/event/event_screen.dart';
-import '../screens/map/map_screen.dart';
-import '../screens/profile/edit_profile_screen.dart';
-import '../screens/profile/profile_screen.dart';
-import '../screens/student_sessions/student_sessions_screen.dart';
+import '../features/company/presentation/screens/companies_screen.dart';
+import '../features/company/presentation/screens/company_detail_screen.dart';
+import '../navigation/router_notifier.dart';
+import '../features/auth/presentation/screens/login_screen.dart';
+import '../features/auth/presentation/screens/reset_password_screen.dart';
+import '../features/auth/presentation/screens/signup_screen.dart';
+import '../features/auth/presentation/screens/verification_screen.dart';
+import '../features/event/presentation/screens/event_screen.dart';
+import '../features/map/presentation/screens/map_screen.dart';
+import '../features/profile/presentation/screens/edit_profile_screen.dart';
+import '../features/profile/presentation/screens/profile_screen.dart';
+import '../features/student_session/presentation/screens/student_session_time_selection.dart';
+import '../features/student_session/presentation/screens/student_sessions_form.dart';
+import '../features/student_session/presentation/screens/student_sessions_screen.dart';
 import '../widgets/app_bottom_navigation.dart';
 import 'navigation_items.dart';
 
 class AppRouter {
-  AppRouter(this._auth);
+  AppRouter(this._routerNotifier);
 
-  final AuthProvider _auth;
+  final RouterNotifier _routerNotifier;
 
   // ────────────────────────────────────────────────────────────
   // Redirect rules
   // ────────────────────────────────────────────────────────────
   String? _redirect(BuildContext context, GoRouterState state) {
-    final loggedIn = _auth.isAuthenticated;
+    final loggedIn = _routerNotifier.isAuthenticated;
     final path = state.uri.path;
 
-    const publicPrefixes = ['/companies', '/map', '/auth', '/sessions'];
+    const publicPrefixes = [
+      '/companies',
+      '/map',
+      '/auth',
+      '/sessions',
+      '/events',
+    ];
 
     bool isPublic(String path) =>
         publicPrefixes.any((base) => path == base || path.startsWith('$base/'));
 
+    // Redirect to login if trying to access profile while not authenticated
+    if (!loggedIn && path.startsWith('/profile')) return '/auth/login';
+
+    // For other protected routes (if any), redirect to login
     if (!loggedIn && !isPublic(path)) return '/auth/login';
 
     return null;
@@ -45,7 +55,7 @@ class AppRouter {
   // ────────────────────────────────────────────────────────────
   late final GoRouter router = GoRouter(
     debugLogDiagnostics: true,
-    refreshListenable: _auth.authState,
+    refreshListenable: _routerNotifier,
     redirect: _redirect,
     initialLocation: '/companies',
     routes: [
@@ -53,7 +63,7 @@ class AppRouter {
         builder:
             (context, state, shell) => _AppBottomNavShell(
               navigationShell: shell,
-              isAuthenticated: _auth.isAuthenticated,
+              isAuthenticated: _routerNotifier.isAuthenticated,
             ),
         branches: [
           // Companies
@@ -64,15 +74,16 @@ class AppRouter {
                 pageBuilder: _noAnim((_) => const CompaniesScreen()),
                 routes: [
                   GoRoute(
-                    path: 'detail',
+                    path: 'detail/:id',
                     pageBuilder: _slide((context, s) {
-                      final company = s.extra as Company?;
-                      if (company == null) {
+                      final idStr = s.pathParameters['id'];
+                      final companyId = int.tryParse(idStr ?? '');
+                      if (companyId == null) {
                         return const Scaffold(
-                          body: Center(child: Text('Error: company missing')),
+                          body: Center(child: Text('Error: Invalid company ID')),
                         );
                       }
-                      return CompanyDetailScreen(company: company);
+                      return CompanyDetailScreen(companyId: companyId);
                     }),
                   ),
                 ],
@@ -97,6 +108,24 @@ class AppRouter {
                 path: '/sessions',
                 pageBuilder: _noAnim((_) => const StudentSessionsScreen()),
               ),
+              GoRoute(
+                path: '/sessions/form/:companyId',
+                builder: (context, state) {
+                  final companyId =
+                      state
+                          .pathParameters["companyId"]!; // Get "id" param from URL
+                  return StudentSessionFormScreen(id: companyId);
+                },
+              ),
+              GoRoute(
+                path: '/sessions/apply/:companyId',
+                builder: (context, state) {
+                  final companyId =
+                      state
+                          .pathParameters["companyId"]!; // Get "id" param from URL
+                  return StudentSessionTimeSelectionScreen(id: companyId);
+                },
+              ),
             ],
           ),
 
@@ -116,15 +145,13 @@ class AppRouter {
               GoRoute(
                 path: '/profile',
                 pageBuilder: _noAnim((context) {
-                  final user = context.read<AuthProvider>().user!;
-                  return ProfileScreen(user: user);
+                  return const ProfileScreen();
                 }),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     pageBuilder: _slide((context, _) {
-                      final user = context.read<AuthProvider>().user!;
-                      return EditProfileScreen(user: user);
+                      return const EditProfileScreen();
                     }),
                   ),
                 ],

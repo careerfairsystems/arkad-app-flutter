@@ -1,0 +1,251 @@
+import 'package:arkad_api/arkad_api.dart';
+
+import '../../../../services/service_locator.dart';
+import '../../../../shared/domain/result.dart';
+import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/errors/exception.dart';
+import '../../domain/entities/auth_session.dart';
+import '../../domain/entities/signup_data.dart';
+import '../../domain/entities/user.dart';
+import '../../domain/repositories/auth_repository.dart';
+import '../data_sources/auth_local_data_source.dart';
+import '../data_sources/auth_remote_data_source.dart';
+import '../mappers/user_mapper.dart';
+
+/// Implementation of auth repository
+class AuthRepositoryImpl implements AuthRepository {
+  const AuthRepositoryImpl(
+    this._remoteDataSource,
+    this._localDataSource,
+  );
+
+  final AuthRemoteDataSource _remoteDataSource;
+  final AuthLocalDataSource _localDataSource;
+
+  @override
+  Future<Result<AuthSession>> signIn(String email, String password) async {
+    try {
+      // Attempt sign in via remote API
+      final token = await _remoteDataSource.signIn(email, password);
+      
+      // Set auth token for subsequent API calls on ALL API instances
+      _remoteDataSource.setBearerAuth("AuthBearer", token);
+      
+      // Also set token on the shared API instance for profile calls
+      // This ensures profile API calls are authenticated
+      final sharedApi = serviceLocator<ArkadApi>();
+      sharedApi.setBearerAuth("AuthBearer", token);
+      
+      // Load user profile
+      final userDto = await _remoteDataSource.getUserProfile();
+      final user = UserMapper.fromDto(userDto);
+      
+      // Create session
+      final session = AuthSession(
+        user: user,
+        token: token,
+        createdAt: DateTime.now(),
+        isValid: true,
+      );
+      
+      // Save session locally
+      await _localDataSource.saveSession(session);
+      
+      return Result.success(session);
+    } on AuthException catch (e) {
+      return Result.failure(SignInError(details: e.message));
+    } on ValidationException catch (e) {
+      return Result.failure(ValidationError(e.message));
+    } on NetworkException catch (e) {
+      return Result.failure(NetworkError(details: e.message));
+    } on ApiException catch (e) {
+      if (e.message.contains('429')) {
+        return Result.failure(RateLimitError(const Duration(minutes: 5)));
+      }
+      return Result.failure(UnknownError(e.message));
+    } catch (e) {
+      return Result.failure(UnknownError(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<String>> beginSignup(SignupData data) async {
+    try {
+      final token = await _remoteDataSource.beginSignup(data);
+      
+      // Save signup data and token for later use
+      await _localDataSource.saveSignupData(data, token);
+      
+      return Result.success(token);
+    } on ValidationException catch (e) {
+      if (e.message.contains('already exists')) {
+        return Result.failure(EmailExistsError(data.email));
+      }
+      return Result.failure(ValidationError(e.message));
+    } on NetworkException catch (e) {
+      return Result.failure(NetworkError(details: e.message));
+    } on ApiException catch (e) {
+      if (e.message.contains('429')) {
+        return Result.failure(RateLimitError(const Duration(minutes: 5)));
+      }
+      return Result.failure(UnknownError(e.message));
+    } catch (e) {
+      return Result.failure(UnknownError(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<AuthSession>> completeSignup(
+    String token, 
+    String code, 
+    SignupData data,
+  ) async {
+    try {
+      // Complete signup via remote API
+      await _remoteDataSource.completeSignup(token, code, data);
+      
+      // Clear signup data as it's no longer needed
+      await _localDataSource.clearSignupData();
+      
+      // Now sign in to get the auth token
+      final signInResult = await signIn(data.email, data.password);
+      return signInResult;
+    } on ValidationException catch (e) {
+      return Result.failure(ValidationError(e.message));
+    } on NetworkException catch (e) {
+      return Result.failure(NetworkError(details: e.message));
+    } on ApiException catch (e) {
+      if (e.message.contains('429')) {
+        return Result.failure(RateLimitError(const Duration(minutes: 5)));
+      }
+      return Result.failure(UnknownError(e.message));
+    } catch (e) {
+      return Result.failure(UnknownError(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<void>> resetPassword(String email) async {
+    try {
+      await _remoteDataSource.resetPassword(email);
+      return Result.success(null);
+    } on ValidationException catch (e) {
+      return Result.failure(ValidationError(e.message));
+    } on NetworkException catch (e) {
+      return Result.failure(NetworkError(details: e.message));
+    } on ApiException catch (e) {
+      if (e.message.contains('429')) {
+        return Result.failure(RateLimitError(const Duration(minutes: 5)));
+      }
+      return Result.failure(UnknownError(e.message));
+    } catch (e) {
+      return Result.failure(UnknownError(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<AuthSession>> refreshSession() async {
+    try {
+      final session = await getCurrentSession();
+      if (session == null) {
+        return Result.failure(const AuthenticationError());
+      }
+
+      // Set the existing token for API calls
+      _remoteDataSource.setBearerAuth("AuthBearer", session.token);
+      
+      // Try to refresh user profile
+      final userDto = await _remoteDataSource.getUserProfile();
+      final user = UserMapper.fromDto(userDto);
+      
+      // Update session with fresh user data
+      final refreshedSession = session.copyWith(user: user);
+      await _localDataSource.saveSession(refreshedSession);
+      
+      return Result.success(refreshedSession);
+    } on AuthException catch (e) {
+      // If refresh fails due to auth, clear local session
+      await _localDataSource.clearSession();
+      return Result.failure(ProfileLoadingError(details: e.message));
+    } on NetworkException catch (e) {
+      return Result.failure(NetworkError(details: e.message));
+    } catch (e) {
+      return Result.failure(UnknownError(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<void>> signOut() async {
+    try {
+      // Clear local session
+      await _localDataSource.clearSession();
+      
+      // Clear API auth on both auth and shared instances
+      _remoteDataSource.clearAuth();
+      final sharedApi = serviceLocator<ArkadApi>();
+      sharedApi.setApiKey('AuthBearer', '');
+      
+      return Result.success(null);
+    } catch (e) {
+      return Result.failure(UnknownError(e.toString()));
+    }
+  }
+
+  @override
+  Future<AuthSession?> getCurrentSession() async {
+    try {
+      return await _localDataSource.getSession();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<Result<void>> updateSessionUser(User user) async {
+    try {
+      await _localDataSource.updateSessionUser(user);
+      return Result.success(null);
+    } catch (e) {
+      return Result.failure(UnknownError(e.toString()));
+    }
+  }
+
+  @override
+  Future<bool> isAuthenticated() async {
+    try {
+      final session = await getCurrentSession();
+      return session?.isActive ?? false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
+  Future<Result<void>> requestVerificationCode(String email) async {
+    try {
+      // Get stored signup data to resend verification
+      final signupData = await _localDataSource.getSignupData();
+      if (signupData == null || signupData.email != email) {
+        return Result.failure(
+          const ValidationError("No pending signup found for this email"),
+        );
+      }
+
+      // Request new verification code by re-initiating signup
+      await _remoteDataSource.beginSignup(signupData);
+      
+      return Result.success(null);
+    } on ValidationException catch (e) {
+      return Result.failure(ValidationError(e.message));
+    } on NetworkException catch (e) {
+      return Result.failure(NetworkError(details: e.message));
+    } on ApiException catch (e) {
+      if (e.message.contains('429')) {
+        return Result.failure(RateLimitError(const Duration(minutes: 5)));
+      }
+      return Result.failure(UnknownError(e.message));
+    } catch (e) {
+      return Result.failure(UnknownError(e.toString()));
+    }
+  }
+}
