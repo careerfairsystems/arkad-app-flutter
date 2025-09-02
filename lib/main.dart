@@ -4,13 +4,13 @@ import 'package:provider/provider.dart';
 import 'features/auth/presentation/view_models/auth_view_model.dart';
 import 'features/company/presentation/view_models/company_detail_view_model.dart';
 import 'features/company/presentation/view_models/company_view_model.dart';
+import 'features/event/presentation/view_models/event_view_model.dart';
+import 'features/map/presentation/view_models/map_view_model.dart';
 import 'features/profile/presentation/view_models/profile_view_model.dart';
+import 'features/student_session/presentation/view_models/student_session_view_model.dart';
 import 'navigation/app_router.dart';
 import 'navigation/router_notifier.dart';
 import 'services/service_locator.dart';
-import 'features/event/presentation/view_models/event_view_model.dart';
-import 'features/map/presentation/view_models/map_view_model.dart';
-import 'features/student_session/presentation/view_models/student_session_view_model.dart';
 import 'shared/presentation/themes/providers/theme_provider.dart';
 
 void main() async {

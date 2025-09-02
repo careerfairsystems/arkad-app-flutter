@@ -1,5 +1,3 @@
-import 'package:arkad_api/arkad_api.dart';
-import 'package:built_collection/src/list.dart';
 import 'package:dio/src/response.dart';
 
 extension SuccessResponse<T> on Response<T> {

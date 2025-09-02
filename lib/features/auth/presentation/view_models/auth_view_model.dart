@@ -1,18 +1,21 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../../services/service_locator.dart';
 import '../../../../shared/errors/app_error.dart';
-import '../../../profile/presentation/view_models/profile_view_model.dart';
+import '../../../../shared/events/app_events.dart';
+import '../../../../shared/events/auth_events.dart';
 import '../../domain/entities/auth_session.dart';
 import '../../domain/entities/signup_data.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/use_cases/complete_signup_use_case.dart';
 import '../../domain/use_cases/get_current_session_use_case.dart';
+import '../../domain/use_cases/resend_verification_use_case.dart';
 import '../../domain/use_cases/reset_password_use_case.dart';
 import '../../domain/use_cases/sign_in_use_case.dart';
 import '../../domain/use_cases/sign_out_use_case.dart';
 import '../../domain/use_cases/sign_up_use_case.dart';
 import '../commands/complete_signup_command.dart';
+import '../commands/resend_verification_command.dart';
+import '../commands/reset_password_command.dart';
 import '../commands/sign_in_command.dart';
 import '../commands/sign_up_command.dart';
 
@@ -23,32 +26,37 @@ class AuthViewModel extends ChangeNotifier {
     required SignUpUseCase signUpUseCase,
     required CompleteSignupUseCase completeSignupUseCase,
     required ResetPasswordUseCase resetPasswordUseCase,
+    required ResendVerificationUseCase resendVerificationUseCase,
     required SignOutUseCase signOutUseCase,
     required GetCurrentSessionUseCase getCurrentSessionUseCase,
-  }) : _resetPasswordUseCase = resetPasswordUseCase,
-       _signOutUseCase = signOutUseCase,
+  }) : _signOutUseCase = signOutUseCase,
        _getCurrentSessionUseCase = getCurrentSessionUseCase {
     // Initialize commands
     _signInCommand = SignInCommand(signInUseCase);
     _signUpCommand = SignUpCommand(signUpUseCase);
     _completeSignupCommand = CompleteSignupCommand(completeSignupUseCase);
+    _resetPasswordCommand = ResetPasswordCommand(resetPasswordUseCase);
+    _resendVerificationCommand = ResendVerificationCommand(resendVerificationUseCase);
 
     // Listen to command changes
     _signInCommand.addListener(_onSignInCommandChanged);
     _signUpCommand.addListener(_onSignUpCommandChanged);
     _completeSignupCommand.addListener(_onCompleteSignupCommandChanged);
+    _resetPasswordCommand.addListener(_onResetPasswordCommandChanged);
+    _resendVerificationCommand.addListener(_onResendVerificationCommandChanged);
 
     // Initialize authentication state
     _initializeAuth();
   }
 
-  final ResetPasswordUseCase _resetPasswordUseCase;
   final SignOutUseCase _signOutUseCase;
   final GetCurrentSessionUseCase _getCurrentSessionUseCase;
 
   late final SignInCommand _signInCommand;
   late final SignUpCommand _signUpCommand;
   late final CompleteSignupCommand _completeSignupCommand;
+  late final ResetPasswordCommand _resetPasswordCommand;
+  late final ResendVerificationCommand _resendVerificationCommand;
 
   // State
   AuthSession? _currentSession;
@@ -75,12 +83,16 @@ class AuthViewModel extends ChangeNotifier {
   SignInCommand get signInCommand => _signInCommand;
   SignUpCommand get signUpCommand => _signUpCommand;
   CompleteSignupCommand get completeSignupCommand => _completeSignupCommand;
+  ResetPasswordCommand get resetPasswordCommand => _resetPasswordCommand;
+  ResendVerificationCommand get resendVerificationCommand => _resendVerificationCommand;
 
   // Loading state getters
   bool get isSigningIn => _signInCommand.isExecuting;
   bool get isSigningUp => _signUpCommand.isExecuting;
   bool get isCompletingSignup => _completeSignupCommand.isExecuting;
-  bool get isBusy => isSigningIn || isSigningUp || isCompletingSignup || _isInitializing;
+  bool get isResettingPassword => _resetPasswordCommand.isExecuting;
+  bool get isResendingVerification => _resendVerificationCommand.isExecuting;
+  bool get isBusy => isSigningIn || isSigningUp || isCompletingSignup || isResettingPassword || isResendingVerification || _isInitializing;
 
   /// Initialize authentication state on app start
   Future<void> _initializeAuth() async {
@@ -147,6 +159,10 @@ class AuthViewModel extends ChangeNotifier {
         success: (_) {
           _currentSession = null;
           _clearSignupState();
+          
+          // Fire user logged out event for cleanup (minimal usage)
+          _fireAuthEvent(const UserLoggedOutEvent());
+          
           notifyListeners();
         },
         failure: (error) {
@@ -161,23 +177,13 @@ class AuthViewModel extends ChangeNotifier {
   /// Reset password for given email
   Future<void> resetPassword(String email) async {
     _clearGlobalError();
-    
-    try {
-      final result = await _resetPasswordUseCase.call(
-        ResetPasswordParams(email: email),
-      );
-      result.when(
-        success: (_) {
-          // Password reset email sent successfully
-          _globalError = null;
-        },
-        failure: (error) {
-          _setGlobalError(error);
-        },
-      );
-    } catch (e) {
-      _setGlobalError(UnknownError(e.toString()));
-    }
+    await _resetPasswordCommand.resetPassword(email);
+  }
+
+  /// Resend verification code for given email
+  Future<void> resendVerification(String email) async {
+    _clearGlobalError();
+    await _resendVerificationCommand.resendVerification(email);
   }
 
   /// Clear signup state
@@ -200,8 +206,8 @@ class AuthViewModel extends ChangeNotifier {
       _currentSession = _signInCommand.result;
       _clearSignupState();
       
-      // Trigger profile loading after successful sign in
-      _triggerProfileLoad();
+      // Fire auth session changed event (simple AppEvents pattern)
+      _fireAuthEvent(AuthSessionChangedEvent(_signInCommand.result!));
       
       notifyListeners();
     }
@@ -219,11 +225,23 @@ class AuthViewModel extends ChangeNotifier {
       _currentSession = _completeSignupCommand.result;
       _clearSignupState();
       
-      // Trigger profile loading after successful signup completion
-      _triggerProfileLoad();
+      // Fire auth session changed event (simple AppEvents pattern)
+      _fireAuthEvent(AuthSessionChangedEvent(_completeSignupCommand.result!));
       
       notifyListeners();
     }
+  }
+
+  void _onResetPasswordCommandChanged() {
+    // Reset password command completed successfully
+    // UI will handle success/error states reactively
+    notifyListeners();
+  }
+
+  void _onResendVerificationCommandChanged() {
+    // Resend verification command completed
+    // UI will handle success/error states reactively
+    notifyListeners();
   }
 
   // Helper methods
@@ -241,17 +259,9 @@ class AuthViewModel extends ChangeNotifier {
     _globalError = null;
   }
 
-  /// Trigger profile loading after successful authentication
-  void _triggerProfileLoad() {
-    try {
-      final profileViewModel = serviceLocator<ProfileViewModel>();
-      // Trigger profile load asynchronously
-      Future.microtask(() => profileViewModel.loadProfile());
-    } catch (e) {
-      // If ProfileViewModel is not available, continue without error
-      // This prevents auth flow from breaking if profile feature is not available
-      debugPrint('ProfileViewModel not available for auto-loading: $e');
-    }
+  /// Fire simple app events for cross-feature communication (minimal usage)
+  void _fireAuthEvent(Object event) {
+    AppEvents.fire(event);
   }
 
   @override
@@ -259,10 +269,14 @@ class AuthViewModel extends ChangeNotifier {
     _signInCommand.removeListener(_onSignInCommandChanged);
     _signUpCommand.removeListener(_onSignUpCommandChanged);
     _completeSignupCommand.removeListener(_onCompleteSignupCommandChanged);
+    _resetPasswordCommand.removeListener(_onResetPasswordCommandChanged);
+    _resendVerificationCommand.removeListener(_onResendVerificationCommandChanged);
     
     _signInCommand.dispose();
     _signUpCommand.dispose();
     _completeSignupCommand.dispose();
+    _resetPasswordCommand.dispose();
+    _resendVerificationCommand.dispose();
     
     super.dispose();
   }

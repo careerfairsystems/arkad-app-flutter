@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/events/app_events.dart';
+import '../../../../shared/events/auth_events.dart';
 import '../../../../shared/events/profile_events.dart';
 import '../../domain/entities/profile.dart';
 import '../../domain/use_cases/get_current_profile_use_case.dart';
@@ -18,6 +20,9 @@ import '../commands/upload_profile_picture_command.dart';
 /// Profile presentation layer following clean architecture
 /// Coordinates UI state and business operations through commands and use cases
 class ProfileViewModel extends ChangeNotifier {
+  // Stream subscriptions for authentication events
+  StreamSubscription? _authSessionSubscription;
+  StreamSubscription? _logoutSubscription;
   final GetCurrentProfileUseCase _getCurrentProfileUseCase;
   final UpdateProfileUseCase _updateProfileUseCase;
   final UploadProfilePictureUseCase _uploadProfilePictureUseCase;
@@ -43,6 +48,7 @@ class ProfileViewModel extends ChangeNotifier {
         _uploadProfilePictureUseCase = uploadProfilePictureUseCase,
         _uploadCVUseCase = uploadCVUseCase {
     _initializeCommands();
+    _subscribeToAuthEvents();
     // Profile will be loaded when explicitly requested or after auth success
   }
 
@@ -188,6 +194,28 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Subscribe to authentication events to automatically load profile
+  void _subscribeToAuthEvents() {
+    _authSessionSubscription = AppEvents.on<AuthSessionChangedEvent>().listen((event) {
+      _onUserAuthenticated();
+    });
+    
+    _logoutSubscription = AppEvents.on<UserLoggedOutEvent>().listen((event) {
+      _onUserSignedOut();
+    });
+  }
+
+  /// Handle successful authentication by loading profile
+  Future<void> _onUserAuthenticated() async {
+    await loadProfile();
+  }
+
+  /// Handle sign out by clearing profile data
+  void _onUserSignedOut() {
+    _currentProfile = null;
+    _error = null;
+    notifyListeners();
+  }
 
   @override
   void dispose() {
@@ -200,6 +228,10 @@ class ProfileViewModel extends ChangeNotifier {
     _updateProfileCommand.dispose();
     _uploadProfilePictureCommand.dispose();
     _uploadCVCommand.dispose();
+    
+    // Cancel event subscriptions
+    _authSessionSubscription?.cancel();
+    _logoutSubscription?.cancel();
     
     super.dispose();
   }

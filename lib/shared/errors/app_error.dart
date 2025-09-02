@@ -89,10 +89,9 @@ class SignInError extends AppError {
 
 /// Email already exists error (signup flow)
 class EmailExistsError extends AppError {
-  const EmailExistsError(this.email, {List<RecoveryAction> recoveryActions = const []}) : super(
+  const EmailExistsError(this.email, {super.recoveryActions}) : super(
     userMessage: "An account with this email already exists.",
     severity: ErrorSeverity.warning,
-    recoveryActions: recoveryActions,
   );
   
   final String email;
@@ -100,10 +99,9 @@ class EmailExistsError extends AppError {
 
 /// Rate limiting error
 class RateLimitError extends AppError {
-  const RateLimitError(this.waitTime, {List<RecoveryAction> recoveryActions = const []}) : super(
+  const RateLimitError(this.waitTime, {super.recoveryActions}) : super(
     userMessage: "Too many attempts. Please wait before trying again.",
     severity: ErrorSeverity.warning,
-    recoveryActions: recoveryActions,
   );
   
   final Duration waitTime;
