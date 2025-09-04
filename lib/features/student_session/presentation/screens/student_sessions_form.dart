@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../profile/domain/entities/programme.dart';
-import '../../../auth/presentation/view_models/auth_view_model.dart';
-import '../../../profile/presentation/view_models/profile_view_model.dart';
 import '../../../../services/service_locator.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
+import '../../../auth/presentation/view_models/auth_view_model.dart';
+import '../../../profile/domain/entities/programme.dart';
+import '../../../profile/presentation/view_models/profile_view_model.dart';
 
 class StudentSessionFormScreen extends StatefulWidget {
   final String id; // Company ID

@@ -10,21 +10,12 @@ import '../features/auth/data/repositories/auth_repository_impl.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/domain/use_cases/complete_signup_use_case.dart';
 import '../features/auth/domain/use_cases/get_current_session_use_case.dart';
+import '../features/auth/domain/use_cases/resend_verification_use_case.dart';
 import '../features/auth/domain/use_cases/reset_password_use_case.dart';
 import '../features/auth/domain/use_cases/sign_in_use_case.dart';
 import '../features/auth/domain/use_cases/sign_out_use_case.dart';
 import '../features/auth/domain/use_cases/sign_up_use_case.dart';
 import '../features/auth/presentation/view_models/auth_view_model.dart';
-import '../features/profile/data/data_sources/profile_local_data_source.dart';
-import '../features/profile/data/data_sources/profile_remote_data_source.dart';
-import '../features/profile/data/repositories/profile_repository_impl.dart';
-import '../features/profile/domain/repositories/profile_repository.dart';
-import '../features/profile/domain/use_cases/get_current_profile_use_case.dart';
-import '../features/profile/domain/use_cases/update_profile_use_case.dart';
-import '../features/profile/domain/use_cases/upload_cv_use_case.dart';
-import '../features/profile/domain/use_cases/upload_profile_picture_use_case.dart';
-import '../features/profile/presentation/view_models/profile_view_model.dart';
-import '../shared/infrastructure/services/file_service.dart';
 import '../features/company/data/data_sources/company_local_data_source.dart';
 import '../features/company/data/data_sources/company_remote_data_source.dart';
 import '../features/company/data/mappers/company_mapper.dart';
@@ -42,6 +33,21 @@ import '../features/company/presentation/commands/search_and_filter_companies_co
 import '../features/company/presentation/commands/search_companies_command.dart';
 import '../features/company/presentation/view_models/company_detail_view_model.dart';
 import '../features/company/presentation/view_models/company_view_model.dart';
+import '../features/event/data/repositories/event_repository_impl.dart';
+import '../features/event/domain/repositories/event_repository.dart';
+import '../features/event/presentation/view_models/event_view_model.dart';
+import '../features/map/data/repositories/map_repository_impl.dart';
+import '../features/map/domain/repositories/map_repository.dart';
+import '../features/map/presentation/view_models/map_view_model.dart';
+import '../features/profile/data/data_sources/profile_local_data_source.dart';
+import '../features/profile/data/data_sources/profile_remote_data_source.dart';
+import '../features/profile/data/repositories/profile_repository_impl.dart';
+import '../features/profile/domain/repositories/profile_repository.dart';
+import '../features/profile/domain/use_cases/get_current_profile_use_case.dart';
+import '../features/profile/domain/use_cases/update_profile_use_case.dart';
+import '../features/profile/domain/use_cases/upload_cv_use_case.dart';
+import '../features/profile/domain/use_cases/upload_profile_picture_use_case.dart';
+import '../features/profile/presentation/view_models/profile_view_model.dart';
 import '../features/student_session/data/data_sources/student_session_local_data_source.dart';
 import '../features/student_session/data/data_sources/student_session_remote_data_source.dart';
 import '../features/student_session/data/mappers/student_session_mapper.dart';
@@ -51,12 +57,7 @@ import '../features/student_session/domain/use_cases/apply_for_session_use_case.
 import '../features/student_session/domain/use_cases/cancel_application_use_case.dart';
 import '../features/student_session/domain/use_cases/get_student_sessions_use_case.dart';
 import '../features/student_session/presentation/view_models/student_session_view_model.dart';
-import '../features/event/data/repositories/event_repository_impl.dart';
-import '../features/event/domain/repositories/event_repository.dart';
-import '../features/event/presentation/view_models/event_view_model.dart';
-import '../features/map/data/repositories/map_repository_impl.dart';
-import '../features/map/domain/repositories/map_repository.dart';
-import '../features/map/presentation/view_models/map_view_model.dart';
+import '../shared/infrastructure/services/file_service.dart';
 import '../shared/presentation/themes/providers/theme_provider.dart';
 
 final GetIt serviceLocator = GetIt.instance;
@@ -123,6 +124,9 @@ void _setupAuthFeature() {
   serviceLocator.registerLazySingleton<ResetPasswordUseCase>(
     () => ResetPasswordUseCase(serviceLocator<AuthRepository>()),
   );
+  serviceLocator.registerLazySingleton<ResendVerificationUseCase>(
+    () => ResendVerificationUseCase(serviceLocator<AuthRepository>()),
+  );
   serviceLocator.registerLazySingleton<SignOutUseCase>(
     () => SignOutUseCase(serviceLocator<AuthRepository>()),
   );
@@ -137,6 +141,7 @@ void _setupAuthFeature() {
       signUpUseCase: serviceLocator<SignUpUseCase>(),
       completeSignupUseCase: serviceLocator<CompleteSignupUseCase>(),
       resetPasswordUseCase: serviceLocator<ResetPasswordUseCase>(),
+      resendVerificationUseCase: serviceLocator<ResendVerificationUseCase>(),
       signOutUseCase: serviceLocator<SignOutUseCase>(),
       getCurrentSessionUseCase: serviceLocator<GetCurrentSessionUseCase>(),
     ),

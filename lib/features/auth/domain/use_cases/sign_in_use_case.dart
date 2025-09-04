@@ -1,5 +1,6 @@
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/use_case.dart';
+import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../entities/auth_session.dart';
 import '../repositories/auth_repository.dart';
@@ -19,7 +20,7 @@ class SignInUseCase extends UseCase<AuthSession, SignInParams> {
       );
     }
 
-    if (!_isValidEmail(params.email)) {
+    if (!ValidationService.isValidEmail(params.email)) {
       return Result.failure(
         const ValidationError("Please enter a valid email address"),
       );
@@ -35,9 +36,7 @@ class SignInUseCase extends UseCase<AuthSession, SignInParams> {
     return await _repository.signIn(params.email.trim(), params.password);
   }
 
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
-  }
+  // Email validation now handled by ValidationService
 }
 
 /// Parameters for sign in use case

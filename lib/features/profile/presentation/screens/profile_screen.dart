@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../view_models/profile_view_model.dart';
 import '../widgets/profile_info_widget.dart';
-import '../../../../shared/presentation/themes/arkad_theme.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

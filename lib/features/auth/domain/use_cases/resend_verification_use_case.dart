@@ -4,14 +4,14 @@ import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../repositories/auth_repository.dart';
 
-/// Use case for requesting password reset
-class ResetPasswordUseCase extends UseCase<void, ResetPasswordParams> {
-  const ResetPasswordUseCase(this._repository);
+/// Use case for resending verification code
+class ResendVerificationUseCase extends UseCase<void, ResendVerificationParams> {
+  const ResendVerificationUseCase(this._repository);
 
   final AuthRepository _repository;
 
   @override
-  Future<Result<void>> call(ResetPasswordParams params) async {
+  Future<Result<void>> call(ResendVerificationParams params) async {
     // Validate email
     if (params.email.isEmpty) {
       return Result.failure(
@@ -25,16 +25,16 @@ class ResetPasswordUseCase extends UseCase<void, ResetPasswordParams> {
       );
     }
 
-    // Attempt password reset
-    return await _repository.resetPassword(params.email.trim());
+    // Request new verification code
+    return await _repository.requestVerificationCode(params.email.trim());
   }
 
   // Email validation now handled by ValidationService
 }
 
-/// Parameters for reset password use case
-class ResetPasswordParams {
-  const ResetPasswordParams({
+/// Parameters for resend verification use case
+class ResendVerificationParams {
+  const ResendVerificationParams({
     required this.email,
   });
 
@@ -43,7 +43,7 @@ class ResetPasswordParams {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ResetPasswordParams &&
+      other is ResendVerificationParams &&
           runtimeType == other.runtimeType &&
           email == other.email;
 

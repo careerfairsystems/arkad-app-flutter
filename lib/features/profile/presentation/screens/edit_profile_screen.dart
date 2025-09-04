@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../services/service_locator.dart';
+import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../domain/entities/programme.dart';
 import '../view_models/profile_view_model.dart';
 import '../widgets/profile_form_components.dart';
-import '../../../../services/service_locator.dart';
-import '../../../../shared/infrastructure/services/file_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});

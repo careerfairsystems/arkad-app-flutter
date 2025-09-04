@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/company/presentation/screens/companies_screen.dart';
-import '../features/company/presentation/screens/company_detail_screen.dart';
-import '../navigation/router_notifier.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/reset_password_screen.dart';
 import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/screens/verification_screen.dart';
+import '../features/company/presentation/screens/companies_screen.dart';
+import '../features/company/presentation/screens/company_detail_screen.dart';
 import '../features/event/presentation/screens/event_screen.dart';
 import '../features/map/presentation/screens/map_screen.dart';
 import '../features/profile/presentation/screens/edit_profile_screen.dart';
@@ -15,6 +14,7 @@ import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/student_session/presentation/screens/student_session_time_selection.dart';
 import '../features/student_session/presentation/screens/student_sessions_form.dart';
 import '../features/student_session/presentation/screens/student_sessions_screen.dart';
+import '../navigation/router_notifier.dart';
 import '../widgets/app_bottom_navigation.dart';
 import 'navigation_items.dart';
 

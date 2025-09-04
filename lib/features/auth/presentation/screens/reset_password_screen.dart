@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../view_models/auth_view_model.dart';
 import '../../../../shared/domain/validation/validation_service.dart';
-import '../widgets/auth_form_widgets.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../view_models/auth_view_model.dart';
+import '../widgets/auth_form_widgets.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -17,10 +17,6 @@ class ResetPasswordScreen extends StatefulWidget {
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isEmailValid = false;
-  bool _isLoading = false;
-  bool _isReset = false;
-  bool _serverError = false;
-  String? _serverErrorText = 'Something went wrong. Please try again.';
   String? _emailErrorText;
 
   final TextEditingController _emailController = TextEditingController();
@@ -41,50 +37,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   Future<void> _submitEmailResetPassword() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     if (!_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = false;
-      });
       return;
     }
 
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    try {
-      await authViewModel.resetPassword(_emailController.text.trim());
-
-      if (mounted) {
-        if (authViewModel.globalError == null) {
-          setState(() {
-            _isReset = true;
-            _serverError = false;
-          });
-        } else {
-          setState(() {
-            _serverError = true;
-            _isReset = false;
-            _serverErrorText = authViewModel.globalError!.userMessage;
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _serverError = true;
-          _isReset = false;
-          _serverErrorText = 'Failed to reset password: $e';
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    await authViewModel.resetPassword(_emailController.text.trim());
   }
 
   @override
@@ -96,7 +54,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: _isReset ? _buildSuccessView() : _buildFormView(),
+            child: Consumer<AuthViewModel>(
+              builder: (context, authViewModel, child) {
+                if (authViewModel.resetPasswordCommand.isCompleted && !authViewModel.resetPasswordCommand.hasError) {
+                  return _buildSuccessView();
+                }
+                return _buildFormView();
+              },
+            ),
           ),
         ),
       ),
@@ -156,12 +121,25 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             validator: ValidationService.validateEmail,
           ),
           const SizedBox(height: 15),
-          AuthFormWidgets.buildSubmitButton(
-            text: "Submit",
-            onPressed: _submitEmailResetPassword,
-            isLoading: _isLoading,
+          Consumer<AuthViewModel>(
+            builder: (context, authViewModel, child) {
+              return AuthFormWidgets.buildSubmitButton(
+                text: "Submit",
+                onPressed: authViewModel.isResettingPassword ? null : _submitEmailResetPassword,
+                isLoading: authViewModel.isResettingPassword,
+              );
+            },
           ),
-          if (_serverError) AuthFormWidgets.buildErrorMessage(_serverErrorText),
+          Consumer<AuthViewModel>(
+            builder: (context, authViewModel, child) {
+              if (authViewModel.resetPasswordCommand.hasError) {
+                return AuthFormWidgets.buildErrorMessage(
+                  authViewModel.resetPasswordCommand.error!.userMessage,
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ],
       ),
     );

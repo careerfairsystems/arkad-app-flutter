@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/events/app_events.dart';
+import '../../../../shared/events/auth_events.dart';
 import '../../domain/entities/company.dart';
 import '../commands/filter_companies_command.dart';
 import '../commands/get_companies_command.dart';
@@ -24,6 +28,9 @@ class CompanyViewModel extends ChangeNotifier {
     _searchCompaniesCommand.addListener(_onCommandChanged);
     _filterCompaniesCommand.addListener(_onCommandChanged);
     _searchAndFilterCommand.addListener(_onCommandChanged);
+    
+    // Subscribe to logout events for cleanup
+    _subscribeToLogoutEvents();
   }
 
   final GetCompaniesCommand _getCompaniesCommand;
@@ -35,6 +42,9 @@ class CompanyViewModel extends ChangeNotifier {
   String _currentSearchQuery = '';
   CompanyFilter _currentFilter = const CompanyFilter();
   List<Company> _displayedCompanies = [];
+
+  // Stream subscription for logout events
+  StreamSubscription? _logoutSubscription;
 
   // Command getters (for direct access if needed)
   GetCompaniesCommand get getCompaniesCommand => _getCompaniesCommand;
@@ -164,6 +174,29 @@ class CompanyViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Subscribe to logout events for cleanup
+  void _subscribeToLogoutEvents() {
+    _logoutSubscription = AppEvents.on<UserLoggedOutEvent>().listen((_) {
+      _handleUserLogout();
+    });
+  }
+
+  /// Handle user logout by clearing all cached data and resetting state
+  void _handleUserLogout() {
+    // Clear current state
+    _currentSearchQuery = '';
+    _currentFilter = const CompanyFilter();
+    _displayedCompanies = [];
+    
+    // Reset all commands to clear cached data and states
+    _getCompaniesCommand.reset();
+    _searchCompaniesCommand.reset();
+    _filterCompaniesCommand.reset();
+    _searchAndFilterCommand.reset();
+    
+    notifyListeners();
+  }
+
   /// Update the displayed companies based on current search and filter
   void _updateDisplayedCompanies() {
     final allCompanies = _getCompaniesCommand.result ?? [];
@@ -206,6 +239,10 @@ class CompanyViewModel extends ChangeNotifier {
     _searchCompaniesCommand.removeListener(_onCommandChanged);
     _filterCompaniesCommand.removeListener(_onCommandChanged);
     _searchAndFilterCommand.removeListener(_onCommandChanged);
+    
+    // Cancel logout event subscription
+    _logoutSubscription?.cancel();
+    
     super.dispose();
   }
 }

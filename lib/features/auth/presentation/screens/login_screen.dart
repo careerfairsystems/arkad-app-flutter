@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../view_models/auth_view_model.dart';
 import '../../../../shared/domain/validation/validation_service.dart';
+import '../../../../shared/events/app_events.dart';
+import '../../../../shared/events/auth_events.dart';
+import '../view_models/auth_view_model.dart';
 import '../widgets/auth_form_widgets.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -26,10 +30,44 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _emailErrorText;
   String? _passwordErrorText;
 
+  // Stream subscription for logout events
+  StreamSubscription? _logoutSubscription;
+
   @override
   void initState() {
     super.initState();
     _emailController.addListener(_validateEmail);
+    _subscribeToLogoutEvents();
+  }
+
+  /// Subscribe to logout events to clear form state
+  void _subscribeToLogoutEvents() {
+    _logoutSubscription = AppEvents.on<UserLoggedOutEvent>().listen((_) {
+      _clearFormState();
+    });
+  }
+
+  /// Clear all form state when user logs out
+  void _clearFormState() {
+    if (mounted) {
+      setState(() {
+        // Clear form controllers
+        _emailController.clear();
+        _passwordController.clear();
+        
+        // Reset validation states
+        _isEmailValid = false;
+        _emailErrorText = null;
+        _passwordErrorText = null;
+        
+        // Reset loading and error states
+        _isLoading = false;
+        _errorMessage = null;
+        
+        // Reset password visibility
+        _obscurePassword = true;
+      });
+    }
   }
 
   void _validateEmail() {
@@ -48,6 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   bool _validateFields() {
+    // Only validate that fields are not empty - domain validation handles business rules
     bool isValid = true;
 
     setState(() {
@@ -56,9 +95,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (_emailController.text.isEmpty) {
         _emailErrorText = 'Email is required';
-        isValid = false;
-      } else if (!ValidationService.isValidEmail(_emailController.text)) {
-        _emailErrorText = 'Please enter a valid email';
         isValid = false;
       }
 
@@ -190,6 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.removeListener(_validateEmail);
     _emailController.dispose();
     _passwordController.dispose();
+    _logoutSubscription?.cancel();
     super.dispose();
   }
 }

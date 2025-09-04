@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../view_models/student_session_view_model.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../view_models/student_session_view_model.dart';
 
 class StudentSessionTimeSelectionScreen extends StatefulWidget {
   final String id;

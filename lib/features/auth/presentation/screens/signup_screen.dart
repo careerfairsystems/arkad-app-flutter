@@ -3,14 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../domain/entities/signup_data.dart';
-import '../view_models/auth_view_model.dart';
+import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
-import '../../../../shared/domain/validation/validation_service.dart';
-import '../widgets/auth_form_widgets.dart';
 import '../../../../shared/presentation/widgets/error/error_display.dart';
+import '../../domain/entities/signup_data.dart';
+import '../view_models/auth_view_model.dart';
+import '../widgets/auth_form_widgets.dart';
 
 /// Signup screen for new user registration.
 ///
@@ -83,6 +83,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _validatePassword() {
     setState(() {
+      // Keep password strength display for UX - but domain handles validation
       _passwordStrength = ValidationService.checkPasswordStrength(
         _passwordController.text,
       );
@@ -122,6 +123,8 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   bool _validateStep1() {
+    // Only validate that required fields are filled and policy accepted
+    // Domain layer handles business validation rules
     bool isValid = true;
     setState(() {
       _emailErrorText = null;
@@ -132,23 +135,17 @@ class _SignupScreenState extends State<SignupScreen> {
       if (_emailController.text.isEmpty) {
         _emailErrorText = 'Email is required';
         isValid = false;
-      } else if (!ValidationService.isValidEmail(_emailController.text)) {
-        _emailErrorText = 'Please enter a valid email';
-        isValid = false;
       }
 
       if (_passwordController.text.isEmpty) {
         _passwordErrorText = 'Password is required';
-        isValid = false;
-      } else if (!_isPasswordValid) {
-        _passwordErrorText = 'Password does not meet requirements';
         isValid = false;
       }
 
       if (_confirmPasswordController.text.isEmpty) {
         _confirmPasswordErrorText = 'Please confirm your password';
         isValid = false;
-      } else if (!_isConfirmPasswordValid) {
+      } else if (!ValidationService.doPasswordsMatch(_passwordController.text, _confirmPasswordController.text)) {
         _confirmPasswordErrorText = 'Passwords do not match';
         isValid = false;
       }

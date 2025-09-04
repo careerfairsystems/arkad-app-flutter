@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/events/app_events.dart';
+import '../../../../shared/events/auth_events.dart';
 import '../../domain/entities/student_session_application.dart';
 import '../../domain/entities/timeslot.dart';
 import '../../domain/use_cases/apply_for_session_use_case.dart';
@@ -19,13 +23,18 @@ class StudentSessionViewModel extends ChangeNotifier {
     required CancelApplicationUseCase cancelApplicationUseCase,
   }) : _getStudentSessionsUseCase = getStudentSessionsUseCase,
        _applyForSessionUseCase = applyForSessionUseCase,
-       _cancelApplicationUseCase = cancelApplicationUseCase;
+       _cancelApplicationUseCase = cancelApplicationUseCase {
+    _subscribeToLogoutEvents();
+  }
 
   // State
   bool _isLoading = false;
   AppError? _error;
   List<StudentSessionApplication> _applications = [];
   List<Timeslot> _availableTimeslots = [];
+
+  // Stream subscription for logout events
+  StreamSubscription? _logoutSubscription;
 
   // Getters
   bool get isLoading => _isLoading;
@@ -141,5 +150,27 @@ class StudentSessionViewModel extends ChangeNotifier {
 
   void _clearError() {
     _error = null;
+  }
+
+  /// Subscribe to logout events for cleanup
+  void _subscribeToLogoutEvents() {
+    _logoutSubscription = AppEvents.on<UserLoggedOutEvent>().listen((_) {
+      _handleUserLogout();
+    });
+  }
+
+  /// Handle user logout by clearing all session data
+  void _handleUserLogout() {
+    _isLoading = false;
+    _error = null;
+    _applications.clear();
+    _availableTimeslots.clear();
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _logoutSubscription?.cancel();
+    super.dispose();
   }
 }

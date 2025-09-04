@@ -13,7 +13,6 @@ class CompanyMapper {
       name: dto.name,
       description: dto.description,
       logoUrl: dto.logoUrl,
-      websiteUrl: null, // Not available in current DTO
       industries: _convertToStringList(dto.industries),
       desiredProgrammes: _convertToStringList(dto.desiredProgramme),
       desiredDegrees: _convertToStringList(dto.desiredDegrees),

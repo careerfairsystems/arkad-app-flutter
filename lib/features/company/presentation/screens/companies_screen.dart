@@ -1,14 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../widgets/filter_options.dart';
+import '../../../../shared/events/app_events.dart';
+import '../../../../shared/events/auth_events.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/filters/filter_dropdown.dart';
 import '../../../../shared/presentation/widgets/filters/filter_dropdown_controller.dart';
 import '../../domain/entities/company.dart';
 import '../view_models/company_view_model.dart';
 import '../widgets/company_list.dart';
+import '../widgets/filter_options.dart';
 
 /// Modern companies screen using clean architecture
 class CompaniesScreen extends StatefulWidget {
@@ -30,11 +34,17 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   Set<String> _selectedIndustries = {};
   bool _hasStudentSessions = false;
 
+  // Stream subscription for logout events
+  StreamSubscription? _logoutSubscription;
+
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
     _dropdownController = FilterDropdownController();
+    
+    // Subscribe to logout events for cleanup
+    _subscribeToLogoutEvents();
     
     // Load companies on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -42,9 +52,38 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     });
   }
 
+  /// Subscribe to logout events for cleanup
+  void _subscribeToLogoutEvents() {
+    _logoutSubscription = AppEvents.on<UserLoggedOutEvent>().listen((_) {
+      _clearUIState();
+    });
+  }
+
+  /// Clear UI state when user logs out
+  void _clearUIState() {
+    if (mounted) {
+      setState(() {
+        // Clear search
+        _searchController.clear();
+        
+        // Reset filter states
+        _selectedDegrees.clear();
+        _selectedCompetences.clear();
+        _selectedPositions.clear();
+        _selectedIndustries.clear();
+        _hasStudentSessions = false;
+        
+        // Hide filters
+        _showFilters = false;
+        _dropdownController.collapseAll();
+      });
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
+    _logoutSubscription?.cancel();
     super.dispose();
   }
 
