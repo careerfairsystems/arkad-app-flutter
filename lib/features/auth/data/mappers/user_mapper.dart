@@ -11,6 +11,9 @@ class UserMapper {
       email: dto.email,
       firstName: dto.firstName,
       lastName: dto.lastName,
+      isStudent: dto.isStudent,
+      isActive: dto.isActive,
+      isStaff: dto.isStaff,
       foodPreferences: dto.foodPreferences,
       programme: dto.programme,
       studyYear: dto.studyYear,
@@ -28,9 +31,9 @@ class UserMapper {
       ..email = user.email
       ..firstName = user.firstName
       ..lastName = user.lastName
-      ..isStudent = true // Default value - adjust based on business rules
-      ..isActive = true // Default value - adjust based on business rules  
-      ..isStaff = false // Default value - adjust based on business rules
+      ..isStudent = user.isStudent
+      ..isActive = user.isActive
+      ..isStaff = user.isStaff
       ..foodPreferences = user.foodPreferences
       ..programme = user.programme
       ..studyYear = user.studyYear

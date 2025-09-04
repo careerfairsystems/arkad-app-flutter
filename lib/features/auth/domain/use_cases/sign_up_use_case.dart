@@ -43,6 +43,4 @@ class SignUpUseCase extends UseCase<String, SignupData> {
     // Attempt signup
     return await _repository.beginSignup(params);
   }
-
-  // All password validation is now handled by ValidationService
 }

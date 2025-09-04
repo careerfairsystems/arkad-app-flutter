@@ -28,8 +28,6 @@ class ResetPasswordUseCase extends UseCase<void, ResetPasswordParams> {
     // Attempt password reset
     return await _repository.resetPassword(params.email.trim());
   }
-
-  // Email validation now handled by ValidationService
 }
 
 /// Parameters for reset password use case

@@ -3,7 +3,6 @@ import '../../domain/entities/auth_session.dart';
 import '../../domain/entities/signup_data.dart';
 import '../../domain/use_cases/complete_signup_use_case.dart';
 
-/// Command for complete signup operation
 class CompleteSignupCommand extends ParameterizedCommand<CompleteSignupParams, AuthSession> {
   CompleteSignupCommand(this._completeSignupUseCase);
 
@@ -11,7 +10,7 @@ class CompleteSignupCommand extends ParameterizedCommand<CompleteSignupParams, A
 
   @override
   Future<void> executeWithParams(CompleteSignupParams params) async {
-    if (isExecuting) return; // Prevent multiple concurrent executions
+    if (isExecuting) return;
 
     setExecuting(true);
 
@@ -25,7 +24,6 @@ class CompleteSignupCommand extends ParameterizedCommand<CompleteSignupParams, A
     setExecuting(false);
   }
 
-  /// Convenience method for executing with individual parameters
   Future<void> completeSignup({
     required String signupToken,
     required String verificationCode,

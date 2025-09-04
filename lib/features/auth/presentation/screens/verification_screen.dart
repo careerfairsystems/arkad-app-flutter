@@ -21,7 +21,6 @@ class VerificationScreen extends StatefulWidget {
 
 class _VerificationScreenState extends State<VerificationScreen> {
   final TextEditingController _codeController = TextEditingController();
-  String? _errorMessage;
 
   @override
   void dispose() {
@@ -33,28 +32,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   Future<void> _verifyCode() async {
     if (!_isCodeComplete) return;
-    setState(() {
-      _errorMessage = null;
-    });
+    
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     await authViewModel.completeSignUp(_codeController.text);
     
-    if (mounted) {
-      if (authViewModel.completeSignupCommand.isCompleted && authViewModel.completeSignupCommand.error == null) {
-        context.go('/profile');
-      } else if (authViewModel.completeSignupCommand.error != null) {
-        setState(() => _errorMessage = authViewModel.completeSignupCommand.error!.userMessage);
-      } else if (authViewModel.globalError != null) {
-        setState(() => _errorMessage = authViewModel.globalError!.userMessage);
-      }
+    if (mounted && authViewModel.completeSignupCommand.isCompleted) {
+      context.go('/profile');
     }
   }
 
   Future<void> _resendCode() async {
-    setState(() {
-      _errorMessage = null;
-    });
-    
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     await authViewModel.resendVerification(widget.email);
     
@@ -153,7 +140,15 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   ],
                 ),
 
-                AuthFormWidgets.buildErrorMessage(_errorMessage),
+                Consumer<AuthViewModel>(
+                  builder: (context, authViewModel, child) {
+                    final error = authViewModel.completeSignupCommand.error;
+                    if (error != null) {
+                      return AuthFormWidgets.buildErrorMessage(error.userMessage);
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
 
                 const SizedBox(height: 30),
 

@@ -54,7 +54,7 @@ class RecoveryAction {
 
 /// Validation error for form fields
 class ValidationError extends AppError {
-  const ValidationError(String message) : super(
+  const ValidationError(String message, {super.recoveryActions}) : super(
     userMessage: message,
     severity: ErrorSeverity.warning,
   );
@@ -62,7 +62,7 @@ class ValidationError extends AppError {
 
 /// Network connectivity error
 class NetworkError extends AppError {
-  const NetworkError({String? details}) : super(
+  const NetworkError({String? details, super.recoveryActions}) : super(
     userMessage: "Connection problem. Please check your internet and try again.",
     severity: ErrorSeverity.error,
     technicalDetails: details,
@@ -127,7 +127,7 @@ class ServerError extends AppError {
 
 /// Unknown/unexpected error
 class UnknownError extends AppError {
-  const UnknownError(String details) : super(
+  const UnknownError(String details, {super.recoveryActions}) : super(
     userMessage: "Something unexpected happened. Please try again.",
     severity: ErrorSeverity.error,
     technicalDetails: details,

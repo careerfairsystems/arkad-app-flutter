@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 
-/// A collection of reusable widgets for authentication screens
 class AuthFormWidgets {
   static Widget buildLogoHeader() {
     return Column(
@@ -331,7 +330,7 @@ class AuthFormWidgets {
           Padding(
             padding: const EdgeInsets.only(
               left: 36.0,
-            ), // Align with text, not checkbox edge
+            ),
             child: Text(
               errorText,
               style: TextStyle(color: ArkadColors.lightRed, fontSize: 12),

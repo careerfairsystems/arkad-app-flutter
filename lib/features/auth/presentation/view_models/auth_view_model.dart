@@ -77,7 +77,7 @@ class AuthViewModel extends ChangeNotifier {
   // Signup flow getters
   SignupData? get pendingSignupData => _pendingSignupData;
   String? get signupToken => _signupToken;
-  bool get hassPendingSignup => _pendingSignupData != null && _signupToken != null;
+  bool get hasPendingSignup => _pendingSignupData != null && _signupToken != null;
 
   // Command getters
   SignInCommand get signInCommand => _signInCommand;
@@ -160,7 +160,6 @@ class AuthViewModel extends ChangeNotifier {
           _currentSession = null;
           _clearSignupState();
           
-          // Fire user logged out event for cleanup (minimal usage)
           _fireAuthEvent(const UserLoggedOutEvent());
           
           notifyListeners();
@@ -206,7 +205,6 @@ class AuthViewModel extends ChangeNotifier {
       _currentSession = _signInCommand.result;
       _clearSignupState();
       
-      // Fire auth session changed event (simple AppEvents pattern)
       _fireAuthEvent(AuthSessionChangedEvent(_signInCommand.result!));
       
       notifyListeners();
@@ -225,7 +223,6 @@ class AuthViewModel extends ChangeNotifier {
       _currentSession = _completeSignupCommand.result;
       _clearSignupState();
       
-      // Fire auth session changed event (simple AppEvents pattern)
       _fireAuthEvent(AuthSessionChangedEvent(_completeSignupCommand.result!));
       
       notifyListeners();
@@ -259,7 +256,6 @@ class AuthViewModel extends ChangeNotifier {
     _globalError = null;
   }
 
-  /// Fire simple app events for cross-feature communication (minimal usage)
   void _fireAuthEvent(Object event) {
     AppEvents.fire(event);
   }

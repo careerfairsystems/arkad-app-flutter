@@ -1,7 +1,6 @@
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/use_cases/resend_verification_use_case.dart';
 
-/// Command for resend verification code operation
 class ResendVerificationCommand extends ParameterizedCommand<ResendVerificationParams, void> {
   ResendVerificationCommand(this._resendVerificationUseCase);
 
@@ -9,21 +8,20 @@ class ResendVerificationCommand extends ParameterizedCommand<ResendVerificationP
 
   @override
   Future<void> executeWithParams(ResendVerificationParams params) async {
-    if (isExecuting) return; // Prevent multiple concurrent executions
+    if (isExecuting) return;
 
     setExecuting(true);
 
     final result = await _resendVerificationUseCase.call(params);
 
     result.when(
-      success: (_) => setResult(null), // Resend verification returns void
+      success: (_) => setResult(null),
       failure: (error) => setError(error),
     );
 
     setExecuting(false);
   }
 
-  /// Convenience method for executing with email
   Future<void> resendVerification(String email) async {
     await executeWithParams(ResendVerificationParams(email: email));
   }

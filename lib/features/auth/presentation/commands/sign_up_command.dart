@@ -2,7 +2,6 @@ import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/signup_data.dart';
 import '../../domain/use_cases/sign_up_use_case.dart';
 
-/// Command for sign up operation
 class SignUpCommand extends ParameterizedCommand<SignupData, String> {
   SignUpCommand(this._signUpUseCase);
 
@@ -10,7 +9,7 @@ class SignUpCommand extends ParameterizedCommand<SignupData, String> {
 
   @override
   Future<void> executeWithParams(SignupData params) async {
-    if (isExecuting) return; // Prevent multiple concurrent executions
+    if (isExecuting) return;
 
     setExecuting(true);
 
@@ -24,7 +23,6 @@ class SignUpCommand extends ParameterizedCommand<SignupData, String> {
     setExecuting(false);
   }
 
-  /// Convenience method for executing with signup data
   Future<void> signUp(SignupData signupData) async {
     await executeWithParams(signupData);
   }

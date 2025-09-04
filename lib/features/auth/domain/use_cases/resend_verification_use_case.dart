@@ -28,8 +28,6 @@ class ResendVerificationUseCase extends UseCase<void, ResendVerificationParams> 
     // Request new verification code
     return await _repository.requestVerificationCode(params.email.trim());
   }
-
-  // Email validation now handled by ValidationService
 }
 
 /// Parameters for resend verification use case

@@ -172,6 +172,38 @@ class ErrorMapper {
           ),
         ];
         
+      case ValidationError _:
+        return [
+          if (onRetry != null)
+            RecoveryAction(
+              label: "Try Again",
+              action: onRetry,
+              isPrimary: true,
+              icon: Icons.refresh,
+            ),
+          RecoveryAction(
+            label: "Contact Support",
+            action: () => _contactSupport(context),
+            icon: Icons.help_outline,
+          ),
+        ];
+        
+      case UnknownError _:
+        return [
+          if (onRetry != null)
+            RecoveryAction(
+              label: "Try Again",
+              action: onRetry,
+              isPrimary: true,
+              icon: Icons.refresh,
+            ),
+          RecoveryAction(
+            label: "Contact Support",
+            action: () => _contactSupport(context),
+            icon: Icons.help_outline,
+          ),
+        ];
+        
       default:
         return [
           if (onRetry != null)
