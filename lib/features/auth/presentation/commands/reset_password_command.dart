@@ -1,3 +1,4 @@
+import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/use_cases/reset_password_use_case.dart';
 
@@ -12,14 +13,18 @@ class ResetPasswordCommand extends ParameterizedCommand<ResetPasswordParams, voi
 
     setExecuting(true);
 
-    final result = await _resetPasswordUseCase.call(params);
+    try {
+      final result = await _resetPasswordUseCase.call(params);
 
-    result.when(
-      success: (_) => setResult(null),
-      failure: (error) => setError(error),
-    );
-
-    setExecuting(false);
+      result.when(
+        success: (_) => setResult(null),
+        failure: (error) => setError(error),
+      );
+    } catch (e) {
+      setError(UnknownError(e.toString()));
+    } finally {
+      setExecuting(false);
+    }
   }
 
   Future<void> resetPassword(String email) async {

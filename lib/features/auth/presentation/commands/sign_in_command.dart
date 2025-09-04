@@ -1,3 +1,4 @@
+import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/auth_session.dart';
 import '../../domain/use_cases/sign_in_use_case.dart';
@@ -13,14 +14,18 @@ class SignInCommand extends ParameterizedCommand<SignInParams, AuthSession> {
 
     setExecuting(true);
 
-    final result = await _signInUseCase.call(params);
+    try {
+      final result = await _signInUseCase.call(params);
 
-    result.when(
-      success: (session) => setResult(session),
-      failure: (error) => setError(error),
-    );
-
-    setExecuting(false);
+      result.when(
+        success: (session) => setResult(session),
+        failure: (error) => setError(error),
+      );
+    } catch (e) {
+      setError(UnknownError(e.toString()));
+    } finally {
+      setExecuting(false);
+    }
   }
 
   Future<void> signIn(String email, String password) async {

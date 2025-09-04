@@ -206,16 +206,15 @@ class AuthViewModel extends ChangeNotifier {
       _clearSignupState();
       
       _fireAuthEvent(AuthSessionChangedEvent(_signInCommand.result!));
-      
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   void _onSignUpCommandChanged() {
     if (_signUpCommand.isCompleted && _signUpCommand.result != null) {
       _signupToken = _signUpCommand.result;
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   void _onCompleteSignupCommandChanged() {
@@ -224,20 +223,15 @@ class AuthViewModel extends ChangeNotifier {
       _clearSignupState();
       
       _fireAuthEvent(AuthSessionChangedEvent(_completeSignupCommand.result!));
-      
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   void _onResetPasswordCommandChanged() {
-    // Reset password command completed successfully
-    // UI will handle success/error states reactively
     notifyListeners();
   }
 
   void _onResendVerificationCommandChanged() {
-    // Resend verification command completed
-    // UI will handle success/error states reactively
     notifyListeners();
   }
 

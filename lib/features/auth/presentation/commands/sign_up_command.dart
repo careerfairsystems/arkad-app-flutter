@@ -1,3 +1,4 @@
+import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/signup_data.dart';
 import '../../domain/use_cases/sign_up_use_case.dart';
@@ -13,14 +14,18 @@ class SignUpCommand extends ParameterizedCommand<SignupData, String> {
 
     setExecuting(true);
 
-    final result = await _signUpUseCase.call(params);
+    try {
+      final result = await _signUpUseCase.call(params);
 
-    result.when(
-      success: (token) => setResult(token),
-      failure: (error) => setError(error),
-    );
-
-    setExecuting(false);
+      result.when(
+        success: (token) => setResult(token),
+        failure: (error) => setError(error),
+      );
+    } catch (e) {
+      setError(UnknownError(e.toString()));
+    } finally {
+      setExecuting(false);
+    }
   }
 
   Future<void> signUp(SignupData signupData) async {

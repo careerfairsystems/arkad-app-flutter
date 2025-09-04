@@ -8,12 +8,13 @@ abstract class Command<T> extends ChangeNotifier {
   bool _isExecuting = false;
   AppError? _error;
   T? _result;
+  bool _hasBeenExecuted = false;
 
   // State getters
   bool get isExecuting => _isExecuting;
   bool get hasError => _error != null;
-  bool get isCompleted => _result != null && !_isExecuting;
-  bool get isIdle => !_isExecuting && _error == null && _result == null;
+  bool get isCompleted => _hasBeenExecuted && !_isExecuting && _error == null;
+  bool get isIdle => !_hasBeenExecuted && !_isExecuting && _error == null;
   
   AppError? get error => _error;
   T? get result => _result;
@@ -26,6 +27,9 @@ abstract class Command<T> extends ChangeNotifier {
   void setExecuting(bool executing) {
     if (_isExecuting != executing) {
       _isExecuting = executing;
+      if (executing) {
+        _hasBeenExecuted = true;
+      }
       notifyListeners();
     }
   }
@@ -59,6 +63,7 @@ abstract class Command<T> extends ChangeNotifier {
     _isExecuting = false;
     _error = null;
     _result = null;
+    _hasBeenExecuted = false;
     notifyListeners();
   }
 

@@ -25,6 +25,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   void initState() {
     super.initState();
     _emailController.addListener(_validateEmail);
+    
+    // Reset command state when entering screen to prevent stale success display
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+      authViewModel.resetPasswordCommand.reset();
+    });
   }
 
   void _validateEmail() {
@@ -56,7 +62,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Consumer<AuthViewModel>(
               builder: (context, authViewModel, child) {
-                if (authViewModel.resetPasswordCommand.isCompleted && !authViewModel.resetPasswordCommand.hasError) {
+                if (authViewModel.resetPasswordCommand.isCompleted) {
                   return _buildSuccessView();
                 }
                 return _buildFormView();
@@ -74,7 +80,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         const SizedBox(height: 40),
         const Icon(Icons.check_circle, color: ArkadColors.arkadGreen, size: 80),
         AuthFormWidgets.buildSuccessMessage(
-          'Reset link sent to: ${_emailController.text}',
+          'Password reset link sent to ${_emailController.text}',
         ),
         const SizedBox(height: 10),
         SizedBox(

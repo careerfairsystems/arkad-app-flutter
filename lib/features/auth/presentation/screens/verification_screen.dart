@@ -46,11 +46,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
     await authViewModel.resendVerification(widget.email);
     
     if (mounted) {
-      if (authViewModel.resendVerificationCommand.isCompleted && !authViewModel.resendVerificationCommand.hasError) {
+      if (authViewModel.resendVerificationCommand.isCompleted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Verification code sent! Check your email.'),
-            backgroundColor: Colors.green,
+            backgroundColor: ArkadColors.arkadGreen,
           ),
         );
       } else if (authViewModel.resendVerificationCommand.hasError) {
