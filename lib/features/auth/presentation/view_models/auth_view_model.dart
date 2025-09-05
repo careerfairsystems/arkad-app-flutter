@@ -123,6 +123,8 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> startSignUp(SignupData signupData) async {
     _clearGlobalError();
     _pendingSignupData = signupData;
+    _signupToken = null; // Clear stale token from previous attempt
+    _signUpCommand.reset(); // Clear stale command state
     
     await _signUpCommand.signUp(signupData);
   }

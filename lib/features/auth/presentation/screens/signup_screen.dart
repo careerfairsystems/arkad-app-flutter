@@ -66,6 +66,13 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.addListener(_validateEmail);
     _passwordController.addListener(_validatePassword);
     _confirmPasswordController.addListener(_validateConfirmPassword);
+    
+    // Reset command state when entering screen to prevent stale state display
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+      authViewModel.signUpCommand.reset();
+      authViewModel.completeSignupCommand.reset();
+    });
   }
 
   void _validateEmail() {
@@ -128,10 +135,16 @@ class _SignupScreenState extends State<SignupScreen> {
       if (_emailController.text.isEmpty) {
         _emailErrorText = 'Email is required';
         isValid = false;
+      } else if (!_isEmailValid) {
+        _emailErrorText = 'Enter a valid email';
+        isValid = false;
       }
 
       if (_passwordController.text.isEmpty) {
         _passwordErrorText = 'Password is required';
+        isValid = false;
+      } else if (!_isPasswordValid) {
+        _passwordErrorText = 'Password does not meet requirements';
         isValid = false;
       }
 
@@ -196,11 +209,11 @@ class _SignupScreenState extends State<SignupScreen> {
       password: _passwordController.text,
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
-      foodPreferences: _hasFoodPreferences 
-          ? _foodPreferencesController.text.trim().isNotEmpty 
+      foodPreferences: _hasFoodPreferences
+          ? (_foodPreferencesController.text.trim().isNotEmpty
               ? _foodPreferencesController.text.trim()
-              : null
-          : "None",
+              : null)
+          : null,
     );
     
     await authViewModel.startSignUp(signupData);
@@ -363,7 +376,7 @@ class _SignupScreenState extends State<SignupScreen> {
           builder: (context, authViewModel, child) {
             return AuthFormWidgets.buildSubmitButton(
               text: 'Continue',
-              onPressed: authViewModel.signUpCommand.isExecuting ? null : _handleSubmit,
+              onPressed: authViewModel.signUpCommand.isExecuting || !_isEmailValid || !_isPasswordValid ? null : _handleSubmit,
               isLoading: authViewModel.signUpCommand.isExecuting,
             );
           },

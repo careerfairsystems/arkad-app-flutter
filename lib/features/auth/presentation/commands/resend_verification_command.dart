@@ -11,6 +11,7 @@ class ResendVerificationCommand extends ParameterizedCommand<ResendVerificationP
   Future<void> executeWithParams(ResendVerificationParams params) async {
     if (isExecuting) return;
 
+    clearError();
     setExecuting(true);
 
     try {
@@ -27,6 +28,7 @@ class ResendVerificationCommand extends ParameterizedCommand<ResendVerificationP
     }
   }
 
+  /// Resend verification code to email
   Future<void> resendVerification(String email) async {
     await executeWithParams(ResendVerificationParams(email: email));
   }

@@ -11,6 +11,7 @@ class ResetPasswordCommand extends ParameterizedCommand<ResetPasswordParams, voi
   Future<void> executeWithParams(ResetPasswordParams params) async {
     if (isExecuting) return;
 
+    clearError();
     setExecuting(true);
 
     try {
@@ -27,6 +28,7 @@ class ResetPasswordCommand extends ParameterizedCommand<ResetPasswordParams, voi
     }
   }
 
+  /// Request password reset for email
   Future<void> resetPassword(String email) async {
     await executeWithParams(ResetPasswordParams(email: email));
   }

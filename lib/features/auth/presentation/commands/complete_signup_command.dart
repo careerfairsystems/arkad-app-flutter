@@ -13,6 +13,7 @@ class CompleteSignupCommand extends ParameterizedCommand<CompleteSignupParams, A
   Future<void> executeWithParams(CompleteSignupParams params) async {
     if (isExecuting) return;
 
+    clearError();
     setExecuting(true);
 
     try {
@@ -29,6 +30,7 @@ class CompleteSignupCommand extends ParameterizedCommand<CompleteSignupParams, A
     }
   }
 
+  /// Complete signup process with verification code
   Future<void> completeSignup({
     required String signupToken,
     required String verificationCode,

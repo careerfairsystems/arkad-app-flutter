@@ -32,7 +32,7 @@ class ErrorMapper {
         }
         return ValidationError("An account with this email already exists.");
         
-      case 425:
+      case 429:
         // Rate limiting
         final waitTime = _extractWaitTime(responseData) ?? const Duration(minutes: 2);
         return RateLimitError(waitTime);

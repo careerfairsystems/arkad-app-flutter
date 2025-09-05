@@ -59,24 +59,24 @@ abstract class Command<T> extends ChangeNotifier {
   }
 
   /// Reset the command to its initial state
-  void reset() {
+  void reset({bool notify = true}) {
     _isExecuting = false;
     _error = null;
     _result = null;
     _hasBeenExecuted = false;
-    notifyListeners();
+    if (notify) notifyListeners();
   }
 
   @override
   void dispose() {
-    reset();
+    reset(notify: false);
     super.dispose();
   }
 }
 
 /// Command for operations that don't return a result
 abstract class VoidCommand extends Command<void> {
-  bool get isSuccessful => !hasError && !isExecuting;
+  bool get isSuccessful => isCompleted;
 }
 
 /// Command for operations with parameters

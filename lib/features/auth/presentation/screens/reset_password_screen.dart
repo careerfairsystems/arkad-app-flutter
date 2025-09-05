@@ -154,6 +154,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   void dispose() {
     _emailController.removeListener(_validateEmail);
+    _emailController.dispose();
     super.dispose();
   }
 }

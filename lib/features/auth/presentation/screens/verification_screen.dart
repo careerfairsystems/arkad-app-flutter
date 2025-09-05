@@ -57,7 +57,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to resend: ${authViewModel.resendVerificationCommand.error!.userMessage}'),
-            backgroundColor: Colors.red,
+            backgroundColor: ArkadColors.lightRed,
           ),
         );
       }

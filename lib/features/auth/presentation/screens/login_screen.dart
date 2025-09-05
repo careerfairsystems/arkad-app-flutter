@@ -35,6 +35,12 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailController.addListener(_validateEmail);
     _subscribeToLogoutEvents();
+    
+    // Reset command state when entering screen to prevent stale state display
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+      authViewModel.signInCommand.reset();
+    });
   }
 
   void _subscribeToLogoutEvents() {
@@ -100,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     
-    await authViewModel.signInCommand.signIn(
+    await authViewModel.signIn(
       _emailController.text.trim(),
       _passwordController.text,
     );

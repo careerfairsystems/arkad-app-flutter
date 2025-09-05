@@ -12,6 +12,7 @@ class SignInCommand extends ParameterizedCommand<SignInParams, AuthSession> {
   Future<void> executeWithParams(SignInParams params) async {
     if (isExecuting) return;
 
+    clearError();
     setExecuting(true);
 
     try {
@@ -28,6 +29,7 @@ class SignInCommand extends ParameterizedCommand<SignInParams, AuthSession> {
     }
   }
 
+  /// Sign in with email and password
   Future<void> signIn(String email, String password) async {
     await executeWithParams(SignInParams(email: email, password: password));
   }

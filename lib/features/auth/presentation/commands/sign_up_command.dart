@@ -12,6 +12,7 @@ class SignUpCommand extends ParameterizedCommand<SignupData, String> {
   Future<void> executeWithParams(SignupData params) async {
     if (isExecuting) return;
 
+    clearError();
     setExecuting(true);
 
     try {
@@ -28,6 +29,7 @@ class SignUpCommand extends ParameterizedCommand<SignupData, String> {
     }
   }
 
+  /// Start signup process with user data
   Future<void> signUp(SignupData signupData) async {
     await executeWithParams(signupData);
   }
