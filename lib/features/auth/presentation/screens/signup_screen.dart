@@ -219,9 +219,7 @@ class _SignupScreenState extends State<SignupScreen> {
     await authViewModel.startSignUp(signupData);
     
     if (mounted && authViewModel.signUpCommand.isCompleted) {
-      await context.push(
-        '/auth/verification?email=${Uri.encodeComponent(_emailController.text.trim())}',
-      );
+      await context.push('/auth/verification');
     }
   }
 
@@ -374,9 +372,17 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(height: 30),
         Consumer<AuthViewModel>(
           builder: (context, authViewModel, child) {
+            final canProceed = _emailController.text.isNotEmpty &&
+                _isEmailValid &&
+                _passwordController.text.isNotEmpty &&
+                _isPasswordValid &&
+                _confirmPasswordController.text.isNotEmpty &&
+                _isConfirmPasswordValid &&
+                _policyAccepted &&
+                !authViewModel.signUpCommand.isExecuting;
             return AuthFormWidgets.buildSubmitButton(
               text: 'Continue',
-              onPressed: authViewModel.signUpCommand.isExecuting || !_isEmailValid || !_isPasswordValid ? null : _handleSubmit,
+              onPressed: canProceed ? _handleSubmit : null,
               isLoading: authViewModel.signUpCommand.isExecuting,
             );
           },
@@ -513,9 +519,12 @@ class _SignupScreenState extends State<SignupScreen> {
               flex: 2,
               child: Consumer<AuthViewModel>(
                 builder: (context, authViewModel, child) {
+                  final canComplete = _firstNameController.text.trim().isNotEmpty &&
+                      _lastNameController.text.trim().isNotEmpty &&
+                      !authViewModel.signUpCommand.isExecuting;
                   return AuthFormWidgets.buildSubmitButton(
                     text: 'Complete',
-                    onPressed: authViewModel.signUpCommand.isExecuting ? null : _handleSubmit,
+                    onPressed: canComplete ? _handleSubmit : null,
                     isLoading: authViewModel.signUpCommand.isExecuting,
                   );
                 },

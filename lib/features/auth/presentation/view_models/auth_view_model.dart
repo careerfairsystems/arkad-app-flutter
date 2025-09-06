@@ -125,6 +125,7 @@ class AuthViewModel extends ChangeNotifier {
     _pendingSignupData = signupData;
     _signupToken = null; // Clear stale token from previous attempt
     _signUpCommand.reset(); // Clear stale command state
+    _completeSignupCommand.reset(); // Ensure verification command is clean
     
     await _signUpCommand.signUp(signupData);
   }

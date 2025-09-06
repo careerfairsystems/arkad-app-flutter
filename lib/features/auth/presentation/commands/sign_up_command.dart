@@ -1,4 +1,7 @@
+import 'package:dio/dio.dart';
+
 import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/signup_data.dart';
 import '../../domain/use_cases/sign_up_use_case.dart';
@@ -23,7 +26,11 @@ class SignUpCommand extends ParameterizedCommand<SignupData, String> {
         failure: (error) => setError(error),
       );
     } catch (e) {
-      setError(UnknownError(e.toString()));
+      if (e is DioException) {
+        setError(ErrorMapper.fromDioException(e, null, operationContext: 'signup'));
+      } else {
+        setError(UnknownError(e.toString()));
+      }
     } finally {
       setExecuting(false);
     }

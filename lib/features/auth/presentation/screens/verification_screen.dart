@@ -11,9 +11,7 @@ import '../widgets/auth_form_widgets.dart';
 ///
 /// Allows the user to enter or paste a 6-digit code sent to their email.
 class VerificationScreen extends StatefulWidget {
-  final String email;
-
-  const VerificationScreen({super.key, required this.email});
+  const VerificationScreen({super.key});
 
   @override
   State<VerificationScreen> createState() => _VerificationScreenState();
@@ -21,6 +19,18 @@ class VerificationScreen extends StatefulWidget {
 
 class _VerificationScreenState extends State<VerificationScreen> {
   final TextEditingController _codeController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Reset command state to prevent stale state display
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+      authViewModel.completeSignupCommand.reset();
+      authViewModel.resendVerificationCommand.reset();
+    });
+  }
 
   @override
   void dispose() {
@@ -36,14 +46,29 @@ class _VerificationScreenState extends State<VerificationScreen> {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     await authViewModel.completeSignUp(_codeController.text);
     
-    if (mounted && authViewModel.completeSignupCommand.isCompleted) {
+    // Only navigate on successful completion, not on error
+    if (mounted && authViewModel.completeSignupCommand.isCompleted && 
+        authViewModel.completeSignupCommand.result != null && 
+        !authViewModel.completeSignupCommand.hasError) {
       context.go('/profile');
     }
   }
 
   Future<void> _resendCode() async {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    await authViewModel.resendVerification(widget.email);
+    final email = authViewModel.pendingSignupData?.email;
+    
+    if (email == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: No email found for verification'),
+          backgroundColor: ArkadColors.lightRed,
+        ),
+      );
+      return;
+    }
+    
+    await authViewModel.resendVerification(email);
     
     if (mounted) {
       if (authViewModel.resendVerificationCommand.isCompleted) {
@@ -81,12 +106,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   "We've sent a verification code to",
                 ),
 
-                Text(
-                  widget.email,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+                Consumer<AuthViewModel>(
+                  builder: (context, authViewModel, child) {
+                    final email = authViewModel.pendingSignupData?.email ?? 'Unknown email';
+                    return Text(
+                      email,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    );
+                  },
                 ),
                 const SizedBox(height: 40),
 

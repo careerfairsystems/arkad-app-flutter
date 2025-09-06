@@ -54,7 +54,7 @@ class AppRouter {
   // GoRouter
   // ────────────────────────────────────────────────────────────
   late final GoRouter router = GoRouter(
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: false, // Disabled to prevent logging sensitive route information
     refreshListenable: _routerNotifier,
     redirect: _redirect,
     initialLocation: '/companies',
@@ -173,8 +173,7 @@ class AppRouter {
               GoRoute(
                 path: '/auth/verification',
                 pageBuilder: _slide((context, s) {
-                  final email = s.uri.queryParameters['email'] ?? '';
-                  return VerificationScreen(email: email);
+                  return const VerificationScreen();
                 }),
               ),
               GoRoute(
