@@ -8,10 +8,9 @@ import '../data_sources/company_remote_data_source.dart';
 import '../mappers/company_mapper.dart';
 
 /// Implementation of CompanyRepository using clean architecture patterns
-class CompanyRepositoryImpl extends BaseRepository 
-    with CachedRepositoryMixin<List<Company>> 
+class CompanyRepositoryImpl extends BaseRepository
+    with CachedRepositoryMixin<List<Company>>
     implements CompanyRepository {
-  
   CompanyRepositoryImpl({
     required CompanyRemoteDataSource remoteDataSource,
     required CompanyLocalDataSource localDataSource,
@@ -42,10 +41,10 @@ class CompanyRepositoryImpl extends BaseRepository
 
           // Fetch from remote
           final companiesDto = await _remoteDataSource.getCompanies();
-          
+
           // Cache locally
           _localDataSource.cacheCompanies(companiesDto);
-          
+
           // Convert to domain entities
           return _mapper.fromDtoList(companiesDto);
         },
@@ -67,66 +66,57 @@ class CompanyRepositoryImpl extends BaseRepository
 
   @override
   Future<Result<Company>> getCompanyById(int id) {
-    return executeOperation(
-      () async {
-        // Try to get company from cached data first
-        final companiesResult = await getCompanies();
-        
-        return companiesResult.when(
-          success: (companies) {
-            try {
-              return companies.firstWhere((company) => company.id == id);
-            } catch (e) {
-              throw CompanyNotFoundError(id);
-            }
-          },
-          failure: (error) => throw error,
-        );
-      },
-      'get company by id',
-    );
+    return executeOperation(() async {
+      // Try to get company from cached data first
+      final companiesResult = await getCompanies();
+
+      return companiesResult.when(
+        success: (companies) {
+          try {
+            return companies.firstWhere((company) => company.id == id);
+          } catch (e) {
+            throw CompanyNotFoundError(id);
+          }
+        },
+        failure: (error) => throw error,
+      );
+    }, 'get company by id');
   }
 
   @override
   Future<Result<List<Company>>> searchCompanies(String query) {
-    return executeOperation(
-      () async {
-        final companiesResult = await getCompanies();
-        
-        return companiesResult.when(
-          success: (companies) {
-            if (query.isEmpty) return companies;
-            
-            return companies
-                .where((company) => company.matchesSearchQuery(query))
-                .toList();
-          },
-          failure: (error) => throw error,
-        );
-      },
-      'search companies',
-    );
+    return executeOperation(() async {
+      final companiesResult = await getCompanies();
+
+      return companiesResult.when(
+        success: (companies) {
+          if (query.isEmpty) return companies;
+
+          return companies
+              .where((company) => company.matchesSearchQuery(query))
+              .toList();
+        },
+        failure: (error) => throw error,
+      );
+    }, 'search companies');
   }
 
   @override
   Future<Result<List<Company>>> filterCompanies(CompanyFilter filter) {
-    return executeOperation(
-      () async {
-        final companiesResult = await getCompanies();
-        
-        return companiesResult.when(
-          success: (companies) {
-            if (!filter.hasActiveFilters) return companies;
-            
-            return companies
-                .where((company) => company.matchesFilter(filter))
-                .toList();
-          },
-          failure: (error) => throw error,
-        );
-      },
-      'filter companies',
-    );
+    return executeOperation(() async {
+      final companiesResult = await getCompanies();
+
+      return companiesResult.when(
+        success: (companies) {
+          if (!filter.hasActiveFilters) return companies;
+
+          return companies
+              .where((company) => company.matchesFilter(filter))
+              .toList();
+        },
+        failure: (error) => throw error,
+      );
+    }, 'filter companies');
   }
 
   @override
@@ -134,35 +124,34 @@ class CompanyRepositoryImpl extends BaseRepository
     String query,
     CompanyFilter filter,
   ) {
-    return executeOperation(
-      () async {
-        final companiesResult = await getCompanies();
-        
-        return companiesResult.when(
-          success: (companies) {
-            var filteredCompanies = companies;
-            
-            // Apply search filter
-            if (query.isNotEmpty) {
-              filteredCompanies = filteredCompanies
-                  .where((company) => company.matchesSearchQuery(query))
-                  .toList();
-            }
-            
-            // Apply other filters
-            if (filter.hasActiveFilters) {
-              filteredCompanies = filteredCompanies
-                  .where((company) => company.matchesFilter(filter))
-                  .toList();
-            }
-            
-            return filteredCompanies;
-          },
-          failure: (error) => throw error,
-        );
-      },
-      'search and filter companies',
-    );
+    return executeOperation(() async {
+      final companiesResult = await getCompanies();
+
+      return companiesResult.when(
+        success: (companies) {
+          var filteredCompanies = companies;
+
+          // Apply search filter
+          if (query.isNotEmpty) {
+            filteredCompanies =
+                filteredCompanies
+                    .where((company) => company.matchesSearchQuery(query))
+                    .toList();
+          }
+
+          // Apply other filters
+          if (filter.hasActiveFilters) {
+            filteredCompanies =
+                filteredCompanies
+                    .where((company) => company.matchesFilter(filter))
+                    .toList();
+          }
+
+          return filteredCompanies;
+        },
+        failure: (error) => throw error,
+      );
+    }, 'search and filter companies');
   }
 
   @override

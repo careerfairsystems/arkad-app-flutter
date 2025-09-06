@@ -25,7 +25,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   // Step 2 controllers
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -38,11 +38,11 @@ class _SignupScreenState extends State<SignupScreen> {
   String? _passwordErrorText;
   String? _confirmPasswordErrorText;
   String? _policyErrorText;
-  
+
   // Step 2 validation
   String? _firstNameErrorText;
   String? _lastNameErrorText;
-  
+
   // Food preferences
   bool _hasFoodPreferences = false;
 
@@ -66,7 +66,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.addListener(_validateEmail);
     _passwordController.addListener(_validatePassword);
     _confirmPasswordController.addListener(_validateConfirmPassword);
-    
+
     // Reset command state when entering screen to prevent stale state display
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
@@ -151,7 +151,10 @@ class _SignupScreenState extends State<SignupScreen> {
       if (_confirmPasswordController.text.isEmpty) {
         _confirmPasswordErrorText = 'Please confirm your password';
         isValid = false;
-      } else if (!ValidationService.doPasswordsMatch(_passwordController.text, _confirmPasswordController.text)) {
+      } else if (!ValidationService.doPasswordsMatch(
+        _passwordController.text,
+        _confirmPasswordController.text,
+      )) {
         _confirmPasswordErrorText = 'Passwords do not match';
         isValid = false;
       }
@@ -209,15 +212,16 @@ class _SignupScreenState extends State<SignupScreen> {
       password: _passwordController.text,
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
-      foodPreferences: _hasFoodPreferences
-          ? (_foodPreferencesController.text.trim().isNotEmpty
-              ? _foodPreferencesController.text.trim()
-              : null)
-          : null,
+      foodPreferences:
+          _hasFoodPreferences
+              ? (_foodPreferencesController.text.trim().isNotEmpty
+                  ? _foodPreferencesController.text.trim()
+                  : null)
+              : null,
     );
-    
+
     await authViewModel.startSignUp(signupData);
-    
+
     if (mounted && authViewModel.signUpCommand.isCompleted) {
       await context.push('/auth/verification');
     }
@@ -227,16 +231,12 @@ class _SignupScreenState extends State<SignupScreen> {
     context.pop();
   }
 
-
   Widget _buildStep1() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AuthFormWidgets.buildLogoHeader(),
-        AuthFormWidgets.buildHeading(
-          'Sign up',
-          'Create your account',
-        ),
+        AuthFormWidgets.buildHeading('Sign up', 'Create your account'),
         AuthFormWidgets.buildEmailField(
           _emailController,
           isValid: _emailController.text.isNotEmpty ? _isEmailValid : null,
@@ -372,7 +372,8 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(height: 30),
         Consumer<AuthViewModel>(
           builder: (context, authViewModel, child) {
-            final canProceed = _emailController.text.isNotEmpty &&
+            final canProceed =
+                _emailController.text.isNotEmpty &&
                 _isEmailValid &&
                 _passwordController.text.isNotEmpty &&
                 _isPasswordValid &&
@@ -402,10 +403,7 @@ class _SignupScreenState extends State<SignupScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AuthFormWidgets.buildLogoHeader(),
-        AuthFormWidgets.buildHeading(
-          'Sign up',
-          'Tell us about yourself',
-        ),
+        AuthFormWidgets.buildHeading('Sign up', 'Tell us about yourself'),
         Row(
           children: [
             Expanded(
@@ -519,7 +517,8 @@ class _SignupScreenState extends State<SignupScreen> {
               flex: 2,
               child: Consumer<AuthViewModel>(
                 builder: (context, authViewModel, child) {
-                  final canComplete = _firstNameController.text.trim().isNotEmpty &&
+                  final canComplete =
+                      _firstNameController.text.trim().isNotEmpty &&
                       _lastNameController.text.trim().isNotEmpty &&
                       !authViewModel.signUpCommand.isExecuting;
                   return AuthFormWidgets.buildSubmitButton(

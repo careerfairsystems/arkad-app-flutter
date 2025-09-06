@@ -48,7 +48,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     _clearError();
 
     final result = await _getStudentSessionsUseCase.call();
-    
+
     result.when(
       success: (applications) {
         _applications = applications;
@@ -87,7 +87,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     );
 
     final result = await _applyForSessionUseCase.call(params);
-    
+
     result.when(
       success: (application) {
         // Add to local list
@@ -109,7 +109,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     _clearError();
 
     final result = await _cancelApplicationUseCase.call(companyId);
-    
+
     result.when(
       success: (_) {
         // Remove from local list

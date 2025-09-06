@@ -11,10 +11,7 @@ import '../mappers/user_mapper.dart';
 
 /// Implementation of auth repository
 class AuthRepositoryImpl implements AuthRepository {
-  const AuthRepositoryImpl(
-    this._remoteDataSource,
-    this._localDataSource,
-  );
+  const AuthRepositoryImpl(this._remoteDataSource, this._localDataSource);
 
   final AuthRemoteDataSource _remoteDataSource;
   final AuthLocalDataSource _localDataSource;
@@ -24,14 +21,14 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       // Attempt sign in via remote API
       final token = await _remoteDataSource.signIn(email, password);
-      
+
       // Set auth token for subsequent API calls
       _remoteDataSource.setBearerAuth("AuthBearer", token);
-      
+
       // Load user profile
       final userDto = await _remoteDataSource.getUserProfile();
       final user = UserMapper.fromDto(userDto);
-      
+
       // Create session
       final session = AuthSession(
         user: user,
@@ -39,10 +36,10 @@ class AuthRepositoryImpl implements AuthRepository {
         createdAt: DateTime.now(),
         isValid: true,
       );
-      
+
       // Save session locally
       await _localDataSource.saveSession(session);
-      
+
       return Result.success(session);
     } on AuthException catch (e) {
       return Result.failure(SignInError(details: e.message));
@@ -64,10 +61,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Result<String>> beginSignup(SignupData data) async {
     try {
       final token = await _remoteDataSource.beginSignup(data);
-      
+
       // Save signup data and token for later use
       await _localDataSource.saveSignupData(data, token);
-      
+
       return Result.success(token);
     } on ValidationException catch (e) {
       if (e.message.contains('already exists')) {
@@ -88,17 +85,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Result<AuthSession>> completeSignup(
-    String token, 
-    String code, 
+    String token,
+    String code,
     SignupData data,
   ) async {
     try {
       // Complete signup via remote API
       await _remoteDataSource.completeSignup(token, code, data);
-      
+
       // Clear signup data as it's no longer needed
       await _localDataSource.clearSignupData();
-      
+
       // Now sign in to get the auth token
       final signInResult = await signIn(data.email, data.password);
       return signInResult;
@@ -145,15 +142,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Set the existing token for API calls
       _remoteDataSource.setBearerAuth("AuthBearer", session.token);
-      
+
       // Try to refresh user profile
       final userDto = await _remoteDataSource.getUserProfile();
       final user = UserMapper.fromDto(userDto);
-      
+
       // Update session with fresh user data
       final refreshedSession = session.copyWith(user: user);
       await _localDataSource.saveSession(refreshedSession);
-      
+
       return Result.success(refreshedSession);
     } on AuthException catch (e) {
       // If refresh fails due to auth, clear local session
@@ -171,10 +168,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       // Clear local session
       await _localDataSource.clearSession();
-      
+
       // Clear API auth
       _remoteDataSource.clearAuth();
-      
+
       return Result.success(null);
     } catch (e) {
       return Result.failure(UnknownError(e.toString()));
@@ -223,7 +220,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Request new verification code by re-initiating signup
       await _remoteDataSource.beginSignup(signupData);
-      
+
       return Result.success(null);
     } on ValidationException catch (e) {
       return Result.failure(ValidationError(e.message));

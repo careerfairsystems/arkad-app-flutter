@@ -40,7 +40,10 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> saveSession(AuthSession session) async {
     try {
       await Future.wait([
-        _secureStorage.write(key: _tokenKey, value: _stripBearer(session.token)),
+        _secureStorage.write(
+          key: _tokenKey,
+          value: _stripBearer(session.token),
+        ),
         _secureStorage.write(
           key: _userKey,
           value: jsonEncode(_userToJson(session.user)),

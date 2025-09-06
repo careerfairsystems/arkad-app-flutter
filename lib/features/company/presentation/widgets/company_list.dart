@@ -29,16 +29,17 @@ class CompanyList extends StatelessWidget {
     return AsyncStateBuilder<List<Company>>(
       command: command,
       builder: (context, _) => _buildCompanyList(context),
-      loadingBuilder: (context) => const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Loading companies...'),
-          ],
-        ),
-      ),
+      loadingBuilder:
+          (context) => const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading companies...'),
+              ],
+            ),
+          ),
       errorBuilder: (context, error) => _buildErrorState(context),
     );
   }
@@ -62,10 +63,7 @@ class CompanyList extends StatelessWidget {
 
     // Wrap with RefreshIndicator if refresh callback is provided
     if (onRefresh != null) {
-      return RefreshIndicator(
-        onRefresh: onRefresh!,
-        child: widget,
-      );
+      return RefreshIndicator(onRefresh: onRefresh!, child: widget);
     }
 
     return widget;
@@ -80,16 +78,16 @@ class CompanyList extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'No companies found',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.grey[600],
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
             'Try adjusting your search or filter criteria',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
         ],

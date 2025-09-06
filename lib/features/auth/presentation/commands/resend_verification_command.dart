@@ -5,7 +5,8 @@ import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/use_cases/resend_verification_use_case.dart';
 
-class ResendVerificationCommand extends ParameterizedCommand<ResendVerificationParams, void> {
+class ResendVerificationCommand
+    extends ParameterizedCommand<ResendVerificationParams, void> {
   ResendVerificationCommand(this._resendVerificationUseCase);
 
   final ResendVerificationUseCase _resendVerificationUseCase;
@@ -26,7 +27,13 @@ class ResendVerificationCommand extends ParameterizedCommand<ResendVerificationP
       );
     } catch (e) {
       if (e is DioException) {
-        setError(ErrorMapper.fromDioException(e, null, operationContext: 'resend_verification'));
+        setError(
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'resend_verification',
+          ),
+        );
       } else {
         setError(UnknownError(e.toString()));
       }

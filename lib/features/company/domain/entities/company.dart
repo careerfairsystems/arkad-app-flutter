@@ -47,7 +47,7 @@ class Company {
   /// Get comma-separated string of locations
   String get locationsString {
     if (jobs.isEmpty) return "";
-    
+
     final Set<String> uniqueLocations = {};
     for (final job in jobs) {
       uniqueLocations.addAll(job.locations);
@@ -61,27 +61,32 @@ class Company {
   /// Check if company matches search query
   bool matchesSearchQuery(String query) {
     if (query.isEmpty) return true;
-    
+
     final queryLower = query.toLowerCase();
-    
+
     // Search in name
     if (name.toLowerCase().contains(queryLower)) return true;
-    
+
     // Search in description
-    if (description != null && description!.toLowerCase().contains(queryLower)) {
+    if (description != null &&
+        description!.toLowerCase().contains(queryLower)) {
       return true;
     }
-    
+
     // Search in industries
-    if (industries.any((industry) => industry.toLowerCase().contains(queryLower))) {
+    if (industries.any(
+      (industry) => industry.toLowerCase().contains(queryLower),
+    )) {
       return true;
     }
-    
+
     // Search in job locations
-    if (locations.any((location) => location.toLowerCase().contains(queryLower))) {
+    if (locations.any(
+      (location) => location.toLowerCase().contains(queryLower),
+    )) {
       return true;
     }
-    
+
     return false;
   }
 
@@ -96,7 +101,9 @@ class Company {
 
     // Filter by programmes
     if (filter.programmes.isNotEmpty) {
-      if (!desiredProgrammes.any((programme) => filter.programmes.contains(programme))) {
+      if (!desiredProgrammes.any(
+        (programme) => filter.programmes.contains(programme),
+      )) {
         return false;
       }
     }
@@ -117,7 +124,9 @@ class Company {
 
     // Filter by competences
     if (filter.competences.isNotEmpty) {
-      if (!desiredCompetences.any((competence) => filter.competences.contains(competence))) {
+      if (!desiredCompetences.any(
+        (competence) => filter.competences.contains(competence),
+      )) {
         return false;
       }
     }
@@ -162,9 +171,7 @@ class CompanyJob {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is CompanyJob &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
+      other is CompanyJob && runtimeType == other.runtimeType && id == other.id;
 
   @override
   int get hashCode => id.hashCode;

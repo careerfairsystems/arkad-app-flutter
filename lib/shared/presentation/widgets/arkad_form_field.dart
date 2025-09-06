@@ -83,10 +83,12 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
           enabled: widget.enabled,
           readOnly: widget.readOnly,
           keyboardType: _getKeyboardType(),
-          textInputAction: widget.textInputAction ?? _getDefaultTextInputAction(),
+          textInputAction:
+              widget.textInputAction ?? _getDefaultTextInputAction(),
           maxLines: widget.maxLines,
           maxLength: widget.maxLength,
-          inputFormatters: widget.inputFormatters ?? _getDefaultInputFormatters(),
+          inputFormatters:
+              widget.inputFormatters ?? _getDefaultInputFormatters(),
           style: theme.textTheme.bodyLarge,
         ),
         if (_isValidating)
@@ -102,54 +104,55 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
     );
   }
 
-  InputDecoration _buildInputDecoration(ThemeData theme, ColorScheme colorScheme) {
+  InputDecoration _buildInputDecoration(
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     final hasError = _validationError != null;
-    
+
     return InputDecoration(
       labelText: widget.labelText,
       hintText: widget.hintText,
       helperText: widget.helperText,
       errorText: _validationError,
-      
+
       // Content padding for consistent sizing
-      contentPadding: const EdgeInsets.symmetric(
-        vertical: 16,
-        horizontal: 16,
-      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       isDense: true,
       alignLabelWithHint: true,
-      
+
       // Prefix icon styling
-      prefixIcon: widget.prefixIcon != null
-          ? Padding(
-              padding: const EdgeInsets.only(left: 12.0, right: 8.0),
-              child: Icon(
-                widget.prefixIcon,
-                color: hasError ? colorScheme.error : ArkadColors.arkadTurkos,
-                size: 24,
-              ),
-            )
-          : null,
+      prefixIcon:
+          widget.prefixIcon != null
+              ? Padding(
+                padding: const EdgeInsets.only(left: 12.0, right: 8.0),
+                child: Icon(
+                  widget.prefixIcon,
+                  color: hasError ? colorScheme.error : ArkadColors.arkadTurkos,
+                  size: 24,
+                ),
+              )
+              : null,
       prefixIconConstraints: const BoxConstraints(minWidth: 50),
-      
+
       // Suffix icon handling
       suffixIcon: _buildSuffixIcon(colorScheme, hasError),
       suffixIconConstraints: const BoxConstraints(minWidth: 40),
-      
+
       // Error styling
       errorStyle: TextStyle(
         color: colorScheme.error,
         fontSize: 12,
         fontFamily: 'MyriadProCondensed',
       ),
-      
+
       // Helper text styling
       helperStyle: TextStyle(
         color: theme.hintColor,
         fontSize: 12,
         fontFamily: 'MyriadProCondensed',
       ),
-      
+
       // Border styling
       border: _buildBorder(colorScheme, false),
       enabledBorder: _buildBorder(colorScheme, false),
@@ -157,7 +160,7 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
       errorBorder: _buildBorder(colorScheme, true),
       focusedErrorBorder: _buildBorder(colorScheme, true, focused: true),
       disabledBorder: _buildBorder(colorScheme, false, disabled: true),
-      
+
       // Fill styling
       filled: true,
       fillColor: _getFillColor(theme, hasError),
@@ -167,7 +170,7 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
   Widget? _buildSuffixIcon(ColorScheme colorScheme, bool hasError) {
     // If custom suffix icon is provided, use it
     if (widget.suffixIcon != null) return widget.suffixIcon;
-    
+
     // For password fields, show toggle visibility icon
     if (widget.fieldType == ArkadFormFieldType.password) {
       return Padding(
@@ -184,9 +187,11 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
         ),
       );
     }
-    
+
     // Show validation icon if enabled and field has been touched
-    if (widget.showValidationIcon && _hasBeenTouched && widget.controller?.text.isNotEmpty == true) {
+    if (widget.showValidationIcon &&
+        _hasBeenTouched &&
+        widget.controller?.text.isNotEmpty == true) {
       final isValid = _validationError == null && !_isValidating;
       return Padding(
         padding: const EdgeInsets.only(right: 12.0),
@@ -197,7 +202,7 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
         ),
       );
     }
-    
+
     return null;
   }
 
@@ -209,7 +214,7 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
   }) {
     Color borderColor;
     double borderWidth = 1.5;
-    
+
     if (disabled) {
       borderColor = ArkadColors.lightGray;
       borderWidth = 1;
@@ -223,7 +228,7 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
       borderColor = ArkadColors.lightGray;
       borderWidth = 1;
     }
-    
+
     return OutlineInputBorder(
       borderSide: BorderSide(color: borderColor, width: borderWidth),
       borderRadius: BorderRadius.circular(12),
@@ -234,7 +239,7 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
     if (hasError) {
       return theme.colorScheme.error.withValues(alpha: 0.05);
     }
-    
+
     return theme.brightness == Brightness.dark
         ? ArkadColors.gray.withValues(alpha: 0.1)
         : ArkadColors.lightGray.withValues(alpha: 0.1);
@@ -242,7 +247,7 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
 
   TextInputType _getKeyboardType() {
     if (widget.keyboardType != null) return widget.keyboardType!;
-    
+
     return switch (widget.fieldType) {
       ArkadFormFieldType.email => TextInputType.emailAddress,
       ArkadFormFieldType.password => TextInputType.visiblePassword,
@@ -263,11 +268,13 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
 
   List<TextInputFormatter>? _getDefaultInputFormatters() {
     if (widget.inputFormatters != null) return widget.inputFormatters;
-    
+
     return switch (widget.fieldType) {
       ArkadFormFieldType.phone => [FilteringTextInputFormatter.digitsOnly],
       ArkadFormFieldType.number => [FilteringTextInputFormatter.digitsOnly],
-      ArkadFormFieldType.email => [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
+      ArkadFormFieldType.email => [
+        FilteringTextInputFormatter.deny(RegExp(r'\s')),
+      ],
       _ => null,
     };
   }
@@ -278,9 +285,9 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
         _hasBeenTouched = true;
       });
     }
-    
+
     widget.onChanged?.call(value);
-    
+
     // Perform debounced validation if validator is provided
     if (widget.validator != null) {
       _performDebouncedValidation(value);
@@ -291,7 +298,7 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
     setState(() {
       _isValidating = true;
     });
-    
+
     // Cancel previous validation
     Future.delayed(widget.validationDelay, () {
       if (mounted && widget.controller?.text == value) {
@@ -308,15 +315,7 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
 }
 
 /// Types of form fields for automatic keyboard and validation configuration
-enum ArkadFormFieldType {
-  text,
-  email,
-  password,
-  phone,
-  number,
-  url,
-  multiline,
-}
+enum ArkadFormFieldType { text, email, password, phone, number, url, multiline }
 
 /// Helper class for common form field configurations
 class ArkadFormFieldConfig {

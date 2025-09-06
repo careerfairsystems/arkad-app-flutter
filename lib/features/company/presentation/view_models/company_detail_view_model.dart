@@ -6,9 +6,8 @@ import '../commands/get_company_by_id_command.dart';
 
 /// ViewModel for managing company detail screen state
 class CompanyDetailViewModel extends ChangeNotifier {
-  CompanyDetailViewModel({
-    required GetCompanyByIdCommand getCompanyByIdCommand,
-  }) : _getCompanyByIdCommand = getCompanyByIdCommand {
+  CompanyDetailViewModel({required GetCompanyByIdCommand getCompanyByIdCommand})
+    : _getCompanyByIdCommand = getCompanyByIdCommand {
     _getCompanyByIdCommand.addListener(_onCommandChanged);
   }
 

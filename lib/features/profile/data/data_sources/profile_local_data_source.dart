@@ -74,7 +74,8 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
       final programmesJson = await _secureStorage.read(key: _programmesKey);
       if (programmesJson == null) return null;
 
-      final List<dynamic> programmesList = jsonDecode(programmesJson) as List<dynamic>;
+      final List<dynamic> programmesList =
+          jsonDecode(programmesJson) as List<dynamic>;
       return programmesList.cast<String>();
     } catch (e) {
       return null;

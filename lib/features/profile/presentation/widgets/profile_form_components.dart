@@ -71,16 +71,17 @@ class ProfileFormComponents {
           ),
           value: selectedProgramme,
           hint: const Text('Select your programme'),
-          items: availableProgrammes.map((program) {
-            return DropdownMenuItem<Programme>(
-              value: program.value,
-              child: Text(
-                program.label,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            );
-          }).toList(),
+          items:
+              availableProgrammes.map((program) {
+                return DropdownMenuItem<Programme>(
+                  value: program.value,
+                  child: Text(
+                    program.label,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                );
+              }).toList(),
           onChanged: readOnlyMode ? null : onProgrammeChanged,
         ),
         const SizedBox(height: 16),
@@ -94,12 +95,13 @@ class ProfileFormComponents {
           ),
           value: studyYear,
           hint: const Text('Select your study year'),
-          items: [1, 2, 3, 4, 5].map((year) {
-            return DropdownMenuItem<int>(
-              value: year,
-              child: Text('Year $year'),
-            );
-          }).toList(),
+          items:
+              [1, 2, 3, 4, 5].map((year) {
+                return DropdownMenuItem<int>(
+                  value: year,
+                  child: Text('Year $year'),
+                );
+              }).toList(),
           onChanged: readOnlyMode ? null : onStudyYearChanged,
         ),
         const SizedBox(height: 16),
@@ -143,7 +145,8 @@ class ProfileFormComponents {
           decoration: const InputDecoration(
             labelText: 'Food Preferences *',
             border: OutlineInputBorder(),
-            helperText: 'Required - Enter any dietary restrictions or preferences (or "None")',
+            helperText:
+                'Required - Enter any dietary restrictions or preferences (or "None")',
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {

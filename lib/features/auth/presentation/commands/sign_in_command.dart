@@ -27,7 +27,9 @@ class SignInCommand extends ParameterizedCommand<SignInParams, AuthSession> {
       );
     } catch (e) {
       if (e is DioException) {
-        setError(ErrorMapper.fromDioException(e, null, operationContext: 'signin'));
+        setError(
+          ErrorMapper.fromDioException(e, null, operationContext: 'signin'),
+        );
       } else {
         setError(UnknownError(e.toString()));
       }

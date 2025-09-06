@@ -22,13 +22,12 @@ class CompanyViewModel extends ChangeNotifier {
        _searchCompaniesCommand = searchCompaniesCommand,
        _filterCompaniesCommand = filterCompaniesCommand,
        _searchAndFilterCommand = searchAndFilterCommand {
-    
     // Listen to command state changes
     _getCompaniesCommand.addListener(_onCommandChanged);
     _searchCompaniesCommand.addListener(_onCommandChanged);
     _filterCompaniesCommand.addListener(_onCommandChanged);
     _searchAndFilterCommand.addListener(_onCommandChanged);
-    
+
     // Subscribe to logout events for cleanup
     _subscribeToLogoutEvents();
   }
@@ -50,27 +49,28 @@ class CompanyViewModel extends ChangeNotifier {
   GetCompaniesCommand get getCompaniesCommand => _getCompaniesCommand;
   SearchCompaniesCommand get searchCompaniesCommand => _searchCompaniesCommand;
   FilterCompaniesCommand get filterCompaniesCommand => _filterCompaniesCommand;
-  SearchAndFilterCompaniesCommand get searchAndFilterCommand => _searchAndFilterCommand;
+  SearchAndFilterCompaniesCommand get searchAndFilterCommand =>
+      _searchAndFilterCommand;
 
   // State getters
   List<Company> get companies => _displayedCompanies;
   List<Company> get allCompanies => _getCompaniesCommand.result ?? [];
   String get currentSearchQuery => _currentSearchQuery;
   CompanyFilter get currentFilter => _currentFilter;
-  
-  bool get isLoading => 
+
+  bool get isLoading =>
       _getCompaniesCommand.isExecuting ||
       _searchCompaniesCommand.isExecuting ||
       _filterCompaniesCommand.isExecuting ||
       _searchAndFilterCommand.isExecuting;
 
-  bool get hasError => 
+  bool get hasError =>
       _getCompaniesCommand.hasError ||
       _searchCompaniesCommand.hasError ||
       _filterCompaniesCommand.hasError ||
       _searchAndFilterCommand.hasError;
 
-  AppError? get error => 
+  AppError? get error =>
       _getCompaniesCommand.error ??
       _searchCompaniesCommand.error ??
       _filterCompaniesCommand.error ??
@@ -98,7 +98,10 @@ class CompanyViewModel extends ChangeNotifier {
   }
 
   /// Update search query and filter simultaneously
-  Future<void> searchAndFilterCompanies(String query, CompanyFilter filter) async {
+  Future<void> searchAndFilterCompanies(
+    String query,
+    CompanyFilter filter,
+  ) async {
     _currentSearchQuery = query;
     _currentFilter = filter;
     _updateDisplayedCompanies();
@@ -187,37 +190,45 @@ class CompanyViewModel extends ChangeNotifier {
     _currentSearchQuery = '';
     _currentFilter = const CompanyFilter();
     _displayedCompanies = [];
-    
+
     // Reset all commands to clear cached data and states
     _getCompaniesCommand.reset();
     _searchCompaniesCommand.reset();
     _filterCompaniesCommand.reset();
     _searchAndFilterCommand.reset();
-    
+
     notifyListeners();
   }
 
   /// Update the displayed companies based on current search and filter
   void _updateDisplayedCompanies() {
     final allCompanies = _getCompaniesCommand.result ?? [];
-    
+
     if (_currentSearchQuery.isEmpty && !_currentFilter.hasActiveFilters) {
       // No search or filters - show all companies
       _displayedCompanies = allCompanies;
-    } else if (_currentSearchQuery.isNotEmpty && _currentFilter.hasActiveFilters) {
+    } else if (_currentSearchQuery.isNotEmpty &&
+        _currentFilter.hasActiveFilters) {
       // Both search and filter active - use combined command
-      _searchAndFilterCommand.searchAndFilterCompanies(_currentSearchQuery, _currentFilter);
+      _searchAndFilterCommand.searchAndFilterCompanies(
+        _currentSearchQuery,
+        _currentFilter,
+      );
       return; // Wait for command result
     } else if (_currentSearchQuery.isNotEmpty) {
       // Only search active
-      _displayedCompanies = allCompanies
-          .where((company) => company.matchesSearchQuery(_currentSearchQuery))
-          .toList();
+      _displayedCompanies =
+          allCompanies
+              .where(
+                (company) => company.matchesSearchQuery(_currentSearchQuery),
+              )
+              .toList();
     } else if (_currentFilter.hasActiveFilters) {
       // Only filter active
-      _displayedCompanies = allCompanies
-          .where((company) => company.matchesFilter(_currentFilter))
-          .toList();
+      _displayedCompanies =
+          allCompanies
+              .where((company) => company.matchesFilter(_currentFilter))
+              .toList();
     }
 
     notifyListeners();
@@ -229,7 +240,7 @@ class CompanyViewModel extends ChangeNotifier {
     if (_searchAndFilterCommand.isCompleted) {
       _displayedCompanies = _searchAndFilterCommand.result ?? [];
     }
-    
+
     notifyListeners();
   }
 
@@ -239,10 +250,10 @@ class CompanyViewModel extends ChangeNotifier {
     _searchCompaniesCommand.removeListener(_onCommandChanged);
     _filterCompaniesCommand.removeListener(_onCommandChanged);
     _searchAndFilterCommand.removeListener(_onCommandChanged);
-    
+
     // Cancel logout event subscription
     _logoutSubscription?.cancel();
-    
+
     super.dispose();
   }
 }

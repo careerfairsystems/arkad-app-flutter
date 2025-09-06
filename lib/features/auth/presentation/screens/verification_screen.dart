@@ -23,7 +23,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Reset command state to prevent stale state display
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
@@ -42,13 +42,14 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   Future<void> _verifyCode() async {
     if (!_isCodeComplete) return;
-    
+
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     await authViewModel.completeSignUp(_codeController.text);
-    
+
     // Only navigate on successful completion, not on error
-    if (mounted && authViewModel.completeSignupCommand.isCompleted && 
-        authViewModel.completeSignupCommand.result != null && 
+    if (mounted &&
+        authViewModel.completeSignupCommand.isCompleted &&
+        authViewModel.completeSignupCommand.result != null &&
         !authViewModel.completeSignupCommand.hasError) {
       context.go('/profile');
     }
@@ -57,7 +58,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
   Future<void> _resendCode() async {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     final email = authViewModel.pendingSignupData?.email;
-    
+
     if (email == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -67,9 +68,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
       );
       return;
     }
-    
+
     await authViewModel.resendVerification(email);
-    
+
     if (mounted) {
       if (authViewModel.resendVerificationCommand.isCompleted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -81,7 +82,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
       } else if (authViewModel.resendVerificationCommand.hasError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to resend: ${authViewModel.resendVerificationCommand.error!.userMessage}'),
+            content: Text(
+              'Failed to resend: ${authViewModel.resendVerificationCommand.error!.userMessage}',
+            ),
             backgroundColor: ArkadColors.lightRed,
           ),
         );
@@ -108,12 +111,14 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
-                    final email = authViewModel.pendingSignupData?.email ?? 'Unknown email';
+                    final email =
+                        authViewModel.pendingSignupData?.email ??
+                        'Unknown email';
                     return Text(
                       email,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     );
                   },
@@ -174,7 +179,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   builder: (context, authViewModel, child) {
                     final error = authViewModel.completeSignupCommand.error;
                     if (error != null) {
-                      return AuthFormWidgets.buildErrorMessage(error.userMessage);
+                      return AuthFormWidgets.buildErrorMessage(
+                        error.userMessage,
+                      );
                     }
                     return const SizedBox.shrink();
                   },
@@ -185,7 +192,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
                     return ElevatedButton(
-                      onPressed: authViewModel.isCompletingSignup || !_isCodeComplete ? null : _verifyCode,
+                      onPressed:
+                          authViewModel.isCompletingSignup || !_isCodeComplete
+                              ? null
+                              : _verifyCode,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ArkadColors.arkadTurkos,
                         foregroundColor: Colors.white,
@@ -196,24 +206,25 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         elevation: 0,
                         disabledBackgroundColor: Colors.grey.shade300,
                       ),
-                      child: authViewModel.isCompletingSignup
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                      child:
+                          authViewModel.isCompletingSignup
+                              ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                              : const Text(
+                                'Verify',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            )
-                          : const Text(
-                              'Verify',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                     );
                   },
                 ),
@@ -223,13 +234,19 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
                     return TextButton(
-                      onPressed: authViewModel.isResendingVerification ? null : _resendCode,
+                      onPressed:
+                          authViewModel.isResendingVerification
+                              ? null
+                              : _resendCode,
                       style: TextButton.styleFrom(
                         foregroundColor: ArkadColors.arkadTurkos,
                       ),
-                      child: authViewModel.isResendingVerification
-                          ? const Text('Sending...')
-                          : const Text("Didn't receive the code? Send again"),
+                      child:
+                          authViewModel.isResendingVerification
+                              ? const Text('Sending...')
+                              : const Text(
+                                "Didn't receive the code? Send again",
+                              ),
                     );
                   },
                 ),

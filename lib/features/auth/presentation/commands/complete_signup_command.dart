@@ -7,7 +7,8 @@ import '../../domain/entities/auth_session.dart';
 import '../../domain/entities/signup_data.dart';
 import '../../domain/use_cases/complete_signup_use_case.dart';
 
-class CompleteSignupCommand extends ParameterizedCommand<CompleteSignupParams, AuthSession> {
+class CompleteSignupCommand
+    extends ParameterizedCommand<CompleteSignupParams, AuthSession> {
   CompleteSignupCommand(this._completeSignupUseCase);
 
   final CompleteSignupUseCase _completeSignupUseCase;
@@ -28,7 +29,13 @@ class CompleteSignupCommand extends ParameterizedCommand<CompleteSignupParams, A
       );
     } catch (e) {
       if (e is DioException) {
-        setError(ErrorMapper.fromDioException(e, null, operationContext: 'complete_signup'));
+        setError(
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'complete_signup',
+          ),
+        );
       } else {
         setError(UnknownError(e.toString()));
       }
@@ -43,10 +50,12 @@ class CompleteSignupCommand extends ParameterizedCommand<CompleteSignupParams, A
     required String verificationCode,
     required SignupData signupData,
   }) async {
-    await executeWithParams(CompleteSignupParams(
-      signupToken: signupToken,
-      verificationCode: verificationCode,
-      signupData: signupData,
-    ));
+    await executeWithParams(
+      CompleteSignupParams(
+        signupToken: signupToken,
+        verificationCode: verificationCode,
+        signupData: signupData,
+      ),
+    );
   }
 }

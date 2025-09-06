@@ -26,7 +26,7 @@ class AsyncStateBuilder<T> extends StatelessWidget {
       listenable: command,
       builder: (context, child) {
         if (command.isExecuting) {
-          return loadingBuilder?.call(context) ?? 
+          return loadingBuilder?.call(context) ??
               const Center(child: CircularProgressIndicator());
         }
 
@@ -98,7 +98,7 @@ class VoidAsyncStateBuilder extends StatelessWidget {
       listenable: command,
       builder: (context, child) {
         if (command.isExecuting) {
-          return loadingBuilder?.call(context) ?? 
+          return loadingBuilder?.call(context) ??
               const Center(child: CircularProgressIndicator());
         }
 
@@ -145,11 +145,7 @@ class VoidAsyncStateBuilder extends StatelessWidget {
 
 /// A simple loading indicator with message
 class ArkadLoadingIndicator extends StatelessWidget {
-  const ArkadLoadingIndicator({
-    super.key,
-    this.message,
-    this.size = 24.0,
-  });
+  const ArkadLoadingIndicator({super.key, this.message, this.size = 24.0});
 
   final String? message;
   final double size;

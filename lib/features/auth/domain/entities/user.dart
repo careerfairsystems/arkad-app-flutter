@@ -64,7 +64,8 @@ class User {
           isStaff == other.isStaff;
 
   @override
-  int get hashCode => Object.hash(id, email, firstName, lastName, isStudent, isActive, isStaff);
+  int get hashCode =>
+      Object.hash(id, email, firstName, lastName, isStudent, isActive, isStaff);
 
   @override
   String toString() => 'User(id: $id, email: $email, name: $fullName)';

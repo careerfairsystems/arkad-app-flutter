@@ -19,7 +19,8 @@ class UpdateProfileUseCase extends UseCase<Profile, UpdateProfileParams> {
     }
 
     // Validate LinkedIn URL format if provided
-    if (params.profile.linkedin != null && params.profile.linkedin!.isNotEmpty) {
+    if (params.profile.linkedin != null &&
+        params.profile.linkedin!.isNotEmpty) {
       if (!_isValidLinkedInUrl(params.profile.linkedin!)) {
         return Result.failure(
           const ValidationError("Please enter a valid LinkedIn profile URL"),
@@ -40,15 +41,15 @@ class UpdateProfileUseCase extends UseCase<Profile, UpdateProfileParams> {
       r'^linkedin\.com/in/[\w\-]+/?$',
     ];
 
-    return patterns.any((pattern) => RegExp(pattern, caseSensitive: false).hasMatch(url));
+    return patterns.any(
+      (pattern) => RegExp(pattern, caseSensitive: false).hasMatch(url),
+    );
   }
 }
 
 /// Parameters for update profile use case
 class UpdateProfileParams {
-  const UpdateProfileParams({
-    required this.profile,
-  });
+  const UpdateProfileParams({required this.profile});
 
   final Profile profile;
 }

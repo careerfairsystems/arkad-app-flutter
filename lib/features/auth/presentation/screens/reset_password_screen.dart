@@ -25,7 +25,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   void initState() {
     super.initState();
     _emailController.addListener(_validateEmail);
-    
+
     // Reset command state when entering screen to prevent stale success display
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
@@ -131,7 +131,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             builder: (context, authViewModel, child) {
               return AuthFormWidgets.buildSubmitButton(
                 text: "Submit",
-                onPressed: authViewModel.isResettingPassword ? null : _submitEmailResetPassword,
+                onPressed:
+                    authViewModel.isResettingPassword
+                        ? null
+                        : _submitEmailResetPassword,
                 isLoading: authViewModel.isResettingPassword,
               );
             },

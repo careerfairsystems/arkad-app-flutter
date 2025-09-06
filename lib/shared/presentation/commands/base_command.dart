@@ -13,13 +13,13 @@ abstract class Command<T> extends ChangeNotifier {
   // State getters
   bool get isExecuting => _isExecuting;
   bool get hasError => _error != null;
-  
+
   /// Command has completed execution without errors.
   /// Note: This returns true after clearError() is called, even if the last execution failed.
   /// For success-only navigation, check both isCompleted && result != null.
   bool get isCompleted => _hasBeenExecuted && !_isExecuting && _error == null;
   bool get isIdle => !_hasBeenExecuted && !_isExecuting && _error == null;
-  
+
   AppError? get error => _error;
   T? get result => _result;
 

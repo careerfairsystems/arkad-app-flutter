@@ -8,9 +8,8 @@ import '../../domain/repositories/event_repository.dart';
 class EventViewModel extends ChangeNotifier {
   final EventRepository _eventRepository;
 
-  EventViewModel({
-    required EventRepository eventRepository,
-  }) : _eventRepository = eventRepository;
+  EventViewModel({required EventRepository eventRepository})
+    : _eventRepository = eventRepository;
 
   // State
   bool _isLoading = false;
@@ -30,7 +29,7 @@ class EventViewModel extends ChangeNotifier {
     _clearError();
 
     final result = await _eventRepository.getEvents();
-    
+
     result.when(
       success: (events) {
         _events = events;
@@ -51,7 +50,7 @@ class EventViewModel extends ChangeNotifier {
     _clearError();
 
     final result = await _eventRepository.getEventById(id);
-    
+
     result.when(
       success: (event) {
         _selectedEvent = event;
@@ -72,7 +71,7 @@ class EventViewModel extends ChangeNotifier {
     _clearError();
 
     final result = await _eventRepository.registerForEvent(eventId);
-    
+
     result.when(
       success: (_) {
         _setLoading(false);

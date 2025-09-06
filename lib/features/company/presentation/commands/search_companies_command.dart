@@ -4,7 +4,8 @@ import '../../domain/entities/company.dart';
 import '../../domain/use_cases/search_companies_use_case.dart';
 
 /// Command for searching companies by query
-class SearchCompaniesCommand extends ParameterizedCommand<String, List<Company>> {
+class SearchCompaniesCommand
+    extends ParameterizedCommand<String, List<Company>> {
   SearchCompaniesCommand(this._useCase);
 
   final SearchCompaniesUseCase _useCase;

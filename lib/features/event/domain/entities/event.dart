@@ -49,7 +49,8 @@ class Event {
       location: location ?? this.location,
       imageUrl: imageUrl ?? this.imageUrl,
       type: type ?? this.type,
-      isRegistrationRequired: isRegistrationRequired ?? this.isRegistrationRequired,
+      isRegistrationRequired:
+          isRegistrationRequired ?? this.isRegistrationRequired,
       maxParticipants: maxParticipants ?? this.maxParticipants,
       currentParticipants: currentParticipants ?? this.currentParticipants,
     );
@@ -68,7 +69,9 @@ class Event {
   bool get canRegister {
     if (!isRegistrationRequired) return false;
     if (hasStarted) return false;
-    if (maxParticipants != null && currentParticipants >= maxParticipants!) return false;
+    if (maxParticipants != null && currentParticipants >= maxParticipants!) {
+      return false;
+    }
     return true;
   }
 
@@ -90,7 +93,15 @@ class Event {
 
   @override
   int get hashCode {
-    return Object.hash(id, title, description, startTime, endTime, location, type);
+    return Object.hash(
+      id,
+      title,
+      description,
+      startTime,
+      endTime,
+      location,
+      type,
+    );
   }
 
   @override
@@ -105,7 +116,7 @@ enum EventType {
   workshop,
   networking,
   panel,
-  career_fair,
+  careerFair,
   social;
 
   /// Display name for UI
@@ -119,7 +130,7 @@ enum EventType {
         return 'Networking';
       case EventType.panel:
         return 'Panel Discussion';
-      case EventType.career_fair:
+      case EventType.careerFair:
         return 'Career Fair';
       case EventType.social:
         return 'Social Event';

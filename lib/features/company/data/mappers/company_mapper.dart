@@ -31,41 +31,46 @@ class CompanyMapper {
   /// Convert job DTOs to CompanyJob entities
   List<CompanyJob> _mapJobs(Object? jobs) {
     if (jobs == null) return [];
-    
+
     // The jobs field might be a list of dynamic objects
     if (jobs is List) {
-      return jobs.map((job) {
-        if (job == null) return null;
-        
-        // Extract job information safely
-        final id = job is Map ? (job['id'] as int? ?? 0) : 0;
-        final title = job is Map ? (job['title'] as String? ?? '') : '';
-        final locations = job is Map ? _convertToStringList(job['location']) : <String>[];
-        final description = job is Map ? (job['description'] as String?) : null;
-        
-        return CompanyJob(
-          id: id,
-          title: title,
-          locations: locations,
-          description: description,
-        );
-      }).whereType<CompanyJob>().toList();
+      return jobs
+          .map((job) {
+            if (job == null) return null;
+
+            // Extract job information safely
+            final id = job is Map ? (job['id'] as int? ?? 0) : 0;
+            final title = job is Map ? (job['title'] as String? ?? '') : '';
+            final locations =
+                job is Map ? _convertToStringList(job['location']) : <String>[];
+            final description =
+                job is Map ? (job['description'] as String?) : null;
+
+            return CompanyJob(
+              id: id,
+              title: title,
+              locations: locations,
+              description: description,
+            );
+          })
+          .whereType<CompanyJob>()
+          .toList();
     }
-    
+
     return [];
   }
 
   /// Convert dynamic object to List<String>
   List<String> _convertToStringList(Object? obj) {
     if (obj == null) return [];
-    
+
     if (obj is List) {
       return obj
           .where((item) => item != null)
           .map((item) => item.toString())
           .toList();
     }
-    
+
     return [];
   }
 }

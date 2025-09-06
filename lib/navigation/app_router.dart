@@ -54,7 +54,6 @@ class AppRouter {
   // GoRouter
   // ────────────────────────────────────────────────────────────
   late final GoRouter router = GoRouter(
-    debugLogDiagnostics: false, // Disabled to prevent logging sensitive route information
     refreshListenable: _routerNotifier,
     redirect: _redirect,
     initialLocation: '/companies',
@@ -80,7 +79,9 @@ class AppRouter {
                       final companyId = int.tryParse(idStr ?? '');
                       if (companyId == null) {
                         return const Scaffold(
-                          body: Center(child: Text('Error: Invalid company ID')),
+                          body: Center(
+                            child: Text('Error: Invalid company ID'),
+                          ),
                         );
                       }
                       return CompanyDetailScreen(companyId: companyId);

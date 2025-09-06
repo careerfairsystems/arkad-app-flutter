@@ -26,14 +26,18 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
     try {
       // Try to get from remote first
       final applications = await _remoteDataSource.getStudentSessions();
-      
+
       // Convert to domain entities (minimal for now)
-      final domainApplications = applications.map((app) => 
-        _mapper.fromApiApplication(app, 'Unknown Company')).toList();
-      
+      final domainApplications =
+          applications
+              .map((app) => _mapper.fromApiApplication(app, 'Unknown Company'))
+              .toList();
+
       return Result.success(domainApplications);
     } catch (e) {
-      return Result.failure(NetworkError(details: 'Failed to get student sessions: $e'));
+      return Result.failure(
+        NetworkError(details: 'Failed to get student sessions: $e'),
+      );
     }
   }
 
@@ -41,14 +45,22 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
   Future<Result<List<Timeslot>>> getTimeslots(int companyId) async {
     try {
       final timeslots = await _remoteDataSource.getTimeslots(companyId);
-      
+
       // Convert to domain entities
-      final domainTimeslots = timeslots.map((timeslot) => 
-        _mapper.fromApiTimeslot(timeslot).copyWith(companyId: companyId)).toList();
-      
+      final domainTimeslots =
+          timeslots
+              .map(
+                (timeslot) => _mapper
+                    .fromApiTimeslot(timeslot)
+                    .copyWith(companyId: companyId),
+              )
+              .toList();
+
       return Result.success(domainTimeslots);
     } catch (e) {
-      return Result.failure(NetworkError(details: 'Failed to get timeslots: $e'));
+      return Result.failure(
+        NetworkError(details: 'Failed to get timeslots: $e'),
+      );
     }
   }
 
@@ -76,17 +88,22 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       );
 
       // Convert to API schema
-      final apiApplication = _mapper.toApiApplication(application, updateProfile: updateProfile);
-      
+      final apiApplication = _mapper.toApiApplication(
+        application,
+        updateProfile: updateProfile,
+      );
+
       // Send to remote
       final response = await _remoteDataSource.applyForSession(apiApplication);
-      
+
       // Convert response back to domain entity
       final domainApplication = _mapper.fromApiApplication(response, 'Company');
-      
+
       return Result.success(domainApplication);
     } catch (e) {
-      return Result.failure(NetworkError(details: 'Failed to apply for session: $e'));
+      return Result.failure(
+        NetworkError(details: 'Failed to apply for session: $e'),
+      );
     }
   }
 
@@ -96,7 +113,9 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       await _remoteDataSource.cancelApplication(companyId);
       return Result.success(null);
     } catch (e) {
-      return Result.failure(NetworkError(details: 'Failed to cancel application: $e'));
+      return Result.failure(
+        NetworkError(details: 'Failed to cancel application: $e'),
+      );
     }
   }
 
@@ -108,7 +127,9 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       await getStudentSessions();
       return Result.success(null);
     } catch (e) {
-      return Result.failure(NetworkError(details: 'Failed to refresh student sessions: $e'));
+      return Result.failure(
+        NetworkError(details: 'Failed to refresh student sessions: $e'),
+      );
     }
   }
 }

@@ -5,7 +5,8 @@ import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/use_cases/reset_password_use_case.dart';
 
-class ResetPasswordCommand extends ParameterizedCommand<ResetPasswordParams, void> {
+class ResetPasswordCommand
+    extends ParameterizedCommand<ResetPasswordParams, void> {
   ResetPasswordCommand(this._resetPasswordUseCase);
 
   final ResetPasswordUseCase _resetPasswordUseCase;
@@ -26,7 +27,13 @@ class ResetPasswordCommand extends ParameterizedCommand<ResetPasswordParams, voi
       );
     } catch (e) {
       if (e is DioException) {
-        setError(ErrorMapper.fromDioException(e, null, operationContext: 'reset_password'));
+        setError(
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'reset_password',
+          ),
+        );
       } else {
         setError(UnknownError(e.toString()));
       }

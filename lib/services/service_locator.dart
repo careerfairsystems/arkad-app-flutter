@@ -185,7 +185,8 @@ void _setupProfileFeature() {
     () => ProfileViewModel(
       getCurrentProfileUseCase: serviceLocator<GetCurrentProfileUseCase>(),
       updateProfileUseCase: serviceLocator<UpdateProfileUseCase>(),
-      uploadProfilePictureUseCase: serviceLocator<UploadProfilePictureUseCase>(),
+      uploadProfilePictureUseCase:
+          serviceLocator<UploadProfilePictureUseCase>(),
       uploadCVUseCase: serviceLocator<UploadCVUseCase>(),
     ),
   );
@@ -246,7 +247,9 @@ void _setupCompanyFeature() {
     () => FilterCompaniesCommand(serviceLocator<FilterCompaniesUseCase>()),
   );
   serviceLocator.registerLazySingleton<SearchAndFilterCompaniesCommand>(
-    () => SearchAndFilterCompaniesCommand(serviceLocator<SearchAndFilterCompaniesUseCase>()),
+    () => SearchAndFilterCompaniesCommand(
+      serviceLocator<SearchAndFilterCompaniesUseCase>(),
+    ),
   );
 
   // View models
@@ -319,9 +322,7 @@ void _setupEventFeature() {
 
   // View model
   serviceLocator.registerLazySingleton<EventViewModel>(
-    () => EventViewModel(
-      eventRepository: serviceLocator<EventRepository>(),
-    ),
+    () => EventViewModel(eventRepository: serviceLocator<EventRepository>()),
   );
 }
 
@@ -334,8 +335,6 @@ void _setupMapFeature() {
 
   // View model
   serviceLocator.registerLazySingleton<MapViewModel>(
-    () => MapViewModel(
-      mapRepository: serviceLocator<MapRepository>(),
-    ),
+    () => MapViewModel(mapRepository: serviceLocator<MapRepository>()),
   );
 }

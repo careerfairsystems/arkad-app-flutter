@@ -38,7 +38,8 @@ class Profile {
   /// Get completion percentage (0.0 to 1.0)
   double get completionPercentage {
     int completed = 0;
-    int total = 7; // firstName, lastName, food, programme, linkedin, picture, cv
+    int total =
+        7; // firstName, lastName, food, programme, linkedin, picture, cv
 
     if (firstName.isNotEmpty) completed++;
     if (lastName.isNotEmpty) completed++;

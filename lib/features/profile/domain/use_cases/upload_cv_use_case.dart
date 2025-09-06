@@ -56,9 +56,7 @@ class UploadCVUseCase extends UseCase<FileUploadResult, UploadCVParams> {
 
 /// Parameters for upload CV use case
 class UploadCVParams {
-  const UploadCVParams({
-    required this.cvFile,
-  });
+  const UploadCVParams({required this.cvFile});
 
   final File cvFile;
 }

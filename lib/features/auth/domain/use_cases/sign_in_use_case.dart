@@ -39,10 +39,7 @@ class SignInUseCase extends UseCase<AuthSession, SignInParams> {
 
 /// Parameters for sign in use case
 class SignInParams {
-  const SignInParams({
-    required this.email,
-    required this.password,
-  });
+  const SignInParams({required this.email, required this.password});
 
   final String email;
   final String password;

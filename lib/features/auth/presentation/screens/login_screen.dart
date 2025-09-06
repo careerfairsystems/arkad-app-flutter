@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailController.addListener(_validateEmail);
     _subscribeToLogoutEvents();
-    
+
     // Reset command state when entering screen to prevent stale state display
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
@@ -54,12 +54,11 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _emailController.clear();
         _passwordController.clear();
-        
+
         _isEmailValid = false;
         _emailErrorText = null;
         _passwordErrorText = null;
-        
-        
+
         _obscurePassword = true;
       });
     }
@@ -105,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_validateFields()) return;
 
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    
+
     await authViewModel.signIn(
       _emailController.text.trim(),
       _passwordController.text,
@@ -183,7 +182,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   builder: (context, authViewModel, child) {
                     return AuthFormWidgets.buildSubmitButton(
                       text: 'Sign In',
-                      onPressed: authViewModel.signInCommand.isExecuting ? null : _handleLogin,
+                      onPressed:
+                          authViewModel.signInCommand.isExecuting
+                              ? null
+                              : _handleLogin,
                       isLoading: authViewModel.signInCommand.isExecuting,
                     );
                   },

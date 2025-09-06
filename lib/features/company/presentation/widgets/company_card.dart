@@ -46,7 +46,7 @@ class CompanyCard extends StatelessWidget {
         ),
       );
     }
-    
+
     return _buildDefaultLogo();
   }
 

@@ -5,7 +5,8 @@ import '../../domain/entities/file_upload_result.dart';
 import '../../domain/use_cases/upload_cv_use_case.dart';
 
 /// Command for uploading CV file
-class UploadCVCommand extends ParameterizedResultCommand<UploadCVParams, FileUploadResult> {
+class UploadCVCommand
+    extends ParameterizedResultCommand<UploadCVParams, FileUploadResult> {
   final UploadCVUseCase _useCase;
 
   UploadCVCommand(this._useCase);
@@ -20,7 +21,7 @@ class UploadCVCommand extends ParameterizedResultCommand<UploadCVParams, FileUpl
     setExecuting(true);
 
     final result = await _useCase(params);
-    
+
     final success = result.when(
       success: (uploadResult) {
         setResult(uploadResult);

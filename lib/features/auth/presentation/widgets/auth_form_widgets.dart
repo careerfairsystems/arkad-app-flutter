@@ -328,9 +328,7 @@ class AuthFormWidgets {
         ),
         if (errorText != null)
           Padding(
-            padding: const EdgeInsets.only(
-              left: 36.0,
-            ),
+            padding: const EdgeInsets.only(left: 36.0),
             child: Text(
               errorText,
               style: TextStyle(color: ArkadColors.lightRed, fontSize: 12),

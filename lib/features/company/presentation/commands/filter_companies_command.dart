@@ -4,7 +4,8 @@ import '../../domain/entities/company.dart';
 import '../../domain/use_cases/filter_companies_use_case.dart';
 
 /// Command for filtering companies by criteria
-class FilterCompaniesCommand extends ParameterizedCommand<CompanyFilter, List<Company>> {
+class FilterCompaniesCommand
+    extends ParameterizedCommand<CompanyFilter, List<Company>> {
   FilterCompaniesCommand(this._useCase);
 
   final FilterCompaniesUseCase _useCase;

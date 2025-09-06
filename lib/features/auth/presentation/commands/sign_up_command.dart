@@ -27,7 +27,9 @@ class SignUpCommand extends ParameterizedCommand<SignupData, String> {
       );
     } catch (e) {
       if (e is DioException) {
-        setError(ErrorMapper.fromDioException(e, null, operationContext: 'signup'));
+        setError(
+          ErrorMapper.fromDioException(e, null, operationContext: 'signup'),
+        );
       } else {
         setError(UnknownError(e.toString()));
       }
