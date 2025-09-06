@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Arkad Flutter app for career fair management - student profiles, company browsing, session applications. Built with Flutter clean architecture, MVVM pattern, and auto-generated API client.
+Arkad Flutter app for career fair management - student profiles, company browsing, session applications. Built with Flutter clean architecture, MVVM pattern, command system, and auto-generated API client.
 
 ## 🚨 CRITICAL GUIDELINES
 
@@ -10,387 +10,651 @@ Arkad Flutter app for career fair management - student profiles, company browsin
 
 **ALWAYS verify backend API before coding:**
 
-1. Check docs: `https://staging.backend.arkadtlth.se/api/docs#/`
-2. Verify OpenAPI: `https://staging.backend.arkadtlth.se/api/openapi.json`
-3. Regenerate client: `flutter pub run build_runner build --delete-conflicting-outputs`
-4. Ask for clarification if unclear
+1. **Check backend docs**: `https://staging.backend.arkadtlth.se/api/docs#/`
+2. **Verify OpenAPI schema**: `https://staging.backend.arkadtlth.se/api/openapi.json`
+3. **Regenerate API client**: `flutter pub run build_runner build --delete-conflicting-outputs`
+4. **Validate integration**: Test endpoints before implementing features
 
-### ⚠️ View Models vs API Models
+### ⚠️ Command State Management
 
-**API Models** (`/api/arkad_api/`): Auto-generated DTOs for type-safe API communication
-**View Models** (`/lib/features/*/presentation/view_models/`): UI state management, business logic, caching
-
-```dart
-// ❌ WRONG: Direct API usage
-final response = await api.getCompaniesApi().getCompanies();
-
-// ✅ CORRECT: View Model abstraction
-final companyModel = Provider.of<CompanyModel>(context);
-await companyModel.getAllCompanies(); // Handles loading, caching, errors
-```
-
-### 🔑 Bearer Token Handling
-
-Backend returns tokens WITH "Bearer " prefix. Always strip before storing:
+**ALL commands must follow this EXACT defensive pattern:**
 
 ```dart
-final userToken = res.data!;
-final cleanToken = userToken.startsWith('Bearer ')
-    ? userToken.substring(7)
-    : userToken;
-_apiService.setBearerAuth("AuthBearer", cleanToken);
-```
-
-### Base Classes & Abstractions
-
-- **Command System**: Abstract base classes
-- **UI Components**: Unified button, form field, and state management widgets
-- **Repository Base**: Common error handling, retry logic, and caching
-- **Consistent Patterns**: Standardized naming and behavior across all features
-- **Theme Management**: Moved to shared layer with Provider integration
-
-## Folder Structure
-
-```
-lib/
-├── features/                    # 🎯 ALL FEATURES USE CLEAN ARCHITECTURE
-│   ├── auth/
-│   │   ├── domain/             # Entities, repositories, use cases
-│   │   ├── data/              # Data sources, mappers, repository impl
-│   │   └── presentation/      # Screens, commands, view models, widgets
-│   ├── profile/               # Same clean architecture structure
-│   ├── company/               # Full clean architecture with filtering
-│   ├── student_session/       # Complete clean architecture
-│   ├── event/                 # Minimal clean architecture (placeholder)
-│   └── map/                   # Minimal clean architecture (placeholder)
-├── navigation/               # GoRouter + RouterNotifier
-├── services/                 # GetIt service locator (organized by features)
-├── shared/                   # Enhanced with base classes and abstractions
-│   ├── presentation/         # Base commands, UI components, themes
-│   │   ├── commands/        # BaseCommand, ParameterizedCommand, etc.
-│   │   ├── widgets/         # ArkadButton, ArkadFormField, AsyncStateBuilder
-│   │   └── themes/          # ArkadTheme, ThemeProvider
-│   ├── data/                # Repository base classes
-│   │   └── repositories/    # BaseRepository, CachedRepositoryMixin
-│   ├── domain/              # result.dart, use_case.dart
-│   ├── errors/              # app_error.dart, error_mapper.dart
-│   ├── events/              # Domain events
-│   └── infrastructure/      # File service, utilities
-├── config/                   # API config
-├── utils/                    # Validation, helpers
-├── widgets/                  # Shared UI components (navigation bar)
-└── api/                      # Auto-generated API client extensions
-```
-
-## Core Patterns
-
-### State Management (Provider + GetIt)
-
-```dart
-// 1. Register in service_locator.dart
-serviceLocator.registerLazySingleton<AuthViewModel>(() => AuthViewModel(...));
-
-// 2. Provider setup in main.dart
-ChangeNotifierProvider.value(value: serviceLocator<AuthViewModel>())
-
-// 3. Usage in widgets
-Consumer<AuthViewModel>(
-  builder: (context, authViewModel, child) {
-    if (authViewModel.signInCommand.isExecuting) return LoadingIndicator();
-    return LoginForm(onSignIn: authViewModel.signIn);
-  }
-)
-```
-
-### Navigation (GoRouter)
-
-```dart
-// Use GoRouter methods, NOT Navigator
-context.go('/path');      // Replace route
-context.push('/path');    // Push route
-context.pop();            // Go back
-```
-
-### API Integration
-
-```dart
-// Auto-generated client usage
-final response = await _api.getApi().getData();
-if (response.isSuccess) {
-  return response.data;
-} else {
-  throw Exception(response.error);
-}
-```
-
-### Clean Architecture Pattern (Auth/Profile)
-
-```dart
-// Domain Entity
-class User {
-  final String email;
-  final String name;
-  // ...
-}
-
-// Use Case
-class SignInUseCase {
-  Future<Result<AuthSession>> execute(String email, String password);
-}
-
-// ✅ NEW: Command using Base Classes
 class SignInCommand extends ParameterizedCommand<SignInParams, AuthSession> {
   @override
   Future<void> executeWithParams(SignInParams params) async {
-    // Base class handles state management automatically
+    if (isExecuting) return;
+
+    clearError();           // ⚠️ CRITICAL: Clear stale errors
     setExecuting(true);
-    final result = await _useCase.call(params);
-    result.when(
-      success: (session) => setResult(session),
-      failure: (error) => setError(error),
-    );
-    setExecuting(false);
-  }
 
-  // Convenience method
-  Future<void> signIn(String email, String password) {
-    return executeWithParams(SignInParams(email: email, password: password));
-  }
-}
-
-// ViewModel (Coordinates Commands)
-class AuthViewModel extends ChangeNotifier {
-  SignInCommand get signInCommand => _signInCommand;
-
-  Future<void> signIn(String email, String password) {
-    return _signInCommand.signIn(email, password);
-  }
-}
-```
-
-### Result Pattern (Error Handling)
-
-```dart
-// Consistent error handling
-sealed class Result<T> {
-  factory Result.success(T value) = Success<T>;
-  factory Result.failure(AppError error) = Failure<T>;
-
-  R when<R>({
-    required R Function(T value) success,
-    required R Function(AppError error) failure,
-  });
-}
-```
-
-## 🏗️ Base Classes & Abstractions
-
-### Command Base Classes (`lib/shared/presentation/commands/`)
-
-```dart
-// All commands extend these base classes for consistent state management
-abstract class Command<T> extends ChangeNotifier {
-  bool get isExecuting;
-  bool get hasError;
-  T? get result;
-  AppError? get error;
-}
-
-class SignInCommand extends ParameterizedCommand<SignInParams, AuthSession> {
-  Future<void> signIn(String email, String password) => executeWithParams(...);
-}
-```
-
-### Shared UI Components (`lib/shared/presentation/widgets/`)
-
-```dart
-// Consistent state handling
-AsyncStateBuilder<Profile>(
-  command: profileViewModel.getProfileCommand,
-  builder: (context, profile) => ProfileDisplay(profile),
-  loadingBuilder: (context) => LoadingIndicator(),
-)
-
-// Unified buttons
-ArkadButton(
-  text: 'Sign In',
-  onPressed: () => viewModel.signIn(),
-  isLoading: viewModel.signInCommand.isExecuting,
-)
-
-// Enhanced form fields
-ArkadFormFieldConfig.email(
-  controller: emailController,
-  validator: EmailValidator.validate,
-)
-```
-
-### Repository Base (`lib/shared/data/repositories/`)
-
-```dart
-class AuthRepositoryImpl extends BaseRepository {
-  Future<Result<AuthSession>> signIn(String email, String password) {
-    return executeOperation(
-      () async => _performSignIn(email, password),
-      'sign in user',
-    );
-  }
-}
-```
-
-## Essential Files
-
-### Configuration
-
-- `lib/main.dart` - App entry, provider setup
-- `lib/services/service_locator.dart` - Dependency injection
-- `lib/navigation/app_router.dart` - Routing configuration
-- `lib/navigation/router_notifier.dart` - Auth state bridge
-
-### Clean Architecture Features
-
-- `lib/features/auth/presentation/view_models/auth_view_model.dart`
-- `lib/features/profile/presentation/view_models/profile_view_model.dart`
-
-### Legacy View Models (TODO: Migrate)
-
-- `lib/view_models/company_model.dart`
-- `lib/view_models/student_session_model.dart`
-- `lib/view_models/theme_model.dart`
-
-### Shared Infrastructure
-
-- `lib/shared/domain/result.dart` - Result pattern
-- `lib/shared/errors/app_error.dart` - Error hierarchy
-- `lib/api/extensions.dart` - API response extensions
-
-## Development Workflow
-
-### Feature Development
-
-```bash
-# 1. API verification
-flutter pub run build_runner build --delete-conflicting-outputs
-
-# 2. Follow clean architecture for new features
-lib/features/new_feature/
-├── domain/      # Entities, repositories, use cases
-├── data/        # Data sources, mappers, repository impl
-└── presentation/ # Commands, view models, widgets
-
-# 3. Register in service_locator.dart
-# 4. Add to providers in main.dart
-# 5. Validate
-flutter analyze && dart format .
-```
-
-### Legacy Pattern (Company/StudentSession)
-
-```dart
-class FeatureModel extends ChangeNotifier {
-  bool _isLoading = false;
-  String? _error;
-  List<Data> _data = [];
-
-  bool get isLoading => _isLoading;
-  String? get error => _error;
-  List<Data> get data => _data;
-
-  Future<bool> loadData() async {
-    _setLoading(true);
     try {
-      final response = await _api.getData();
-      if (response.isSuccess) {
-        _data = response.data ?? [];
-        return true;
-      } else {
-        _setError(response.error);
-        return false;
-      }
+      final result = await _signInUseCase.call(params);
+      result.when(
+        success: (session) => setResult(session),
+        failure: (error) => setError(error),
+      );
+    } catch (e) {
+      setError(UnknownError(e.toString()));
     } finally {
-      _setLoading(false);
+      setExecuting(false);  // ⚠️ CRITICAL: Always stop loading
     }
   }
 }
 ```
 
-## Commands Reference
+### ⚠️ Screen State Reset Pattern
 
-### Development
+**ALL screens MUST reset command state in initState:**
 
-```bash
-flutter run                     # Debug mode
-flutter analyze                 # Static analysis
-dart format .                   # Code formatting
-flutter clean && flutter pub get # Clean build
+```dart
+@override
+void initState() {
+  super.initState();
+  
+  // ⚠️ CRITICAL: Prevent stale state display
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    authViewModel.signInCommand.reset();
+  });
+}
 ```
 
-### API Generation
+### ⚠️ Bearer Token Handling
+
+**Backend returns tokens WITH "Bearer " prefix. ALWAYS strip before storing:**
+
+```dart
+String _stripBearer(String token) {
+  return token.startsWith('Bearer ') ? token.substring(7) : token;
+}
+
+// In data source implementation
+await _secureStorage.write(
+  key: 'token', 
+  value: _stripBearer(userToken)
+);
+```
+
+## Folder Structure
+
+```
+lib/
+├── api/                         # Auto-generated API client
+│   └── extensions.dart         # Response handling extensions
+├── features/                    # Clean architecture by feature
+│   ├── auth/                   # 📚 Reference implementation
+│   │   ├── domain/            # Entities, repositories, use cases
+│   │   ├── data/              # Remote/local data sources, mappers
+│   │   └── presentation/      # Commands, screens, view models
+│   ├── profile/               # 📚 Reference implementation
+│   ├── company/               # 🔄 Clean architecture + command hybrid
+│   ├── student_session/       # 🔄 Clean architecture + command hybrid
+│   ├── event/                 # 🚧 Minimal placeholder
+│   └── map/                   # 🚧 Minimal placeholder
+├── shared/                     # 🏗️ Cross-cutting concerns
+│   ├── presentation/          # Base commands, UI components, themes
+│   │   ├── commands/         # Command<T>, ParameterizedCommand<T,R>
+│   │   ├── widgets/          # ArkadButton, ArkadFormField, AsyncStateBuilder
+│   │   └── themes/           # ArkadTheme, ArkadColors, ThemeProvider
+│   ├── domain/                # Result<T>, UseCase<T,R>, validation
+│   ├── data/                  # BaseRepository, extensions, utilities
+│   ├── errors/                # AppError hierarchy, error mapping
+│   ├── events/                # Domain events, auth events
+│   └── infrastructure/        # File service, core utilities
+├── navigation/                 # GoRouter + auth integration
+├── services/                   # GetIt dependency injection
+└── widgets/                    # App-level shared UI components
+```
+
+## Auto-Generated API Integration
+
+### Client Structure
+
+```dart
+// Auto-generated at /api/arkad_api/lib/
+export 'package:arkad_api/src/api/authentication_api.dart';
+export 'package:arkad_api/src/api/companies_api.dart';
+export 'package:arkad_api/src/api/user_profile_api.dart';
+// ... other APIs
+
+// Generated models
+export 'package:arkad_api/src/model/profile_schema.dart';
+export 'package:arkad_api/src/model/company_out.dart';
+// ... other models
+```
+
+### Integration Workflow
+
+```dart
+// 1. Repository implementation using generated client
+class AuthRepositoryImpl extends BaseRepository {
+  final ArkadApi _api;
+  
+  Future<Result<String>> signUp(SignupData data) {
+    return executeOperation(
+      () async {
+        final schema = SignupSchema((b) => b
+          ..email = data.email
+          ..password = data.password);
+          
+        final response = await _api.getAuthenticationApi()
+            .userModelsApiBeginSignup(signupSchema: schema);
+            
+        if (response.isSuccess) {
+          return response.data!;
+        } else {
+          throw Exception(response.error);
+        }
+      },
+      'sign up user',
+    );
+  }
+}
+
+// 2. Response extension usage (from /lib/api/extensions.dart)
+extension SuccessResponse<T> on Response<T> {
+  bool get isSuccess => statusCode != null && statusCode! >= 200 && statusCode! < 300;
+  
+  String get error {
+    if (isSuccess) return '';
+    if (data is String) return data as String;
+    // ... handle error extraction
+    return 'An error occurred';
+  }
+}
+```
+
+### API Generation Commands
 
 ```bash
+# Regenerate when backend changes
 flutter pub run build_runner build --delete-conflicting-outputs
+
+# Clean build if needed
+flutter clean && flutter pub get
 ```
 
-## Architecture Migration Plan
+## Clean Architecture Implementation
 
-### Phase 1: Legacy Fixes (Current)
+### Feature Development Workflow
 
-- Fix CompanyModel to extend ChangeNotifier
-- Replace Navigator.push() with GoRouter
-- Standardize error handling
+```bash
+# 1. Verify API changes
+curl https://staging.backend.arkadtlth.se/api/openapi.json
 
-### Phase 2: Feature Migration
+# 2. Regenerate client
+flutter pub run build_runner build --delete-conflicting-outputs
 
-- Migrate CompanyModel to clean architecture
-- Migrate StudentSessionModel to clean architecture
-- Add Repository pattern for legacy features
+# 3. Create feature structure
+lib/features/new_feature/
+├── domain/
+│   ├── entities/           # Business objects
+│   ├── repositories/       # Abstract contracts
+│   └── use_cases/         # Business logic
+├── data/
+│   ├── data_sources/      # Remote/local implementations
+│   ├── mappers/           # DTO ↔ Entity conversion
+│   └── repositories/      # Repository implementations
+└── presentation/
+    ├── commands/          # State management commands
+    ├── screens/           # UI screens
+    ├── view_models/       # Coordinate commands
+    └── widgets/           # Feature-specific UI
 
-### Phase 3: Advanced Patterns
+# 4. Register dependencies in service_locator.dart
+# 5. Add providers to main.dart
+# 6. Validate implementation
+flutter analyze && dart format .
+```
 
-- Offline-first with local persistence
-- Comprehensive testing infrastructure
-- Performance optimizations
+### Layer Responsibilities
+
+```dart
+// DOMAIN: Business logic and rules
+class GetCompaniesUseCase {
+  final CompanyRepository repository;
+  
+  Future<Result<List<Company>>> call([CompanyFilter? filter]) {
+    return repository.getCompanies(filter);
+  }
+}
+
+// DATA: External concerns
+class CompanyRepositoryImpl implements CompanyRepository {
+  final CompanyRemoteDataSource remoteDataSource;
+  final CompanyMapper mapper;
+  
+  Future<Result<List<Company>>> getCompanies([CompanyFilter? filter]) {
+    return executeOperation(
+      () async {
+        final dtos = await remoteDataSource.fetchCompanies(filter);
+        return dtos.map(mapper.fromDto).toList();
+      },
+      'fetch companies',
+    );
+  }
+}
+
+// PRESENTATION: UI and state management
+class GetCompaniesCommand extends ParameterizedCommand<CompanyFilter?, List<Company>> {
+  final GetCompaniesUseCase _useCase;
+  
+  Future<void> loadCompanies({CompanyFilter? filter, bool forceRefresh = false}) {
+    return executeWithParams(filter);
+  }
+}
+```
+
+## Shared Directory Architecture
+
+### Purpose: Cross-Cutting Concerns
+
+The `shared/` directory provides **reusable infrastructure** that enables clean architecture across all features:
+
+### Base Commands (`shared/presentation/commands/`)
+
+```dart
+// Foundation for all state management
+abstract class Command<T> extends ChangeNotifier {
+  bool _isExecuting = false;
+  AppError? _error;
+  T? _result;
+  bool _hasBeenExecuted = false;  // ⚠️ Critical for state lifecycle
+  
+  bool get isExecuting => _isExecuting;
+  bool get hasError => _error != null;
+  bool get isCompleted => _hasBeenExecuted && !_isExecuting && _error == null;
+  bool get isIdle => !_hasBeenExecuted && !_isExecuting && _error == null;
+  
+  void clearError() {
+    if (_error != null) {
+      _error = null;
+      notifyListeners();
+    }
+  }
+  
+  void reset({bool notify = true}) {
+    _isExecuting = false;
+    _error = null;
+    _result = null;
+    _hasBeenExecuted = false;
+    if (notify) notifyListeners();
+  }
+}
+```
+
+### Shared UI Components (`shared/presentation/widgets/`)
+
+```dart
+// Consistent button system
+ArkadButton(
+  text: 'Sign In',
+  onPressed: () => authViewModel.signIn(email, password),
+  isLoading: authViewModel.signInCommand.isExecuting,
+  variant: ArkadButtonVariant.primary,
+  size: ArkadButtonSize.large,
+)
+
+// Reactive state handling
+AsyncStateBuilder<List<Company>>(
+  command: companyViewModel.getCompaniesCommand,
+  builder: (context, companies) => CompanyList(companies),
+  loadingBuilder: (context) => CircularProgressIndicator(),
+  errorBuilder: (context, error) => ErrorDisplay(error),
+)
+```
+
+### Theme System (`shared/presentation/themes/`)
+
+```dart
+// ✅ ALWAYS use theme colors
+backgroundColor: ArkadColors.arkadTurkos,    // Primary brand
+backgroundColor: ArkadColors.arkadGreen,     // Success states
+backgroundColor: ArkadColors.lightRed,      // Error states
+
+// ❌ NEVER use raw colors
+backgroundColor: Colors.blue,      // FORBIDDEN
+backgroundColor: Colors.green,     // FORBIDDEN
+```
+
+### Repository Foundation (`shared/data/`)
+
+```dart
+abstract class BaseRepository {
+  Future<Result<T>> executeOperation<T>(
+    Future<T> Function() operation,
+    String operationName,
+  ) async {
+    try {
+      final result = await operation();
+      return Result.success(result);
+    } on NetworkException catch (e) {
+      return Result.failure(NetworkError(e.message));
+    } catch (e) {
+      return Result.failure(UnknownError('Failed to $operationName: $e'));
+    }
+  }
+}
+```
+
+## Core Patterns
+
+### State Management (Provider + GetIt + Commands)
+
+```dart
+// 1. Service registration (service_locator.dart)
+void _setupAuthFeature() {
+  serviceLocator.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      serviceLocator<AuthRemoteDataSource>(),
+      serviceLocator<AuthLocalDataSource>(),
+    ),
+  );
+  
+  serviceLocator.registerLazySingleton<AuthViewModel>(
+    () => AuthViewModel(
+      signInUseCase: serviceLocator<SignInUseCase>(),
+      // ... other dependencies
+    ),
+  );
+}
+
+// 2. Provider setup (main.dart)
+MultiProvider(
+  providers: [
+    ChangeNotifierProvider.value(value: serviceLocator<AuthViewModel>()),
+    ChangeNotifierProvider.value(value: serviceLocator<CompanyViewModel>()),
+    // ... other providers
+  ],
+  child: MaterialApp.router(/* ... */),
+)
+
+// 3. UI consumption
+Consumer<AuthViewModel>(
+  builder: (context, authViewModel, child) {
+    return ArkadButton(
+      text: 'Sign In',
+      onPressed: authViewModel.signInCommand.isExecuting 
+          ? null 
+          : () => authViewModel.signIn(email, password),
+      isLoading: authViewModel.signInCommand.isExecuting,
+    );
+  },
+)
+```
+
+## State Management Architecture
+
+### 4-Layer State Management System
+
+The app uses a structured 4-layer state management approach:
+
+```dart
+// Layer 1: COMMANDS - Handle execution state and results
+class SignInCommand extends ParameterizedCommand<SignInParams, AuthSession> {
+  bool get isExecuting => _isExecuting;
+  bool get hasError => _error != null;
+  AuthSession? get result => _result;
+}
+
+// Layer 2: VIEWMODELS - Coordinate commands and business logic  
+class AuthViewModel extends ChangeNotifier {
+  AuthViewModel() {
+    _signInCommand.addListener(_onSignInCommandChanged);  // Command coordination
+  }
+  
+  Future<void> signIn(String email, String password) {
+    return _signInCommand.signIn(email, password);  // Business API
+  }
+  
+  void _onSignInCommandChanged() {
+    if (_signInCommand.isCompleted && _signInCommand.result != null) {
+      _currentSession = _signInCommand.result;  // State coordination
+      _fireAuthEvent(AuthSessionChangedEvent(_signInCommand.result!));  // Event dispatch
+    }
+    notifyListeners();  // Provider notification
+  }
+}
+
+// Layer 3: PROVIDER - Reactive state propagation
+Consumer<AuthViewModel>(
+  builder: (context, authViewModel, child) {
+    return ArkadButton(
+      isLoading: authViewModel.signInCommand.isExecuting,  // Command state access
+      onPressed: () => authViewModel.signIn(email, password),  // ViewModel API call
+    );
+  },
+)
+
+// Layer 4: ROUTER INTEGRATION - Navigation state bridge
+class RouterNotifier extends ChangeNotifier {
+  RouterNotifier(this._authViewModel) {
+    _authViewModel.addListener(_onAuthStateChanged);  // Bridge pattern
+  }
+  
+  bool get isAuthenticated => _authViewModel.isAuthenticated;
+}
+```
+
+### State Access Patterns
+
+```dart
+// ✅ ACTIONS: Use Provider.of with listen: false  
+final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+await authViewModel.signIn(email, password);
+
+// ✅ REACTIVE UI: Use Consumer for automatic rebuilds
+Consumer<AuthViewModel>(
+  builder: (context, authViewModel, child) {
+    if (authViewModel.signInCommand.isExecuting) return LoadingIndicator();
+    return LoginForm();
+  },
+)
+
+// ✅ COMMAND STATE: Access execution state directly
+if (authViewModel.signInCommand.isCompleted) {
+  context.go('/profile');
+}
+
+// ❌ WRONG: Direct command execution
+authViewModel.signInCommand.executeWithParams(params);  // Use ViewModel method instead
+```
+
+## Cross-Feature Event Messaging
+
+### Event Bus Architecture
+
+Simple, type-safe event bus for loose coupling between features:
+
+```dart
+// Event bus singleton with generic type support
+class AppEvents {
+  static Stream<T> on<T>() => _instance._getStream<T>();
+  static void fire(Object event) => _instance._fire(event);
+}
+
+// Structured event types
+class AuthSessionChangedEvent {
+  const AuthSessionChangedEvent(this.session);
+  final AuthSession session;
+}
+
+class UserLoggedOutEvent {
+  const UserLoggedOutEvent();
+}
+```
+
+### Event Usage Patterns
+
+```dart
+// ✅ FIRING EVENTS: From ViewModels only
+class AuthViewModel extends ChangeNotifier {
+  void _onSignInCommandChanged() {
+    if (_signInCommand.isCompleted && _signInCommand.result != null) {
+      _fireAuthEvent(AuthSessionChangedEvent(_signInCommand.result!));  // Cross-feature notification
+    }
+  }
+  
+  void _fireAuthEvent(Object event) => AppEvents.fire(event);
+}
+
+// ✅ SUBSCRIBING TO EVENTS: In ViewModel constructors
+class CompanyViewModel extends ChangeNotifier {
+  CompanyViewModel() {
+    _subscribeToLogoutEvents();
+  }
+  
+  void _subscribeToLogoutEvents() {
+    _logoutSubscription = AppEvents.on<UserLoggedOutEvent>().listen((_) {
+      _handleUserLogout();  // Feature-specific cleanup
+    });
+  }
+  
+  void _handleUserLogout() {
+    // Reset feature state
+    _currentSearchQuery = '';
+    _displayedCompanies = [];
+    _getCompaniesCommand.reset();
+    notifyListeners();
+  }
+}
+
+// ✅ CLEANUP: Always dispose subscriptions
+@override
+void dispose() {
+  _logoutSubscription?.cancel();
+  super.dispose();
+}
+```
+
+### Navigation with Authentication
+
+```dart
+// Use context methods, NEVER Navigator directly
+context.go('/companies');     // Replace current route
+context.push('/profile');     // Push new route
+context.pop();               // Go back
+
+// Conditional navigation based on command state
+if (mounted && authViewModel.signInCommand.isCompleted) {
+  context.go('/profile');
+}
+```
+
+### Result Pattern for Error Handling
+
+```dart
+sealed class Result<T> {
+  const Result();
+  
+  factory Result.success(T value) = Success<T>;
+  factory Result.failure(AppError error) = Failure<T>;
+  
+  R when<R>({
+    required R Function(T value) success,
+    required R Function(AppError error) failure,
+  }) {
+    return switch (this) {
+      Success<T>(:final value) => success(value),
+      Failure<T>(:final error) => failure(error),
+    };
+  }
+}
+```
+
+## Development Commands
+
+```bash
+# Core Development
+flutter run                        # Debug mode
+flutter analyze                    # Static analysis
+dart format .                      # Code formatting
+flutter clean && flutter pub get   # Clean build
+
+# API Client
+flutter pub run build_runner build --delete-conflicting-outputs
+
+# Testing
+flutter test                       # Run unit tests
+flutter integration_test          # Run integration tests
+```
+
+## Architecture Status & Migration
+
+### 📚 Reference Implementations
+- **Auth Feature**: Production-ready patterns with command system
+- **Profile Feature**: Complete clean architecture with file uploads
+
+### 🔄 Hybrid Implementations  
+- **Company Feature**: Clean architecture + commands, some legacy patterns
+- **Student Session Feature**: Clean architecture + commands, transitioning
+
+### 🚧 Minimal Implementations
+- **Event Feature**: Placeholder with basic structure
+- **Map Feature**: Placeholder with basic structure
+
+## Essential Configuration Files
+
+### Core App Structure
+- `lib/main.dart` - App entry point, provider setup
+- `lib/services/service_locator.dart` - Dependency injection container
+- `lib/navigation/app_router.dart` - Route definitions with auth guards
+- `lib/navigation/router_notifier.dart` - Auth state integration
+
+### Shared Infrastructure
+- `lib/shared/domain/result.dart` - Result pattern implementation
+- `lib/shared/errors/app_error.dart` - Error hierarchy and handling
+- `lib/shared/presentation/commands/base_command.dart` - Command foundation
+- `lib/api/extensions.dart` - API response helper extensions
 
 ## Key Rules
 
-### Code Style
-
-- Files: `snake_case.dart`
-- Classes: `PascalCase`
-- Variables: `camelCase`
-- Private: `_privateMember`
+### Critical Patterns
+- **Commands**: Always `clearError()` + try-catch-finally + defensive execution
+- **Navigation**: Only navigate on `isCompleted && !hasError`
+- **State Reset**: In `initState()` for all auth-related screens  
+- **Error Display**: Use `ArkadColors.lightRed` for consistency
+- **Token Storage**: Strip "Bearer " prefix before secure storage
+- **Boolean Validation**: Use defensive parsing for cached/API data
 
 ### State Management Rules
+- **Provider Access**: Use `Provider.of(context, listen: false)` for actions only
+- **Reactive UI**: Use `Consumer<T>` for automatic rebuilds and state display
+- **Command Coordination**: ViewModels coordinate commands, never execute directly
+- **Command Listeners**: Always call `notifyListeners()` in ViewModel command listeners
+- **State Propagation**: Commands → ViewModels → Providers → UI (4-layer flow)
+- **Router Integration**: Use `RouterNotifier` to bridge auth state with navigation
 
-- All view models extend `ChangeNotifier`
-- Use `Provider.of(context, listen: false)` for actions
-- Use `Consumer<T>` for reactive UI
-- Register services in `service_locator.dart`
+### Event Messaging Rules
+- **Event Firing**: Only ViewModels fire events, never from UI or commands
+- **Event Subscription**: Subscribe in ViewModel constructors, dispose in `dispose()`
+- **Cross-Feature Communication**: Use events for loose coupling between features
+- **Event Types**: Create structured event classes, never use primitives
+- **Memory Management**: Always cancel event subscriptions in `dispose()` method
+- **Cleanup Events**: Use `UserLoggedOutEvent` for feature state reset
 
-### Navigation Rules
-
-- Use `context.go()` and `context.push()`
-- Define routes in `app_router.dart`
-- NO direct Navigator usage
+### Code Style
+- **Files**: `snake_case.dart`
+- **Classes**: `PascalCase` 
+- **Variables**: `camelCase`
+- **Private members**: `_privateMember`
 
 ### Security Requirements
-
-- HTTPS for all API calls
-- Store tokens in `flutter_secure_storage`
-- Strip "Bearer " prefix before storing tokens
-- Never log sensitive data
+- **HTTPS**: All API communication
+- **Token Storage**: `flutter_secure_storage` only
+- **Bearer Token**: Always strip prefix before storage
+- **Sensitive Data**: Never log credentials, tokens, or PII
 
 ## Dependencies
 
-### Core
-
-- `provider` - State management
-- `go_router` - Navigation
-- `get_it` - Dependency injection
-- `flutter_secure_storage` - Token storage
+### Core Stack
+- `provider` - State management and reactive UI
+- `go_router` - Navigation with auth integration
+- `get_it` - Dependency injection container
+- `flutter_secure_storage` - Secure token storage
 
 ### API & Generation
-
-- `arkad_api` - Auto-generated client (local)
-- `openapi_generator` - Client generation
-- `build_runner` - Code generation
+- `arkad_api` - Auto-generated API client (local package)
+- `openapi_generator_annotations` - Client generation
+- `build_runner` - Code generation tooling
