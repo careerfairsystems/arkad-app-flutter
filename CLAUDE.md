@@ -12,7 +12,7 @@ Arkad Flutter app for career fair management - student profiles, company browsin
 
 1. **Check backend docs**: `https://staging.backend.arkadtlth.se/api/docs#/`
 2. **Verify OpenAPI schema**: `https://staging.backend.arkadtlth.se/api/openapi.json`
-3. **Regenerate API client**: `flutter pub run build_runner build --delete-conflicting-outputs`
+3. **Regenerate API client with OpenAPI CLI**: `./scripts/generate_api.sh` (Linux/macOS) or `./scripts/generate_api.ps1` (Windows)
 4. **Validate integration**: Test endpoints before implementing features
 
 ### ⚠️ Command State Management
@@ -188,9 +188,14 @@ flutter pub get
 flutter clean && flutter pub get
 ```
 
-**⚠️ Why Not build_runner?**
-- Causes circular dependency in CI (arkad_api needed for pub get, but build_runner needs pub get)
-- OpenAPI CLI is more reliable and standard industry practice
+**⚠️ Tool Usage Clarification:**
+- **Use OpenAPI CLI** for generating the base API client from OpenAPI spec (`./scripts/generate_api.sh`)
+- **Use build_runner** only internally within the generated API client for .g.dart files (handled automatically by scripts)
+- **Never use** `flutter pub run build_runner build` at the project root level for API generation
+
+**⚠️ Why OpenAPI CLI over build_runner?**
+- Prevents circular dependency in CI (arkad_api needed for pub get, but build_runner needs pub get)
+- More reliable and follows standard industry practice
 - No pubspec.yaml manipulation required
 
 ## Clean Architecture Implementation
