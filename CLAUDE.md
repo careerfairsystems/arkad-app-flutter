@@ -167,13 +167,31 @@ extension SuccessResponse<T> on Response<T> {
 
 ### API Generation Commands
 
-```bash
-# Regenerate when backend changes
-flutter pub run build_runner build --delete-conflicting-outputs
+**🚨 CRITICAL: Use OpenAPI CLI Generator (Not build_runner)**
 
-# Clean build if needed
+```bash
+# Method 1: Use provided scripts (recommended)
+./scripts/generate_api.sh          # Linux/macOS
+./scripts/generate_api.ps1         # Windows
+
+# Method 2: Manual generation
+# Download and run OpenAPI Generator CLI
+curl -L https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.9.0/openapi-generator-cli-7.9.0.jar -o openapi-generator-cli.jar
+java -jar openapi-generator-cli.jar generate \
+  -i https://staging.backend.arkadtlth.se/api/openapi.json \
+  -g dart-dio \
+  -o api/arkad_api \
+  --additional-properties=pubName=arkad_api,pubVersion=1.0.0,pubDescription="OpenAPI API client"
+flutter pub get
+
+# Clean build if needed (after generation)
 flutter clean && flutter pub get
 ```
+
+**⚠️ Why Not build_runner?**
+- Causes circular dependency in CI (arkad_api needed for pub get, but build_runner needs pub get)
+- OpenAPI CLI is more reliable and standard industry practice
+- No pubspec.yaml manipulation required
 
 ## Clean Architecture Implementation
 
@@ -183,8 +201,8 @@ flutter clean && flutter pub get
 # 1. Verify API changes
 curl https://staging.backend.arkadtlth.se/api/openapi.json
 
-# 2. Regenerate client
-flutter pub run build_runner build --delete-conflicting-outputs
+# 2. Regenerate client using OpenAPI CLI
+./scripts/generate_api.sh
 
 # 3. Create feature structure
 lib/features/new_feature/
@@ -452,8 +470,8 @@ Consumer<AuthViewModel>(
   },
 )
 
-// ✅ COMMAND STATE: Access execution state directly
-if (authViewModel.signInCommand.isCompleted) {
+// ✅ COMMAND STATE: Check for successful completion before navigation
+if (authViewModel.signInCommand.isCompleted && !authViewModel.signInCommand.hasError) {
   context.go('/profile');
 }
 
@@ -536,8 +554,8 @@ context.go('/companies');     // Replace current route
 context.push('/profile');     // Push new route
 context.pop();               // Go back
 
-// Conditional navigation based on command state
-if (mounted && authViewModel.signInCommand.isCompleted) {
+// Conditional navigation based on successful command completion
+if (mounted && authViewModel.signInCommand.isCompleted && !authViewModel.signInCommand.hasError) {
   context.go('/profile');
 }
 ```
@@ -572,12 +590,13 @@ flutter analyze                    # Static analysis
 dart format .                      # Code formatting
 flutter clean && flutter pub get   # Clean build
 
-# API Client
-flutter pub run build_runner build --delete-conflicting-outputs
+# API Client Generation (Use OpenAPI CLI)
+./scripts/generate_api.sh                    # Regenerate API client (Linux/macOS)
+./scripts/generate_api.ps1                   # Regenerate API client (Windows)
 
 # Testing
 flutter test                       # Run unit tests
-flutter integration_test          # Run integration tests
+flutter test integration_test     # Run integration tests
 ```
 
 ## Architecture Status & Migration
@@ -640,6 +659,11 @@ flutter integration_test          # Run integration tests
 - **Variables**: `camelCase`
 - **Private members**: `_privateMember`
 
+### Dependency Management
+- **Version Constraints**: Never use `any` for package versions - always specify ranges (e.g., `dio: ^5.0.0`)
+- **API Client Dependencies**: Ensure compatibility between main app and generated API client dependencies
+- **Security**: Avoid loose version constraints that could introduce vulnerabilities
+
 ### Security Requirements
 - **HTTPS**: All API communication
 - **Token Storage**: `flutter_secure_storage` only
@@ -656,5 +680,6 @@ flutter integration_test          # Run integration tests
 
 ### API & Generation
 - `arkad_api` - Auto-generated API client (local package)
+- `dio` - HTTP client library used by generated API client
 - `openapi_generator_annotations` - Client generation
 - `build_runner` - Code generation tooling

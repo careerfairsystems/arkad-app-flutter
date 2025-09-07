@@ -29,6 +29,7 @@ dependencies:
   arkad_api:
     path: ./api/arkad_api/
 
+  dio: ^5.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

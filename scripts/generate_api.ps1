@@ -113,11 +113,10 @@ if ($shouldGenerate) {
     Write-Host "Generating API client..." -ForegroundColor Yellow
     
     # Generate base API files with OpenAPI CLI with retry logic
+    $maxAttempts = 3
+    $success = $false
 
-$maxAttempts = 3
-$success = $false
-
-for ($i = 1; $i -le $maxAttempts; $i++) {
+    for ($i = 1; $i -le $maxAttempts; $i++) {
     Write-Host "API generation attempt $i/$maxAttempts" -ForegroundColor Yellow
     
     $generateArgs = @(
@@ -149,22 +148,21 @@ for ($i = 1; $i -le $maxAttempts; $i++) {
         }
         New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
     }
-}
 
-Write-Host "Base API client generated successfully" -ForegroundColor Green
+    Write-Host "Base API client generated successfully" -ForegroundColor Green
 
-# Step 2: Complete API generation with build_runner
-Write-Host "Step 2: Completing API generation with build_runner..." -ForegroundColor Yellow
+    # Step 2: Complete API generation with build_runner
+    Write-Host "Step 2: Completing API generation with build_runner..." -ForegroundColor Yellow
 
-# Check if Flutter is available
-try {
-    $flutterVersion = flutter --version 2>&1
-    Write-Host "Flutter is available" -ForegroundColor Green
-} catch {
-    Write-Host "ERROR: Flutter is not installed or not in PATH" -ForegroundColor Red
-    Write-Host "Please install Flutter to complete API generation"
-    exit 1
-}
+    # Check if Flutter is available
+    try {
+        $flutterVersion = flutter --version 2>&1
+        Write-Host "Flutter is available" -ForegroundColor Green
+    } catch {
+        Write-Host "ERROR: Flutter is not installed or not in PATH" -ForegroundColor Red
+        Write-Host "Please install Flutter to complete API generation"
+        exit 1
+    }
 
 # Enter API directory and install dependencies
 $originalLocation = Get-Location
@@ -224,36 +222,36 @@ try {
     Set-Location $originalLocation
 }
 
-# Step 3: Validate generation completed successfully
-Write-Host "Step 3: Validating API generation..." -ForegroundColor Yellow
+    # Step 3: Validate generation completed successfully
+    Write-Host "Step 3: Validating API generation..." -ForegroundColor Yellow
 
-# Check for critical .g.dart files
-$serializersFile = Join-Path $OutputDir "lib/src/serializers.g.dart"
-if (-Not (Test-Path $serializersFile)) {
-    Write-Host "ERROR: serializers.g.dart not generated" -ForegroundColor Red
-    Write-Host "API generation may be incomplete"
-    exit 1
-}
+    # Check for critical .g.dart files
+    $serializersFile = Join-Path $OutputDir "lib/src/serializers.g.dart"
+    if (-Not (Test-Path $serializersFile)) {
+        Write-Host "ERROR: serializers.g.dart not generated" -ForegroundColor Red
+        Write-Host "API generation may be incomplete"
+        exit 1
+    }
 
-# Count .g.dart files to ensure generation worked
-$generatedFiles = Get-ChildItem -Path $OutputDir -Recurse -Filter "*.g.dart"
-$generatedCount = $generatedFiles.Count
-Write-Host "Generated $generatedCount .g.dart files" -ForegroundColor Green
+    # Count .g.dart files to ensure generation worked
+    $generatedFiles = Get-ChildItem -Path $OutputDir -Recurse -Filter "*.g.dart"
+    $generatedCount = $generatedFiles.Count
+    Write-Host "Generated $generatedCount .g.dart files" -ForegroundColor Green
 
-if ($generatedCount -lt 5) {
-    Write-Host "ERROR: Too few .g.dart files generated ($generatedCount < 5)" -ForegroundColor Red
-    Write-Host "API generation may be incomplete"
-    exit 1
-}
+    if ($generatedCount -lt 5) {
+        Write-Host "ERROR: Too few .g.dart files generated ($generatedCount < 5)" -ForegroundColor Red
+        Write-Host "API generation may be incomplete"
+        exit 1
+    }
 
-# Update main project dependencies
-Write-Host "Updating main project dependencies..." -ForegroundColor Yellow
-flutter pub get
+    # Update main project dependencies
+    Write-Host "Updating main project dependencies..." -ForegroundColor Yellow
+    flutter pub get
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Warning: Failed to update main project dependencies" -ForegroundColor Yellow
-    Write-Host "You may need to run 'flutter pub get' manually"
-}
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Warning: Failed to update main project dependencies" -ForegroundColor Yellow
+        Write-Host "You may need to run 'flutter pub get' manually"
+    }
 
     Write-Host "=========================================" -ForegroundColor Green
     Write-Host "API generation completed successfully!" -ForegroundColor Green
