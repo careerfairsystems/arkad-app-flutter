@@ -7,8 +7,212 @@ on:
     branches: [main]
 
 jobs:
+  generate-api:
+    name: Generate Complete API Client
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.29.0"
+          channel: "stable"
+          cache: true
+
+      - name: Cache OpenAPI Generator CLI
+        uses: actions/cache@v3
+        with:
+          path: openapi-generator-cli.jar
+          key: openapi-generator-cli-7.9.0
+
+      - name: Generate Complete API Client
+        run: |
+          echo "Step 1: API Change Detection and Generation"
+          
+          # API change detection mechanism
+          OPENAPI_URL="https://staging.backend.arkadtlth.se/api/openapi.json"
+          API_HASH_FILE="api/.api_spec_hash"
+          
+          echo "Checking for OpenAPI spec changes..."
+          # Download and hash the current OpenAPI spec
+          for i in {1..3}; do
+            if curl -s --connect-timeout 30 --max-time 60 "$OPENAPI_URL" -o current_openapi.json; then
+              CURRENT_HASH=$(sha256sum current_openapi.json | cut -d' ' -f1)
+              echo "Current OpenAPI spec hash: $CURRENT_HASH"
+              break
+            else
+              echo "Failed to fetch OpenAPI spec (attempt $i/3)"
+              if [ $i -eq 3 ]; then
+                echo "WARNING: Could not fetch OpenAPI spec for change detection, proceeding with generation"
+                CURRENT_HASH="force-generation"
+                break
+              fi
+              sleep 5
+            fi
+          done
+          
+          # Check if we have a previous hash and if the spec has changed
+          SHOULD_GENERATE=true
+          if [ -f "$API_HASH_FILE" ]; then
+            PREVIOUS_HASH=$(cat "$API_HASH_FILE")
+            echo "Previous OpenAPI spec hash: $PREVIOUS_HASH"
+            
+            if [ "$CURRENT_HASH" = "$PREVIOUS_HASH" ] && [ -d "api/arkad_api" ] && [ -f "api/arkad_api/lib/src/serializers.g.dart" ]; then
+              echo "OpenAPI spec unchanged and valid API client exists - skipping generation"
+              SHOULD_GENERATE=false
+            else
+              echo "OpenAPI spec changed or API client missing - proceeding with generation"
+            fi
+          else
+            echo "No previous hash found - proceeding with initial generation"
+          fi
+          
+          if [ "$SHOULD_GENERATE" = "true" ]; then
+            echo "Generating API client..."
+          else
+            echo "Using existing API client (no changes detected)"
+          fi
+          
+          # Only proceed with generation if needed
+          if [ "$SHOULD_GENERATE" = "true" ]; then
+            # Download openapi-generator-cli with retry logic if not cached
+            if [ ! -f "openapi-generator-cli.jar" ]; then
+              echo "Downloading OpenAPI Generator CLI with retry logic..."
+              DOWNLOAD_URL="https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.9.0/openapi-generator-cli-7.9.0.jar"
+              
+              for i in {1..3}; do
+                echo "Download attempt $i/3"
+                if curl -L --connect-timeout 30 --max-time 300 --retry 3 --retry-delay 5 "$DOWNLOAD_URL" -o openapi-generator-cli.jar; then
+                  echo "Download successful"
+                  break
+                else
+                  echo "Download attempt $i failed"
+                  if [ $i -eq 3 ]; then
+                    echo "ERROR: All download attempts failed"
+                    exit 1
+                  fi
+                  sleep 10
+                fi
+              done
+            else
+              echo "Using cached OpenAPI Generator CLI"
+            fi
+          
+            # Create output directory
+            mkdir -p api/arkad_api
+            
+            # Generate base API client with retry logic for OpenAPI spec fetch
+            echo "Generating API client with retry logic..."
+            OPENAPI_URL="https://staging.backend.arkadtlth.se/api/openapi.json"
+            
+            for i in {1..3}; do
+              echo "API generation attempt $i/3"
+              if java -jar openapi-generator-cli.jar generate \
+                -i "$OPENAPI_URL" \
+                -g dart-dio \
+                -o api/arkad_api \
+                --additional-properties=pubName=arkad_api,pubVersion=1.0.0,pubDescription="OpenAPI API client"; then
+                echo "API generation successful"
+                break
+              else
+                echo "API generation attempt $i failed"
+                if [ $i -eq 3 ]; then
+                  echo "ERROR: All API generation attempts failed"
+                  exit 1
+                fi
+                sleep 15
+                # Clean up partial generation
+                rm -rf api/arkad_api/*
+              fi
+            done
+          
+            echo "Step 2: Complete API generation with build_runner"
+            # Enter API directory and install dependencies with retry logic
+            cd api/arkad_api
+            
+            echo "Installing dependencies with retry logic..."
+            for i in {1..3}; do
+              echo "Flutter pub get attempt $i/3"
+              if flutter pub get; then
+                echo "Dependencies installed successfully"
+                break
+              else
+                echo "Flutter pub get attempt $i failed"
+                if [ $i -eq 3 ]; then
+                  echo "ERROR: All flutter pub get attempts failed"
+                  exit 1
+                fi
+                sleep 10
+              fi
+            done
+            
+            # Generate .g.dart files using build_runner with retry logic
+            echo "Running build_runner with retry logic..."
+            for i in {1..2}; do
+              echo "Build runner attempt $i/2"
+              if dart run build_runner build --delete-conflicting-outputs; then
+                echo "Build runner completed successfully"
+                break
+              else
+                echo "Build runner attempt $i failed"
+                if [ $i -eq 2 ]; then
+                  echo "ERROR: All build runner attempts failed"
+                  exit 1
+                fi
+                sleep 5
+                # Clean up partial .g.dart files before retry
+                find . -name "*.g.dart" -delete
+              fi
+            done
+            
+            echo "Step 3: Validate generation completed successfully"
+            cd ../..
+            # Check for critical .g.dart files
+            if [ ! -f "api/arkad_api/lib/src/serializers.g.dart" ]; then
+              echo "ERROR: serializers.g.dart not generated"
+              exit 1
+            fi
+            
+            # Count .g.dart files to ensure generation worked
+            GENERATED_COUNT=$(find api/arkad_api -name "*.g.dart" | wc -l)
+            echo "Generated $GENERATED_COUNT .g.dart files"
+            
+            if [ "$GENERATED_COUNT" -lt 5 ]; then
+              echo "ERROR: Too few .g.dart files generated ($GENERATED_COUNT < 5)"
+              exit 1
+            fi
+            
+            echo "API generation completed successfully"
+            
+            # Store the current hash for future change detection
+            mkdir -p api
+            echo "$CURRENT_HASH" > "$API_HASH_FILE"
+            echo "Stored API spec hash for future change detection"
+          
+          else
+            echo "Skipped API generation - no changes detected"
+          fi
+          
+          # Cleanup temporary files
+          rm -f current_openapi.json
+
+      - name: Upload Complete API Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: arkad-api-complete
+          path: api/arkad_api/
+
   analyze:
     name: Analyze code
+    needs: generate-api
     runs-on: ubuntu-latest
 
     steps:
@@ -22,6 +226,12 @@ jobs:
           channel: "stable"
           cache: true
 
+      - name: Download Complete API Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: arkad-api-complete
+          path: api/arkad_api/
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -33,7 +243,7 @@ jobs:
 
   build:
     name: Build application
-    needs: analyze
+    needs: generate-api
     strategy:
       matrix:
         include:
@@ -54,6 +264,12 @@ jobs:
           flutter-version: "3.29.0"
           channel: "stable"
           cache: true
+
+      - name: Download Complete API Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: arkad-api-complete
+          path: api/arkad_api/
 
       - name: Install dependencies
         run: flutter pub get
