@@ -205,7 +205,7 @@ jobs:
           rm -f current_openapi.json
 
       - name: Upload Complete API Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: arkad-api-complete
           path: api/arkad_api/
@@ -227,7 +227,7 @@ jobs:
           cache: true
 
       - name: Download Complete API Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: arkad-api-complete
           path: api/arkad_api/
@@ -266,7 +266,7 @@ jobs:
           cache: true
 
       - name: Download Complete API Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: arkad-api-complete
           path: api/arkad_api/
