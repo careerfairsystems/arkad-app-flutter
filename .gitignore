@@ -59,3 +59,5 @@ arkad/macos
 arkad/windows/flutter/ephemeral/.plugin_symlinks
 api/arkad_api
 sentry.properties
+
+sentry.properties
