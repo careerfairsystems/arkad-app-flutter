@@ -176,7 +176,7 @@ extension SuccessResponse<T> on Response<T> {
 
 # Method 2: Manual generation
 # Download and run OpenAPI Generator CLI
-curl -L https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.9.0/openapi-generator-cli-7.9.0.jar -o openapi-generator-cli.jar
+curl -L https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.10.0/openapi-generator-cli-7.10.0.jar -o openapi-generator-cli.jar
 java -jar openapi-generator-cli.jar generate \
   -i https://staging.backend.arkadtlth.se/api/openapi.json \
   -g dart-dio \
