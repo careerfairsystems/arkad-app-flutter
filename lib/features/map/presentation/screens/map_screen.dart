@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 /// Displays a map of the ARKAD event
 class MapScreen extends StatefulWidget {
@@ -205,7 +206,7 @@ class _MapScreenState extends State<MapScreen> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  context.pop();
                 },
                 child: const Text('Close'),
               ),

@@ -90,7 +90,7 @@ class ErrorMapper {
           ),
           RecoveryAction(
             label: "Use Different Email",
-            action: () => Navigator.of(context).pop(),
+            action: () => context.pop(),
             icon: Icons.edit,
           ),
         ];

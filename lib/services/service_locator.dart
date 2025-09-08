@@ -1,4 +1,5 @@
 import 'package:arkad_api/arkad_api.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
@@ -67,9 +68,7 @@ final GetIt serviceLocator = GetIt.instance;
 // We could have used InheritedWidget or riverpod package to handle state, but GetIt with provider is a solid combo to my understanding.
 void setupServiceLocator() {
   // Core services
-  serviceLocator.registerLazySingleton<ArkadApi>(
-    () => ArkadApi(basePathOverride: 'https://staging.backend.arkadtlth.se'),
-  );
+  _setupApiClient();
   serviceLocator.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
   );
@@ -91,6 +90,27 @@ void setupServiceLocator() {
 
   // Shared providers
   serviceLocator.registerLazySingleton<ThemeProvider>(() => ThemeProvider());
+}
+
+/// Setup API client conditionally
+void _setupApiClient() {
+  // Setup Dio first - always available
+  final dio = Dio();
+  dio.options.baseUrl = 'https://staging.backend.arkadtlth.se/api';
+  serviceLocator.registerLazySingleton<Dio>(() => dio);
+
+  // Try to register API client - will work after generation
+  _registerApiClientConditionally();
+}
+
+/// Register API client
+void _registerApiClientConditionally() {
+  serviceLocator.registerLazySingleton<ArkadApi>(
+    () => ArkadApi(
+      dio: serviceLocator<Dio>(),
+      basePathOverride: 'https://staging.backend.arkadtlth.se',
+    ),
+  );
 }
 
 /// Setup Auth feature with clean architecture

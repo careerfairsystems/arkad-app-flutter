@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../services/service_locator.dart';
@@ -125,7 +126,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     // Get references to providers and other objects
-    final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final profileViewModel = Provider.of<ProfileViewModel>(
       context,
@@ -182,7 +182,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (!mounted) return;
 
         // Return to previous screen
-        navigator.pop();
+        context.pop();
         messenger.showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
         );
