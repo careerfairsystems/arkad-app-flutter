@@ -66,7 +66,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.addListener(_validateEmail);
     _passwordController.addListener(_validatePassword);
     _confirmPasswordController.addListener(_validateConfirmPassword);
-    
+
     // Add listeners for step 2 form fields
     _firstNameController.addListener(() => setState(() {}));
     _lastNameController.addListener(() => setState(() {}));
@@ -200,7 +200,8 @@ class _SignupScreenState extends State<SignupScreen> {
         isValid = false;
       }
 
-      if (_hasFoodPreferences && _foodPreferencesController.text.trim().isEmpty) {
+      if (_hasFoodPreferences &&
+          _foodPreferencesController.text.trim().isEmpty) {
         isValid = false;
       }
     });
@@ -529,7 +530,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   final canComplete =
                       _firstNameController.text.trim().isNotEmpty &&
                       _lastNameController.text.trim().isNotEmpty &&
-                      (!_hasFoodPreferences || _foodPreferencesController.text.trim().isNotEmpty) &&
+                      (!_hasFoodPreferences ||
+                          _foodPreferencesController.text.trim().isNotEmpty) &&
                       !authViewModel.signUpCommand.isExecuting;
                   return AuthFormWidgets.buildSubmitButton(
                     text: 'Complete',
