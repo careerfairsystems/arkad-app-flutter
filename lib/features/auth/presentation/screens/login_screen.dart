@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/events/app_events.dart';
@@ -131,6 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (mounted) {
         setState(() {
           _errorMessage = e.toString();

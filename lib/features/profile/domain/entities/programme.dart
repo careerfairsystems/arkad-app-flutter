@@ -1,3 +1,5 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 /// Engineering programme options available at LTH
 enum Programme {
   architecture,
@@ -112,6 +114,7 @@ class ProgrammeUtils {
           .firstWhere((prog) => prog.value == programme)
           .label;
     } catch (e) {
+      Sentry.captureException(e);
       return null;
     }
   }
@@ -125,6 +128,7 @@ class ProgrammeUtils {
           .firstWhere((prog) => prog.label == label)
           .value;
     } catch (e) {
+      Sentry.captureException(e);
       return null;
     }
   }

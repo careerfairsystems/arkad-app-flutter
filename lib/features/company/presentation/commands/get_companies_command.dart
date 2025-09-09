@@ -1,3 +1,5 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/company.dart';
@@ -20,7 +22,8 @@ class GetCompaniesCommand extends ParameterizedCommand<GetCompaniesParams, List<
         success: (companies) => setResult(companies),
         failure: (error) => setError(error),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       setError(UnknownError(e.toString()));
     } finally {
       setExecuting(false);

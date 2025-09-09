@@ -1,5 +1,6 @@
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../services/service_locator.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
@@ -47,6 +48,7 @@ class _StudentSessionsScreen extends State<StudentSessionsScreen> {
         //_isLoading = false;
       });
     } catch (e) {
+      await Sentry.captureException(e);
       setState(() {
         //_isLoading = false;
         //_hasError = true;

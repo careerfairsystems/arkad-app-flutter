@@ -1,5 +1,6 @@
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
 import '../../../../shared/errors/exception.dart';
@@ -43,6 +44,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ApiException('Sign in failed: ${response.error}');
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
           throw AuthException('Incorrect email or password');
@@ -68,6 +70,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ApiException('Signup failed: ${response.error}');
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 415) {
           throw ValidationException('An account with this email already exists');
@@ -97,6 +100,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ApiException('Signup completion failed: ${response.error}');
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 400) {
           throw ValidationException('Invalid verification code');
@@ -120,6 +124,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ApiException('Profile loading failed: ${response.error}');
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
           throw AuthException('Authentication required');
@@ -143,6 +148,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ApiException('Password reset failed: ${response.error}');
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 404) {
           throw ValidationException('No account found with this email address');

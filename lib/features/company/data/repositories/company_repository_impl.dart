@@ -1,3 +1,5 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
 import '../../domain/entities/company.dart';
@@ -76,7 +78,8 @@ class CompanyRepositoryImpl extends BaseRepository
           success: (companies) {
             try {
               return companies.firstWhere((company) => company.id == id);
-            } catch (e) {
+            } catch (e, stackTrace) {
+              Sentry.captureException(e, stackTrace: stackTrace);
               throw CompanyNotFoundError(id);
             }
           },

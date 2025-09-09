@@ -1,3 +1,5 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../domain/entities/student_session_application.dart';
@@ -33,6 +35,7 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       
       return Result.success(domainApplications);
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(NetworkError(details: 'Failed to get student sessions: $e'));
     }
   }
@@ -48,6 +51,7 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       
       return Result.success(domainTimeslots);
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(NetworkError(details: 'Failed to get timeslots: $e'));
     }
   }
@@ -86,6 +90,7 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       
       return Result.success(domainApplication);
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(NetworkError(details: 'Failed to apply for session: $e'));
     }
   }
@@ -96,6 +101,7 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       await _remoteDataSource.cancelApplication(companyId);
       return Result.success(null);
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(NetworkError(details: 'Failed to cancel application: $e'));
     }
   }
@@ -108,6 +114,7 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       await getStudentSessions();
       return Result.success(null);
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(NetworkError(details: 'Failed to refresh student sessions: $e'));
     }
   }

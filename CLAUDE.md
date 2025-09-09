@@ -394,3 +394,10 @@ flutter pub run build_runner build --delete-conflicting-outputs
 - `arkad_api` - Auto-generated client (local)
 - `openapi_generator` - Client generation
 - `build_runner` - Code generation
+
+
+# Error reporting
+Use Sentry to capture errors, **ALWAYS** read @docs/SENTRY.md before beginning work
+
+# Logging
+Use Sentry to log useful information about user interaction with app, **ALWAYS** read @docs/LOGGING.md before beginning work

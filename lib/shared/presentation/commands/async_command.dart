@@ -1,3 +1,5 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 import '../../domain/result.dart';
 import '../../errors/app_error.dart';
 import 'base_command.dart';
@@ -22,6 +24,7 @@ class AsyncCommand<T> extends Command<T> {
         failure: (error) => setError(error),
       );
     } catch (e) {
+      await Sentry.captureException(e);
       setError(UnknownError('Unexpected error: $e'));
     } finally {
       setExecuting(false);
@@ -49,6 +52,7 @@ class AsyncParameterizedCommand<TParams, TResult> extends ParameterizedCommand<T
         failure: (error) => setError(error),
       );
     } catch (e) {
+      await Sentry.captureException(e);
       setError(UnknownError('Unexpected error: $e'));
     } finally {
       setExecuting(false);
@@ -72,6 +76,7 @@ class SimpleAsyncCommand<T> extends Command<T> {
       final result = await _operation();
       setResult(result);
     } catch (e) {
+      await Sentry.captureException(e);
       setError(UnknownError('Operation failed: $e'));
     } finally {
       setExecuting(false);

@@ -1,4 +1,5 @@
 import 'package:arkad_api/arkad_api.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
 import '../../../../shared/errors/app_error.dart';
@@ -20,8 +21,10 @@ class CompanyRemoteDataSource {
       } else {
         throw CompanyLoadError(details: response.error);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is CompanyLoadError) rethrow;
+      
+      await Sentry.captureException(e, stackTrace: stackTrace);
       
       // Check for network/connection errors
       if (_isNetworkError(e)) {
@@ -41,11 +44,14 @@ class CompanyRemoteDataSource {
       
       try {
         return companies.firstWhere((company) => company.id == id);
-      } catch (e) {
+      } catch (e, stackTrace) {
+        await Sentry.captureException(e, stackTrace: stackTrace);
         return null; // Company not found
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is CompanyLoadError) rethrow;
+      
+      await Sentry.captureException(e, stackTrace: stackTrace);
       
       if (_isNetworkError(e)) {
         throw NetworkError(details: e.toString());

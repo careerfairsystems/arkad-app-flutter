@@ -1,3 +1,5 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/exception.dart';
@@ -56,6 +58,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return Result.failure(UnknownError(e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -82,6 +85,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return Result.failure(UnknownError(e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -112,6 +116,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return Result.failure(UnknownError(e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -131,6 +136,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return Result.failure(UnknownError(e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -162,6 +168,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on NetworkException catch (e) {
       return Result.failure(NetworkError(details: e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -177,6 +184,7 @@ class AuthRepositoryImpl implements AuthRepository {
       
       return Result.success(null);
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -186,6 +194,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       return await _localDataSource.getSession();
     } catch (e) {
+      await Sentry.captureException(e);
       return null;
     }
   }
@@ -196,6 +205,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await _localDataSource.updateSessionUser(user);
       return Result.success(null);
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -206,6 +216,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final session = await getCurrentSession();
       return session?.isActive ?? false;
     } catch (e) {
+      await Sentry.captureException(e);
       return false;
     }
   }
@@ -235,6 +246,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return Result.failure(UnknownError(e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }

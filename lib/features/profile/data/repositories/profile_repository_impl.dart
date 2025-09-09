@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/exception.dart';
@@ -33,6 +35,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       
       return Result.success(profile);
     } on AuthException catch (e) {
+      await Sentry.captureException(e);
       // If auth fails, try local cache
       try {
         final cachedProfile = await _localDataSource.getProfile();
@@ -41,9 +44,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
         }
         return Result.failure(ProfileLoadingError(details: e.message));
       } catch (localError) {
+        await Sentry.captureException(localError);
         return Result.failure(ProfileLoadingError(details: e.message));
       }
     } on NetworkException catch (e) {
+      await Sentry.captureException(e);
       // If network fails, try local cache
       try {
         final cachedProfile = await _localDataSource.getProfile();
@@ -52,11 +57,14 @@ class ProfileRepositoryImpl implements ProfileRepository {
         }
         return Result.failure(NetworkError(details: e.message));
       } catch (localError) {
+        await Sentry.captureException(localError);
         return Result.failure(NetworkError(details: e.message));
       }
     } on ApiException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -80,17 +88,22 @@ class ProfileRepositoryImpl implements ProfileRepository {
       
       return Result.success(updatedProfile);
     } on AuthException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(ProfileLoadingError(details: e.message));
     } on ValidationException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e) {
+      await Sentry.captureException(e);
       if (e.message.contains('429')) {
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
       return Result.failure(UnknownError(e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -110,12 +123,16 @@ class ProfileRepositoryImpl implements ProfileRepository {
       
       return Result.success(result);
     } on AuthException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(ProfileLoadingError(details: e.message));
     } on ValidationException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e) {
+      await Sentry.captureException(e);
       if (e.message.contains('413')) {
         return Result.failure(const ValidationError("Image file is too large (max 5MB)"));
       } else if (e.message.contains('415')) {
@@ -125,6 +142,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       }
       return Result.failure(UnknownError(e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -144,12 +162,16 @@ class ProfileRepositoryImpl implements ProfileRepository {
       
       return Result.success(result);
     } on AuthException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(ProfileLoadingError(details: e.message));
     } on ValidationException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e) {
+      await Sentry.captureException(e);
       if (e.message.contains('413')) {
         return Result.failure(const ValidationError("CV file is too large (max 10MB)"));
       } else if (e.message.contains('415')) {
@@ -159,6 +181,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       }
       return Result.failure(UnknownError(e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -169,15 +192,19 @@ class ProfileRepositoryImpl implements ProfileRepository {
       await _remoteDataSource.deleteProfilePicture();
       return Result.success(null);
     } on AuthException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(ProfileLoadingError(details: e.message));
     } on NetworkException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e) {
+      await Sentry.captureException(e);
       if (e.message.contains('429')) {
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
       return Result.failure(UnknownError(e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -188,15 +215,19 @@ class ProfileRepositoryImpl implements ProfileRepository {
       await _remoteDataSource.deleteCV();
       return Result.success(null);
     } on AuthException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(ProfileLoadingError(details: e.message));
     } on NetworkException catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e) {
+      await Sentry.captureException(e);
       if (e.message.contains('429')) {
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
       return Result.failure(UnknownError(e.message));
     } catch (e) {
+      await Sentry.captureException(e);
       return Result.failure(UnknownError(e.toString()));
     }
   }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../domain/entities/profile.dart';
 import '../../domain/entities/programme.dart';
@@ -31,6 +32,7 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
         value: jsonEncode(_profileToJson(profile)),
       );
     } catch (e) {
+      await Sentry.captureException(e);
       throw Exception('Failed to save profile: $e');
     }
   }
@@ -43,6 +45,7 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
 
       return _profileFromJson(jsonDecode(profileJson) as Map<String, dynamic>);
     } catch (e) {
+      await Sentry.captureException(e);
       return null;
     }
   }
@@ -52,6 +55,7 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
     try {
       await _secureStorage.delete(key: _profileKey);
     } catch (e) {
+      await Sentry.captureException(e);
       // Ignore errors when clearing
     }
   }
@@ -64,6 +68,7 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
         value: jsonEncode(programmes),
       );
     } catch (e) {
+      await Sentry.captureException(e);
       throw Exception('Failed to save programmes: $e');
     }
   }
@@ -77,6 +82,7 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
       final List<dynamic> programmesList = jsonDecode(programmesJson) as List<dynamic>;
       return programmesList.cast<String>();
     } catch (e) {
+      await Sentry.captureException(e);
       return null;
     }
   }

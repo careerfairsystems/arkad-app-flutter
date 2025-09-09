@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
 import '../../../../shared/errors/exception.dart';
@@ -33,6 +34,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         throw ApiException('Profile loading failed: ${response.error}');
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
           throw AuthException('Authentication required');
@@ -58,6 +60,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         throw ApiException('Profile update failed: ${response.error}');
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
           throw AuthException('Authentication required');
@@ -91,6 +94,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         throw ApiException('Profile picture upload failed: ${response.error}');
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
           throw AuthException('Authentication required');
@@ -126,6 +130,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         throw ApiException('CV upload failed: ${response.error}');
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
           throw AuthException('Authentication required');
@@ -151,6 +156,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         throw ApiException('Profile picture deletion failed: ${response.error}');
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
           throw AuthException('Authentication required');
@@ -174,6 +180,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         throw ApiException('CV deletion failed: ${response.error}');
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
           throw AuthException('Authentication required');

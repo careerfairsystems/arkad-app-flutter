@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../domain/entities/auth_session.dart';
 import '../../domain/entities/signup_data.dart';
@@ -50,6 +51,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         ),
       ]);
     } catch (e) {
+      await Sentry.captureException(e);
       throw Exception('Failed to save session: $e');
     }
   }
@@ -77,6 +79,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         createdAt: createdAt,
       );
     } catch (e) {
+      await Sentry.captureException(e);
       // If there's any error reading session, return null (unauthenticated)
       return null;
     }
@@ -92,6 +95,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         _secureStorage.delete(key: _sessionCreatedAtKey),
       ]);
     } catch (e) {
+      await Sentry.captureException(e);
       // Ignore errors when clearing - we want to ensure session is gone
     }
   }
@@ -107,6 +111,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         _secureStorage.write(key: _signupTokenKey, value: token),
       ]);
     } catch (e) {
+      await Sentry.captureException(e);
       throw Exception('Failed to save signup data: $e');
     }
   }
@@ -119,6 +124,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
       return _signupDataFromJson(jsonDecode(dataJson) as Map<String, dynamic>);
     } catch (e) {
+      await Sentry.captureException(e);
       return null;
     }
   }
@@ -128,6 +134,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     try {
       return await _secureStorage.read(key: _signupTokenKey);
     } catch (e) {
+      await Sentry.captureException(e);
       return null;
     }
   }
@@ -140,6 +147,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         _secureStorage.delete(key: _signupTokenKey),
       ]);
     } catch (e) {
+      await Sentry.captureException(e);
       // Ignore errors when clearing
     }
   }
@@ -152,6 +160,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         value: jsonEncode(_userToJson(user)),
       );
     } catch (e) {
+      await Sentry.captureException(e);
       throw Exception('Failed to update session user: $e');
     }
   }
