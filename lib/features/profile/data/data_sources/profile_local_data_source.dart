@@ -31,8 +31,8 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
         key: _profileKey,
         value: jsonEncode(_profileToJson(profile)),
       );
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       throw Exception('Failed to save profile: $e');
     }
   }
@@ -44,8 +44,11 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
       if (profileJson == null) return null;
 
       return _profileFromJson(jsonDecode(profileJson) as Map<String, dynamic>);
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.withScope((scope) async {
+        scope.level = SentryLevel.warning;
+        await Sentry.captureException(e, stackTrace: stackTrace);
+      });
       return null;
     }
   }
@@ -54,8 +57,11 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
   Future<void> clearProfile() async {
     try {
       await _secureStorage.delete(key: _profileKey);
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.withScope((scope) async {
+        scope.level = SentryLevel.warning;
+        await Sentry.captureException(e, stackTrace: stackTrace);
+      });
       // Ignore errors when clearing
     }
   }
@@ -67,8 +73,8 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
         key: _programmesKey,
         value: jsonEncode(programmes),
       );
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       throw Exception('Failed to save programmes: $e');
     }
   }
@@ -81,8 +87,11 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
 
       final List<dynamic> programmesList = jsonDecode(programmesJson) as List<dynamic>;
       return programmesList.cast<String>();
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.withScope((scope) async {
+        scope.level = SentryLevel.warning;
+        await Sentry.captureException(e, stackTrace: stackTrace);
+      });
       return null;
     }
   }

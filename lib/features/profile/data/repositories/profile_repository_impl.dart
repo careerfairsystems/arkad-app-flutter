@@ -34,8 +34,16 @@ class ProfileRepositoryImpl implements ProfileRepository {
       await _localDataSource.saveProfile(profile);
       
       return Result.success(profile);
-    } on AuthException catch (e) {
-      await Sentry.captureException(e);
+    } on AuthException catch (e, stackTrace) {
+      // Auth errors are expected domain errors - log as warning
+      await Sentry.captureMessage(
+        'Profile loading failed - authentication required',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Auth exception in getCurrentProfile: ${e.message}',
+        level: SentryLevel.info,
+      ));
       // If auth fails, try local cache
       try {
         final cachedProfile = await _localDataSource.getProfile();
@@ -43,12 +51,20 @@ class ProfileRepositoryImpl implements ProfileRepository {
           return Result.success(cachedProfile);
         }
         return Result.failure(ProfileLoadingError(details: e.message));
-      } catch (localError) {
-        await Sentry.captureException(localError);
+      } catch (localError, stackTrace) {
+        await Sentry.captureException(localError, stackTrace: stackTrace);
         return Result.failure(ProfileLoadingError(details: e.message));
       }
-    } on NetworkException catch (e) {
-      await Sentry.captureException(e);
+    } on NetworkException catch (e, stackTrace) {
+      // Network errors are expected - log as warning
+      await Sentry.captureMessage(
+        'Profile loading failed - network unavailable',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Network exception in getCurrentProfile: ${e.message}',
+        level: SentryLevel.info,
+      ));
       // If network fails, try local cache
       try {
         final cachedProfile = await _localDataSource.getProfile();
@@ -56,15 +72,15 @@ class ProfileRepositoryImpl implements ProfileRepository {
           return Result.success(cachedProfile);
         }
         return Result.failure(NetworkError(details: e.message));
-      } catch (localError) {
-        await Sentry.captureException(localError);
+      } catch (localError, stackTrace) {
+        await Sentry.captureException(localError, stackTrace: stackTrace);
         return Result.failure(NetworkError(details: e.message));
       }
-    } on ApiException catch (e) {
-      await Sentry.captureException(e);
+    } on ApiException catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -87,23 +103,48 @@ class ProfileRepositoryImpl implements ProfileRepository {
       await _localDataSource.saveProfile(updatedProfile);
       
       return Result.success(updatedProfile);
-    } on AuthException catch (e) {
-      await Sentry.captureException(e);
+    } on AuthException catch (e, stackTrace) {
+      // Auth errors are expected domain errors - log as warning
+      await Sentry.captureMessage(
+        'Profile update failed - authentication required',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Auth exception in updateProfile: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(ProfileLoadingError(details: e.message));
-    } on ValidationException catch (e) {
-      await Sentry.captureException(e);
+    } on ValidationException catch (e, stackTrace) {
+      // Validation errors are expected domain errors - record as breadcrumb
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Validation error in updateProfile: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(ValidationError(e.message));
-    } on NetworkException catch (e) {
-      await Sentry.captureException(e);
+    } on NetworkException catch (e, stackTrace) {
+      // Network errors are expected - log as warning
+      await Sentry.captureMessage(
+        'Profile update failed - network unavailable',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Network exception in updateProfile: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(NetworkError(details: e.message));
-    } on ApiException catch (e) {
-      await Sentry.captureException(e);
+    } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
+        // Rate limit errors are expected - record as breadcrumb
+        Sentry.addBreadcrumb(Breadcrumb(
+          message: 'Rate limit hit in updateProfile: ${e.message}',
+          level: SentryLevel.info,
+        ));
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -122,27 +163,62 @@ class ProfileRepositoryImpl implements ProfileRepository {
       );
       
       return Result.success(result);
-    } on AuthException catch (e) {
-      await Sentry.captureException(e);
+    } on AuthException catch (e, stackTrace) {
+      // Auth errors are expected domain errors - log as warning
+      await Sentry.captureMessage(
+        'Profile picture upload failed - authentication required',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Auth exception in uploadProfilePicture: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(ProfileLoadingError(details: e.message));
-    } on ValidationException catch (e) {
-      await Sentry.captureException(e);
+    } on ValidationException catch (e, stackTrace) {
+      // Validation errors are expected domain errors - record as breadcrumb
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Validation error in uploadProfilePicture: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(ValidationError(e.message));
-    } on NetworkException catch (e) {
-      await Sentry.captureException(e);
+    } on NetworkException catch (e, stackTrace) {
+      // Network errors are expected - log as warning
+      await Sentry.captureMessage(
+        'Profile picture upload failed - network unavailable',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Network exception in uploadProfilePicture: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(NetworkError(details: e.message));
-    } on ApiException catch (e) {
-      await Sentry.captureException(e);
+    } on ApiException catch (e, stackTrace) {
       if (e.message.contains('413')) {
+        // File too large is expected validation error - record as breadcrumb
+        Sentry.addBreadcrumb(Breadcrumb(
+          message: 'Image file too large in uploadProfilePicture: ${e.message}',
+          level: SentryLevel.info,
+        ));
         return Result.failure(const ValidationError("Image file is too large (max 5MB)"));
       } else if (e.message.contains('415')) {
+        // Unsupported format is expected validation error - record as breadcrumb
+        Sentry.addBreadcrumb(Breadcrumb(
+          message: 'Unsupported image format in uploadProfilePicture: ${e.message}',
+          level: SentryLevel.info,
+        ));
         return Result.failure(const ValidationError("Unsupported image format"));
       } else if (e.message.contains('429')) {
+        // Rate limit errors are expected - record as breadcrumb
+        Sentry.addBreadcrumb(Breadcrumb(
+          message: 'Rate limit hit in uploadProfilePicture: ${e.message}',
+          level: SentryLevel.info,
+        ));
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -161,27 +237,62 @@ class ProfileRepositoryImpl implements ProfileRepository {
       );
       
       return Result.success(result);
-    } on AuthException catch (e) {
-      await Sentry.captureException(e);
+    } on AuthException catch (e, stackTrace) {
+      // Auth errors are expected domain errors - log as warning
+      await Sentry.captureMessage(
+        'CV upload failed - authentication required',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Auth exception in uploadCV: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(ProfileLoadingError(details: e.message));
-    } on ValidationException catch (e) {
-      await Sentry.captureException(e);
+    } on ValidationException catch (e, stackTrace) {
+      // Validation errors are expected domain errors - record as breadcrumb
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Validation error in uploadCV: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(ValidationError(e.message));
-    } on NetworkException catch (e) {
-      await Sentry.captureException(e);
+    } on NetworkException catch (e, stackTrace) {
+      // Network errors are expected - log as warning
+      await Sentry.captureMessage(
+        'CV upload failed - network unavailable',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Network exception in uploadCV: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(NetworkError(details: e.message));
-    } on ApiException catch (e) {
-      await Sentry.captureException(e);
+    } on ApiException catch (e, stackTrace) {
       if (e.message.contains('413')) {
+        // File too large is expected validation error - record as breadcrumb
+        Sentry.addBreadcrumb(Breadcrumb(
+          message: 'CV file too large in uploadCV: ${e.message}',
+          level: SentryLevel.info,
+        ));
         return Result.failure(const ValidationError("CV file is too large (max 10MB)"));
       } else if (e.message.contains('415')) {
+        // Unsupported format is expected validation error - record as breadcrumb
+        Sentry.addBreadcrumb(Breadcrumb(
+          message: 'Unsupported file format in uploadCV: ${e.message}',
+          level: SentryLevel.info,
+        ));
         return Result.failure(const ValidationError("Unsupported file format"));
       } else if (e.message.contains('429')) {
+        // Rate limit errors are expected - record as breadcrumb
+        Sentry.addBreadcrumb(Breadcrumb(
+          message: 'Rate limit hit in uploadCV: ${e.message}',
+          level: SentryLevel.info,
+        ));
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -191,20 +302,41 @@ class ProfileRepositoryImpl implements ProfileRepository {
     try {
       await _remoteDataSource.deleteProfilePicture();
       return Result.success(null);
-    } on AuthException catch (e) {
-      await Sentry.captureException(e);
+    } on AuthException catch (e, stackTrace) {
+      // Auth errors are expected domain errors - log as warning
+      await Sentry.captureMessage(
+        'Profile picture deletion failed - authentication required',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Auth exception in deleteProfilePicture: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(ProfileLoadingError(details: e.message));
-    } on NetworkException catch (e) {
-      await Sentry.captureException(e);
+    } on NetworkException catch (e, stackTrace) {
+      // Network errors are expected - log as warning
+      await Sentry.captureMessage(
+        'Profile picture deletion failed - network unavailable',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Network exception in deleteProfilePicture: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(NetworkError(details: e.message));
-    } on ApiException catch (e) {
-      await Sentry.captureException(e);
+    } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
+        // Rate limit errors are expected - record as breadcrumb
+        Sentry.addBreadcrumb(Breadcrumb(
+          message: 'Rate limit hit in deleteProfilePicture: ${e.message}',
+          level: SentryLevel.info,
+        ));
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.toString()));
     }
   }
@@ -214,20 +346,41 @@ class ProfileRepositoryImpl implements ProfileRepository {
     try {
       await _remoteDataSource.deleteCV();
       return Result.success(null);
-    } on AuthException catch (e) {
-      await Sentry.captureException(e);
+    } on AuthException catch (e, stackTrace) {
+      // Auth errors are expected domain errors - log as warning
+      await Sentry.captureMessage(
+        'CV deletion failed - authentication required',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Auth exception in deleteCV: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(ProfileLoadingError(details: e.message));
-    } on NetworkException catch (e) {
-      await Sentry.captureException(e);
+    } on NetworkException catch (e, stackTrace) {
+      // Network errors are expected - log as warning
+      await Sentry.captureMessage(
+        'CV deletion failed - network unavailable',
+        level: SentryLevel.warning,
+      );
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Network exception in deleteCV: ${e.message}',
+        level: SentryLevel.info,
+      ));
       return Result.failure(NetworkError(details: e.message));
-    } on ApiException catch (e) {
-      await Sentry.captureException(e);
+    } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
+        // Rate limit errors are expected - record as breadcrumb
+        Sentry.addBreadcrumb(Breadcrumb(
+          message: 'Rate limit hit in deleteCV: ${e.message}',
+          level: SentryLevel.info,
+        ));
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.toString()));
     }
   }
