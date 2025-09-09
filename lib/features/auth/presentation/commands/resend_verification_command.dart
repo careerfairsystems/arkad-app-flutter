@@ -6,7 +6,7 @@ import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/use_cases/resend_verification_use_case.dart';
 
 class ResendVerificationCommand
-    extends ParameterizedCommand<ResendVerificationParams, void> {
+    extends ParameterizedCommand<ResendVerificationParams, String> {
   ResendVerificationCommand(this._resendVerificationUseCase);
 
   final ResendVerificationUseCase _resendVerificationUseCase;
@@ -22,7 +22,7 @@ class ResendVerificationCommand
       final result = await _resendVerificationUseCase.call(params);
 
       result.when(
-        success: (_) => setResult(null),
+        success: (newToken) => setResult(newToken),
         failure: (error) => setError(error),
       );
     } catch (e) {

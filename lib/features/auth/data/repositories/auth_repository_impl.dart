@@ -208,7 +208,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Result<void>> requestVerificationCode(String email) async {
+  Future<Result<String>> requestVerificationCode(String email) async {
     try {
       // Get stored signup data to resend verification
       final signupData = await _localDataSource.getSignupData();
@@ -219,9 +219,12 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       // Request new verification code by re-initiating signup
-      await _remoteDataSource.beginSignup(signupData);
+      final newToken = await _remoteDataSource.beginSignup(signupData);
 
-      return Result.success(null);
+      // Update stored token with the new one
+      await _localDataSource.saveSignupData(signupData, newToken);
+
+      return Result.success(newToken);
     } on ValidationException catch (e) {
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e) {

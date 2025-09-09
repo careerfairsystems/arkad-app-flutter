@@ -246,6 +246,9 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   void _onResendVerificationCommandChanged() {
+    if (_resendVerificationCommand.isCompleted && _resendVerificationCommand.result != null) {
+      _signupToken = _resendVerificationCommand.result;
+    }
     notifyListeners();
   }
 

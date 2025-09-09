@@ -96,7 +96,7 @@ void setupServiceLocator() {
 void _setupApiClient() {
   // Setup Dio first - always available
   final dio = Dio();
-  dio.options.baseUrl = 'https://staging.backend.arkadtlth.se/api';
+  dio.options.baseUrl = 'https://staging.backend.arkadtlth.se';
   serviceLocator.registerLazySingleton<Dio>(() => dio);
 
   // Try to register API client - will work after generation

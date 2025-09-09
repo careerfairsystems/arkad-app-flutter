@@ -66,6 +66,11 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.addListener(_validateEmail);
     _passwordController.addListener(_validatePassword);
     _confirmPasswordController.addListener(_validateConfirmPassword);
+    
+    // Add listeners for step 2 form fields
+    _firstNameController.addListener(() => setState(() {}));
+    _lastNameController.addListener(() => setState(() {}));
+    _foodPreferencesController.addListener(() => setState(() {}));
 
     // Reset command state when entering screen to prevent stale state display
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -192,6 +197,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (_lastNameController.text.trim().isEmpty) {
         _lastNameErrorText = 'Last name is required';
+        isValid = false;
+      }
+
+      if (_hasFoodPreferences && _foodPreferencesController.text.trim().isEmpty) {
         isValid = false;
       }
     });
@@ -411,7 +420,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _firstNameController,
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
-                  labelText: 'First name',
+                  labelText: 'First name *',
                   hintText: 'Enter your first name',
                   errorText: _firstNameErrorText,
                   border: OutlineInputBorder(
@@ -431,7 +440,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _lastNameController,
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
-                  labelText: 'Last name',
+                  labelText: 'Last name *',
                   hintText: 'Enter your last name',
                   errorText: _lastNameErrorText,
                   border: OutlineInputBorder(
@@ -476,7 +485,7 @@ class _SignupScreenState extends State<SignupScreen> {
             textInputAction: TextInputAction.done,
             maxLines: 3,
             decoration: InputDecoration(
-              labelText: 'Food preferences',
+              labelText: 'Food preferences *',
               hintText: 'e.g., Vegetarian, allergic to nuts, etc.',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -520,6 +529,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   final canComplete =
                       _firstNameController.text.trim().isNotEmpty &&
                       _lastNameController.text.trim().isNotEmpty &&
+                      (!_hasFoodPreferences || _foodPreferencesController.text.trim().isNotEmpty) &&
                       !authViewModel.signUpCommand.isExecuting;
                   return AuthFormWidgets.buildSubmitButton(
                     text: 'Complete',

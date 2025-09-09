@@ -37,5 +37,5 @@ abstract class AuthRepository {
   Future<bool> isAuthenticated();
 
   /// Request new verification code
-  Future<Result<void>> requestVerificationCode(String email);
+  Future<Result<String>> requestVerificationCode(String email);
 }

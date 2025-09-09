@@ -92,6 +92,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
     }
   }
 
+  void _goBackToSignup() {
+    context.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -230,6 +234,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 ),
 
                 const SizedBox(height: 24),
+
+                // Back button
+                TextButton(
+                  onPressed: _goBackToSignup,
+                  style: TextButton.styleFrom(
+                    foregroundColor: ArkadColors.gray,
+                  ),
+                  child: const Text('← Back to signup'),
+                ),
+
+                const SizedBox(height: 8),
 
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {

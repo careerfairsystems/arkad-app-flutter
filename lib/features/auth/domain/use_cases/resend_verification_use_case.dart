@@ -6,13 +6,13 @@ import '../repositories/auth_repository.dart';
 
 /// Use case for resending verification code
 class ResendVerificationUseCase
-    extends UseCase<void, ResendVerificationParams> {
+    extends UseCase<String, ResendVerificationParams> {
   const ResendVerificationUseCase(this._repository);
 
   final AuthRepository _repository;
 
   @override
-  Future<Result<void>> call(ResendVerificationParams params) async {
+  Future<Result<String>> call(ResendVerificationParams params) async {
     // Validate email
     if (params.email.isEmpty) {
       return Result.failure(const ValidationError("Email is required"));
@@ -24,7 +24,7 @@ class ResendVerificationUseCase
       );
     }
 
-    // Request new verification code
+    // Request new verification code and get new token
     return await _repository.requestVerificationCode(params.email.trim());
   }
 }
