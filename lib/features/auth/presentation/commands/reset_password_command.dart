@@ -1,29 +1,48 @@
+import 'package:dio/dio.dart';
+
+import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/use_cases/reset_password_use_case.dart';
 
-/// Command for reset password operation
-class ResetPasswordCommand extends ParameterizedCommand<ResetPasswordParams, void> {
+class ResetPasswordCommand
+    extends ParameterizedCommand<ResetPasswordParams, void> {
   ResetPasswordCommand(this._resetPasswordUseCase);
 
   final ResetPasswordUseCase _resetPasswordUseCase;
 
   @override
   Future<void> executeWithParams(ResetPasswordParams params) async {
-    if (isExecuting) return; // Prevent multiple concurrent executions
+    if (isExecuting) return;
 
+    clearError();
     setExecuting(true);
 
-    final result = await _resetPasswordUseCase.call(params);
+    try {
+      final result = await _resetPasswordUseCase.call(params);
 
-    result.when(
-      success: (_) => setResult(null), // Reset password returns void
-      failure: (error) => setError(error),
-    );
-
-    setExecuting(false);
+      result.when(
+        success: (_) => setResult(null),
+        failure: (error) => setError(error),
+      );
+    } catch (e) {
+      if (e is DioException) {
+        setError(
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'reset_password',
+          ),
+        );
+      } else {
+        setError(UnknownError(e.toString()));
+      }
+    } finally {
+      setExecuting(false);
+    }
   }
 
-  /// Convenience method for executing with email
+  /// Request password reset for email
   Future<void> resetPassword(String email) async {
     await executeWithParams(ResetPasswordParams(email: email));
   }

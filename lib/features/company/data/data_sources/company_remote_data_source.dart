@@ -14,7 +14,7 @@ class CompanyRemoteDataSource {
   Future<List<CompanyOut>> getCompanies() async {
     try {
       final response = await _api.getCompaniesApi().companiesApiGetCompanies();
-      
+
       if (response.isSuccess && response.data != null) {
         return response.data!.toList();
       } else {
@@ -22,12 +22,12 @@ class CompanyRemoteDataSource {
       }
     } catch (e) {
       if (e is CompanyLoadError) rethrow;
-      
+
       // Check for network/connection errors
       if (_isNetworkError(e)) {
         throw NetworkError(details: e.toString());
       }
-      
+
       throw CompanyLoadError(details: e.toString());
     }
   }
@@ -38,7 +38,7 @@ class CompanyRemoteDataSource {
       // For now, get all companies and find by ID
       // In a real app, there might be a specific endpoint for this
       final companies = await getCompanies();
-      
+
       try {
         return companies.firstWhere((company) => company.id == id);
       } catch (e) {
@@ -46,11 +46,11 @@ class CompanyRemoteDataSource {
       }
     } catch (e) {
       if (e is CompanyLoadError) rethrow;
-      
+
       if (_isNetworkError(e)) {
         throw NetworkError(details: e.toString());
       }
-      
+
       throw CompanyLoadError(details: e.toString());
     }
   }
@@ -59,8 +59,8 @@ class CompanyRemoteDataSource {
   bool _isNetworkError(dynamic error) {
     final errorString = error.toString().toLowerCase();
     return errorString.contains('network') ||
-           errorString.contains('connection') ||
-           errorString.contains('timeout') ||
-           errorString.contains('socket');
+        errorString.contains('connection') ||
+        errorString.contains('timeout') ||
+        errorString.contains('socket');
   }
 }

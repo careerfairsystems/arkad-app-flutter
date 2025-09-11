@@ -12,9 +12,7 @@ class FileService {
   FileService(this._imagePicker);
 
   /// Pick profile image from gallery
-  Future<File?> pickProfileImage({
-    required BuildContext context,
-  }) async {
+  Future<File?> pickProfileImage({required BuildContext context}) async {
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
@@ -84,9 +82,9 @@ class FileService {
 
   void _showErrorSnackbar(BuildContext context, String message) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 }

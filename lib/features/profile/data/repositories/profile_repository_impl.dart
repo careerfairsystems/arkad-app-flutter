@@ -13,10 +13,7 @@ import '../mappers/profile_mapper.dart';
 
 /// Implementation of profile repository
 class ProfileRepositoryImpl implements ProfileRepository {
-  const ProfileRepositoryImpl(
-    this._remoteDataSource,
-    this._localDataSource,
-  );
+  const ProfileRepositoryImpl(this._remoteDataSource, this._localDataSource);
 
   final ProfileRemoteDataSource _remoteDataSource;
   final ProfileLocalDataSource _localDataSource;
@@ -27,10 +24,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
       // Try to get from remote first to ensure fresh data
       final profileDto = await _remoteDataSource.getUserProfile();
       final profile = ProfileMapper.fromDto(profileDto);
-      
+
       // Cache locally for offline access
       await _localDataSource.saveProfile(profile);
-      
+
       return Result.success(profile);
     } on AuthException catch (e) {
       // If auth fails, try local cache
@@ -74,10 +71,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
       final updateDto = ProfileMapper.toUpdateDto(profile);
       final updatedDto = await _remoteDataSource.updateProfile(updateDto);
       final updatedProfile = ProfileMapper.fromDto(updatedDto);
-      
+
       // Cache updated profile locally
       await _localDataSource.saveProfile(updatedProfile);
-      
+
       return Result.success(updatedProfile);
     } on AuthException catch (e) {
       return Result.failure(ProfileLoadingError(details: e.message));
@@ -99,7 +96,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Future<Result<FileUploadResult>> uploadProfilePicture(File imageFile) async {
     try {
       final fileUrl = await _remoteDataSource.uploadProfilePicture(imageFile);
-      
+
       final result = FileUploadResult(
         fileName: imageFile.path.split('/').last,
         fileUrl: fileUrl,
@@ -107,7 +104,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
         uploadedAt: DateTime.now(),
         mimeType: _getMimeType(imageFile.path),
       );
-      
+
       return Result.success(result);
     } on AuthException catch (e) {
       return Result.failure(ProfileLoadingError(details: e.message));
@@ -117,9 +114,13 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e) {
       if (e.message.contains('413')) {
-        return Result.failure(const ValidationError("Image file is too large (max 5MB)"));
+        return Result.failure(
+          const ValidationError("Image file is too large (max 5MB)"),
+        );
       } else if (e.message.contains('415')) {
-        return Result.failure(const ValidationError("Unsupported image format"));
+        return Result.failure(
+          const ValidationError("Unsupported image format"),
+        );
       } else if (e.message.contains('429')) {
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
@@ -133,7 +134,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Future<Result<FileUploadResult>> uploadCV(File cvFile) async {
     try {
       final fileUrl = await _remoteDataSource.uploadCV(cvFile);
-      
+
       final result = FileUploadResult(
         fileName: cvFile.path.split('/').last,
         fileUrl: fileUrl,
@@ -141,7 +142,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
         uploadedAt: DateTime.now(),
         mimeType: _getMimeType(cvFile.path),
       );
-      
+
       return Result.success(result);
     } on AuthException catch (e) {
       return Result.failure(ProfileLoadingError(details: e.message));
@@ -151,7 +152,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e) {
       if (e.message.contains('413')) {
-        return Result.failure(const ValidationError("CV file is too large (max 10MB)"));
+        return Result.failure(
+          const ValidationError("CV file is too large (max 10MB)"),
+        );
       } else if (e.message.contains('415')) {
         return Result.failure(const ValidationError("Unsupported file format"));
       } else if (e.message.contains('429')) {
@@ -219,14 +222,18 @@ class ProfileRepositoryImpl implements ProfileRepository {
     // Validate LinkedIn URL if provided
     if (profile.linkedin != null && profile.linkedin!.isNotEmpty) {
       if (!_isValidLinkedInUrl(profile.linkedin!)) {
-        return Result.failure(const ValidationError("Please enter a valid LinkedIn profile URL"));
+        return Result.failure(
+          const ValidationError("Please enter a valid LinkedIn profile URL"),
+        );
       }
     }
 
     // Validate study year if provided
     if (profile.studyYear != null) {
       if (profile.studyYear! < 1 || profile.studyYear! > 10) {
-        return Result.failure(const ValidationError("Study year must be between 1 and 10"));
+        return Result.failure(
+          const ValidationError("Study year must be between 1 and 10"),
+        );
       }
     }
 
@@ -236,7 +243,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   List<String> getCompletionSuggestions(Profile profile) {
     final suggestions = <String>[];
-    
+
     if (!profile.hasProfilePicture) {
       suggestions.add("Add a profile picture to help companies recognize you");
     }
@@ -244,15 +251,21 @@ class ProfileRepositoryImpl implements ProfileRepository {
       suggestions.add("Upload your CV to apply for student sessions");
     }
     if (!profile.hasLinkedIn) {
-      suggestions.add("Add your LinkedIn profile to showcase your professional network");
+      suggestions.add(
+        "Add your LinkedIn profile to showcase your professional network",
+      );
     }
     if (profile.programme == null) {
-      suggestions.add("Select your study programme to help companies find relevant candidates");
+      suggestions.add(
+        "Select your study programme to help companies find relevant candidates",
+      );
     }
     if (profile.studyYear == null) {
-      suggestions.add("Add your study year to help companies understand your experience level");
+      suggestions.add(
+        "Add your study year to help companies understand your experience level",
+      );
     }
-    
+
     return suggestions;
   }
 
@@ -265,7 +278,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
       r'^linkedin\.com/in/[\w\-]+/?$',
     ];
 
-    return patterns.any((pattern) => RegExp(pattern, caseSensitive: false).hasMatch(url));
+    return patterns.any(
+      (pattern) => RegExp(pattern, caseSensitive: false).hasMatch(url),
+    );
   }
 
   String? _getMimeType(String filePath) {

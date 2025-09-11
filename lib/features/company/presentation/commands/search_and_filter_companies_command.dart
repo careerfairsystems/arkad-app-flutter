@@ -4,7 +4,8 @@ import '../../domain/entities/company.dart';
 import '../../domain/use_cases/search_and_filter_companies_use_case.dart';
 
 /// Command for searching and filtering companies simultaneously
-class SearchAndFilterCompaniesCommand extends ParameterizedCommand<SearchAndFilterParams, List<Company>> {
+class SearchAndFilterCompaniesCommand
+    extends ParameterizedCommand<SearchAndFilterParams, List<Company>> {
   SearchAndFilterCompaniesCommand(this._useCase);
 
   final SearchAndFilterCompaniesUseCase _useCase;
@@ -29,9 +30,8 @@ class SearchAndFilterCompaniesCommand extends ParameterizedCommand<SearchAndFilt
 
   /// Convenience method for searching and filtering companies
   Future<void> searchAndFilterCompanies(String query, CompanyFilter filter) {
-    return executeWithParams(SearchAndFilterParams(
-      query: query,
-      filter: filter,
-    ));
+    return executeWithParams(
+      SearchAndFilterParams(query: query, filter: filter),
+    );
   }
 }

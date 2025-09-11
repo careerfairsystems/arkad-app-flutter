@@ -25,14 +25,17 @@ class StudentSessionMapper {
     StudentSessionApplication application, {
     bool updateProfile = false,
   }) {
-    return StudentSessionApplicationSchema((b) => b
-      ..companyId = application.companyId
-      ..motivationText = application.motivationText
-      ..programme = application.programme
-      ..linkedin = application.linkedin
-      ..masterTitle = application.masterTitle
-      ..studyYear = application.studyYear
-      ..updateProfile = updateProfile);
+    return StudentSessionApplicationSchema(
+      (b) =>
+          b
+            ..companyId = application.companyId
+            ..motivationText = application.motivationText
+            ..programme = application.programme
+            ..linkedin = application.linkedin
+            ..masterTitle = application.masterTitle
+            ..studyYear = application.studyYear
+            ..updateProfile = updateProfile,
+    );
   }
 
   /// Convert API TimeslotSchema to domain entity
@@ -41,11 +44,12 @@ class StudentSessionMapper {
       id: apiTimeslot.id,
       companyId: 0, // Will be set by the calling code
       startTime: apiTimeslot.startTime,
-      endTime: apiTimeslot.startTime.add(const Duration(minutes: 30)), // Default 30 min session
+      endTime: apiTimeslot.startTime.add(
+        const Duration(minutes: 30),
+      ), // Default 30 min session
       maxParticipants: 10, // Default value
       currentParticipants: 0, // Default value
       isAvailable: true, // Default to available
     );
   }
-
 }

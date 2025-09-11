@@ -25,10 +25,13 @@ class ValidationService {
     return null;
   }
 
-  /// Validates password for login (just checks if not empty)
+  /// Validates password for login (checks not empty and minimum length)
   static String? validateLoginPassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your password';
+    }
+    if (value.length < passwordMinLength) {
+      return 'Password must be at least $passwordMinLength characters';
     }
     return null;
   }

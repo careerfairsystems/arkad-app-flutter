@@ -1,8 +1,11 @@
+import 'package:dio/dio.dart';
+
+import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/auth_session.dart';
 import '../../domain/use_cases/sign_in_use_case.dart';
 
-/// Command for sign in operation
 class SignInCommand extends ParameterizedCommand<SignInParams, AuthSession> {
   SignInCommand(this._signInUseCase);
 
@@ -10,21 +13,32 @@ class SignInCommand extends ParameterizedCommand<SignInParams, AuthSession> {
 
   @override
   Future<void> executeWithParams(SignInParams params) async {
-    if (isExecuting) return; // Prevent multiple concurrent executions
+    if (isExecuting) return;
 
+    clearError();
     setExecuting(true);
 
-    final result = await _signInUseCase.call(params);
+    try {
+      final result = await _signInUseCase.call(params);
 
-    result.when(
-      success: (session) => setResult(session),
-      failure: (error) => setError(error),
-    );
-
-    setExecuting(false);
+      result.when(
+        success: (session) => setResult(session),
+        failure: (error) => setError(error),
+      );
+    } catch (e) {
+      if (e is DioException) {
+        setError(
+          ErrorMapper.fromDioException(e, null, operationContext: 'signin'),
+        );
+      } else {
+        setError(UnknownError(e.toString()));
+      }
+    } finally {
+      setExecuting(false);
+    }
   }
 
-  /// Convenience method for executing with email and password
+  /// Sign in with email and password
   Future<void> signIn(String email, String password) async {
     await executeWithParams(SignInParams(email: email, password: password));
   }

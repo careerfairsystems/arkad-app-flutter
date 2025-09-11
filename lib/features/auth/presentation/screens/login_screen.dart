@@ -22,15 +22,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  bool _isLoading = false;
-  String? _errorMessage;
   bool _obscurePassword = true;
   bool _isEmailValid = false;
 
   String? _emailErrorText;
   String? _passwordErrorText;
 
-  // Stream subscription for logout events
   StreamSubscription? _logoutSubscription;
 
   @override
@@ -38,33 +35,30 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailController.addListener(_validateEmail);
     _subscribeToLogoutEvents();
+
+    // Reset command state when entering screen to prevent stale state display
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+      authViewModel.signInCommand.reset();
+    });
   }
 
-  /// Subscribe to logout events to clear form state
   void _subscribeToLogoutEvents() {
     _logoutSubscription = AppEvents.on<UserLoggedOutEvent>().listen((_) {
       _clearFormState();
     });
   }
 
-  /// Clear all form state when user logs out
   void _clearFormState() {
     if (mounted) {
       setState(() {
-        // Clear form controllers
         _emailController.clear();
         _passwordController.clear();
-        
-        // Reset validation states
+
         _isEmailValid = false;
         _emailErrorText = null;
         _passwordErrorText = null;
-        
-        // Reset loading and error states
-        _isLoading = false;
-        _errorMessage = null;
-        
-        // Reset password visibility
+
         _obscurePassword = true;
       });
     }
@@ -86,7 +80,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   bool _validateFields() {
-    // Only validate that fields are not empty - domain validation handles business rules
     bool isValid = true;
 
     setState(() {
@@ -110,36 +103,15 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (!_validateFields()) return;
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    
-    try {
-      await authViewModel.signInCommand.signIn(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
 
-      if (mounted) {
-        if (authViewModel.signInCommand.isCompleted) {
-          context.go('/profile');
-        } else if (authViewModel.signInCommand.hasError) {
-          setState(() => _errorMessage = authViewModel.signInCommand.error!.userMessage);
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.toString();
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    await authViewModel.signIn(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+
+    if (mounted && authViewModel.signInCommand.isCompleted) {
+      context.go('/profile');
     }
   }
 
@@ -188,7 +160,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator: ValidationService.validateLoginPassword,
                 ),
 
-                AuthFormWidgets.buildErrorMessage(_errorMessage),
+                Consumer<AuthViewModel>(
+                  builder: (context, authViewModel, child) {
+                    return AuthFormWidgets.buildErrorMessage(
+                      authViewModel.signInCommand.error?.userMessage,
+                    );
+                  },
+                ),
 
                 Align(
                   alignment: Alignment.centerRight,
@@ -200,10 +178,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 30),
 
-                AuthFormWidgets.buildSubmitButton(
-                  text: 'Sign In',
-                  onPressed: _handleLogin,
-                  isLoading: _isLoading,
+                Consumer<AuthViewModel>(
+                  builder: (context, authViewModel, child) {
+                    return AuthFormWidgets.buildSubmitButton(
+                      text: 'Sign In',
+                      onPressed:
+                          authViewModel.signInCommand.isExecuting
+                              ? null
+                              : _handleLogin,
+                      isLoading: authViewModel.signInCommand.isExecuting,
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 24),

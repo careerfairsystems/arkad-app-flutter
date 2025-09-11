@@ -26,25 +26,20 @@ class SignInUseCase extends UseCase<AuthSession, SignInParams> {
       );
     }
 
-    if (params.password.length < 6) {
+    if (params.password.length < 8) {
       return Result.failure(
-        const ValidationError("Password must be at least 6 characters"),
+        const ValidationError("Password must be at least 8 characters"),
       );
     }
 
     // Attempt sign in
     return await _repository.signIn(params.email.trim(), params.password);
   }
-
-  // Email validation now handled by ValidationService
 }
 
 /// Parameters for sign in use case
 class SignInParams {
-  const SignInParams({
-    required this.email,
-    required this.password,
-  });
+  const SignInParams({required this.email, required this.password});
 
   final String email;
   final String password;

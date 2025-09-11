@@ -15,7 +15,7 @@ abstract class ProfileRepository {
   /// Upload profile picture
   Future<Result<FileUploadResult>> uploadProfilePicture(File imageFile);
 
-  /// Upload CV document  
+  /// Upload CV document
   Future<Result<FileUploadResult>> uploadCV(File cvFile);
 
   /// Delete profile picture

@@ -25,7 +25,8 @@ class ApplyForSessionParams {
 }
 
 /// Use case for applying to a student session
-class ApplyForSessionUseCase extends UseCase<StudentSessionApplication, ApplyForSessionParams> {
+class ApplyForSessionUseCase
+    extends UseCase<StudentSessionApplication, ApplyForSessionParams> {
   final StudentSessionRepository _repository;
 
   ApplyForSessionUseCase(this._repository);

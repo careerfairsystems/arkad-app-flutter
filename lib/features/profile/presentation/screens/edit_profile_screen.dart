@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../services/service_locator.dart';
@@ -57,7 +58,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _initializeControllers() {
     final profile = _profileViewModel.currentProfile;
-    
+
     _emailController = TextEditingController(text: profile?.email ?? '');
     _firstNameController = TextEditingController(
       text: profile?.firstName ?? '',
@@ -69,8 +70,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     // Extract LinkedIn username from URL if it exists
     String linkedinUsername = '';
-    if (profile?.linkedin != null &&
-        profile!.linkedin!.isNotEmpty) {
+    if (profile?.linkedin != null && profile!.linkedin!.isNotEmpty) {
       final url = profile.linkedin!;
       if (url.contains('linkedin.com/in/')) {
         final parts = url.split('/in/');
@@ -99,9 +99,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickImage() async {
     final fileService = serviceLocator<FileService>();
-    final File? image = await fileService.pickProfileImage(
-      context: context,
-    );
+    final File? image = await fileService.pickProfileImage(context: context);
 
     if (image != null) {
       setState(() {
@@ -128,9 +126,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     // Get references to providers and other objects
-    final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    final profileViewModel = Provider.of<ProfileViewModel>(
+      context,
+      listen: false,
+    );
     final currentProfile = profileViewModel.currentProfile;
 
     try {
@@ -146,29 +146,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         programme: _selectedProgramme,
-        linkedin: _linkedinController.text.isEmpty ? null : _linkedinController.text,
-        masterTitle: _masterTitleController.text.isEmpty ? null : _masterTitleController.text,
+        linkedin:
+            _linkedinController.text.isEmpty ? null : _linkedinController.text,
+        masterTitle:
+            _masterTitleController.text.isEmpty
+                ? null
+                : _masterTitleController.text,
         studyYear: _studyYear,
         foodPreferences: _foodPreferencesController.text,
       );
 
       // Update profile using clean architecture
       bool success = await profileViewModel.updateProfile(updatedProfile);
-      
+
       // Handle file uploads if needed
       if (success && _selectedImage != null) {
         success = await profileViewModel.uploadProfilePicture(_selectedImage!);
       }
-      
+
       if (success && _selectedCV != null) {
         success = await profileViewModel.uploadCV(_selectedCV!);
       }
-      
+
       // Handle file deletions if needed
       if (success && _profilePictureDeleted) {
         await profileViewModel.deleteProfilePicture();
       }
-      
+
       if (success && _cvDeleted) {
         await profileViewModel.deleteCV();
       }
@@ -178,14 +182,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (!mounted) return;
 
         // Return to previous screen
-        navigator.pop();
+        context.pop();
         messenger.showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
         );
       } else if (profileViewModel.error != null && mounted) {
         messenger.showSnackBar(
           SnackBar(
-            content: Text('Failed to update profile: ${profileViewModel.error!.userMessage}'),
+            content: Text(
+              'Failed to update profile: ${profileViewModel.error!.userMessage}',
+            ),
           ),
         );
       }
@@ -259,8 +265,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               onPickImage: _pickImage,
                               onDeleteImage: _deleteProfilePicture,
                               profilePictureDeleted: _profilePictureDeleted,
-                              currentProfilePicture:
-                                  profile?.profilePictureUrl,
+                              currentProfilePicture: profile?.profilePictureUrl,
                             ),
                             const Text(
                               'Profile Picture (Optional)',
@@ -339,9 +344,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               _programmeController.text =
                                   availableProgrammes
                                       .firstWhere(
-                                        (program) =>
-                                            program.value == newValue,
-                                      ).label;
+                                        (program) => program.value == newValue,
+                                      )
+                                      .label;
                             }
                           });
                         },

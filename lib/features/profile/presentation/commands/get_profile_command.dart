@@ -15,7 +15,7 @@ class GetProfileCommand extends Command<Profile> {
     setExecuting(true);
 
     final result = await _useCase();
-    
+
     result.when(
       success: (profile) => setResult(profile),
       failure: (error) => setError(error),

@@ -14,10 +14,10 @@ class RouterNotifier extends ChangeNotifier {
 
   /// Get current authentication status
   bool get isAuthenticated => _authViewModel.isAuthenticated;
-  
+
   /// Get current user (if authenticated)
   User? get currentUser => _authViewModel.currentUser;
-  
+
   /// Get authentication initialization status
   bool get isInitializing => _authViewModel.isInitializing;
 

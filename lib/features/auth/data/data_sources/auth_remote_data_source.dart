@@ -10,7 +10,11 @@ import '../mappers/signup_mapper.dart';
 abstract class AuthRemoteDataSource {
   Future<String> signIn(String email, String password);
   Future<String> beginSignup(SignupData data);
-  Future<ProfileSchema> completeSignup(String token, String code, SignupData data);
+  Future<ProfileSchema> completeSignup(
+    String token,
+    String code,
+    SignupData data,
+  );
   Future<ProfileSchema> getUserProfile();
   Future<void> resetPassword(String email);
   void setBearerAuth(String name, String token);
@@ -27,18 +31,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<String> signIn(String email, String password) async {
     try {
       final response = await _api.getAuthenticationApi().userModelsApiSignin(
-        signinSchema: SigninSchema((b) => b
-          ..email = email
-          ..password = password
+        signinSchema: SigninSchema(
+          (b) =>
+              b
+                ..email = email
+                ..password = password,
         ),
       );
 
       if (response.isSuccess && response.data != null) {
         final token = response.data!;
         // Strip "Bearer " prefix if present
-        return token.startsWith('Bearer ') 
-            ? token.substring(7) 
-            : token;
+        return token.startsWith('Bearer ') ? token.substring(7) : token;
       } else {
         throw ApiException('Sign in failed: ${response.error}');
       }
@@ -47,7 +51,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         if (e.response?.statusCode == 401) {
           throw AuthException('Incorrect email or password');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException('Too many attempts. Please wait before trying again.');
+          throw ApiException(
+            'Too many attempts. Please wait before trying again.',
+          );
         }
         throw NetworkException('Network error: ${e.message}');
       }
@@ -58,9 +64,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<String> beginSignup(SignupData data) async {
     try {
-      final response = await _api.getAuthenticationApi().userModelsApiBeginSignup(
-        signupSchema: SignupMapper.toSignupDto(data),
-      );
+      final response = await _api
+          .getAuthenticationApi()
+          .userModelsApiBeginSignup(
+            signupSchema: SignupMapper.toSignupDto(data),
+          );
 
       if (response.isSuccess && response.data != null) {
         return response.data!;
@@ -70,9 +78,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } catch (e) {
       if (e is DioException) {
         if (e.response?.statusCode == 415) {
-          throw ValidationException('An account with this email already exists');
+          throw ValidationException(
+            'An account with this email already exists',
+          );
         } else if (e.response?.statusCode == 429) {
-          throw ApiException('Too many attempts. Please wait before trying again.');
+          throw ApiException(
+            'Too many attempts. Please wait before trying again.',
+          );
         }
         throw NetworkException('Network error: ${e.message}');
       }
@@ -81,15 +93,21 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<ProfileSchema> completeSignup(String token, String code, SignupData data) async {
+  Future<ProfileSchema> completeSignup(
+    String token,
+    String code,
+    SignupData data,
+  ) async {
     try {
-      final response = await _api.getAuthenticationApi().userModelsApiCompleteSignup(
-        completeSignupSchema: SignupMapper.toCompleteSignupDto(
-          token: token,
-          code: code,
-          data: data,
-        ),
-      );
+      final response = await _api
+          .getAuthenticationApi()
+          .userModelsApiCompleteSignup(
+            completeSignupSchema: SignupMapper.toCompleteSignupDto(
+              token: token,
+              code: code,
+              data: data,
+            ),
+          );
 
       if (response.isSuccess && response.data != null) {
         return response.data!;
@@ -101,7 +119,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         if (e.response?.statusCode == 400) {
           throw ValidationException('Invalid verification code');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException('Too many attempts. Please wait before trying again.');
+          throw ApiException(
+            'Too many attempts. Please wait before trying again.',
+          );
         }
         throw NetworkException('Network error: ${e.message}');
       }
@@ -112,7 +132,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<ProfileSchema> getUserProfile() async {
     try {
-      final response = await _api.getUserProfileApi().userModelsApiGetUserProfile();
+      final response =
+          await _api.getUserProfileApi().userModelsApiGetUserProfile();
 
       if (response.isSuccess && response.data != null) {
         return response.data!;
@@ -133,11 +154,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> resetPassword(String email) async {
     try {
-      final response = await _api.getAuthenticationApi().userModelsApiResetPassword(
-        resetPasswordSchema: ResetPasswordSchema((b) => b
-          ..email = email
-        ),
-      );
+      final response = await _api
+          .getAuthenticationApi()
+          .userModelsApiResetPassword(
+            resetPasswordSchema: ResetPasswordSchema((b) => b..email = email),
+          );
 
       if (!response.isSuccess) {
         throw ApiException('Password reset failed: ${response.error}');
@@ -147,7 +168,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         if (e.response?.statusCode == 404) {
           throw ValidationException('No account found with this email address');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException('Too many attempts. Please wait before trying again.');
+          throw ApiException(
+            'Too many attempts. Please wait before trying again.',
+          );
         }
         throw NetworkException('Network error: ${e.message}');
       }

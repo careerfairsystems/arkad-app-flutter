@@ -23,7 +23,9 @@ class SignUpUseCase extends UseCase<String, SignupData> {
     // Validate password requirements using domain validation service
     if (!ValidationService.isStrongPassword(params.password)) {
       return Result.failure(
-        const ValidationError("Password must be at least 8 characters with uppercase, lowercase, number, and special character"),
+        const ValidationError(
+          "Password must be at least 8 characters with uppercase, lowercase, number, and special character",
+        ),
       );
     }
 
@@ -35,14 +37,10 @@ class SignUpUseCase extends UseCase<String, SignupData> {
     }
 
     if (params.lastName?.isEmpty == true) {
-      return Result.failure(
-        const ValidationError("Last name cannot be empty"),
-      );
+      return Result.failure(const ValidationError("Last name cannot be empty"));
     }
 
     // Attempt signup
     return await _repository.beginSignup(params);
   }
-
-  // All password validation is now handled by ValidationService
 }

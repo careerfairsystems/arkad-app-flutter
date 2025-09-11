@@ -42,10 +42,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     super.initState();
     _searchController = TextEditingController();
     _dropdownController = FilterDropdownController();
-    
+
     // Subscribe to logout events for cleanup
     _subscribeToLogoutEvents();
-    
+
     // Load companies on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadCompanies();
@@ -65,14 +65,14 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       setState(() {
         // Clear search
         _searchController.clear();
-        
+
         // Reset filter states
         _selectedDegrees.clear();
         _selectedCompetences.clear();
         _selectedPositions.clear();
         _selectedIndustries.clear();
         _hasStudentSessions = false;
-        
+
         // Hide filters
         _showFilters = false;
         _dropdownController.collapseAll();
@@ -131,15 +131,14 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
         decoration: InputDecoration(
           hintText: 'Search companies...',
           prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: _clearSearch,
-                )
-              : null,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+          suffixIcon:
+              _searchController.text.isNotEmpty
+                  ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: _clearSearch,
+                  )
+                  : null,
         ),
         onChanged: _onSearchChanged,
       ),
@@ -150,9 +149,8 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     return AnimatedCrossFade(
       firstChild: _buildScrollableFilterSection(),
       secondChild: const SizedBox.shrink(),
-      crossFadeState: _showFilters 
-          ? CrossFadeState.showFirst 
-          : CrossFadeState.showSecond,
+      crossFadeState:
+          _showFilters ? CrossFadeState.showFirst : CrossFadeState.showSecond,
       duration: const Duration(milliseconds: 300),
     );
   }
@@ -176,7 +174,8 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   Widget _buildFilterContent() {
-    final totalActiveFilters = _selectedDegrees.length +
+    final totalActiveFilters =
+        _selectedDegrees.length +
         _selectedCompetences.length +
         _selectedPositions.length +
         _selectedIndustries.length +
@@ -194,7 +193,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
                 if (totalActiveFilters > 0)
                   Container(
                     margin: const EdgeInsets.only(left: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(12),
@@ -247,7 +249,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
         const Divider(),
 
         // Filter dropdowns
-        ...[ 
+        ...[
           FilterDropdown<String>(
             id: 'degrees',
             title: 'Degrees',
@@ -296,7 +298,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   Widget _buildResultsCount(CompanyViewModel viewModel) {
     final hasActiveFilters = _hasAnyFilters();
     final hasSearchQuery = _searchController.text.isNotEmpty;
-    
+
     if (!hasActiveFilters && !hasSearchQuery) {
       return const SizedBox.shrink();
     }
@@ -314,7 +316,8 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   Widget _buildEmptyState(CompanyViewModel viewModel) {
-    final hasFiltersOrSearch = _hasAnyFilters() || _searchController.text.isNotEmpty;
+    final hasFiltersOrSearch =
+        _hasAnyFilters() || _searchController.text.isNotEmpty;
 
     return Center(
       child: Column(
@@ -326,9 +329,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             viewModel.allCompanies.isEmpty
                 ? 'No companies available'
                 : 'No companies match your criteria',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.grey[600],
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
           ),
           if (hasFiltersOrSearch) ...[
             const SizedBox(height: 16),
@@ -391,7 +394,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       industries: _selectedIndustries.toList(),
       hasStudentSessions: _hasStudentSessions,
     );
-    
+
     viewModel.searchAndFilterCompanies(_searchController.text, filter);
   }
 

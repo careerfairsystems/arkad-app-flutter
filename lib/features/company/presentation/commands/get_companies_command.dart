@@ -4,7 +4,8 @@ import '../../domain/entities/company.dart';
 import '../../domain/use_cases/get_companies_use_case.dart';
 
 /// Command for loading all companies
-class GetCompaniesCommand extends ParameterizedCommand<GetCompaniesParams, List<Company>> {
+class GetCompaniesCommand
+    extends ParameterizedCommand<GetCompaniesParams, List<Company>> {
   GetCompaniesCommand(this._useCase);
 
   final GetCompaniesUseCase _useCase;

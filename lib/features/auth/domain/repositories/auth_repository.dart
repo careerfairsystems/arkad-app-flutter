@@ -13,8 +13,8 @@ abstract class AuthRepository {
 
   /// Complete signup with verification code
   Future<Result<AuthSession>> completeSignup(
-    String token, 
-    String code, 
+    String token,
+    String code,
     SignupData data,
   );
 
@@ -37,5 +37,5 @@ abstract class AuthRepository {
   Future<bool> isAuthenticated();
 
   /// Request new verification code
-  Future<Result<void>> requestVerificationCode(String email);
+  Future<Result<String>> requestVerificationCode(String email);
 }

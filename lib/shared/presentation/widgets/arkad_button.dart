@@ -37,25 +37,25 @@ class ArkadButton extends StatelessWidget {
 
     final button = switch (variant) {
       ArkadButtonVariant.primary => ElevatedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: buttonStyle,
-          child: child,
-        ),
+        onPressed: isLoading ? null : onPressed,
+        style: buttonStyle,
+        child: child,
+      ),
       ArkadButtonVariant.secondary => OutlinedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: buttonStyle,
-          child: child,
-        ),
+        onPressed: isLoading ? null : onPressed,
+        style: buttonStyle,
+        child: child,
+      ),
       ArkadButtonVariant.ghost => TextButton(
-          onPressed: isLoading ? null : onPressed,
-          style: buttonStyle,
-          child: child,
-        ),
+        onPressed: isLoading ? null : onPressed,
+        style: buttonStyle,
+        child: child,
+      ),
       ArkadButtonVariant.danger => ElevatedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: buttonStyle,
-          child: child,
-        ),
+        onPressed: isLoading ? null : onPressed,
+        style: buttonStyle,
+        child: child,
+      ),
     };
 
     if (fullWidth) {
@@ -76,7 +76,8 @@ class ArkadButton extends StatelessWidget {
       child: CircularProgressIndicator(
         strokeWidth: 2,
         valueColor: AlwaysStoppedAnimation<Color>(
-          variant == ArkadButtonVariant.primary || variant == ArkadButtonVariant.danger
+          variant == ArkadButtonVariant.primary ||
+                  variant == ArkadButtonVariant.danger
               ? ArkadColors.white
               : ArkadColors.arkadTurkos,
         ),
@@ -114,32 +115,32 @@ class ArkadButton extends StatelessWidget {
 
     return switch (variant) {
       ArkadButtonVariant.primary => ElevatedButton.styleFrom(
-          backgroundColor: ArkadColors.arkadTurkos,
-          foregroundColor: ArkadColors.white,
-          padding: padding,
-          shape: shape,
-          elevation: 2,
-          shadowColor: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
-        ),
+        backgroundColor: ArkadColors.arkadTurkos,
+        foregroundColor: ArkadColors.white,
+        padding: padding,
+        shape: shape,
+        elevation: 2,
+        shadowColor: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
+      ),
       ArkadButtonVariant.secondary => OutlinedButton.styleFrom(
-          foregroundColor: ArkadColors.arkadTurkos,
-          side: const BorderSide(color: ArkadColors.arkadTurkos, width: 1.5),
-          padding: padding,
-          shape: shape,
-        ),
+        foregroundColor: ArkadColors.arkadTurkos,
+        side: const BorderSide(color: ArkadColors.arkadTurkos, width: 1.5),
+        padding: padding,
+        shape: shape,
+      ),
       ArkadButtonVariant.ghost => TextButton.styleFrom(
-          foregroundColor: ArkadColors.arkadTurkos,
-          padding: padding,
-          shape: shape,
-        ),
+        foregroundColor: ArkadColors.arkadTurkos,
+        padding: padding,
+        shape: shape,
+      ),
       ArkadButtonVariant.danger => ElevatedButton.styleFrom(
-          backgroundColor: ArkadColors.lightRed,
-          foregroundColor: ArkadColors.white,
-          padding: padding,
-          shape: shape,
-          elevation: 2,
-          shadowColor: ArkadColors.lightRed.withValues(alpha: 0.3),
-        ),
+        backgroundColor: ArkadColors.lightRed,
+        foregroundColor: ArkadColors.white,
+        padding: padding,
+        shape: shape,
+        elevation: 2,
+        shadowColor: ArkadColors.lightRed.withValues(alpha: 0.3),
+      ),
     };
   }
 
@@ -159,26 +160,26 @@ class ArkadButton extends StatelessWidget {
   _ButtonSizeData _getButtonSize() {
     return switch (size) {
       ArkadButtonSize.small => const _ButtonSizeData(
-          height: 36,
-          fontSize: 14,
-          horizontalPadding: 16,
-          verticalPadding: 8,
-          borderRadius: 8,
-        ),
+        height: 36,
+        fontSize: 14,
+        horizontalPadding: 16,
+        verticalPadding: 8,
+        borderRadius: 8,
+      ),
       ArkadButtonSize.medium => const _ButtonSizeData(
-          height: 44,
-          fontSize: 16,
-          horizontalPadding: 20,
-          verticalPadding: 10,
-          borderRadius: 10,
-        ),
+        height: 44,
+        fontSize: 16,
+        horizontalPadding: 20,
+        verticalPadding: 10,
+        borderRadius: 10,
+      ),
       ArkadButtonSize.large => const _ButtonSizeData(
-          height: 52,
-          fontSize: 16,
-          horizontalPadding: 24,
-          verticalPadding: 12,
-          borderRadius: 12,
-        ),
+        height: 52,
+        fontSize: 16,
+        horizontalPadding: 24,
+        verticalPadding: 12,
+        borderRadius: 12,
+      ),
     };
   }
 }

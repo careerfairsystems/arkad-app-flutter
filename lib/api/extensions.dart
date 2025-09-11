@@ -1,4 +1,4 @@
-import 'package:dio/src/response.dart';
+import 'package:dio/dio.dart';
 
 extension SuccessResponse<T> on Response<T> {
   bool get isSuccess =>
@@ -14,8 +14,4 @@ extension SuccessResponse<T> on Response<T> {
     }
     return 'An error occurred';
   }
-}
-
-extension on int {
-  bool get isSuccess => this >= 200 && this < 300;
 }

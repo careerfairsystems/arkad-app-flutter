@@ -5,7 +5,6 @@ import '../../domain/repositories/map_repository.dart';
 
 /// Implementation of map repository (placeholder for future implementation)
 class MapRepositoryImpl implements MapRepository {
-  
   @override
   Future<Result<List<MapLocation>>> getLocations() async {
     // Placeholder implementation - return empty list for now
@@ -14,7 +13,9 @@ class MapRepositoryImpl implements MapRepository {
   }
 
   @override
-  Future<Result<List<MapLocation>>> getLocationsByType(LocationType type) async {
+  Future<Result<List<MapLocation>>> getLocationsByType(
+    LocationType type,
+  ) async {
     // Placeholder implementation
     return Result.success(<MapLocation>[]);
   }

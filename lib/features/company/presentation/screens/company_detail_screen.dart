@@ -22,7 +22,10 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
     super.initState();
     // Load company data on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewModel = Provider.of<CompanyDetailViewModel>(context, listen: false);
+      final viewModel = Provider.of<CompanyDetailViewModel>(
+        context,
+        listen: false,
+      );
       viewModel.loadCompany(widget.companyId);
     });
   }
@@ -38,41 +41,48 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           body: AsyncStateBuilder<Company>(
             command: viewModel.getCompanyByIdCommand,
             builder: (context, company) => _buildContent(context, company),
-            loadingBuilder: (context) => const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Loading company details...'),
-                ],
-              ),
-            ),
-            errorBuilder: (context, error) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Failed to load company',
-                    style: Theme.of(context).textTheme.headlineSmall,
+            loadingBuilder:
+                (context) => const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Loading company details...'),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error.userMessage,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                ),
+            errorBuilder:
+                (context, error) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 60,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Failed to load company',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        error.userMessage,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 16),
+                      ArkadButton(
+                        text: 'Try Again',
+                        onPressed:
+                            () => viewModel.loadCompany(widget.companyId),
+                        icon: Icons.refresh,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  ArkadButton(
-                    text: 'Try Again',
-                    onPressed: () => viewModel.loadCompany(widget.companyId),
-                    icon: Icons.refresh,
-                  ),
-                ],
-              ),
-            ),
+                ),
           ),
         );
       },
@@ -129,9 +139,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           ],
           Text(
             company.name,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           if (company.industriesString.isNotEmpty) ...[
@@ -185,9 +195,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
         children: [
           Text(
             'About',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Text(
@@ -201,7 +211,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
 
   Widget _buildFactsSection(BuildContext context, Company company) {
     final facts = <String, String>{};
-    
+
     if (company.industries.isNotEmpty) {
       facts['Industries'] = company.industriesString;
     }
@@ -225,31 +235,33 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
         children: [
           Text(
             'Company Facts',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          ...facts.entries.map((entry) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.key,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.primary,
+          ...facts.entries.map(
+            (entry) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    entry.key,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  entry.value,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    entry.value,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
             ),
-          )),
+          ),
         ],
       ),
     );
@@ -266,9 +278,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
         children: [
           Text(
             'Student Sessions',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Container(
@@ -293,13 +305,15 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                         'Student sessions available',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                       ),
                       Text(
                         '${company.daysWithStudentSession} days available',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                       ),
                     ],
@@ -338,60 +352,70 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
         children: [
           Text(
             'Available Positions',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          ...company.jobs.map((job) => Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  job.title,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+          ...company.jobs.map(
+            (job) => Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.3),
                 ),
-                if (job.locations.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          job.locations.join(', '),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    job.title,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (job.locations.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            job.locations.join(', '),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
+                  if (job.description != null &&
+                      job.description!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      job.description!,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
                 ],
-                if (job.description != null && job.description!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    job.description!,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ],
+              ),
             ),
-          )),
+          ),
         ],
       ),
     );

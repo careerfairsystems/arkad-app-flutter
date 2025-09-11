@@ -14,7 +14,8 @@ abstract class ResultCommand<T> extends Command<T> {
 }
 
 /// Parameterized command that returns a boolean success indicator
-abstract class ParameterizedResultCommand<TParams, TResult> extends ParameterizedCommand<TParams, TResult> {
+abstract class ParameterizedResultCommand<TParams, TResult>
+    extends ParameterizedCommand<TParams, TResult> {
   /// Execute the command with parameters and return success status
   Future<bool> executeForResultWithParams(TParams params);
 
@@ -25,7 +26,8 @@ abstract class ParameterizedResultCommand<TParams, TResult> extends Parameterize
 }
 
 /// Generic implementation of a result command that wraps a use case
-class GenericResultCommand<TParams, TResult> extends ParameterizedResultCommand<TParams, TResult> {
+class GenericResultCommand<TParams, TResult>
+    extends ParameterizedResultCommand<TParams, TResult> {
   GenericResultCommand(this._operation);
 
   final Future<Result<TResult>> Function(TParams params) _operation;
@@ -38,7 +40,7 @@ class GenericResultCommand<TParams, TResult> extends ParameterizedResultCommand<
 
     try {
       final result = await _operation(params);
-      
+
       return result.when(
         success: (value) {
           setResult(value);

@@ -8,13 +8,18 @@ abstract class Command<T> extends ChangeNotifier {
   bool _isExecuting = false;
   AppError? _error;
   T? _result;
+  bool _hasBeenExecuted = false;
 
   // State getters
   bool get isExecuting => _isExecuting;
   bool get hasError => _error != null;
-  bool get isCompleted => _result != null && !_isExecuting;
-  bool get isIdle => !_isExecuting && _error == null && _result == null;
-  
+
+  /// Command has completed execution without errors.
+  /// Note: This returns true after clearError() is called, even if the last execution failed.
+  /// For success-only navigation, check both isCompleted && result != null.
+  bool get isCompleted => _hasBeenExecuted && !_isExecuting && _error == null;
+  bool get isIdle => !_hasBeenExecuted && !_isExecuting && _error == null;
+
   AppError? get error => _error;
   T? get result => _result;
 
@@ -26,6 +31,10 @@ abstract class Command<T> extends ChangeNotifier {
   void setExecuting(bool executing) {
     if (_isExecuting != executing) {
       _isExecuting = executing;
+      if (executing) {
+        _hasBeenExecuted = true;
+        _result = null; // Clear stale result during new execution
+      }
       notifyListeners();
     }
   }
@@ -55,23 +64,24 @@ abstract class Command<T> extends ChangeNotifier {
   }
 
   /// Reset the command to its initial state
-  void reset() {
+  void reset({bool notify = true}) {
     _isExecuting = false;
     _error = null;
     _result = null;
-    notifyListeners();
+    _hasBeenExecuted = false;
+    if (notify) notifyListeners();
   }
 
   @override
   void dispose() {
-    reset();
+    reset(notify: false);
     super.dispose();
   }
 }
 
 /// Command for operations that don't return a result
 abstract class VoidCommand extends Command<void> {
-  bool get isSuccessful => !hasError && !isExecuting;
+  bool get isSuccessful => isCompleted;
 }
 
 /// Command for operations with parameters

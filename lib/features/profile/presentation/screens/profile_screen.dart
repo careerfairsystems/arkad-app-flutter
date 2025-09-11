@@ -19,11 +19,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Load profile if not already loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
-      if (profileViewModel.currentProfile == null && !profileViewModel.isLoading) {
+      final profileViewModel = Provider.of<ProfileViewModel>(
+        context,
+        listen: false,
+      );
+      if (profileViewModel.currentProfile == null &&
+          !profileViewModel.isLoading) {
         profileViewModel.loadProfile();
       }
     });
@@ -79,21 +83,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     // Convert Profile domain entity to ProfileSchema for legacy widget compatibility
-    final profileDto = ProfileSchema((b) => b
-      ..id = profile.id
-      ..email = profile.email
-      ..firstName = profile.firstName
-      ..lastName = profile.lastName
-      ..isStudent = true
-      ..isActive = true
-      ..isStaff = false
-      ..cv = profile.cvUrl
-      ..profilePicture = profile.profilePictureUrl
-      ..programme = profile.programme?.name
-      ..linkedin = profile.linkedin
-      ..masterTitle = profile.masterTitle
-      ..studyYear = profile.studyYear
-      ..foodPreferences = profile.foodPreferences);
+    final profileDto = ProfileSchema(
+      (b) =>
+          b
+            ..id = profile.id
+            ..email = profile.email
+            ..firstName = profile.firstName
+            ..lastName = profile.lastName
+            ..isStudent = true
+            ..isActive = true
+            ..isStaff = false
+            ..cv = profile.cvUrl
+            ..profilePicture = profile.profilePictureUrl
+            ..programme = profile.programme?.name
+            ..linkedin = profile.linkedin
+            ..masterTitle = profile.masterTitle
+            ..studyYear = profile.studyYear
+            ..foodPreferences = profile.foodPreferences,
+    );
 
     return Column(
       children: [

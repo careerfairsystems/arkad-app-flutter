@@ -3,7 +3,8 @@ import '../../domain/entities/profile.dart';
 import '../../domain/use_cases/update_profile_use_case.dart';
 
 /// Command for updating user profile
-class UpdateProfileCommand extends ParameterizedResultCommand<UpdateProfileParams, Profile> {
+class UpdateProfileCommand
+    extends ParameterizedResultCommand<UpdateProfileParams, Profile> {
   final UpdateProfileUseCase _useCase;
 
   UpdateProfileCommand(this._useCase);
@@ -15,7 +16,7 @@ class UpdateProfileCommand extends ParameterizedResultCommand<UpdateProfileParam
     setExecuting(true);
 
     final result = await _useCase(params);
-    
+
     final success = result.when(
       success: (updatedProfile) {
         setResult(updatedProfile);
@@ -33,6 +34,8 @@ class UpdateProfileCommand extends ParameterizedResultCommand<UpdateProfileParam
 
   /// Convenience method for executing with profile
   Future<bool> updateProfile(Profile profile) async {
-    return await executeForResultWithParams(UpdateProfileParams(profile: profile));
+    return await executeForResultWithParams(
+      UpdateProfileParams(profile: profile),
+    );
   }
 }

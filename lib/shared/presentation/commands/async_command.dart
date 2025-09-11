@@ -16,7 +16,7 @@ class AsyncCommand<T> extends Command<T> {
 
     try {
       final result = await _operation();
-      
+
       result.when(
         success: (value) => setResult(value),
         failure: (error) => setError(error),
@@ -30,7 +30,8 @@ class AsyncCommand<T> extends Command<T> {
 }
 
 /// Parameterized async command
-class AsyncParameterizedCommand<TParams, TResult> extends ParameterizedCommand<TParams, TResult> {
+class AsyncParameterizedCommand<TParams, TResult>
+    extends ParameterizedCommand<TParams, TResult> {
   AsyncParameterizedCommand(this._operation);
 
   final Future<Result<TResult>> Function(TParams params) _operation;
@@ -43,7 +44,7 @@ class AsyncParameterizedCommand<TParams, TResult> extends ParameterizedCommand<T
 
     try {
       final result = await _operation(params);
-      
+
       result.when(
         success: (value) => setResult(value),
         failure: (error) => setError(error),

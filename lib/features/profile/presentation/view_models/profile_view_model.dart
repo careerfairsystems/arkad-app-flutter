@@ -107,14 +107,16 @@ class ProfileViewModel extends ChangeNotifier {
   bool get hasProfile => _currentProfile != null;
 
   List<String> get missingRequiredFields {
-    if (_currentProfile == null)
+    if (_currentProfile == null) {
       return ['Email', 'First Name', 'Last Name', 'Food Preferences'];
+    }
 
     final missing = <String>[];
     if (_currentProfile!.firstName.isEmpty) missing.add('First Name');
     if (_currentProfile!.lastName.isEmpty) missing.add('Last Name');
-    if (_currentProfile!.foodPreferences?.isEmpty ?? true)
+    if (_currentProfile!.foodPreferences?.isEmpty ?? true) {
       missing.add('Food Preferences');
+    }
 
     return missing;
   }
