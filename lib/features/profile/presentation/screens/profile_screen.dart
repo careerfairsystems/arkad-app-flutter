@@ -20,12 +20,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
 
-    // Load profile if not already loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileViewModel = Provider.of<ProfileViewModel>(
         context,
         listen: false,
       );
+
+      // Reset all command states to prevent stale errors/states
+      profileViewModel.getProfileCommand.reset();
+      profileViewModel.updateProfileCommand.reset();
+      profileViewModel.uploadCVCommand.reset();
+      profileViewModel.uploadProfilePictureCommand.reset();
+
       if (profileViewModel.currentProfile == null &&
           !profileViewModel.isLoading) {
         profileViewModel.loadProfile();

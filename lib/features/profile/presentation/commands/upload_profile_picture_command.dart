@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
+
+import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/result_command.dart';
 import '../../domain/entities/file_upload_result.dart';
 import '../../domain/use_cases/upload_profile_picture_use_case.dart';
@@ -24,23 +28,40 @@ class UploadProfilePictureCommand
   ) async {
     if (isExecuting) return false;
 
+    clearError(); 
     setExecuting(true);
 
-    final result = await _useCase(params);
+    try {
+      final result = await _useCase(params);
 
-    final success = result.when(
-      success: (uploadResult) {
-        setResult(uploadResult);
-        return true;
-      },
-      failure: (error) {
-        setError(error);
-        return false;
-      },
-    );
+      final success = result.when(
+        success: (uploadResult) {
+          setResult(uploadResult);
+          return true;
+        },
+        failure: (error) {
+          setError(error);
+          return false;
+        },
+      );
 
-    setExecuting(false);
-    return success;
+      return success;
+    } catch (e) {
+      if (e is DioException) {
+        setError(
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'upload_profile_picture',
+          ),
+        );
+      } else {
+        setError(UnknownError(e.toString()));
+      }
+      return false;
+    } finally {
+      setExecuting(false); 
+    }
   }
 
   /// Convenience method for executing with file

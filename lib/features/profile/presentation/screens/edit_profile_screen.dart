@@ -47,6 +47,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     _profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
     _profileViewModel.addListener(_onProfileChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Reset all command states to prevent stale errors/states
+      _profileViewModel.getProfileCommand.reset();
+      _profileViewModel.updateProfileCommand.reset();
+      _profileViewModel.uploadCVCommand.reset();
+      _profileViewModel.uploadProfilePictureCommand.reset();
+    });
+
     _initializeControllers();
   }
 
@@ -177,10 +186,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         await profileViewModel.deleteCV();
       }
 
-      if (success) {
-        // Bail out if the widget got disposed while we were waiting
-        if (!mounted) return;
-
+      if (mounted &&
+          profileViewModel.updateProfileCommand.isCompleted &&
+          !profileViewModel.updateProfileCommand.hasError) {
         // Return to previous screen
         context.pop();
         messenger.showSnackBar(
