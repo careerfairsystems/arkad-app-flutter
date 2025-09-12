@@ -8,7 +8,7 @@ class AuthSessionChangedEvent {
   final AuthSession session;
 
   @override
-  String toString() => 'AuthSessionChangedEvent(user: ${session.user.email})';
+  String toString() => 'AuthSessionChangedEvent(userId: ${session.user.id})';
 }
 
 /// Event fired when user logs out
@@ -26,5 +26,5 @@ class UserSessionRefreshedEvent {
   final User user;
 
   @override
-  String toString() => 'UserSessionRefreshedEvent(user: ${user.email})';
+  String toString() => 'UserSessionRefreshedEvent(userId: ${user.id})';
 }
