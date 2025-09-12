@@ -49,5 +49,5 @@ class AuthSession {
 
   @override
   String toString() =>
-      'AuthSession(user: ${user.email}, isValid: $isValid, isExpired: $isExpired)';
+      'AuthSession(userId: ${user.id}, isValid: $isValid, isExpired: $isExpired)';
 }

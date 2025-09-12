@@ -217,7 +217,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Map<String, dynamic> _signupDataToJson(SignupData data) {
     return {
       'email': data.email,
-      'password': data.password,
+      // Password intentionally excluded from storage for security
       'firstName': data.firstName,
       'lastName': data.lastName,
       'foodPreferences': data.foodPreferences,
@@ -227,7 +227,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   SignupData _signupDataFromJson(Map<String, dynamic> json) {
     return SignupData(
       email: json['email'] as String,
-      password: json['password'] as String,
+      password: '', // Password not stored, empty string as placeholder
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
       foodPreferences: json['foodPreferences'] as String?,

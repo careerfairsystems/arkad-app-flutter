@@ -373,15 +373,13 @@ class UrlUtils {
     
     final cleanPath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
     
-    // Handle file upload paths (user/profile-picture/, user/cv/)
+    // Convert API paths to media paths
     if (cleanPath.startsWith('user/profile-picture/') || cleanPath.startsWith('user/cv/')) {
       final mediaPath = cleanPath.replaceFirst('user/profile-picture/', 'media/user/profile-pictures/')
                                  .replaceFirst('user/cv/', 'media/user/cv/');
       return '$baseUrl/$mediaPath';
     }
     
-    // Return as-is if already full URL
-    if (relativePath.startsWith('http')) return relativePath;
     return '$baseUrl/$cleanPath';
   }
 }
@@ -700,10 +698,73 @@ flutter test integration_test     # Run integration tests
 - **Security**: Avoid loose version constraints that could introduce vulnerabilities
 
 ### Security Requirements
-- **HTTPS**: All API communication
-- **Token Storage**: `flutter_secure_storage` only
-- **Bearer Token**: Always strip prefix before storage
-- **Sensitive Data**: Never log credentials, tokens, or PII
+
+#### Core Security Principles
+- **HTTPS Only**: All API communication must use HTTPS
+- **Secure Storage**: Use `flutter_secure_storage` for all sensitive data (tokens, cached profiles, signup data)
+- **Bearer Token Handling**: Always strip "Bearer " prefix before storage
+- **PII Protection**: Never expose personally identifiable information in logs, toString() methods, or error messages
+
+#### Critical Security Rules
+
+**1. Password Security**
+```dart
+// ❌ FORBIDDEN: Never store passwords in local storage
+await _secureStorage.write(key: 'password', value: userPassword);
+
+// ✅ CORRECT: Only store tokens and session data
+await _secureStorage.write(key: 'token', value: _stripBearer(userToken));
+```
+
+**2. PII Protection in toString() Methods**
+```dart
+// ❌ FORBIDDEN: Exposing email/PII in toString()
+String toString() => 'Profile(email: $email, name: $name)';
+
+// ✅ CORRECT: Use non-PII identifiers only  
+String toString() => 'Profile(id: $id, name: $name)';
+```
+
+**3. Debug Logging Protection**
+```dart
+// ❌ FORBIDDEN: Production logging without debug checks
+print('User data: $userData');
+
+// ✅ CORRECT: Debug-only logging
+if (kDebugMode) {
+  print('Debug info: $debugData');
+}
+```
+
+**4. Error Message Security**
+```dart
+// ❌ FORBIDDEN: Technical details in user-facing errors
+throw Exception('Database connection failed: ${e.stackTrace}');
+
+// ✅ CORRECT: Generic user-friendly messages
+throw NetworkError('Unable to connect to server');
+```
+
+**5. File Upload Security**
+```dart
+// ✅ REQUIRED: File size and type validation
+const maxProfilePictureSize = 5 * 1024 * 1024; // 5MB
+const allowedImageTypes = ['jpg', 'jpeg', 'png', 'webp'];
+const maxCVSize = 10 * 1024 * 1024; // 10MB
+const allowedDocumentTypes = ['pdf', 'doc', 'docx'];
+```
+
+#### Security Validation Checklist
+
+Before any code commit, verify:
+- [ ] No passwords stored in local storage
+- [ ] All toString() methods exclude PII (email, phone, personal data)
+- [ ] Debug prints wrapped with `kDebugMode` checks
+- [ ] Error messages don't expose technical details
+- [ ] File uploads have size and type validation
+- [ ] All API calls use HTTPS endpoints
+- [ ] Bearer tokens stripped before storage
+- [ ] Sensitive data cleared on logout
 
 ## Dependencies
 

@@ -4,15 +4,16 @@ class UrlUtils {
   static const String baseUrl = 'https://staging.backend.arkadtlth.se';
 
   /// Convert relative path to full URL
+  /// Backend returns relative paths like '/user/profile-picture/...' or '/user/cv/...'
+  /// These need to be converted to full media URLs
   static String? buildFullUrl(String? relativePath) {
     if (relativePath == null || relativePath.isEmpty) return null;
     
     // Remove leading slash if present
     final cleanPath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
     
-    // Handle different path patterns from the API
+    // Convert API paths to media paths
     if (cleanPath.startsWith('user/profile-picture/') || cleanPath.startsWith('user/cv/')) {
-      // Convert API paths to media paths
       // user/profile-picture/... -> media/user/profile-pictures/...
       // user/cv/... -> media/user/cv/...
       final mediaPath = cleanPath.replaceFirst('user/profile-picture/', 'media/user/profile-pictures/')
@@ -20,12 +21,7 @@ class UrlUtils {
       return '$baseUrl/$mediaPath';
     }
     
-    // If already a full URL, return as-is
-    if (relativePath.startsWith('http')) {
-      return relativePath;
-    }
-    
-    // Default: assume it's a media path
+    // Default case for other relative paths
     return '$baseUrl/$cleanPath';
   }
 }

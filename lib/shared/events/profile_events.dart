@@ -8,7 +8,7 @@ class ProfileLoadedEvent {
   final Profile profile;
 
   @override
-  String toString() => 'ProfileLoadedEvent(profile: ${profile.email})';
+  String toString() => 'ProfileLoadedEvent(profileId: ${profile.id})';
 }
 
 /// Event fired when user profile is updated
@@ -18,7 +18,7 @@ class ProfileUpdatedEvent {
   final Profile profile;
 
   @override
-  String toString() => 'ProfileUpdatedEvent(profile: ${profile.email})';
+  String toString() => 'ProfileUpdatedEvent(profileId: ${profile.id})';
 }
 
 /// Event fired when profile picture is uploaded

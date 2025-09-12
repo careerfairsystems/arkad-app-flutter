@@ -114,5 +114,5 @@ class Profile {
   int get hashCode => Object.hash(id, email);
 
   @override
-  String toString() => 'Profile(id: $id, email: $email, name: $fullName)';
+  String toString() => 'Profile(id: $id)';
 }
