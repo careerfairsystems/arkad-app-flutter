@@ -29,19 +29,18 @@ class Profile {
   final String? cvUrl;
 
   /// Check if profile has all required fields completed
-  bool get isComplete =>
-      firstName.isNotEmpty &&
-      lastName.isNotEmpty;
+  bool get isComplete => firstName.isNotEmpty && lastName.isNotEmpty;
 
   /// Includes optional fields for better user experience
   double get completionPercentage {
     int completed = 0;
-    int total = 7; // firstName, lastName, foodPreferences, programme, linkedin, picture, cv
+    int total =
+        7; // firstName, lastName, foodPreferences, programme, linkedin, picture, cv
 
     // Required fields
     if (firstName.isNotEmpty) completed++;
     if (lastName.isNotEmpty) completed++;
-    
+
     // Optional fields (improve completion score)
     if (foodPreferences?.isNotEmpty ?? false) completed++;
     if (programme != null) completed++;

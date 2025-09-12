@@ -163,9 +163,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ? null
                 : _masterTitleController.text,
         studyYear: _studyYear,
-        foodPreferences: _foodPreferencesController.text.trim().isNotEmpty
-            ? _foodPreferencesController.text.trim()
-            : null,
+        foodPreferences:
+            _foodPreferencesController.text.trim().isNotEmpty
+                ? _foodPreferencesController.text.trim()
+                : null,
       );
 
       // Update profile using clean architecture
@@ -405,7 +406,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          icon: const Icon(Icons.save, color: ArkadColors.white),
+                          icon: const Icon(
+                            Icons.save,
+                            color: ArkadColors.white,
+                          ),
                           label: const Text('Save Changes'),
                         ),
                       ),

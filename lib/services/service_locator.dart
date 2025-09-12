@@ -216,7 +216,8 @@ void _setupProfileFeature() {
       uploadProfilePictureUseCase:
           serviceLocator<UploadProfilePictureUseCase>(),
       uploadCVUseCase: serviceLocator<UploadCVUseCase>(),
-      deleteProfilePictureUseCase: serviceLocator<DeleteProfilePictureUseCase>(),
+      deleteProfilePictureUseCase:
+          serviceLocator<DeleteProfilePictureUseCase>(),
       deleteCVUseCase: serviceLocator<DeleteCVUseCase>(),
     ),
   );

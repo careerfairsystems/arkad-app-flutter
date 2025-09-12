@@ -201,5 +201,4 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       throw ApiException('CV deletion failed: ${e.toString()}');
     }
   }
-
 }

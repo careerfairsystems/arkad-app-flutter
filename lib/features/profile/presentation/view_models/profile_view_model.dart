@@ -26,13 +26,13 @@ class ProfileViewModel extends ChangeNotifier {
   StreamSubscription? _authSessionSubscription;
   StreamSubscription? _logoutSubscription;
 
-  // Commands for UI operations 
+  // Commands for UI operations
   late final GetProfileCommand _getProfileCommand;
   late final UpdateProfileCommand _updateProfileCommand;
   late final UploadProfilePictureCommand _uploadProfilePictureCommand;
   late final UploadCVCommand _uploadCVCommand;
 
-  // Current profile state 
+  // Current profile state
   Profile? _currentProfile;
 
   ProfileViewModel({
@@ -70,7 +70,7 @@ class ProfileViewModel extends ChangeNotifier {
     );
     _uploadCVCommand = UploadCVCommand(uploadCVUseCase);
 
-    // Command coordination 
+    // Command coordination
     _getProfileCommand.addListener(_onGetProfileCommandChanged);
     _updateProfileCommand.addListener(_onUpdateProfileCommandChanged);
     _uploadProfilePictureCommand.addListener(
@@ -185,7 +185,7 @@ class ProfileViewModel extends ChangeNotifier {
     if (_currentProfile == null) return false;
 
     final result = await _deleteProfilePictureUseCase.call();
-    
+
     return result.when(
       success: (_) {
         // Fire profile picture deleted event
@@ -202,7 +202,7 @@ class ProfileViewModel extends ChangeNotifier {
     if (_currentProfile == null) return false;
 
     final result = await _deleteCVUseCase.call();
-    
+
     return result.when(
       success: (_) {
         // Fire CV deleted event

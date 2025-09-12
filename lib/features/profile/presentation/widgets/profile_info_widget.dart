@@ -110,7 +110,9 @@ class ProfileInfoWidget extends StatelessWidget {
         if (profile.programme != null) ...[
           Builder(
             builder: (context) {
-              final programmeLabel = ProgrammeUtils.programmeToLabel(profile.programme!);
+              final programmeLabel = ProgrammeUtils.programmeToLabel(
+                profile.programme!,
+              );
               if (programmeLabel != null && programmeLabel.isNotEmpty) {
                 return _buildInfoTile(context, "Programme", programmeLabel);
               }
@@ -123,7 +125,9 @@ class ProfileInfoWidget extends StatelessWidget {
         if (profile.linkedin != null && profile.linkedin!.isNotEmpty) ...[
           Builder(
             builder: (context) {
-              final linkedInUrl = ValidationService.buildLinkedInUrl(profile.linkedin!);
+              final linkedInUrl = ValidationService.buildLinkedInUrl(
+                profile.linkedin!,
+              );
               return InkWell(
                 onTap: () => _launchUrl(context, linkedInUrl),
                 child: _buildInfoTile(

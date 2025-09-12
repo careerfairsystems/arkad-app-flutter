@@ -28,7 +28,7 @@ class UploadProfilePictureCommand
   ) async {
     if (isExecuting) return false;
 
-    clearError(); 
+    clearError();
     setExecuting(true);
 
     try {
@@ -60,7 +60,7 @@ class UploadProfilePictureCommand
       }
       return false;
     } finally {
-      setExecuting(false); 
+      setExecuting(false);
     }
   }
 

@@ -16,7 +16,7 @@ class GetProfileCommand extends Command<Profile> {
   Future<void> execute() async {
     if (isExecuting) return;
 
-    clearError(); 
+    clearError();
     setExecuting(true);
 
     try {

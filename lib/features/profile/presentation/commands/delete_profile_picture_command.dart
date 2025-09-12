@@ -27,7 +27,11 @@ class DeleteProfilePictureCommand extends VoidCommand {
     } catch (e) {
       if (e is DioException) {
         setError(
-          ErrorMapper.fromDioException(e, null, operationContext: 'delete_profile_picture'),
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'delete_profile_picture',
+          ),
         );
       } else {
         setError(UnknownError(e.toString()));

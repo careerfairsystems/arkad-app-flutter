@@ -268,7 +268,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
     return suggestions;
   }
 
-
   String? _getMimeType(String filePath) {
     final extension = filePath.split('.').last.toLowerCase();
     switch (extension) {

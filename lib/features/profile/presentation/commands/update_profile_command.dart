@@ -17,7 +17,7 @@ class UpdateProfileCommand
   Future<bool> executeForResultWithParams(UpdateProfileParams params) async {
     if (isExecuting) return false;
 
-    clearError(); 
+    clearError();
     setExecuting(true);
 
     try {
@@ -49,7 +49,7 @@ class UpdateProfileCommand
       }
       return false;
     } finally {
-      setExecuting(false); 
+      setExecuting(false);
     }
   }
 

@@ -32,7 +32,6 @@ class UpdateProfileUseCase extends UseCase<Profile, UpdateProfileParams> {
     // Update profile
     return await _repository.updateProfile(params.profile);
   }
-
 }
 
 /// Parameters for update profile use case

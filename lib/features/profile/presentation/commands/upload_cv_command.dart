@@ -22,7 +22,7 @@ class UploadCVCommand
   Future<bool> executeForResultWithParams(UploadCVParams params) async {
     if (isExecuting) return false;
 
-    clearError(); 
+    clearError();
     setExecuting(true);
 
     try {
@@ -50,7 +50,7 @@ class UploadCVCommand
       }
       return false;
     } finally {
-      setExecuting(false); 
+      setExecuting(false);
     }
   }
 

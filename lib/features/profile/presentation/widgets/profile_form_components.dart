@@ -136,7 +136,8 @@ class ProfileFormComponents {
             labelText: 'LinkedIn',
             hintText: 'e.g., yourname or linkedin.com/in/yourname',
             border: OutlineInputBorder(),
-            helperText: 'Optional - Enter your LinkedIn username or full profile URL',
+            helperText:
+                'Optional - Enter your LinkedIn username or full profile URL',
           ),
         ),
         const SizedBox(height: 16),
