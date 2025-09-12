@@ -88,8 +88,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           .getUserProfileApi()
           .userModelsApiUpdateProfilePicture(profilePicture: multipartFile);
 
-      if (response.isSuccess && response.data != null) {
-        return response.data!;
+      if (response.isSuccess) {
+        return 'success'; // Return success indicator, not a URL
       } else {
         throw ApiException('Profile picture upload failed: ${response.error}');
       }
@@ -125,8 +125,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         cv: multipartFile,
       );
 
-      if (response.isSuccess && response.data != null) {
-        return response.data!;
+      if (response.isSuccess) {
+        return 'success'; // Return success indicator, not a URL
       } else {
         throw ApiException('CV upload failed: ${response.error}');
       }

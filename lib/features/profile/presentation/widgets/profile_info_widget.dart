@@ -1,23 +1,33 @@
-import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../shared/domain/validation_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../../domain/entities/profile.dart';
+import '../../domain/entities/programme.dart';
 
 class ProfileInfoWidget extends StatelessWidget {
-  final ProfileSchema profile;
+  final Profile profile;
 
   const ProfileInfoWidget({super.key, required this.profile});
 
   Future<void> _launchUrl(BuildContext context, String url) async {
-    final Uri uri = Uri.parse(url.startsWith('http') ? url : 'https://$url');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Could not open $url')));
+        }
+      }
+    } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Could not open $url')));
+        ).showSnackBar(const SnackBar(content: Text('Invalid URL format')));
       }
     }
   }
@@ -38,7 +48,7 @@ class ProfileInfoWidget extends StatelessWidget {
               label,
               style: Theme.of(
                 context,
-              ).textTheme.titleSmall?.copyWith(color: Colors.grey[600]),
+              ).textTheme.titleSmall?.copyWith(color: ArkadColors.gray),
             ),
           ),
           Expanded(
@@ -60,7 +70,7 @@ class ProfileInfoWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Profile header with image and name
+        // Profile header with image and name only
         Center(
           child: Column(
             children: [
@@ -69,13 +79,13 @@ class ProfileInfoWidget extends StatelessWidget {
                 child: CircleAvatar(
                   radius: 60,
                   backgroundImage:
-                      profile.profilePicture != null &&
-                              profile.profilePicture!.isNotEmpty
-                          ? NetworkImage(profile.profilePicture!)
+                      profile.profilePictureUrl != null &&
+                              profile.profilePictureUrl!.isNotEmpty
+                          ? NetworkImage(profile.profilePictureUrl!)
                           : null,
                   child:
-                      profile.profilePicture == null ||
-                              profile.profilePicture!.isEmpty
+                      profile.profilePictureUrl == null ||
+                              profile.profilePictureUrl!.isEmpty
                           ? const Icon(Icons.person, size: 60)
                           : null,
                 ),
@@ -85,18 +95,6 @@ class ProfileInfoWidget extends StatelessWidget {
                 "${profile.firstName} ${profile.lastName}",
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              Text(
-                profile.email,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              if (profile.programme != null &&
-                  profile.programme!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  profile.programme!,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
             ],
           ),
         ),
@@ -108,17 +106,40 @@ class ProfileInfoWidget extends StatelessWidget {
         // Basic information section
         _buildInfoTile(context, "Email", profile.email),
 
-        // LinkedIn info with clickable link
-        if (profile.linkedin != null && profile.linkedin!.isNotEmpty)
-          InkWell(
-            onTap: () => _launchUrl(context, profile.linkedin!),
-            child: _buildInfoTile(
-              context,
-              "LinkedIn",
-              profile.linkedin!,
-              isLink: true,
-            ),
+        // Programme information
+        if (profile.programme != null) ...[
+          Builder(
+            builder: (context) {
+              final programmeLabel = ProgrammeUtils.programmeToLabel(
+                profile.programme!,
+              );
+              if (programmeLabel != null && programmeLabel.isNotEmpty) {
+                return _buildInfoTile(context, "Programme", programmeLabel);
+              }
+              return const SizedBox.shrink();
+            },
           ),
+        ],
+
+        // LinkedIn info with clickable link
+        if (profile.linkedin != null && profile.linkedin!.isNotEmpty) ...[
+          Builder(
+            builder: (context) {
+              final linkedInUrl = ValidationService.buildLinkedInUrl(
+                profile.linkedin!,
+              );
+              return InkWell(
+                onTap: () => _launchUrl(context, linkedInUrl),
+                child: _buildInfoTile(
+                  context,
+                  "LinkedIn",
+                  linkedInUrl,
+                  isLink: true,
+                ),
+              );
+            },
+          ),
+        ],
 
         // Education information
         if (profile.studyYear != null)
@@ -133,11 +154,11 @@ class ProfileInfoWidget extends StatelessWidget {
           _buildInfoTile(context, "Food Preferences", profile.foodPreferences!),
 
         // CV display and link
-        if (profile.cv != null && profile.cv!.isNotEmpty) ...[
+        if (profile.cvUrl != null && profile.cvUrl!.isNotEmpty) ...[
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () => _launchUrl(context, profile.cv!),
-            icon: const Icon(Icons.description),
+            onPressed: () => _launchUrl(context, profile.cvUrl!),
+            icon: const Icon(Icons.description, color: ArkadColors.white),
             label: const Text("View CV"),
           ),
         ],

@@ -8,6 +8,8 @@ import '../../../../shared/events/app_events.dart';
 import '../../../../shared/events/auth_events.dart';
 import '../../../../shared/events/profile_events.dart';
 import '../../domain/entities/profile.dart';
+import '../../domain/use_cases/delete_cv_use_case.dart';
+import '../../domain/use_cases/delete_profile_picture_use_case.dart';
 import '../../domain/use_cases/get_current_profile_use_case.dart';
 import '../../domain/use_cases/update_profile_use_case.dart';
 import '../../domain/use_cases/upload_cv_use_case.dart';
@@ -23,10 +25,6 @@ class ProfileViewModel extends ChangeNotifier {
   // Stream subscriptions for authentication events
   StreamSubscription? _authSessionSubscription;
   StreamSubscription? _logoutSubscription;
-  final GetCurrentProfileUseCase _getCurrentProfileUseCase;
-  final UpdateProfileUseCase _updateProfileUseCase;
-  final UploadProfilePictureUseCase _uploadProfilePictureUseCase;
-  final UploadCVUseCase _uploadCVUseCase;
 
   // Commands for UI operations
   late final GetProfileCommand _getProfileCommand;
@@ -36,59 +34,103 @@ class ProfileViewModel extends ChangeNotifier {
 
   // Current profile state
   Profile? _currentProfile;
-  AppError? _error;
 
   ProfileViewModel({
     required GetCurrentProfileUseCase getCurrentProfileUseCase,
     required UpdateProfileUseCase updateProfileUseCase,
     required UploadProfilePictureUseCase uploadProfilePictureUseCase,
     required UploadCVUseCase uploadCVUseCase,
-  }) : _getCurrentProfileUseCase = getCurrentProfileUseCase,
-       _updateProfileUseCase = updateProfileUseCase,
-       _uploadProfilePictureUseCase = uploadProfilePictureUseCase,
-       _uploadCVUseCase = uploadCVUseCase {
-    _initializeCommands();
+    required DeleteProfilePictureUseCase deleteProfilePictureUseCase,
+    required DeleteCVUseCase deleteCVUseCase,
+  }) : _deleteProfilePictureUseCase = deleteProfilePictureUseCase,
+       _deleteCVUseCase = deleteCVUseCase {
+    _initializeCommands(
+      getCurrentProfileUseCase,
+      updateProfileUseCase,
+      uploadProfilePictureUseCase,
+      uploadCVUseCase,
+    );
     _subscribeToAuthEvents();
     // Profile will be loaded when explicitly requested or after auth success
   }
 
-  void _initializeCommands() {
-    _getProfileCommand = GetProfileCommand(_getCurrentProfileUseCase);
-    _updateProfileCommand = UpdateProfileCommand(_updateProfileUseCase);
-    _uploadProfilePictureCommand = UploadProfilePictureCommand(
-      _uploadProfilePictureUseCase,
-    );
-    _uploadCVCommand = UploadCVCommand(_uploadCVUseCase);
+  final DeleteProfilePictureUseCase _deleteProfilePictureUseCase;
+  final DeleteCVUseCase _deleteCVUseCase;
 
-    // Listen to command changes
-    _getProfileCommand.addListener(_onCommandStateChanged);
-    _updateProfileCommand.addListener(_onCommandStateChanged);
-    _uploadProfilePictureCommand.addListener(_onCommandStateChanged);
-    _uploadCVCommand.addListener(_onCommandStateChanged);
+  void _initializeCommands(
+    GetCurrentProfileUseCase getCurrentProfileUseCase,
+    UpdateProfileUseCase updateProfileUseCase,
+    UploadProfilePictureUseCase uploadProfilePictureUseCase,
+    UploadCVUseCase uploadCVUseCase,
+  ) {
+    _getProfileCommand = GetProfileCommand(getCurrentProfileUseCase);
+    _updateProfileCommand = UpdateProfileCommand(updateProfileUseCase);
+    _uploadProfilePictureCommand = UploadProfilePictureCommand(
+      uploadProfilePictureUseCase,
+    );
+    _uploadCVCommand = UploadCVCommand(uploadCVUseCase);
+
+    // Command coordination
+    _getProfileCommand.addListener(_onGetProfileCommandChanged);
+    _updateProfileCommand.addListener(_onUpdateProfileCommandChanged);
+    _uploadProfilePictureCommand.addListener(
+      _onUploadProfilePictureCommandChanged,
+    );
+    _uploadCVCommand.addListener(_onUploadCVCommandChanged);
   }
 
-  void _onCommandStateChanged() {
-    // Update current profile from the most recently completed command
+  // Command coordination handlers
+  void _onGetProfileCommandChanged() {
     if (_getProfileCommand.isCompleted && _getProfileCommand.result != null) {
       _currentProfile = _getProfileCommand.result;
-    } else if (_updateProfileCommand.isCompleted &&
+      // Fire profile loaded event
+      _fireProfileEvent(ProfileLoadedEvent(_getProfileCommand.result!));
+    }
+    notifyListeners();
+  }
+
+  void _onUpdateProfileCommandChanged() {
+    if (_updateProfileCommand.isCompleted &&
         _updateProfileCommand.result != null) {
       _currentProfile = _updateProfileCommand.result;
+      // Fire profile updated event
+      _fireProfileEvent(ProfileUpdatedEvent(_updateProfileCommand.result!));
     }
+    notifyListeners();
+  }
 
-    // Update error state from any failed command
-    _error =
-        _getProfileCommand.error ??
-        _updateProfileCommand.error ??
-        _uploadProfilePictureCommand.error ??
-        _uploadCVCommand.error;
+  void _onUploadProfilePictureCommandChanged() {
+    if (_uploadProfilePictureCommand.isCompleted &&
+        _uploadProfilePictureCommand.uploadResult != null) {
+      // Fire profile picture uploaded event
+      _fireProfileEvent(
+        ProfilePictureUploadedEvent(_uploadProfilePictureCommand.uploadResult!),
+      );
+      // Refresh profile to get updated picture URL
+      loadProfile();
+    }
+    notifyListeners();
+  }
 
+  void _onUploadCVCommandChanged() {
+    if (_uploadCVCommand.isCompleted && _uploadCVCommand.uploadResult != null) {
+      // Fire CV uploaded event
+      _fireProfileEvent(CVUploadedEvent(_uploadCVCommand.uploadResult!));
+      // Refresh profile to get updated CV URL
+      loadProfile();
+    }
     notifyListeners();
   }
 
   // Getters for UI state
   Profile? get currentProfile => _currentProfile;
-  AppError? get error => _error;
+
+  // Aggregate error from all commands
+  AppError? get error =>
+      _getProfileCommand.error ??
+      _updateProfileCommand.error ??
+      _uploadProfilePictureCommand.error ??
+      _uploadCVCommand.error;
 
   // Command getters for UI
   GetProfileCommand get getProfileCommand => _getProfileCommand;
@@ -108,22 +150,19 @@ class ProfileViewModel extends ChangeNotifier {
 
   List<String> get missingRequiredFields {
     if (_currentProfile == null) {
-      return ['Email', 'First Name', 'Last Name', 'Food Preferences'];
+      return ['Email', 'First Name', 'Last Name'];
     }
 
     final missing = <String>[];
     if (_currentProfile!.firstName.isEmpty) missing.add('First Name');
     if (_currentProfile!.lastName.isEmpty) missing.add('Last Name');
-    if (_currentProfile!.foodPreferences?.isEmpty ?? true) {
-      missing.add('Food Preferences');
-    }
+    // Food preferences are optional
 
     return missing;
   }
 
   bool get isProfileComplete => missingRequiredFields.isEmpty;
 
-  // Public methods for UI interactions
   Future<void> loadProfile() async {
     await _getProfileCommand.execute();
   }
@@ -131,84 +170,68 @@ class ProfileViewModel extends ChangeNotifier {
   Future<bool> updateProfile(Profile profile) async {
     // Reset get command so update result can take priority
     _getProfileCommand.reset();
-
-    final result = await _updateProfileCommand.updateProfile(profile);
-
-    if (result) {
-      // Fire profile updated event
-      AppEvents.fire(ProfileUpdatedEvent(profile));
-      return true;
-    }
-
-    return false;
+    return await _updateProfileCommand.updateProfile(profile);
   }
 
   Future<bool> uploadProfilePicture(File file) async {
-    final result = await _uploadProfilePictureCommand.uploadProfilePicture(
-      file,
-    );
-
-    if (result && _uploadProfilePictureCommand.uploadResult != null) {
-      // Fire profile picture uploaded event
-      AppEvents.fire(
-        ProfilePictureUploadedEvent(_uploadProfilePictureCommand.uploadResult!),
-      );
-
-      // Refresh profile to get updated picture URL
-      await loadProfile();
-      return true;
-    }
-
-    return false;
+    return await _uploadProfilePictureCommand.uploadProfilePicture(file);
   }
 
   Future<bool> uploadCV(File file) async {
-    final result = await _uploadCVCommand.uploadCV(file);
-
-    if (result && _uploadCVCommand.uploadResult != null) {
-      // Fire CV uploaded event
-      AppEvents.fire(CVUploadedEvent(_uploadCVCommand.uploadResult!));
-
-      // Refresh profile to get updated CV URL
-      await loadProfile();
-      return true;
-    }
-
-    return false;
+    return await _uploadCVCommand.uploadCV(file);
   }
 
-  Future<void> deleteProfilePicture() async {
-    if (_currentProfile == null) return;
+  Future<bool> deleteProfilePicture() async {
+    if (_currentProfile == null) return false;
 
-    final updatedProfile = _currentProfile!.copyWith(profilePictureUrl: '');
-    final success = await updateProfile(updatedProfile);
+    final result = await _deleteProfilePictureUseCase.call();
 
-    if (success && _currentProfile != null) {
-      // Fire profile picture deleted event
-      AppEvents.fire(ProfilePictureDeletedEvent(_currentProfile!.id));
-    }
+    return result.when(
+      success: (_) {
+        // Fire profile picture deleted event
+        _fireProfileEvent(ProfilePictureDeletedEvent(_currentProfile!.id));
+        // Refresh profile to get updated state
+        loadProfile();
+        return true;
+      },
+      failure: (_) => false,
+    );
   }
 
-  Future<void> deleteCV() async {
-    if (_currentProfile == null) return;
+  Future<bool> deleteCV() async {
+    if (_currentProfile == null) return false;
 
-    final updatedProfile = _currentProfile!.copyWith(cvUrl: '');
-    final success = await updateProfile(updatedProfile);
+    final result = await _deleteCVUseCase.call();
 
-    if (success && _currentProfile != null) {
-      // Fire CV deleted event
-      AppEvents.fire(CVDeletedEvent(_currentProfile!.id));
-    }
+    return result.when(
+      success: (_) {
+        // Fire CV deleted event
+        _fireProfileEvent(CVDeletedEvent(_currentProfile!.id));
+        // Refresh profile to get updated state
+        loadProfile();
+        return true;
+      },
+      failure: (_) => false,
+    );
   }
 
   Future<void> refreshProfile() async {
+    // Clear all command errors before refreshing
+    clearError();
     await loadProfile();
   }
 
   void clearError() {
-    _error = null;
+    // Clear all command errors
+    _getProfileCommand.clearError();
+    _updateProfileCommand.clearError();
+    _uploadProfilePictureCommand.clearError();
+    _uploadCVCommand.clearError();
     notifyListeners();
   }
+
+  /// Fire profile events - only from ViewModels
+  void _fireProfileEvent(Object event) => AppEvents.fire(event);
 
   /// Subscribe to authentication events to automatically load profile
   void _subscribeToAuthEvents() {
@@ -231,17 +254,25 @@ class ProfileViewModel extends ChangeNotifier {
   /// Handle sign out by clearing profile data
   void _onUserSignedOut() {
     _currentProfile = null;
-    _error = null;
+    // Clear all command states
+    _getProfileCommand.reset();
+    _updateProfileCommand.reset();
+    _uploadProfilePictureCommand.reset();
+    _uploadCVCommand.reset();
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _getProfileCommand.removeListener(_onCommandStateChanged);
-    _updateProfileCommand.removeListener(_onCommandStateChanged);
-    _uploadProfilePictureCommand.removeListener(_onCommandStateChanged);
-    _uploadCVCommand.removeListener(_onCommandStateChanged);
+    // Remove command listeners
+    _getProfileCommand.removeListener(_onGetProfileCommandChanged);
+    _updateProfileCommand.removeListener(_onUpdateProfileCommandChanged);
+    _uploadProfilePictureCommand.removeListener(
+      _onUploadProfilePictureCommandChanged,
+    );
+    _uploadCVCommand.removeListener(_onUploadCVCommandChanged);
 
+    // Dispose commands
     _getProfileCommand.dispose();
     _updateProfileCommand.dispose();
     _uploadProfilePictureCommand.dispose();

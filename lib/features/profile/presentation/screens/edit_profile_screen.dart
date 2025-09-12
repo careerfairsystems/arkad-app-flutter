@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../services/service_locator.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
+import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/programme.dart';
 import '../view_models/profile_view_model.dart';
 import '../widgets/profile_form_components.dart';
@@ -47,6 +48,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     _profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
     _profileViewModel.addListener(_onProfileChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Reset all command states to prevent stale errors/states
+      _profileViewModel.getProfileCommand.reset();
+      _profileViewModel.updateProfileCommand.reset();
+      _profileViewModel.uploadCVCommand.reset();
+      _profileViewModel.uploadProfilePictureCommand.reset();
+    });
+
     _initializeControllers();
   }
 
@@ -153,44 +163,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ? null
                 : _masterTitleController.text,
         studyYear: _studyYear,
-        foodPreferences: _foodPreferencesController.text,
+        foodPreferences:
+            _foodPreferencesController.text.trim().isNotEmpty
+                ? _foodPreferencesController.text.trim()
+                : null,
       );
 
       // Update profile using clean architecture
       bool success = await profileViewModel.updateProfile(updatedProfile);
 
       // Handle file uploads if needed
-      if (success && _selectedImage != null) {
-        success = await profileViewModel.uploadProfilePicture(_selectedImage!);
+      var overallSuccess = success;
+      if (overallSuccess && _selectedImage != null) {
+        overallSuccess = await profileViewModel.uploadProfilePicture(
+          _selectedImage!,
+        );
       }
-
-      if (success && _selectedCV != null) {
-        success = await profileViewModel.uploadCV(_selectedCV!);
+      if (overallSuccess && _selectedCV != null) {
+        overallSuccess = await profileViewModel.uploadCV(_selectedCV!);
       }
 
       // Handle file deletions if needed
-      if (success && _profilePictureDeleted) {
-        await profileViewModel.deleteProfilePicture();
+      if (overallSuccess && _profilePictureDeleted) {
+        overallSuccess = await profileViewModel.deleteProfilePicture();
+      }
+      if (overallSuccess && _cvDeleted) {
+        overallSuccess = await profileViewModel.deleteCV();
       }
 
-      if (success && _cvDeleted) {
-        await profileViewModel.deleteCV();
-      }
-
-      if (success) {
-        // Bail out if the widget got disposed while we were waiting
-        if (!mounted) return;
-
-        // Return to previous screen
-        context.pop();
+      if (mounted && overallSuccess && profileViewModel.error == null) {
         messenger.showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
         );
-      } else if (profileViewModel.error != null && mounted) {
+        context.pop();
+      } else if (mounted) {
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to update profile: ${profileViewModel.error!.userMessage}',
+              profileViewModel.error != null
+                  ? 'Failed to update profile: ${profileViewModel.error!.userMessage}'
+                  : 'Some changes could not be saved. Please try again.',
             ),
           ),
         );
@@ -270,7 +282,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             const Text(
                               'Profile Picture (Optional)',
                               style: TextStyle(
-                                color: Colors.grey,
+                                color: ArkadColors.gray,
                                 fontSize: 12,
                               ),
                             ),
@@ -285,11 +297,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           margin: const EdgeInsets.only(bottom: 16),
-                          color: Colors.red.shade100,
+                          color: ArkadColors.lightRed.withValues(alpha: 0.1),
                           child: Text(
                             error.userMessage,
                             style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: Colors.red.shade800),
+                                ?.copyWith(color: ArkadColors.lightRed),
                           ),
                         ),
 
@@ -359,11 +371,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         'Additional Information',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Food preferences are required, other fields are optional',
-                        style: TextStyle(fontSize: 12),
-                      ),
                       const SizedBox(height: 16),
 
                       ProfileFormComponents.buildPreferencesFields(
@@ -376,10 +383,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       // CV management section
                       const Text(
                         'CV / Resume (Optional)',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
 
@@ -397,12 +401,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       // Save button
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
+                        child: ElevatedButton.icon(
                           onPressed: _updateProfile,
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Text('Save Changes'),
+                          icon: const Icon(
+                            Icons.save,
+                            color: ArkadColors.white,
+                          ),
+                          label: const Text('Save Changes'),
                         ),
                       ),
                     ],

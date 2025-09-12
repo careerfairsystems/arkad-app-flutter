@@ -1,3 +1,7 @@
+import 'package:dio/dio.dart';
+
+import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/result_command.dart';
 import '../../domain/entities/profile.dart';
 import '../../domain/use_cases/update_profile_use_case.dart';
@@ -13,23 +17,40 @@ class UpdateProfileCommand
   Future<bool> executeForResultWithParams(UpdateProfileParams params) async {
     if (isExecuting) return false;
 
+    clearError();
     setExecuting(true);
 
-    final result = await _useCase(params);
+    try {
+      final result = await _useCase(params);
 
-    final success = result.when(
-      success: (updatedProfile) {
-        setResult(updatedProfile);
-        return true;
-      },
-      failure: (error) {
-        setError(error);
-        return false;
-      },
-    );
+      final success = result.when(
+        success: (updatedProfile) {
+          setResult(updatedProfile);
+          return true;
+        },
+        failure: (error) {
+          setError(error);
+          return false;
+        },
+      );
 
-    setExecuting(false);
-    return success;
+      return success;
+    } catch (e) {
+      if (e is DioException) {
+        setError(
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'update_profile',
+          ),
+        );
+      } else {
+        setError(UnknownError(e.toString()));
+      }
+      return false;
+    } finally {
+      setExecuting(false);
+    }
   }
 
   /// Convenience method for executing with profile

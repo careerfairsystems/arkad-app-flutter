@@ -1,6 +1,16 @@
 import '../../features/profile/domain/entities/file_upload_result.dart';
 import '../../features/profile/domain/entities/profile.dart';
 
+/// Event fired when user profile is loaded
+class ProfileLoadedEvent {
+  const ProfileLoadedEvent(this.profile);
+
+  final Profile profile;
+
+  @override
+  String toString() => 'ProfileLoadedEvent(profileId: ${profile.id})';
+}
+
 /// Event fired when user profile is updated
 class ProfileUpdatedEvent {
   const ProfileUpdatedEvent(this.profile);
@@ -8,7 +18,7 @@ class ProfileUpdatedEvent {
   final Profile profile;
 
   @override
-  String toString() => 'ProfileUpdatedEvent(profile: ${profile.email})';
+  String toString() => 'ProfileUpdatedEvent(profileId: ${profile.id})';
 }
 
 /// Event fired when profile picture is uploaded
