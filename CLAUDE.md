@@ -361,6 +361,40 @@ abstract class BaseRepository {
 }
 ```
 
+### Validation Services (`shared/domain/validation_service.dart`)
+
+```dart
+// Centralized validation logic to prevent duplication
+class ValidationService {
+  static bool isValidLinkedInUrl(String url) {
+    // Accepts usernames (john-smith) or full URLs
+    final patterns = [
+      r'^https://www\.linkedin\.com/in/[a-zA-Z0-9_-]+/?$',
+      r'^www\.linkedin\.com/in/[a-zA-Z0-9_-]+/?$',
+      r'^[a-zA-Z0-9_-]+$', // Just username
+    ];
+    return patterns.any((pattern) => RegExp(pattern, caseSensitive: false).hasMatch(url));
+  }
+  
+  static String buildLinkedInUrl(String input) {
+    // Converts usernames to full URLs for display/navigation
+    // 'john-smith' → 'https://www.linkedin.com/in/john-smith'
+    // 'www.linkedin.com/in/john' → 'https://www.linkedin.com/in/john'
+    if (input.startsWith('https://')) return input;
+    if (input.startsWith('www.') || input.startsWith('linkedin.com')) return 'https://$input';
+    if (RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(input)) return 'https://www.linkedin.com/in/$input';
+    return 'https://www.linkedin.com/in/$input';
+  }
+  
+  static bool isValidEmail(String email) { /* ... */ }
+  static bool isValidStudyYear(int? studyYear) { /* ... */ }
+}
+
+// Usage patterns
+// Validation: ValidationService.isValidLinkedInUrl(profile.linkedin!)
+// Display: ValidationService.buildLinkedInUrl(profile.linkedin!) // Shows full URL
+```
+
 ### URL Utilities (`shared/data/url_utils.dart`)
 
 ```dart

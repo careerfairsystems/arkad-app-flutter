@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../shared/domain/validation_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/profile.dart';
 import '../../domain/entities/programme.dart';
@@ -11,14 +12,22 @@ class ProfileInfoWidget extends StatelessWidget {
   const ProfileInfoWidget({super.key, required this.profile});
 
   Future<void> _launchUrl(BuildContext context, String url) async {
-    final Uri uri = Uri.parse(url.startsWith('http') ? url : 'https://$url');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Could not open $url')));
+        }
+      }
+    } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Could not open $url')));
+        ).showSnackBar(const SnackBar(content: Text('Invalid URL format')));
       }
     }
   }
@@ -111,16 +120,22 @@ class ProfileInfoWidget extends StatelessWidget {
         ],
 
         // LinkedIn info with clickable link
-        if (profile.linkedin != null && profile.linkedin!.isNotEmpty)
-          InkWell(
-            onTap: () => _launchUrl(context, profile.linkedin!),
-            child: _buildInfoTile(
-              context,
-              "LinkedIn",
-              profile.linkedin!,
-              isLink: true,
-            ),
+        if (profile.linkedin != null && profile.linkedin!.isNotEmpty) ...[
+          Builder(
+            builder: (context) {
+              final linkedInUrl = ValidationService.buildLinkedInUrl(profile.linkedin!);
+              return InkWell(
+                onTap: () => _launchUrl(context, linkedInUrl),
+                child: _buildInfoTile(
+                  context,
+                  "LinkedIn",
+                  linkedInUrl,
+                  isLink: true,
+                ),
+              );
+            },
           ),
+        ],
 
         // Education information
         if (profile.studyYear != null)

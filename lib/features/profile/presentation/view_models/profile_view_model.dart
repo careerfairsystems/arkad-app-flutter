@@ -216,6 +216,8 @@ class ProfileViewModel extends ChangeNotifier {
   }
 
   Future<void> refreshProfile() async {
+    // Clear all command errors before refreshing
+    clearError();
     await loadProfile();
   }
 

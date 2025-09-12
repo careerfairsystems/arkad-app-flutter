@@ -4,7 +4,6 @@ import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
 
 import '../../../../api/extensions.dart';
-import '../../../../shared/data/url_utils.dart';
 import '../../../../shared/errors/exception.dart';
 
 /// Abstract interface for profile remote data source
@@ -89,9 +88,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           .getUserProfileApi()
           .userModelsApiUpdateProfilePicture(profilePicture: multipartFile);
 
-      if (response.isSuccess && response.data != null) {
-        final relativePath = response.data!;
-        return UrlUtils.buildFullUrl(relativePath) ?? relativePath;
+      if (response.isSuccess) {
+        return 'success'; // Return success indicator, not a URL
       } else {
         throw ApiException('Profile picture upload failed: ${response.error}');
       }
@@ -127,9 +125,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         cv: multipartFile,
       );
 
-      if (response.isSuccess && response.data != null) {
-        final relativePath = response.data!;
-        return UrlUtils.buildFullUrl(relativePath) ?? relativePath;
+      if (response.isSuccess) {
+        return 'success'; // Return success indicator, not a URL
       } else {
         throw ApiException('CV upload failed: ${response.error}');
       }

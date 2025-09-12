@@ -14,9 +14,9 @@ class UrlUtils {
     
     // Convert API paths to media paths
     if (cleanPath.startsWith('user/profile-picture/') || cleanPath.startsWith('user/cv/')) {
-      // user/profile-picture/... -> media/user/profile-pictures/...
+      // user/profile-picture/... -> media/user/profile-picture/...
       // user/cv/... -> media/user/cv/...
-      final mediaPath = cleanPath.replaceFirst('user/profile-picture/', 'media/user/profile-pictures/')
+      final mediaPath = cleanPath.replaceFirst('user/profile-picture/', 'media/user/profile-picture/')
                                  .replaceFirst('user/cv/', 'media/user/cv/');
       return '$baseUrl/$mediaPath';
     }

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../../../../shared/domain/result.dart';
+import '../../../../shared/domain/validation_service.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/exception.dart';
 import '../../domain/entities/file_upload_result.dart';
@@ -95,11 +96,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   Future<Result<FileUploadResult>> uploadProfilePicture(File imageFile) async {
     try {
-      final fileUrl = await _remoteDataSource.uploadProfilePicture(imageFile);
+      await _remoteDataSource.uploadProfilePicture(imageFile);
 
       final result = FileUploadResult(
         fileName: imageFile.path.split('/').last,
-        fileUrl: fileUrl,
+        fileUrl: '', // Empty URL - will be populated after profile refresh
         fileSize: await imageFile.length(),
         uploadedAt: DateTime.now(),
         mimeType: _getMimeType(imageFile.path),
@@ -133,11 +134,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   Future<Result<FileUploadResult>> uploadCV(File cvFile) async {
     try {
-      final fileUrl = await _remoteDataSource.uploadCV(cvFile);
+      await _remoteDataSource.uploadCV(cvFile);
 
       final result = FileUploadResult(
         fileName: cvFile.path.split('/').last,
-        fileUrl: fileUrl,
+        fileUrl: '', // Empty URL - will be populated after profile refresh
         fileSize: await cvFile.length(),
         uploadedAt: DateTime.now(),
         mimeType: _getMimeType(cvFile.path),
@@ -221,7 +222,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
     // Validate LinkedIn URL if provided
     if (profile.linkedin != null && profile.linkedin!.isNotEmpty) {
-      if (!_isValidLinkedInUrl(profile.linkedin!)) {
+      if (!ValidationService.isValidLinkedInUrl(profile.linkedin!)) {
         return Result.failure(
           const ValidationError("Please enter a valid LinkedIn profile URL"),
         );
@@ -229,12 +230,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
     }
 
     // Validate study year if provided
-    if (profile.studyYear != null) {
-      if (profile.studyYear! < 1 || profile.studyYear! > 10) {
-        return Result.failure(
-          const ValidationError("Study year must be between 1 and 10"),
-        );
-      }
+    if (!ValidationService.isValidStudyYear(profile.studyYear)) {
+      return Result.failure(
+        const ValidationError("Study year must be between 1 and 10"),
+      );
     }
 
     return Result.success(null);
@@ -269,19 +268,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
     return suggestions;
   }
 
-  bool _isValidLinkedInUrl(String url) {
-    // Accept LinkedIn URLs in various formats
-    final patterns = [
-      r'^https://www\.linkedin\.com/in/[\w\-]+/?$',
-      r'^https://linkedin\.com/in/[\w\-]+/?$',
-      r'^www\.linkedin\.com/in/[\w\-]+/?$',
-      r'^linkedin\.com/in/[\w\-]+/?$',
-    ];
-
-    return patterns.any(
-      (pattern) => RegExp(pattern, caseSensitive: false).hasMatch(url),
-    );
-  }
 
   String? _getMimeType(String filePath) {
     final extension = filePath.split('.').last.toLowerCase();
