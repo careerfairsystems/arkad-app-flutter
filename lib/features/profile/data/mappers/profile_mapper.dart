@@ -20,10 +20,13 @@ class ProfileMapper {
       masterTitle: dto.masterTitle?.isEmpty == true ? null : dto.masterTitle,
       linkedin: dto.linkedin?.isEmpty == true ? null : dto.linkedin,
       profilePictureUrl:
-          dto.profilePicture?.isEmpty == true
+          dto.profilePicture == null || dto.profilePicture!.isEmpty
               ? null
               : UrlUtils.buildFullUrl(dto.profilePicture),
-      cvUrl: dto.cv?.isEmpty == true ? null : UrlUtils.buildFullUrl(dto.cv),
+      cvUrl:
+          dto.cv == null || dto.cv!.isEmpty
+              ? null
+              : UrlUtils.buildFullUrl(dto.cv),
     );
   }
 

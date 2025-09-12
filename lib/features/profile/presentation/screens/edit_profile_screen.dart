@@ -173,36 +173,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       bool success = await profileViewModel.updateProfile(updatedProfile);
 
       // Handle file uploads if needed
-      if (success && _selectedImage != null) {
-        success = await profileViewModel.uploadProfilePicture(_selectedImage!);
+      var overallSuccess = success;
+      if (overallSuccess && _selectedImage != null) {
+        overallSuccess = await profileViewModel.uploadProfilePicture(
+          _selectedImage!,
+        );
       }
-
-      if (success && _selectedCV != null) {
-        success = await profileViewModel.uploadCV(_selectedCV!);
+      if (overallSuccess && _selectedCV != null) {
+        overallSuccess = await profileViewModel.uploadCV(_selectedCV!);
       }
 
       // Handle file deletions if needed
-      if (success && _profilePictureDeleted) {
-        await profileViewModel.deleteProfilePicture();
+      if (overallSuccess && _profilePictureDeleted) {
+        overallSuccess = await profileViewModel.deleteProfilePicture();
+      }
+      if (overallSuccess && _cvDeleted) {
+        overallSuccess = await profileViewModel.deleteCV();
       }
 
-      if (success && _cvDeleted) {
-        await profileViewModel.deleteCV();
-      }
-
-      if (mounted &&
-          profileViewModel.updateProfileCommand.isCompleted &&
-          !profileViewModel.updateProfileCommand.hasError) {
-        // Return to previous screen
-        context.pop();
+      if (mounted && overallSuccess && profileViewModel.error == null) {
         messenger.showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
         );
-      } else if (profileViewModel.error != null && mounted) {
+        context.pop();
+      } else if (mounted) {
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to update profile: ${profileViewModel.error!.userMessage}',
+              profileViewModel.error != null
+                  ? 'Failed to update profile: ${profileViewModel.error!.userMessage}'
+                  : 'Some changes could not be saved. Please try again.',
             ),
           ),
         );

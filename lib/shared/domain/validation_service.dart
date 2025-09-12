@@ -20,35 +20,44 @@ class ValidationService {
   }
 
   /// Build a full LinkedIn URL from user input
-  /// Converts usernames to full URLs, returns full URLs unchanged
+  /// Converts usernames to full URLs, validates LinkedIn domains only
   /// Examples:
   /// - 'john-smith' → 'https://www.linkedin.com/in/john-smith'
   /// - 'www.linkedin.com/in/john' → 'https://www.linkedin.com/in/john'
-  /// - 'https://linkedin.com/in/jane' → 'https://linkedin.com/in/jane'
+  /// - 'https://linkedin.com/in/jane' → 'https://www.linkedin.com/in/jane'
+  /// - 'https://evil.com' → 'https://www.linkedin.com/in/evil.com' (treated as username)
   static String buildLinkedInUrl(String input) {
-    // If already a full HTTPS URL, return as-is
-    if (input.startsWith('https://')) {
-      return input;
-    }
+    final trimmed = input.trim();
 
-    // If HTTP URL, upgrade to HTTPS
-    if (input.startsWith('http://')) {
-      return input.replaceFirst('http://', 'https://');
+    // If already a URL, normalize and allow only LinkedIn hosts
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      final https = trimmed.replaceFirst('http://', 'https://');
+      final uri = Uri.tryParse(https);
+      if (uri != null) {
+        final host = uri.host.toLowerCase();
+        if (host == 'www.linkedin.com' || host == 'linkedin.com') {
+          return uri.replace(scheme: 'https').toString();
+        }
+      }
+      // Not a LinkedIn host → treat as username
+      final asUser =
+          uri?.pathSegments.isNotEmpty == true ? uri!.pathSegments.last : https;
+      return 'https://www.linkedin.com/in/${Uri.encodeComponent(asUser)}';
     }
 
     // If starts with www.linkedin.com or linkedin.com, add https://
-    if (input.startsWith('www.linkedin.com/in/') ||
-        input.startsWith('linkedin.com/in/')) {
-      return 'https://$input';
+    if (trimmed.startsWith('www.linkedin.com/in/') ||
+        trimmed.startsWith('linkedin.com/in/')) {
+      return 'https://$trimmed';
     }
 
     // If it's just a username, build full LinkedIn URL
-    if (RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(input)) {
-      return 'https://www.linkedin.com/in/$input';
+    if (RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(trimmed)) {
+      return 'https://www.linkedin.com/in/$trimmed';
     }
 
     // Fallback: treat as username
-    return 'https://www.linkedin.com/in/$input';
+    return 'https://www.linkedin.com/in/${Uri.encodeComponent(trimmed)}';
   }
 
   /// Validate email format
@@ -65,10 +74,10 @@ class ValidationService {
     return password.length >= 8;
   }
 
-  /// Validate study year (1-10)
+  /// Validate study year (1-5)
   static bool isValidStudyYear(int? studyYear) {
     if (studyYear == null) return true; // Optional field
-    return studyYear >= 1 && studyYear <= 10;
+    return studyYear >= 1 && studyYear <= 5;
   }
 
   /// Validate required string field (not empty)

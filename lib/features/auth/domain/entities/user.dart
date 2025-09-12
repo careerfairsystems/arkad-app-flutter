@@ -68,5 +68,5 @@ class User {
       Object.hash(id, email, firstName, lastName, isStudent, isActive, isStaff);
 
   @override
-  String toString() => 'User(id: $id, name: $fullName)';
+  String toString() => 'User(id: $id)';
 }

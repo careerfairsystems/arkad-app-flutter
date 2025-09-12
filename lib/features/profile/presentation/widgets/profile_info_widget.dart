@@ -158,7 +158,7 @@ class ProfileInfoWidget extends StatelessWidget {
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () => _launchUrl(context, profile.cvUrl!),
-            icon: const Icon(Icons.description),
+            icon: const Icon(Icons.description, color: ArkadColors.white),
             label: const Text("View CV"),
           ),
         ],

@@ -232,7 +232,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     // Validate study year if provided
     if (!ValidationService.isValidStudyYear(profile.studyYear)) {
       return Result.failure(
-        const ValidationError("Study year must be between 1 and 10"),
+        const ValidationError("Study year must be between 1 and 5"),
       );
     }
 
