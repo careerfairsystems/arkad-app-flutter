@@ -8,6 +8,8 @@ import '../../../../shared/events/app_events.dart';
 import '../../../../shared/events/auth_events.dart';
 import '../../../../shared/events/profile_events.dart';
 import '../../domain/entities/profile.dart';
+import '../../domain/use_cases/delete_cv_use_case.dart';
+import '../../domain/use_cases/delete_profile_picture_use_case.dart';
 import '../../domain/use_cases/get_current_profile_use_case.dart';
 import '../../domain/use_cases/update_profile_use_case.dart';
 import '../../domain/use_cases/upload_cv_use_case.dart';
@@ -38,7 +40,10 @@ class ProfileViewModel extends ChangeNotifier {
     required UpdateProfileUseCase updateProfileUseCase,
     required UploadProfilePictureUseCase uploadProfilePictureUseCase,
     required UploadCVUseCase uploadCVUseCase,
-  }) {
+    required DeleteProfilePictureUseCase deleteProfilePictureUseCase,
+    required DeleteCVUseCase deleteCVUseCase,
+  }) : _deleteProfilePictureUseCase = deleteProfilePictureUseCase,
+       _deleteCVUseCase = deleteCVUseCase {
     _initializeCommands(
       getCurrentProfileUseCase,
       updateProfileUseCase,
@@ -48,6 +53,9 @@ class ProfileViewModel extends ChangeNotifier {
     _subscribeToAuthEvents();
     // Profile will be loaded when explicitly requested or after auth success
   }
+
+  final DeleteProfilePictureUseCase _deleteProfilePictureUseCase;
+  final DeleteCVUseCase _deleteCVUseCase;
 
   void _initializeCommands(
     GetCurrentProfileUseCase getCurrentProfileUseCase,
@@ -71,7 +79,7 @@ class ProfileViewModel extends ChangeNotifier {
     _uploadCVCommand.addListener(_onUploadCVCommandChanged);
   }
 
-  // Layer 2: VIEWMODELS 
+  // Command coordination handlers
   void _onGetProfileCommandChanged() {
     if (_getProfileCommand.isCompleted && _getProfileCommand.result != null) {
       _currentProfile = _getProfileCommand.result;
@@ -142,15 +150,13 @@ class ProfileViewModel extends ChangeNotifier {
 
   List<String> get missingRequiredFields {
     if (_currentProfile == null) {
-      return ['Email', 'First Name', 'Last Name', 'Food Preferences'];
+      return ['Email', 'First Name', 'Last Name'];
     }
 
     final missing = <String>[];
     if (_currentProfile!.firstName.isEmpty) missing.add('First Name');
     if (_currentProfile!.lastName.isEmpty) missing.add('Last Name');
-    if (_currentProfile!.foodPreferences?.isEmpty ?? true) {
-      missing.add('Food Preferences');
-    }
+    // Food preferences are optional
 
     return missing;
   }
@@ -175,28 +181,38 @@ class ProfileViewModel extends ChangeNotifier {
     return await _uploadCVCommand.uploadCV(file);
   }
 
-  Future<void> deleteProfilePicture() async {
-    if (_currentProfile == null) return;
+  Future<bool> deleteProfilePicture() async {
+    if (_currentProfile == null) return false;
 
-    final updatedProfile = _currentProfile!.copyWith(profilePictureUrl: '');
-    final success = await updateProfile(updatedProfile);
-
-    if (success && _currentProfile != null) {
-      // Fire profile picture deleted event
-      _fireProfileEvent(ProfilePictureDeletedEvent(_currentProfile!.id));
-    }
+    final result = await _deleteProfilePictureUseCase.call();
+    
+    return result.when(
+      success: (_) {
+        // Fire profile picture deleted event
+        _fireProfileEvent(ProfilePictureDeletedEvent(_currentProfile!.id));
+        // Refresh profile to get updated state
+        loadProfile();
+        return true;
+      },
+      failure: (_) => false,
+    );
   }
 
-  Future<void> deleteCV() async {
-    if (_currentProfile == null) return;
+  Future<bool> deleteCV() async {
+    if (_currentProfile == null) return false;
 
-    final updatedProfile = _currentProfile!.copyWith(cvUrl: '');
-    final success = await updateProfile(updatedProfile);
-
-    if (success && _currentProfile != null) {
-      // Fire CV deleted event
-      _fireProfileEvent(CVDeletedEvent(_currentProfile!.id));
-    }
+    final result = await _deleteCVUseCase.call();
+    
+    return result.when(
+      success: (_) {
+        // Fire CV deleted event
+        _fireProfileEvent(CVDeletedEvent(_currentProfile!.id));
+        // Refresh profile to get updated state
+        loadProfile();
+        return true;
+      },
+      failure: (_) => false,
+    );
   }
 
   Future<void> refreshProfile() async {

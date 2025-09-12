@@ -1,5 +1,6 @@
 import 'package:arkad_api/arkad_api.dart';
 
+import '../../../../shared/data/url_utils.dart';
 import '../../domain/entities/profile.dart';
 import '../../domain/entities/programme.dart';
 
@@ -19,8 +20,8 @@ class ProfileMapper {
       masterTitle: dto.masterTitle?.isEmpty == true ? null : dto.masterTitle,
       linkedin: dto.linkedin?.isEmpty == true ? null : dto.linkedin,
       profilePictureUrl:
-          dto.profilePicture?.isEmpty == true ? null : dto.profilePicture,
-      cvUrl: dto.cv?.isEmpty == true ? null : dto.cv,
+          dto.profilePicture?.isEmpty == true ? null : UrlUtils.buildFullUrl(dto.profilePicture),
+      cvUrl: dto.cv?.isEmpty == true ? null : UrlUtils.buildFullUrl(dto.cv),
     );
   }
 
@@ -46,4 +47,5 @@ class ProfileMapper {
                     : null,
     );
   }
+
 }

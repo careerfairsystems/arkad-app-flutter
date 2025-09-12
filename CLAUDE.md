@@ -361,6 +361,36 @@ abstract class BaseRepository {
 }
 ```
 
+### URL Utilities (`shared/data/url_utils.dart`)
+
+```dart
+// Centralized URL conversion for backend API responses
+class UrlUtils {
+  static const String baseUrl = 'https://staging.backend.arkadtlth.se';
+  
+  static String? buildFullUrl(String? relativePath) {
+    if (relativePath == null || relativePath.isEmpty) return null;
+    
+    final cleanPath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+    
+    // Handle file upload paths (user/profile-picture/, user/cv/)
+    if (cleanPath.startsWith('user/profile-picture/') || cleanPath.startsWith('user/cv/')) {
+      final mediaPath = cleanPath.replaceFirst('user/profile-picture/', 'media/user/profile-pictures/')
+                                 .replaceFirst('user/cv/', 'media/user/cv/');
+      return '$baseUrl/$mediaPath';
+    }
+    
+    // Return as-is if already full URL
+    if (relativePath.startsWith('http')) return relativePath;
+    return '$baseUrl/$cleanPath';
+  }
+}
+
+// Usage in data sources and mappers
+profilePictureUrl: UrlUtils.buildFullUrl(dto.profilePicture),
+cvUrl: UrlUtils.buildFullUrl(dto.cv),
+```
+
 ## Core Patterns
 
 ### State Management (Provider + GetIt + Commands)

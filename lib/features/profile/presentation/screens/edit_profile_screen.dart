@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../services/service_locator.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
+import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/programme.dart';
 import '../view_models/profile_view_model.dart';
 import '../widgets/profile_form_components.dart';
@@ -162,7 +163,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ? null
                 : _masterTitleController.text,
         studyYear: _studyYear,
-        foodPreferences: _foodPreferencesController.text,
+        foodPreferences: _foodPreferencesController.text.trim().isNotEmpty
+            ? _foodPreferencesController.text.trim()
+            : null,
       );
 
       // Update profile using clean architecture
@@ -278,7 +281,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             const Text(
                               'Profile Picture (Optional)',
                               style: TextStyle(
-                                color: Colors.grey,
+                                color: ArkadColors.gray,
                                 fontSize: 12,
                               ),
                             ),
@@ -293,11 +296,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           margin: const EdgeInsets.only(bottom: 16),
-                          color: Colors.red.shade100,
+                          color: ArkadColors.lightRed.withValues(alpha: 0.1),
                           child: Text(
                             error.userMessage,
                             style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: Colors.red.shade800),
+                                ?.copyWith(color: ArkadColors.lightRed),
                           ),
                         ),
 
@@ -367,11 +370,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         'Additional Information',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Food preferences are required, other fields are optional',
-                        style: TextStyle(fontSize: 12),
-                      ),
                       const SizedBox(height: 16),
 
                       ProfileFormComponents.buildPreferencesFields(
@@ -384,10 +382,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       // CV management section
                       const Text(
                         'CV / Resume (Optional)',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
 
@@ -405,12 +400,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       // Save button
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
+                        child: ElevatedButton.icon(
                           onPressed: _updateProfile,
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Text('Save Changes'),
+                          icon: const Icon(Icons.save, color: ArkadColors.white),
+                          label: const Text('Save Changes'),
                         ),
                       ),
                     ],

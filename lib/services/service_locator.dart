@@ -44,6 +44,8 @@ import '../features/profile/data/data_sources/profile_local_data_source.dart';
 import '../features/profile/data/data_sources/profile_remote_data_source.dart';
 import '../features/profile/data/repositories/profile_repository_impl.dart';
 import '../features/profile/domain/repositories/profile_repository.dart';
+import '../features/profile/domain/use_cases/delete_cv_use_case.dart';
+import '../features/profile/domain/use_cases/delete_profile_picture_use_case.dart';
 import '../features/profile/domain/use_cases/get_current_profile_use_case.dart';
 import '../features/profile/domain/use_cases/update_profile_use_case.dart';
 import '../features/profile/domain/use_cases/upload_cv_use_case.dart';
@@ -199,6 +201,12 @@ void _setupProfileFeature() {
   serviceLocator.registerLazySingleton<UploadCVUseCase>(
     () => UploadCVUseCase(serviceLocator<ProfileRepository>()),
   );
+  serviceLocator.registerLazySingleton<DeleteProfilePictureUseCase>(
+    () => DeleteProfilePictureUseCase(serviceLocator<ProfileRepository>()),
+  );
+  serviceLocator.registerLazySingleton<DeleteCVUseCase>(
+    () => DeleteCVUseCase(serviceLocator<ProfileRepository>()),
+  );
 
   // View model
   serviceLocator.registerLazySingleton<ProfileViewModel>(
@@ -208,6 +216,8 @@ void _setupProfileFeature() {
       uploadProfilePictureUseCase:
           serviceLocator<UploadProfilePictureUseCase>(),
       uploadCVUseCase: serviceLocator<UploadCVUseCase>(),
+      deleteProfilePictureUseCase: serviceLocator<DeleteProfilePictureUseCase>(),
+      deleteCVUseCase: serviceLocator<DeleteCVUseCase>(),
     ),
   );
 }
