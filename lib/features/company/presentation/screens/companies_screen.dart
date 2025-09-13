@@ -46,8 +46,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     // Subscribe to logout events for cleanup
     _subscribeToLogoutEvents();
 
-    // Load companies on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final companyViewModel = Provider.of<CompanyViewModel>(context, listen: false);
+      companyViewModel.getCompaniesCommand.reset();
       _loadCompanies();
     });
   }

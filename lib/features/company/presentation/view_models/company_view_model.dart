@@ -200,45 +200,37 @@ class CompanyViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Update the displayed companies based on current search and filter
   void _updateDisplayedCompanies() {
-    final allCompanies = _getCompaniesCommand.result ?? [];
-
     if (_currentSearchQuery.isEmpty && !_currentFilter.hasActiveFilters) {
-      // No search or filters - show all companies
-      _displayedCompanies = allCompanies;
-    } else if (_currentSearchQuery.isNotEmpty &&
-        _currentFilter.hasActiveFilters) {
-      // Both search and filter active - use combined command
+      _displayedCompanies = _getCompaniesCommand.result ?? [];
+    } else if (_currentSearchQuery.isNotEmpty && _currentFilter.hasActiveFilters) {
       _searchAndFilterCommand.searchAndFilterCompanies(
         _currentSearchQuery,
         _currentFilter,
       );
-      return; // Wait for command result
+      return;
     } else if (_currentSearchQuery.isNotEmpty) {
-      // Only search active
-      _displayedCompanies =
-          allCompanies
-              .where(
-                (company) => company.matchesSearchQuery(_currentSearchQuery),
-              )
-              .toList();
+      _searchCompaniesCommand.searchCompanies(_currentSearchQuery);
+      return;
     } else if (_currentFilter.hasActiveFilters) {
-      // Only filter active
-      _displayedCompanies =
-          allCompanies
-              .where((company) => company.matchesFilter(_currentFilter))
-              .toList();
+      _filterCompaniesCommand.filterCompanies(_currentFilter);
+      return;
     }
 
     notifyListeners();
   }
 
-  /// Listen to command state changes
   void _onCommandChanged() {
-    // Update displayed companies when commands complete
     if (_searchAndFilterCommand.isCompleted) {
       _displayedCompanies = _searchAndFilterCommand.result ?? [];
+    } else if (_searchCompaniesCommand.isCompleted) {
+      _displayedCompanies = _searchCompaniesCommand.result ?? [];
+    } else if (_filterCompaniesCommand.isCompleted) {
+      _displayedCompanies = _filterCompaniesCommand.result ?? [];
+    } else if (_getCompaniesCommand.isCompleted && 
+               _currentSearchQuery.isEmpty && 
+               !_currentFilter.hasActiveFilters) {
+      _displayedCompanies = _getCompaniesCommand.result ?? [];
     }
 
     notifyListeners();
