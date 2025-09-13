@@ -499,12 +499,12 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       Icons.calendar_month_rounded,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Colors.white,
                       size: 24,
                     ),
                   ),
