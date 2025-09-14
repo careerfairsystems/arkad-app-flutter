@@ -1,14 +1,15 @@
 import 'package:arkad_api/arkad_api.dart';
 
-/// Local data source for company caching
+/// Simple in-memory data source for company caching
 class CompanyLocalDataSource {
   CompanyLocalDataSource();
 
   List<CompanyOut>? _cachedCompanies;
   DateTime? _lastCacheTime;
 
-  /// Cache expiration duration
-  static const Duration _cacheExpiration = Duration(minutes: 5);
+  /// Cache expiration duration - extended for stable company data
+  /// Company data rarely changes during career fair events
+  static const Duration _cacheExpiration = Duration(hours: 24);
 
   /// Get cached companies if available and not expired
   List<CompanyOut>? getCachedCompanies() {
@@ -19,8 +20,7 @@ class CompanyLocalDataSource {
     final now = DateTime.now();
     if (now.difference(_lastCacheTime!) > _cacheExpiration) {
       // Cache expired, clear it
-      _cachedCompanies = null;
-      _lastCacheTime = null;
+      clearCache();
       return null;
     }
 
