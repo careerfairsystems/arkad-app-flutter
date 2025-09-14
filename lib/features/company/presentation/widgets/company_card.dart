@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../../../../shared/presentation/widgets/optimized_image.dart';
 import '../../domain/entities/company.dart';
 
 class CompanyCard extends StatelessWidget {
@@ -84,18 +85,10 @@ class CompanyCard extends StatelessWidget {
           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
         ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child:
-            company.logoUrl != null && company.logoUrl!.isNotEmpty
-                ? Image.network(
-                  company.logoUrl!,
-                  fit: BoxFit.contain,
-                  errorBuilder:
-                      (context, error, stackTrace) =>
-                          _buildDefaultLogo(context),
-                )
-                : _buildDefaultLogo(context),
+      child: CompanyLogoImage(
+        logoUrl: company.logoUrl,
+        size: 64,
+        fallbackWidget: _buildDefaultLogo(context),
       ),
     );
   }

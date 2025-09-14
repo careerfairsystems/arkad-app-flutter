@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../shared/infrastructure/debouncer.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../domain/entities/company.dart';
@@ -36,6 +37,11 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
   List<String> _filteredIndustries = [];
   List<String> _filteredCompetences = [];
 
+  // Search debouncing
+  final FilterDebouncer _degreesDebouncer = FilterDebouncer();
+  final FilterDebouncer _industriesDebouncer = FilterDebouncer();
+  final FilterDebouncer _competencesDebouncer = FilterDebouncer();
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +59,12 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     _degreesSearchController.dispose();
     _industriesSearchController.dispose();
     _competencesSearchController.dispose();
+    
+    // Dispose search debouncers
+    _degreesDebouncer.dispose();
+    _industriesDebouncer.dispose();
+    _competencesDebouncer.dispose();
+    
     super.dispose();
   }
 
@@ -669,37 +681,79 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
   }
 
   void _filterDegrees(String query) {
-    setState(() {
-      _filteredDegrees =
-          FilterOptions.degrees
-              .where(
-                (degree) => degree.toLowerCase().contains(query.toLowerCase()),
-              )
-              .toList();
+    if (query.isEmpty) {
+      // Update immediately for empty queries
+      _degreesDebouncer.cancel();
+      setState(() {
+        _filteredDegrees = List.from(FilterOptions.degrees);
+      });
+      return;
+    }
+
+    // Debounce non-empty queries
+    _degreesDebouncer.call(() {
+      if (mounted) {
+        setState(() {
+          _filteredDegrees =
+              FilterOptions.degrees
+                  .where(
+                    (degree) => degree.toLowerCase().contains(query.toLowerCase()),
+                  )
+                  .toList();
+        });
+      }
     });
   }
 
   void _filterIndustries(String query) {
-    setState(() {
-      _filteredIndustries =
-          FilterOptions.industries
-              .where(
-                (industry) =>
-                    industry.toLowerCase().contains(query.toLowerCase()),
-              )
-              .toList();
+    if (query.isEmpty) {
+      // Update immediately for empty queries
+      _industriesDebouncer.cancel();
+      setState(() {
+        _filteredIndustries = List.from(FilterOptions.industries);
+      });
+      return;
+    }
+
+    // Debounce non-empty queries
+    _industriesDebouncer.call(() {
+      if (mounted) {
+        setState(() {
+          _filteredIndustries =
+              FilterOptions.industries
+                  .where(
+                    (industry) =>
+                        industry.toLowerCase().contains(query.toLowerCase()),
+                  )
+                  .toList();
+        });
+      }
     });
   }
 
   void _filterCompetences(String query) {
-    setState(() {
-      _filteredCompetences =
-          FilterOptions.competences
-              .where(
-                (competence) =>
-                    competence.toLowerCase().contains(query.toLowerCase()),
-              )
-              .toList();
+    if (query.isEmpty) {
+      // Update immediately for empty queries
+      _competencesDebouncer.cancel();
+      setState(() {
+        _filteredCompetences = List.from(FilterOptions.competences);
+      });
+      return;
+    }
+
+    // Debounce non-empty queries
+    _competencesDebouncer.call(() {
+      if (mounted) {
+        setState(() {
+          _filteredCompetences =
+              FilterOptions.competences
+                  .where(
+                    (competence) =>
+                        competence.toLowerCase().contains(query.toLowerCase()),
+                  )
+                  .toList();
+        });
+      }
     });
   }
 

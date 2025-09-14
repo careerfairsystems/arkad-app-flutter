@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/async_state_builder.dart';
+import '../../../../shared/presentation/widgets/optimized_image.dart';
 import '../../domain/entities/company.dart';
 import '../view_models/company_detail_view_model.dart';
 
@@ -271,18 +272,10 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
         ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child:
-            company.fullLogoUrl != null
-                ? Image.network(
-                  company.fullLogoUrl!,
-                  fit: BoxFit.contain,
-                  errorBuilder:
-                      (context, error, stackTrace) =>
-                          _buildDefaultLogo(context),
-                )
-                : _buildDefaultLogo(context),
+      child: CompanyLogoImage(
+        logoUrl: company.fullLogoUrl,
+        size: 100,
+        fallbackWidget: _buildDefaultLogo(context),
       ),
     );
   }
