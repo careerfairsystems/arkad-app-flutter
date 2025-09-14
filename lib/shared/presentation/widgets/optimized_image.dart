@@ -2,14 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-/// An optimized image widget that provides caching, loading states, and error handling
-///
-/// Features:
-/// - Memory and disk caching for improved performance
-/// - Shimmer loading placeholder for better UX
-/// - Graceful error handling with fallback widgets
-/// - Optimized memory usage with size-based caching
-/// - Smooth fade-in animations
+/// Optimized image widget with caching, loading states, and error handling
 class OptimizedImage extends StatelessWidget {
   const OptimizedImage({
     super.key,
@@ -24,31 +17,14 @@ class OptimizedImage extends StatelessWidget {
     this.highlightColor,
   });
 
-  /// The URL of the image to load
   final String? imageUrl;
-
-  /// The width of the image widget
   final double width;
-
-  /// The height of the image widget
   final double height;
-
-  /// Widget to show when image fails to load or URL is null/empty
   final Widget fallbackWidget;
-
-  /// How the image should fit within its bounds
   final BoxFit fit;
-
-  /// Border radius to apply to the image and placeholder
   final BorderRadius? borderRadius;
-
-  /// Duration of the fade-in animation when image loads
   final Duration fadeInDuration;
-
-  /// Base color for the shimmer placeholder
   final Color? placeholderColor;
-
-  /// Highlight color for the shimmer placeholder
   final Color? highlightColor;
 
   @override
@@ -68,12 +44,9 @@ class OptimizedImage extends StatelessWidget {
         errorWidget: (context, url, error) => fallbackWidget,
         fadeInDuration: fadeInDuration,
         fadeOutDuration: const Duration(milliseconds: 200),
-        // Optimize memory usage by caching at the display size
         memCacheWidth: _getCacheSize(width, context),
         memCacheHeight: _getCacheSize(height, context),
-        // Better error handling
         errorListener: (error) {
-          // Log error in debug mode for better debugging
           assert(() {
             debugPrint(
               'OptimizedImage failed to load: $imageUrl, Error: $error',
@@ -85,7 +58,6 @@ class OptimizedImage extends StatelessWidget {
     );
   }
 
-  /// Wraps the content in a container with optional border radius
   Widget _buildContainer(Widget child) {
     if (borderRadius != null) {
       return ClipRRect(
@@ -97,7 +69,6 @@ class OptimizedImage extends StatelessWidget {
     return SizedBox(width: width, height: height, child: child);
   }
 
-  /// Builds a shimmer loading placeholder
   Widget _buildShimmerPlaceholder(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -118,7 +89,6 @@ class OptimizedImage extends StatelessWidget {
     );
   }
 
-  /// Calculates optimal cache size based on device pixel ratio
   int _getCacheSize(double size, BuildContext context) {
     final pixelRatio = MediaQuery.of(context).devicePixelRatio;
     return (size * pixelRatio).round();
@@ -142,7 +112,6 @@ class CompanyLogoImage extends OptimizedImage {
          fallbackWidget: fallbackWidget ?? _buildDefaultLogo(size),
        );
 
-  /// Creates a default logo widget for company logos
   static Widget _buildDefaultLogo(double size) {
     return Builder(
       builder: (context) {

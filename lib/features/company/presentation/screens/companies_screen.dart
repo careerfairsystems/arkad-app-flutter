@@ -121,19 +121,20 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Search companies...',
-              prefixIcon: viewModel.isSearching 
-                ? Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: ArkadColors.arkadTurkos,
-                      ),
-                    ),
-                  )
-                : const Icon(Icons.search_rounded),
+              prefixIcon:
+                  viewModel.isSearching
+                      ? Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: ArkadColors.arkadTurkos,
+                          ),
+                        ),
+                      )
+                      : const Icon(Icons.search_rounded),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
@@ -152,7 +153,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: ArkadColors.arkadTurkos, width: 2),
+                borderSide: BorderSide(
+                  color: ArkadColors.arkadTurkos,
+                  width: 2,
+                ),
               ),
               filled: true,
               fillColor: Theme.of(

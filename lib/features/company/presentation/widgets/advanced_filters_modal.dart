@@ -59,12 +59,12 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     _degreesSearchController.dispose();
     _industriesSearchController.dispose();
     _competencesSearchController.dispose();
-    
+
     // Dispose search debouncers
     _degreesDebouncer.dispose();
     _industriesDebouncer.dispose();
     _competencesDebouncer.dispose();
-    
+
     super.dispose();
   }
 
@@ -697,7 +697,8 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
           _filteredDegrees =
               FilterOptions.degrees
                   .where(
-                    (degree) => degree.toLowerCase().contains(query.toLowerCase()),
+                    (degree) =>
+                        degree.toLowerCase().contains(query.toLowerCase()),
                   )
                   .toList();
         });

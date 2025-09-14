@@ -588,30 +588,31 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              child: ArkadButton(
-                text: 'Apply for Session',
-                onPressed: () {
-                  final viewModel = Provider.of<CompanyDetailViewModel>(
-                    context,
-                    listen: false,
-                  );
-                  viewModel.showSessionApplicationMessage();
+              child: Consumer<CompanyDetailViewModel>(
+                builder: (context, viewModel, child) {
+                  // Show SnackBar when message is available
+                  if (viewModel.message != null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(viewModel.message!),
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    });
+                  }
 
-                  // Temporary SnackBar for user feedback - will be moved to ViewModel when feature is implemented
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text(
-                        'Student session application coming soon!',
-                      ),
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                  return ArkadButton(
+                    text: 'Apply for Session',
+                    onPressed: () => viewModel.handleSessionApplication(),
+                    icon: Icons.schedule_rounded,
                   );
                 },
-                icon: Icons.schedule_rounded,
               ),
             ),
           ],

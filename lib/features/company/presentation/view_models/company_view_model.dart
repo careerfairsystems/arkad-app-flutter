@@ -95,7 +95,7 @@ class CompanyViewModel extends ChangeNotifier {
   /// Search companies by query with debouncing
   Future<void> searchCompanies(String query) async {
     _currentSearchQuery = query;
-    
+
     // For empty queries, update immediately for better UX
     if (query.isEmpty) {
       _searchDebouncer.cancel();
@@ -103,13 +103,13 @@ class CompanyViewModel extends ChangeNotifier {
       _updateDisplayedCompanies();
       return;
     }
-    
+
     // Show searching state immediately
     if (!_isSearching) {
       _isSearching = true;
       notifyListeners();
     }
-    
+
     // Debounce the actual search operation
     _searchDebouncer.call(() => _performDebouncedSearch(query));
   }

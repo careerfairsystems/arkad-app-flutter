@@ -7,7 +7,8 @@ import '../data_sources/company_local_data_source.dart';
 import '../data_sources/company_remote_data_source.dart';
 import '../mappers/company_mapper.dart';
 
-class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository {
+class CompanyRepositoryImpl extends BaseRepository
+    implements CompanyRepository {
   CompanyRepositoryImpl({
     required CompanyRemoteDataSource remoteDataSource,
     required CompanyLocalDataSource localDataSource,
@@ -103,15 +104,17 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
           var filteredCompanies = companies;
 
           if (query.isNotEmpty) {
-            filteredCompanies = filteredCompanies
-                .where((company) => company.matchesSearchQuery(query))
-                .toList();
+            filteredCompanies =
+                filteredCompanies
+                    .where((company) => company.matchesSearchQuery(query))
+                    .toList();
           }
 
           if (filter.hasActiveFilters) {
-            filteredCompanies = filteredCompanies
-                .where((company) => company.matchesFilter(filter))
-                .toList();
+            filteredCompanies =
+                filteredCompanies
+                    .where((company) => company.matchesFilter(filter))
+                    .toList();
           }
 
           return filteredCompanies;

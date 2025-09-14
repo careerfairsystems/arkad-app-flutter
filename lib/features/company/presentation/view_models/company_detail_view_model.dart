@@ -13,8 +13,14 @@ class CompanyDetailViewModel extends ChangeNotifier {
 
   final GetCompanyByIdCommand _getCompanyByIdCommand;
 
+  // Message state for UI feedback
+  String? _message;
+
   // Command getter
   GetCompanyByIdCommand get getCompanyByIdCommand => _getCompanyByIdCommand;
+
+  // Message getter for UI
+  String? get message => _message;
 
   // State getters
   Company? get company => _getCompanyByIdCommand.result;
@@ -34,10 +40,23 @@ class CompanyDetailViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Show session application message (placeholder for future implementation)
-  void showSessionApplicationMessage() {
-    // This method will be expanded when student session application feature is implemented
-    // For now, it serves as the proper ViewModel method to handle UI feedback
+  /// Handle session application request
+  void handleSessionApplication() {
+    _message = 'Student session application coming soon!';
+    notifyListeners();
+
+    // Clear message after brief delay to allow UI to consume it
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _clearMessage();
+    });
+  }
+
+  /// Clear the current message
+  void _clearMessage() {
+    if (_message != null) {
+      _message = null;
+      notifyListeners();
+    }
   }
 
   /// Listen to command state changes
