@@ -71,7 +71,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     String? linkedin,
     String? masterTitle,
     int? studyYear,
-    bool updateProfile = false,
   }) async {
     _setLoading(true);
     _clearError();
@@ -83,7 +82,6 @@ class StudentSessionViewModel extends ChangeNotifier {
       linkedin: linkedin,
       masterTitle: masterTitle,
       studyYear: studyYear,
-      updateProfile: updateProfile,
     );
 
     final result = await _applyForSessionUseCase.call(params);
