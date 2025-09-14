@@ -602,6 +602,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                          onVisible: () => viewModel.clearMessage(),
                         ),
                       );
                     });

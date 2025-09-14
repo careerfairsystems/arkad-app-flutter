@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
-
 /// A utility class that delays function execution until after a specified duration
 /// has elapsed since the last invocation. Useful for search functionality.
 class Debouncer {
@@ -10,7 +8,7 @@ class Debouncer {
 
   Debouncer({required this.delay});
 
-  void call(VoidCallback callback) {
+  void call(void Function() callback) {
     _timer?.cancel();
     _timer = Timer(delay, callback);
   }

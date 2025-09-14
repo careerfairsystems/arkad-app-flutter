@@ -44,15 +44,10 @@ class CompanyDetailViewModel extends ChangeNotifier {
   void handleSessionApplication() {
     _message = 'Student session application coming soon!';
     notifyListeners();
-
-    // Clear message after brief delay to allow UI to consume it
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _clearMessage();
-    });
   }
 
-  /// Clear the current message
-  void _clearMessage() {
+  /// Clear message after UI has consumed it (call from UI)
+  void clearMessage() {
     if (_message != null) {
       _message = null;
       notifyListeners();

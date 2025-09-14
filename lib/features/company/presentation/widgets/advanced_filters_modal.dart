@@ -71,23 +71,21 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: ArkadColors.white,
       appBar: AppBar(
         title: const Text('Filter Companies'),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
           onPressed: () => context.pop(),
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: ArkadColors.white,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+              color: ArkadColors.lightGray.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
             ),
             child: TabBar(
@@ -115,9 +113,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                 ),
               ],
               labelColor: Colors.white,
-              unselectedLabelColor: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.7),
+              unselectedLabelColor: ArkadColors.gray.withValues(alpha: 0.7),
               indicator: BoxDecoration(
                 color: ArkadColors.arkadTurkos,
                 borderRadius: BorderRadius.circular(10),
@@ -183,9 +179,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                   '/$totalCount',
                   style: TextStyle(
                     fontSize: 10,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.5),
+                    color: ArkadColors.gray.withValues(alpha: 0.5),
                   ),
                 ),
               ],
@@ -322,25 +316,17 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+              color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon,
-              color: Theme.of(context).colorScheme.primary,
-              size: 20,
-            ),
+            child: Icon(icon, color: ArkadColors.arkadTurkos, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               description,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: ArkadColors.gray.withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -361,9 +347,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(
-                context,
-              ).colorScheme.shadow.withValues(alpha: 0.1),
+              color: ArkadColors.gray.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -374,18 +358,14 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.5),
+              color: ArkadColors.gray.withValues(alpha: 0.5),
             ),
             prefixIcon: Container(
               margin: const EdgeInsets.only(left: 12, right: 8),
               child: Icon(
                 Icons.search_rounded,
                 size: 20,
-                color: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: 0.7),
+                color: ArkadColors.arkadTurkos.withValues(alpha: 0.7),
               ),
             ),
             prefixIconConstraints: const BoxConstraints(minWidth: 40),
@@ -397,15 +377,13 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                         icon: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.error.withValues(alpha: 0.1),
+                            color: ArkadColors.lightRed.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
                             Icons.clear_rounded,
                             size: 16,
-                            color: Theme.of(context).colorScheme.error,
+                            color: ArkadColors.lightRed,
                           ),
                         ),
                         onPressed: () {
@@ -422,9 +400,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
-                color: Theme.of(
-                  context,
-                ).colorScheme.outline.withValues(alpha: 0.2),
+                color: ArkadColors.lightGray.withValues(alpha: 0.2),
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -432,7 +408,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
               borderSide: BorderSide(color: ArkadColors.arkadTurkos, width: 2),
             ),
             filled: true,
-            fillColor: Theme.of(context).colorScheme.surface,
+            fillColor: ArkadColors.white,
             contentPadding: const EdgeInsets.symmetric(vertical: 16),
           ),
           onChanged: onChanged,
@@ -456,17 +432,13 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
               Icon(
                 Icons.search_off_rounded,
                 size: 48,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.6),
+                color: ArkadColors.gray.withValues(alpha: 0.6),
               ),
               const SizedBox(height: 16),
               Text(
                 'No options match your search',
                 style: TextStyle(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: ArkadColors.gray.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -490,15 +462,13 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
             color:
                 isSelected
                     ? ArkadColors.arkadTurkos.withValues(alpha: 0.12)
-                    : Theme.of(context).colorScheme.surface,
+                    : ArkadColors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color:
                   isSelected
                       ? ArkadColors.arkadTurkos.withValues(alpha: 0.4)
-                      : Theme.of(
-                        context,
-                      ).colorScheme.outline.withValues(alpha: 0.2),
+                      : ArkadColors.lightGray.withValues(alpha: 0.2),
               width: isSelected ? 2 : 1,
             ),
             boxShadow:
@@ -545,9 +515,9 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                           color:
                               isSelected
                                   ? ArkadColors.arkadTurkos
-                                  : Theme.of(
-                                    context,
-                                  ).colorScheme.outline.withValues(alpha: 0.5),
+                                  : ArkadColors.lightGray.withValues(
+                                    alpha: 0.5,
+                                  ),
                           width: 2,
                         ),
                       ),
@@ -570,7 +540,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                           color:
                               isSelected
                                   ? ArkadColors.arkadTurkos
-                                  : Theme.of(context).colorScheme.onSurface,
+                                  : ArkadColors.gray,
                         ),
                       ),
                     ),
@@ -595,14 +565,14 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: ArkadColors.white,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.15),
+            color: ArkadColors.gray.withValues(alpha: 0.15),
             blurRadius: 12,
             offset: const Offset(0, -4),
           ),
@@ -680,82 +650,62 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     );
   }
 
-  void _filterDegrees(String query) {
+  void _filterItems({
+    required String query,
+    required FilterDebouncer debouncer,
+    required List<String> sourceOptions,
+    required void Function(List<String>) onUpdate,
+  }) {
     if (query.isEmpty) {
       // Update immediately for empty queries
-      _degreesDebouncer.cancel();
+      debouncer.cancel();
       setState(() {
-        _filteredDegrees = List.from(FilterOptions.degrees);
+        onUpdate(List.from(sourceOptions));
       });
       return;
     }
 
     // Debounce non-empty queries
-    _degreesDebouncer.call(() {
+    debouncer.call(() {
       if (mounted) {
         setState(() {
-          _filteredDegrees =
-              FilterOptions.degrees
-                  .where(
-                    (degree) =>
-                        degree.toLowerCase().contains(query.toLowerCase()),
-                  )
-                  .toList();
+          onUpdate(
+            sourceOptions
+                .where(
+                  (item) => item.toLowerCase().contains(query.toLowerCase()),
+                )
+                .toList(),
+          );
         });
       }
     });
+  }
+
+  void _filterDegrees(String query) {
+    _filterItems(
+      query: query,
+      debouncer: _degreesDebouncer,
+      sourceOptions: FilterOptions.degrees,
+      onUpdate: (filtered) => _filteredDegrees = filtered,
+    );
   }
 
   void _filterIndustries(String query) {
-    if (query.isEmpty) {
-      // Update immediately for empty queries
-      _industriesDebouncer.cancel();
-      setState(() {
-        _filteredIndustries = List.from(FilterOptions.industries);
-      });
-      return;
-    }
-
-    // Debounce non-empty queries
-    _industriesDebouncer.call(() {
-      if (mounted) {
-        setState(() {
-          _filteredIndustries =
-              FilterOptions.industries
-                  .where(
-                    (industry) =>
-                        industry.toLowerCase().contains(query.toLowerCase()),
-                  )
-                  .toList();
-        });
-      }
-    });
+    _filterItems(
+      query: query,
+      debouncer: _industriesDebouncer,
+      sourceOptions: FilterOptions.industries,
+      onUpdate: (filtered) => _filteredIndustries = filtered,
+    );
   }
 
   void _filterCompetences(String query) {
-    if (query.isEmpty) {
-      // Update immediately for empty queries
-      _competencesDebouncer.cancel();
-      setState(() {
-        _filteredCompetences = List.from(FilterOptions.competences);
-      });
-      return;
-    }
-
-    // Debounce non-empty queries
-    _competencesDebouncer.call(() {
-      if (mounted) {
-        setState(() {
-          _filteredCompetences =
-              FilterOptions.competences
-                  .where(
-                    (competence) =>
-                        competence.toLowerCase().contains(query.toLowerCase()),
-                  )
-                  .toList();
-        });
-      }
-    });
+    _filterItems(
+      query: query,
+      debouncer: _competencesDebouncer,
+      sourceOptions: FilterOptions.competences,
+      onUpdate: (filtered) => _filteredCompetences = filtered,
+    );
   }
 
   void _clearAllFilters() {

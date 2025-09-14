@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../domain/result.dart';
 import '../../errors/app_error.dart';
 
@@ -147,12 +149,11 @@ abstract class BaseRepository {
   /// Log error for debugging purposes
   void _logError(AppError error, StackTrace stackTrace) {
     // In development, print detailed error information
-    assert(() {
+    if (kDebugMode) {
       print('Repository Error: ${error.userMessage}');
       print('Technical details: ${error.technicalDetails}');
       print('Stack trace: $stackTrace');
-      return true;
-    }());
+    }
 
     // In production, you might want to send to crash reporting service
     // crashlytics.recordError(error, stackTrace);

@@ -1,6 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+
+import '../themes/arkad_theme.dart';
 
 /// Optimized image widget with caching, loading states, and error handling
 class OptimizedImage extends StatelessWidget {
@@ -47,12 +50,11 @@ class OptimizedImage extends StatelessWidget {
         memCacheWidth: _getCacheSize(width, context),
         memCacheHeight: _getCacheSize(height, context),
         errorListener: (error) {
-          assert(() {
+          if (kDebugMode) {
             debugPrint(
               'OptimizedImage failed to load: $imageUrl, Error: $error',
             );
-            return true;
-          }());
+          }
         },
       ),
     );
@@ -70,19 +72,16 @@ class OptimizedImage extends StatelessWidget {
   }
 
   Widget _buildShimmerPlaceholder(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Shimmer.fromColors(
       baseColor:
-          placeholderColor ??
-          theme.colorScheme.surfaceContainer.withValues(alpha: 0.3),
+          placeholderColor ?? ArkadColors.lightGray.withValues(alpha: 0.3),
       highlightColor:
-          highlightColor ?? theme.colorScheme.surface.withValues(alpha: 0.1),
+          highlightColor ?? ArkadColors.white.withValues(alpha: 0.1),
       child: Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
+          color: ArkadColors.white,
           borderRadius: borderRadius,
         ),
       ),
@@ -113,30 +112,25 @@ class CompanyLogoImage extends OptimizedImage {
        );
 
   static Widget _buildDefaultLogo(double size) {
-    return Builder(
-      builder: (context) {
-        final theme = Theme.of(context);
-        return Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                theme.colorScheme.primary.withValues(alpha: 0.1),
-                theme.colorScheme.secondary.withValues(alpha: 0.1),
-              ],
-            ),
-          ),
-          child: Icon(
-            Icons.business_rounded,
-            size: size * 0.4,
-            color: theme.colorScheme.primary.withValues(alpha: 0.7),
-          ),
-        );
-      },
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+            ArkadColors.arkadNavy.withValues(alpha: 0.1),
+          ],
+        ),
+      ),
+      child: Icon(
+        Icons.business_rounded,
+        size: size * 0.4,
+        color: ArkadColors.arkadTurkos.withValues(alpha: 0.7),
+      ),
     );
   }
 }
