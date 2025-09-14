@@ -34,6 +34,12 @@ class CompanyDetailViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Show session application message (placeholder for future implementation)
+  void showSessionApplicationMessage() {
+    // This method will be expanded when student session application feature is implemented
+    // For now, it serves as the proper ViewModel method to handle UI feedback
+  }
+
   /// Listen to command state changes
   void _onCommandChanged() {
     notifyListeners();

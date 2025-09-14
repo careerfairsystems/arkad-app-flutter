@@ -203,7 +203,8 @@ class CompanyViewModel extends ChangeNotifier {
   void _updateDisplayedCompanies() {
     if (_currentSearchQuery.isEmpty && !_currentFilter.hasActiveFilters) {
       _displayedCompanies = _getCompaniesCommand.result ?? [];
-    } else if (_currentSearchQuery.isNotEmpty && _currentFilter.hasActiveFilters) {
+    } else if (_currentSearchQuery.isNotEmpty &&
+        _currentFilter.hasActiveFilters) {
       _searchAndFilterCommand.searchAndFilterCompanies(
         _currentSearchQuery,
         _currentFilter,
@@ -227,9 +228,9 @@ class CompanyViewModel extends ChangeNotifier {
       _displayedCompanies = _searchCompaniesCommand.result ?? [];
     } else if (_filterCompaniesCommand.isCompleted) {
       _displayedCompanies = _filterCompaniesCommand.result ?? [];
-    } else if (_getCompaniesCommand.isCompleted && 
-               _currentSearchQuery.isEmpty && 
-               !_currentFilter.hasActiveFilters) {
+    } else if (_getCompaniesCommand.isCompleted &&
+        _currentSearchQuery.isEmpty &&
+        !_currentFilter.hasActiveFilters) {
       _displayedCompanies = _getCompaniesCommand.result ?? [];
     }
 

@@ -29,7 +29,11 @@ class SearchCompaniesCommand
     } catch (e) {
       if (e is DioException) {
         setError(
-          ErrorMapper.fromDioException(e, null, operationContext: 'search_companies'),
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'search_companies',
+          ),
         );
       } else {
         setError(UnknownError(e.toString()));

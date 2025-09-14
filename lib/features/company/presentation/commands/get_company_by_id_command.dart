@@ -28,7 +28,11 @@ class GetCompanyByIdCommand extends ParameterizedCommand<int, Company> {
     } catch (e) {
       if (e is DioException) {
         setError(
-          ErrorMapper.fromDioException(e, null, operationContext: 'get_company_by_id'),
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'get_company_by_id',
+          ),
         );
       } else {
         setError(UnknownError(e.toString()));

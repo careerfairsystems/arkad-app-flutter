@@ -29,7 +29,11 @@ class FilterCompaniesCommand
     } catch (e) {
       if (e is DioException) {
         setError(
-          ErrorMapper.fromDioException(e, null, operationContext: 'filter_companies'),
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'filter_companies',
+          ),
         );
       } else {
         setError(UnknownError(e.toString()));

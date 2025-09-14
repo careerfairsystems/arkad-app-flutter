@@ -47,7 +47,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                     margin: const EdgeInsets.all(24),
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
@@ -64,9 +66,13 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                         const SizedBox(height: 20),
                         Text(
                           'Loading company details...',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w500,
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -79,10 +85,14 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                     margin: const EdgeInsets.all(24),
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.errorContainer.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.error.withValues(alpha: 0.1),
                       ),
                     ),
                     child: Column(
@@ -91,7 +101,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.errorContainer.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Icon(
@@ -103,17 +115,20 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                         const SizedBox(height: 20),
                         Text(
                           'Failed to load company',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w600),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 12),
                         Text(
                           error.userMessage,
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                             height: 1.4,
                           ),
                         ),
@@ -157,7 +172,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+            Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withValues(alpha: 0.3),
             Theme.of(context).colorScheme.surface,
           ],
         ),
@@ -181,9 +198,14 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
               if (company.industriesString.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.5),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.secondaryContainer.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -204,14 +226,18 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                     Icon(
                       Icons.location_on_rounded,
                       size: 18,
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
                         company.locationsString,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
                           fontWeight: FontWeight.w500,
                         ),
                         textAlign: TextAlign.center,
@@ -247,13 +273,16 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: company.fullLogoUrl != null
-            ? Image.network(
-                company.fullLogoUrl!,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => _buildDefaultLogo(context),
-              )
-            : _buildDefaultLogo(context),
+        child:
+            company.fullLogoUrl != null
+                ? Image.network(
+                  company.fullLogoUrl!,
+                  fit: BoxFit.contain,
+                  errorBuilder:
+                      (context, error, stackTrace) =>
+                          _buildDefaultLogo(context),
+                )
+                : _buildDefaultLogo(context),
       ),
     );
   }
@@ -304,7 +333,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -328,7 +359,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
               company.description!,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 height: 1.6,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
           ],
@@ -375,7 +408,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.secondaryContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -400,10 +435,14 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.05),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.05),
                   ),
                 ),
                 child: Column(
@@ -421,7 +460,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                     Text(
                       entry.value,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.8),
                         height: 1.4,
                       ),
                     ),
@@ -446,7 +487,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+            Theme.of(
+              context,
+            ).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
             Theme.of(context).colorScheme.surface,
           ],
         ),
@@ -465,7 +508,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.5),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.tertiaryContainer.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -488,10 +533,14 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.4),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.1),
                 ),
               ),
               child: Row(
@@ -515,16 +564,26 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                       children: [
                         Text(
                           'Sessions Available',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${company.daysWithStudentSession} days available',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer
+                                .withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -539,9 +598,18 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
               child: ArkadButton(
                 text: 'Apply for Session',
                 onPressed: () {
+                  final viewModel = Provider.of<CompanyDetailViewModel>(
+                    context,
+                    listen: false,
+                  );
+                  viewModel.showSessionApplicationMessage();
+
+                  // Temporary SnackBar for user feedback - will be moved to ViewModel when feature is implemented
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text('Student session application coming soon!'),
+                      content: const Text(
+                        'Student session application coming soon!',
+                      ),
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
@@ -582,7 +650,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.errorContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -610,13 +680,17 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+                      Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
                       Theme.of(context).colorScheme.surface,
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.08),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.08),
                   ),
                 ),
                 child: Padding(
@@ -638,7 +712,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                           Expanded(
                             child: Text(
                               job.title,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: -0.2,
                               ),
@@ -653,14 +729,19 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                             Icon(
                               Icons.location_on_rounded,
                               size: 18,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 job.locations.join(', '),
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -668,19 +749,27 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                           ],
                         ),
                       ],
-                      if (job.description != null && job.description!.isNotEmpty) ...[
+                      if (job.description != null &&
+                          job.description!.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.2),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainer
+                                .withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             job.description!,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.copyWith(
                               height: 1.5,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.8),
                             ),
                           ),
                         ),

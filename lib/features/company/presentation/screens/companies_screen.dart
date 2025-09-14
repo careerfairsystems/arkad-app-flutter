@@ -41,7 +41,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     _subscribeToLogoutEvents();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final companyViewModel = Provider.of<CompanyViewModel>(context, listen: false);
+      final companyViewModel = Provider.of<CompanyViewModel>(
+        context,
+        listen: false,
+      );
       companyViewModel.getCompaniesCommand.reset();
       _loadCompanies();
     });
@@ -79,9 +82,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     return Consumer<CompanyViewModel>(
       builder: (context, viewModel, child) {
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Companies'),
-          ),
+          appBar: AppBar(title: const Text('Companies')),
           body: Column(
             children: [
               _buildSearchBar(),
@@ -122,30 +123,34 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
-              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.outline.withValues(alpha: 0.3),
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
-              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.outline.withValues(alpha: 0.3),
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: ArkadColors.arkadTurkos,
-              width: 2,
-            ),
+            borderSide: BorderSide(color: ArkadColors.arkadTurkos, width: 2),
           ),
           filled: true,
-          fillColor: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.3),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear_rounded),
-                  onPressed: _clearSearch,
-                )
-              : null,
+          fillColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+          suffixIcon:
+              _searchController.text.isNotEmpty
+                  ? IconButton(
+                    icon: const Icon(Icons.clear_rounded),
+                    onPressed: _clearSearch,
+                  )
+                  : null,
         ),
         onChanged: _onSearchChanged,
       ),
@@ -164,7 +169,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -179,7 +186,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
           Text(
             'Showing ${viewModel.companies.length} of ${viewModel.allCompanies.length} companies',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -189,14 +198,17 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   Widget _buildEmptyState(CompanyViewModel viewModel) {
-    final hasFiltersOrSearch = _hasAnyFilters() || _searchController.text.isNotEmpty;
+    final hasFiltersOrSearch =
+        _hasAnyFilters() || _searchController.text.isNotEmpty;
 
     return Center(
       child: Container(
         margin: const EdgeInsets.all(32),
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -205,13 +217,19 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
-                hasFiltersOrSearch ? Icons.search_off_rounded : Icons.business_rounded,
+                hasFiltersOrSearch
+                    ? Icons.search_off_rounded
+                    : Icons.business_rounded,
                 size: 48,
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 20),
@@ -220,7 +238,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
                   ? 'No companies available'
                   : 'No companies match your criteria',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.8),
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
@@ -230,7 +250,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               Text(
                 'Try adjusting your search or filters to find more companies',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -270,18 +292,19 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.9,
-        child: AdvancedFiltersModal(
-          initialFilter: _currentFilter,
-          onFiltersApplied: (filter) {
-            setState(() {
-              _currentFilter = filter;
-            });
-            _applyFilters();
-          },
-        ),
-      ),
+      builder:
+          (context) => SizedBox(
+            height: MediaQuery.of(context).size.height * 0.9,
+            child: AdvancedFiltersModal(
+              initialFilter: _currentFilter,
+              onFiltersApplied: (filter) {
+                setState(() {
+                  _currentFilter = filter;
+                });
+                _applyFilters();
+              },
+            ),
+          ),
     );
   }
 
@@ -306,10 +329,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
 
   int _getTotalActiveFilters() {
     return _currentFilter.degrees.length +
-           _currentFilter.competences.length +
-           _currentFilter.positions.length +
-           _currentFilter.industries.length +
-           (_currentFilter.hasStudentSessions ? 1 : 0);
+        _currentFilter.competences.length +
+        _currentFilter.positions.length +
+        _currentFilter.industries.length +
+        (_currentFilter.hasStudentSessions ? 1 : 0);
   }
 
   void _onStudentSessionsChanged(bool value) {

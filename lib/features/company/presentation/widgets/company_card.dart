@@ -22,9 +22,7 @@ class CompanyCard extends StatelessWidget {
       child: Card(
         elevation: 2,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
@@ -63,7 +61,9 @@ class CompanyCard extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
               ],
             ),
@@ -86,13 +86,16 @@ class CompanyCard extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: company.logoUrl != null && company.logoUrl!.isNotEmpty
-            ? Image.network(
-                company.logoUrl!,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => _buildDefaultLogo(context),
-              )
-            : _buildDefaultLogo(context),
+        child:
+            company.logoUrl != null && company.logoUrl!.isNotEmpty
+                ? Image.network(
+                  company.logoUrl!,
+                  fit: BoxFit.contain,
+                  errorBuilder:
+                      (context, error, stackTrace) =>
+                          _buildDefaultLogo(context),
+                )
+                : _buildDefaultLogo(context),
       ),
     );
   }
@@ -113,8 +116,8 @@ class CompanyCard extends StatelessWidget {
 
   Widget _buildIndustries(BuildContext context) {
     return Text(
-      company.industries.isEmpty 
-          ? 'Various industries' 
+      company.industries.isEmpty
+          ? 'Various industries'
           : company.industries.join(', '),
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
@@ -137,7 +140,9 @@ class CompanyCard extends StatelessWidget {
           child: Text(
             company.locations.join(', '),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.75),
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -157,11 +162,7 @@ class CompanyCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.people_rounded,
-            size: 16,
-            color: ArkadColors.arkadGreen,
-          ),
+          Icon(Icons.people_rounded, size: 16, color: ArkadColors.arkadGreen),
           const SizedBox(width: 4),
           Text(
             'Student sessions available',
