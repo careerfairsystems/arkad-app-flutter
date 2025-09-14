@@ -26,6 +26,8 @@ dependencies:
   go_router: ^12.1.1
   intl: ^0.18.0
   dio: ^5.0.0
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
   arkad_api:
     path: ./api/arkad_api/
 dev_dependencies:
