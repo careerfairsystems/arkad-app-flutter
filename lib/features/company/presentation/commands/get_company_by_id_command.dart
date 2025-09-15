@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 
-import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/company.dart';
@@ -35,7 +34,13 @@ class GetCompanyByIdCommand extends ParameterizedCommand<int, Company> {
           ),
         );
       } else {
-        setError(UnknownError(e.toString()));
+        setError(
+          ErrorMapper.fromException(
+            e,
+            null,
+            operationContext: 'get_company_by_id',
+          ),
+        );
       }
     } finally {
       setExecuting(false);

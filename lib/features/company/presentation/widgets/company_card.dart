@@ -22,7 +22,7 @@ class CompanyCard extends StatelessWidget {
       margin: margin,
       child: Card(
         elevation: 2,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: InkWell(
           onTap: onTap,

@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 
-import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/use_cases/delete_profile_picture_use_case.dart';
@@ -34,7 +33,13 @@ class DeleteProfilePictureCommand extends VoidCommand {
           ),
         );
       } else {
-        setError(UnknownError(e.toString()));
+        setError(
+          ErrorMapper.fromException(
+            e,
+            null,
+            operationContext: 'delete_profile_picture',
+          ),
+        );
       }
     } finally {
       setExecuting(false);

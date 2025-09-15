@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 
-import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/company.dart';
@@ -36,7 +35,13 @@ class SearchAndFilterCompaniesCommand
           ),
         );
       } else {
-        setError(UnknownError(e.toString()));
+        setError(
+          ErrorMapper.fromException(
+            e,
+            null,
+            operationContext: 'search_and_filter_companies',
+          ),
+        );
       }
     } finally {
       setExecuting(false);

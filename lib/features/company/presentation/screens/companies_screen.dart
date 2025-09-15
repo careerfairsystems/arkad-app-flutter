@@ -311,7 +311,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Theme.of(
+        context,
+      ).colorScheme.surface.withValues(alpha: 0.0),
       builder:
           (context) => SizedBox(
             height: MediaQuery.of(context).size.height * 0.9,

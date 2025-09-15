@@ -483,7 +483,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                     : null,
           ),
           child: Material(
-            color: Colors.transparent,
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.0),
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: () {
@@ -509,7 +509,9 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                         color:
                             isSelected
                                 ? ArkadColors.arkadTurkos
-                                : Colors.transparent,
+                                : Theme.of(
+                                  context,
+                                ).colorScheme.surface.withValues(alpha: 0.0),
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
                           color:

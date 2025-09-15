@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
-import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/result_command.dart';
 import '../../domain/entities/file_upload_result.dart';
@@ -46,7 +45,9 @@ class UploadCVCommand
           ErrorMapper.fromDioException(e, null, operationContext: 'upload_cv'),
         );
       } else {
-        setError(UnknownError(e.toString()));
+        setError(
+          ErrorMapper.fromException(e, null, operationContext: 'upload_cv'),
+        );
       }
       return false;
     } finally {

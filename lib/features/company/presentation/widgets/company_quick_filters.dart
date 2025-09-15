@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../../domain/entities/company.dart';
 
 class CompanyQuickFilters extends StatelessWidget {
   const CompanyQuickFilters({
@@ -108,7 +109,7 @@ class CompanyQuickFilters extends StatelessWidget {
                       ).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
             const SizedBox(width: 6),
-            const Text('Student Sessions'),
+            Text(ActiveFilter.studentSessions.label),
           ],
         ),
         labelStyle: TextStyle(
@@ -281,7 +282,7 @@ class CompanyQuickFilters extends StatelessWidget {
     final activeFilters = <String>[];
 
     if (hasStudentSessions) {
-      activeFilters.add('Student Sessions');
+      activeFilters.add(ActiveFilter.studentSessions.key);
     }
 
     activeFilters.addAll(selectedPositions);
@@ -341,7 +342,9 @@ class CompanyQuickFilters extends StatelessWidget {
                         ),
                         child: Chip(
                           label: Text(
-                            filter,
+                            filter == ActiveFilter.studentSessions.key
+                                ? ActiveFilter.studentSessions.label
+                                : filter,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(fontWeight: FontWeight.w500),
                           ),
@@ -360,7 +363,7 @@ class CompanyQuickFilters extends StatelessWidget {
                             ),
                           ),
                           onDeleted: () {
-                            if (filter == 'Student Sessions') {
+                            if (filter == ActiveFilter.studentSessions.key) {
                               onStudentSessionsChanged(false);
                             } else {
                               onPositionToggled(filter);

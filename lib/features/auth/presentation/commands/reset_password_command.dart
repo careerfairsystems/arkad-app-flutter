@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 
-import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/use_cases/reset_password_use_case.dart';
@@ -35,7 +34,13 @@ class ResetPasswordCommand
           ),
         );
       } else {
-        setError(UnknownError(e.toString()));
+        setError(
+          ErrorMapper.fromException(
+            e,
+            null,
+            operationContext: 'reset_password',
+          ),
+        );
       }
     } finally {
       setExecuting(false);
