@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 
-import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/auth_session.dart';
@@ -37,7 +36,13 @@ class CompleteSignupCommand
           ),
         );
       } else {
-        setError(UnknownError(e.toString()));
+        setError(
+          ErrorMapper.fromException(
+            e,
+            null,
+            operationContext: 'complete_signup',
+          ),
+        );
       }
     } finally {
       setExecuting(false);

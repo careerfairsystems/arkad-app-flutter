@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 
-import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/result_command.dart';
 import '../../domain/entities/profile.dart';
@@ -45,7 +44,13 @@ class UpdateProfileCommand
           ),
         );
       } else {
-        setError(UnknownError(e.toString()));
+        setError(
+          ErrorMapper.fromException(
+            e,
+            null,
+            operationContext: 'update_profile',
+          ),
+        );
       }
       return false;
     } finally {

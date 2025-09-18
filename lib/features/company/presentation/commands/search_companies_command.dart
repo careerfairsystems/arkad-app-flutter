@@ -1,9 +1,10 @@
-import '../../../../shared/errors/app_error.dart';
+import 'package:dio/dio.dart';
+
+import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/company.dart';
 import '../../domain/use_cases/search_companies_use_case.dart';
 
-/// Command for searching companies by query
 class SearchCompaniesCommand
     extends ParameterizedCommand<String, List<Company>> {
   SearchCompaniesCommand(this._useCase);
@@ -12,6 +13,9 @@ class SearchCompaniesCommand
 
   @override
   Future<void> executeWithParams(String query) async {
+    if (isExecuting) return;
+
+    clearError();
     setExecuting(true);
 
     try {
@@ -22,13 +26,28 @@ class SearchCompaniesCommand
         failure: (error) => setError(error),
       );
     } catch (e) {
-      setError(UnknownError(e.toString()));
+      if (e is DioException) {
+        setError(
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'search_companies',
+          ),
+        );
+      } else {
+        setError(
+          ErrorMapper.fromException(
+            e,
+            null,
+            operationContext: 'search_companies',
+          ),
+        );
+      }
     } finally {
       setExecuting(false);
     }
   }
 
-  /// Convenience method for searching companies
   Future<void> searchCompanies(String query) {
     return executeWithParams(query);
   }

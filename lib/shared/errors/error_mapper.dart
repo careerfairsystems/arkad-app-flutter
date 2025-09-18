@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -63,6 +64,32 @@ class ErrorMapper {
 
         return UnknownError(exception.toString());
     }
+  }
+
+  /// Maps any exception to a safe, user-friendly AppError
+  /// This method handles non-Dio exceptions and provides generic error messages
+  /// without exposing internal exception details to users
+  static AppError fromException(
+    dynamic exception,
+    BuildContext? context, {
+    String? operationContext,
+  }) {
+    // If it's a DioException, use the specialized mapper
+    if (exception is DioException) {
+      return fromDioException(
+        exception,
+        context,
+        operationContext: operationContext,
+      );
+    }
+
+    // For all other exceptions, return a generic user-friendly error
+    // Log the actual exception for debugging but don't expose it to users
+    if (kDebugMode) {
+      debugPrint('Exception in $operationContext: $exception');
+    }
+
+    return const UnknownError('An unexpected error occurred');
   }
 
   /// Creates recovery actions based on error type and context

@@ -72,7 +72,6 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
     String? linkedin,
     String? masterTitle,
     int? studyYear,
-    bool updateProfile = false,
   }) async {
     try {
       // Create the application to send
@@ -88,10 +87,7 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       );
 
       // Convert to API schema
-      final apiApplication = _mapper.toApiApplication(
-        application,
-        updateProfile: updateProfile,
-      );
+      final apiApplication = _mapper.toApiApplication(application);
 
       // Send to remote
       final response = await _remoteDataSource.applyForSession(apiApplication);

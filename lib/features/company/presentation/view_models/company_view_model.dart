@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/events/app_events.dart';
 import '../../../../shared/events/auth_events.dart';
+import '../../../../shared/infrastructure/debouncer.dart';
 import '../../domain/entities/company.dart';
 import '../commands/filter_companies_command.dart';
 import '../commands/get_companies_command.dart';
@@ -36,6 +37,10 @@ class CompanyViewModel extends ChangeNotifier {
   final SearchCompaniesCommand _searchCompaniesCommand;
   final FilterCompaniesCommand _filterCompaniesCommand;
   final SearchAndFilterCompaniesCommand _searchAndFilterCommand;
+
+  // Search debouncing
+  final SearchDebouncer _searchDebouncer = SearchDebouncer();
+  bool _isSearching = false;
 
   // Current state
   String _currentSearchQuery = '';
@@ -70,6 +75,8 @@ class CompanyViewModel extends ChangeNotifier {
       _filterCompaniesCommand.hasError ||
       _searchAndFilterCommand.hasError;
 
+  bool get isSearching => _isSearching;
+
   AppError? get error =>
       _getCompaniesCommand.error ??
       _searchCompaniesCommand.error ??
@@ -85,10 +92,43 @@ class CompanyViewModel extends ChangeNotifier {
     _updateDisplayedCompanies();
   }
 
-  /// Search companies by query
+  /// Search companies by query with debouncing
   Future<void> searchCompanies(String query) async {
     _currentSearchQuery = query;
+
+    // For empty queries, update immediately for better UX
+    if (query.isEmpty) {
+      _searchDebouncer.cancel();
+      _isSearching = false;
+      _updateDisplayedCompanies();
+      return;
+    }
+
+    // Show searching state immediately
+    if (!_isSearching) {
+      _isSearching = true;
+      notifyListeners();
+    }
+
+    // Debounce the actual search operation
+    _searchDebouncer.call(() => _performDebouncedSearch(query));
+  }
+
+  /// Search companies immediately without debouncing (for filter applications)
+  Future<void> searchCompaniesImmediately(String query) async {
+    _searchDebouncer.cancel();
+    _currentSearchQuery = query;
     _updateDisplayedCompanies();
+  }
+
+  /// Performs the actual search operation after debouncing
+  Future<void> _performDebouncedSearch(String query) async {
+    // Only proceed if the query hasn't changed during debouncing
+    if (_currentSearchQuery == query) {
+      _updateDisplayedCompanies();
+      _isSearching = false;
+      notifyListeners();
+    }
   }
 
   /// Filter companies by criteria
@@ -102,14 +142,18 @@ class CompanyViewModel extends ChangeNotifier {
     String query,
     CompanyFilter filter,
   ) async {
+    _searchDebouncer.cancel();
     _currentSearchQuery = query;
     _currentFilter = filter;
+    _isSearching = false;
     _updateDisplayedCompanies();
   }
 
   /// Clear search query
   void clearSearch() {
+    _searchDebouncer.cancel();
     _currentSearchQuery = '';
+    _isSearching = false;
     _updateDisplayedCompanies();
   }
 
@@ -121,8 +165,10 @@ class CompanyViewModel extends ChangeNotifier {
 
   /// Clear both search and filters
   void clearAll() {
+    _searchDebouncer.cancel();
     _currentSearchQuery = '';
     _currentFilter = const CompanyFilter();
+    _isSearching = false;
     _updateDisplayedCompanies();
   }
 
@@ -200,45 +246,38 @@ class CompanyViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Update the displayed companies based on current search and filter
   void _updateDisplayedCompanies() {
-    final allCompanies = _getCompaniesCommand.result ?? [];
-
     if (_currentSearchQuery.isEmpty && !_currentFilter.hasActiveFilters) {
-      // No search or filters - show all companies
-      _displayedCompanies = allCompanies;
+      _displayedCompanies = _getCompaniesCommand.result ?? [];
     } else if (_currentSearchQuery.isNotEmpty &&
         _currentFilter.hasActiveFilters) {
-      // Both search and filter active - use combined command
       _searchAndFilterCommand.searchAndFilterCompanies(
         _currentSearchQuery,
         _currentFilter,
       );
-      return; // Wait for command result
+      return;
     } else if (_currentSearchQuery.isNotEmpty) {
-      // Only search active
-      _displayedCompanies =
-          allCompanies
-              .where(
-                (company) => company.matchesSearchQuery(_currentSearchQuery),
-              )
-              .toList();
+      _searchCompaniesCommand.searchCompanies(_currentSearchQuery);
+      return;
     } else if (_currentFilter.hasActiveFilters) {
-      // Only filter active
-      _displayedCompanies =
-          allCompanies
-              .where((company) => company.matchesFilter(_currentFilter))
-              .toList();
+      _filterCompaniesCommand.filterCompanies(_currentFilter);
+      return;
     }
 
     notifyListeners();
   }
 
-  /// Listen to command state changes
   void _onCommandChanged() {
-    // Update displayed companies when commands complete
     if (_searchAndFilterCommand.isCompleted) {
       _displayedCompanies = _searchAndFilterCommand.result ?? [];
+    } else if (_searchCompaniesCommand.isCompleted) {
+      _displayedCompanies = _searchCompaniesCommand.result ?? [];
+    } else if (_filterCompaniesCommand.isCompleted) {
+      _displayedCompanies = _filterCompaniesCommand.result ?? [];
+    } else if (_getCompaniesCommand.isCompleted &&
+        _currentSearchQuery.isEmpty &&
+        !_currentFilter.hasActiveFilters) {
+      _displayedCompanies = _getCompaniesCommand.result ?? [];
     }
 
     notifyListeners();
@@ -253,6 +292,9 @@ class CompanyViewModel extends ChangeNotifier {
 
     // Cancel logout event subscription
     _logoutSubscription?.cancel();
+
+    // Dispose search debouncer
+    _searchDebouncer.dispose();
 
     super.dispose();
   }

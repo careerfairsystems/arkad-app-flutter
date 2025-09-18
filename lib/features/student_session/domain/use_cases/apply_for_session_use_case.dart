@@ -11,7 +11,6 @@ class ApplyForSessionParams {
   final String? linkedin;
   final String? masterTitle;
   final int? studyYear;
-  final bool updateProfile;
 
   const ApplyForSessionParams({
     required this.companyId,
@@ -20,7 +19,6 @@ class ApplyForSessionParams {
     this.linkedin,
     this.masterTitle,
     this.studyYear,
-    this.updateProfile = false,
   });
 }
 
@@ -40,7 +38,6 @@ class ApplyForSessionUseCase
       linkedin: params.linkedin,
       masterTitle: params.masterTitle,
       studyYear: params.studyYear,
-      updateProfile: params.updateProfile,
     );
   }
 }

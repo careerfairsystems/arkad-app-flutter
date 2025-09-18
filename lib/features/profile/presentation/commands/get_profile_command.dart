@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 
-import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/profile.dart';
@@ -35,7 +34,9 @@ class GetProfileCommand extends Command<Profile> {
           ),
         );
       } else {
-        setError(UnknownError(e.toString()));
+        setError(
+          ErrorMapper.fromException(e, null, operationContext: 'get_profile'),
+        );
       }
     } finally {
       setExecuting(false);

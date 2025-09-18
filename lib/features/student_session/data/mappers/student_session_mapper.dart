@@ -22,9 +22,8 @@ class StudentSessionMapper {
 
   /// Convert domain entity to API StudentSessionApplicationSchema
   StudentSessionApplicationSchema toApiApplication(
-    StudentSessionApplication application, {
-    bool updateProfile = false,
-  }) {
+    StudentSessionApplication application,
+  ) {
     return StudentSessionApplicationSchema(
       (b) =>
           b
@@ -33,8 +32,7 @@ class StudentSessionMapper {
             ..programme = application.programme
             ..linkedin = application.linkedin
             ..masterTitle = application.masterTitle
-            ..studyYear = application.studyYear
-            ..updateProfile = updateProfile,
+            ..studyYear = application.studyYear,
     );
   }
 

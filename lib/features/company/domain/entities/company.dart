@@ -256,3 +256,34 @@ class CompanyFilter {
   @override
   String toString() => 'CompanyFilter(active: $hasActiveFilters)';
 }
+
+/// Value object for active filter items in UI
+/// Provides structured filter matching that supports localization
+class ActiveFilter {
+  const ActiveFilter({required this.key, required this.label});
+
+  /// Unique identifier for the filter (used for logic and comparison)
+  final String key;
+
+  /// Display label for the filter (can be localized)
+  final String label;
+
+  /// Predefined active filters for consistent usage
+  static const ActiveFilter studentSessions = ActiveFilter(
+    key: 'student_sessions',
+    label: 'Student Sessions',
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ActiveFilter &&
+          runtimeType == other.runtimeType &&
+          key == other.key;
+
+  @override
+  int get hashCode => key.hashCode;
+
+  @override
+  String toString() => 'ActiveFilter(key: $key, label: $label)';
+}

@@ -18,7 +18,6 @@ abstract class StudentSessionRepository {
     String? linkedin,
     String? masterTitle,
     int? studyYear,
-    bool updateProfile = false,
   });
 
   /// Cancel/unbook a student session application

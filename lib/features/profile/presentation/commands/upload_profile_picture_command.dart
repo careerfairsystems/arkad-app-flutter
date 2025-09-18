@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
-import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/result_command.dart';
 import '../../domain/entities/file_upload_result.dart';
@@ -56,7 +55,13 @@ class UploadProfilePictureCommand
           ),
         );
       } else {
-        setError(UnknownError(e.toString()));
+        setError(
+          ErrorMapper.fromException(
+            e,
+            null,
+            operationContext: 'upload_profile_picture',
+          ),
+        );
       }
       return false;
     } finally {

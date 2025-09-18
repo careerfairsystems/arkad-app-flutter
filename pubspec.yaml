@@ -26,6 +26,9 @@ dependencies:
   go_router: ^12.1.1
   intl: ^0.18.0
   dio: ^5.0.0
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  openapi_generator_annotations: ^6.1.0
   arkad_api:
     path: ./api/arkad_api/
 dev_dependencies:
@@ -34,7 +37,6 @@ dev_dependencies:
   flutter_lints: ^3.0.1
   build_runner: ^2.4.6
   json_serializable: ^6.7.1
-  openapi_generator_annotations: ^6.1.0
   openapi_generator: ^6.1.0
 
 flutter:
