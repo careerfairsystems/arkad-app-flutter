@@ -60,5 +60,7 @@ arkad/windows/flutter/ephemeral/.plugin_symlinks
 api/arkad_api
 sentry.properties
 
+sentry.properties
+
 # OpenAPI Generator CLI
 openapi-generator-cli.jar

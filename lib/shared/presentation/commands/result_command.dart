@@ -1,3 +1,5 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 import '../../domain/result.dart';
 import '../../errors/app_error.dart';
 import 'base_command.dart';
@@ -52,6 +54,7 @@ class GenericResultCommand<TParams, TResult>
         },
       );
     } catch (e) {
+      await Sentry.captureException(e);
       setError(UnknownError('Operation failed: $e'));
       return false;
     } finally {

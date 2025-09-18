@@ -1,4 +1,5 @@
 import 'package:arkad_api/arkad_api.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
 import '../../domain/errors/company_errors.dart';

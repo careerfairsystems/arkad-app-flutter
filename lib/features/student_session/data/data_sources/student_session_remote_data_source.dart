@@ -1,4 +1,5 @@
 import 'package:arkad_api/arkad_api.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// Remote data source for student session operations
 class StudentSessionRemoteDataSource {
@@ -16,6 +17,7 @@ class StudentSessionRemoteDataSource {
       // For now, return empty list - will implement proper parsing when API structure is clear
       return <StudentSessionApplicationOutSchema>[];
     } catch (e) {
+      await Sentry.captureException(e);
       throw Exception('Failed to get student sessions: $e');
     }
   }
@@ -28,6 +30,7 @@ class StudentSessionRemoteDataSource {
           .studentSessionsApiGetStudentSessionTimeslots(companyId: companyId);
       return response.data?.toList() ?? <TimeslotSchema>[];
     } catch (e) {
+      await Sentry.captureException(e);
       throw Exception('Failed to get timeslots for company $companyId: $e');
     }
   }
@@ -50,6 +53,7 @@ class StudentSessionRemoteDataSource {
               ..motivationText = application.motivationText,
       );
     } catch (e) {
+      await Sentry.captureException(e);
       throw Exception('Failed to apply for student session: $e');
     }
   }
@@ -61,6 +65,7 @@ class StudentSessionRemoteDataSource {
         companyId: companyId,
       );
     } catch (e) {
+      await Sentry.captureException(e);
       throw Exception('Failed to cancel student session application: $e');
     }
   }

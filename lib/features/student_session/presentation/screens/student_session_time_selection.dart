@@ -2,6 +2,7 @@ import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../view_models/student_session_view_model.dart';
@@ -65,6 +66,7 @@ class _StudentSessionTimeSelection
         _isLoading = false;
       });
     } catch (e) {
+      await Sentry.captureException(e);
       setState(() {
         _isLoading = false;
       });

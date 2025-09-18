@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../services/service_locator.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
@@ -85,6 +86,7 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
         });
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -107,6 +109,7 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
         });
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error picking motivation letter: $e')),

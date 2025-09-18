@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/events/app_events.dart';
@@ -176,7 +177,8 @@ class CompanyViewModel extends ChangeNotifier {
   Company? getCompanyById(int id) {
     try {
       return allCompanies.firstWhere((company) => company.id == id);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      Sentry.captureException(e, stackTrace: stackTrace);
       return null;
     }
   }

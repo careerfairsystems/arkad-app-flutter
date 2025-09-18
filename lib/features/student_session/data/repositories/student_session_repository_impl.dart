@@ -1,3 +1,5 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../domain/entities/student_session_application.dart';
@@ -34,7 +36,8 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
               .toList();
 
       return Result.success(domainApplications);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(
         NetworkError(details: 'Failed to get student sessions: $e'),
       );
@@ -57,7 +60,8 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
               .toList();
 
       return Result.success(domainTimeslots);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(
         NetworkError(details: 'Failed to get timeslots: $e'),
       );
@@ -96,7 +100,8 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       final domainApplication = _mapper.fromApiApplication(response, 'Company');
 
       return Result.success(domainApplication);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(
         NetworkError(details: 'Failed to apply for session: $e'),
       );
@@ -108,7 +113,8 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
     try {
       await _remoteDataSource.cancelApplication(companyId);
       return Result.success(null);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(
         NetworkError(details: 'Failed to cancel application: $e'),
       );
@@ -122,7 +128,8 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       // Force refresh from remote
       await getStudentSessions();
       return Result.success(null);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(
         NetworkError(details: 'Failed to refresh student sessions: $e'),
       );

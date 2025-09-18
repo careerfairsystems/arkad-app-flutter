@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../services/service_locator.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
@@ -208,6 +209,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (!mounted) return;
       messenger.showSnackBar(
         SnackBar(content: Text('Error updating profile: $e')),

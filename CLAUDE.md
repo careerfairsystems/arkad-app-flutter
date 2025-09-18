@@ -809,6 +809,18 @@ Before any code commit, verify:
 - `flutter_secure_storage` - Secure token storage
 
 ### API & Generation
+
+- `arkad_api` - Auto-generated client (local)
+- `openapi_generator` - Client generation
+- `build_runner` - Code generation
+
+
+# Error reporting
+Use Sentry to capture errors, **ALWAYS** read @docs/SENTRY.md before beginning work
+
+# Logging
+Use Sentry to log useful information about user interaction with app, **ALWAYS** read @docs/LOGGING.md before beginning work
+
 - `arkad_api` - Auto-generated API client (local package)
 - `dio` - HTTP client library used by generated API client
 - `openapi_generator_annotations` - Client generation

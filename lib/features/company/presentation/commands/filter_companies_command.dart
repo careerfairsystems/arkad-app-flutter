@@ -1,3 +1,6 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+import '../../../../shared/errors/app_error.dart';
 import 'package:dio/dio.dart';
 
 import '../../../../shared/errors/error_mapper.dart';
