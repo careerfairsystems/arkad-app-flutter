@@ -45,10 +45,7 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
 
       return _profileFromJson(jsonDecode(profileJson) as Map<String, dynamic>);
     } catch (e, stackTrace) {
-      await Sentry.withScope((scope) async {
-        scope.level = SentryLevel.warning;
-        await Sentry.captureException(e, stackTrace: stackTrace);
-      });
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return null;
     }
   }
@@ -58,10 +55,7 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
     try {
       await _secureStorage.delete(key: _profileKey);
     } catch (e, stackTrace) {
-      await Sentry.withScope((scope) async {
-        scope.level = SentryLevel.warning;
-        await Sentry.captureException(e, stackTrace: stackTrace);
-      });
+      await Sentry.captureException(e, stackTrace: stackTrace);
       // Ignore errors when clearing
     }
   }
@@ -89,10 +83,7 @@ class ProfileLocalDataSourceImpl implements ProfileLocalDataSource {
           jsonDecode(programmesJson) as List<dynamic>;
       return programmesList.cast<String>();
     } catch (e, stackTrace) {
-      await Sentry.withScope((scope) async {
-        scope.level = SentryLevel.warning;
-        await Sentry.captureException(e, stackTrace: stackTrace);
-      });
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return null;
     }
   }
