@@ -4,17 +4,17 @@ import '../../features/auth/domain/entities/user.dart';
 /// Event fired when authentication session changes
 class AuthSessionChangedEvent {
   const AuthSessionChangedEvent(this.session);
-  
+
   final AuthSession session;
-  
+
   @override
-  String toString() => 'AuthSessionChangedEvent(user: ${session.user.email})';
+  String toString() => 'AuthSessionChangedEvent(userId: ${session.user.id})';
 }
 
 /// Event fired when user logs out
 class UserLoggedOutEvent {
   const UserLoggedOutEvent();
-  
+
   @override
   String toString() => 'UserLoggedOutEvent()';
 }
@@ -22,9 +22,9 @@ class UserLoggedOutEvent {
 /// Event fired when user session is refreshed
 class UserSessionRefreshedEvent {
   const UserSessionRefreshedEvent(this.user);
-  
+
   final User user;
-  
+
   @override
-  String toString() => 'UserSessionRefreshedEvent(user: ${user.email})';
+  String toString() => 'UserSessionRefreshedEvent(userId: ${user.id})';
 }

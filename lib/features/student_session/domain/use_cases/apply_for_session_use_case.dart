@@ -11,7 +11,6 @@ class ApplyForSessionParams {
   final String? linkedin;
   final String? masterTitle;
   final int? studyYear;
-  final bool updateProfile;
 
   const ApplyForSessionParams({
     required this.companyId,
@@ -20,12 +19,12 @@ class ApplyForSessionParams {
     this.linkedin,
     this.masterTitle,
     this.studyYear,
-    this.updateProfile = false,
   });
 }
 
 /// Use case for applying to a student session
-class ApplyForSessionUseCase extends UseCase<StudentSessionApplication, ApplyForSessionParams> {
+class ApplyForSessionUseCase
+    extends UseCase<StudentSessionApplication, ApplyForSessionParams> {
   final StudentSessionRepository _repository;
 
   ApplyForSessionUseCase(this._repository);
@@ -39,7 +38,6 @@ class ApplyForSessionUseCase extends UseCase<StudentSessionApplication, ApplyFor
       linkedin: params.linkedin,
       masterTitle: params.masterTitle,
       studyYear: params.studyYear,
-      updateProfile: params.updateProfile,
     );
   }
 }

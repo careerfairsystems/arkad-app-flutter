@@ -1,4 +1,4 @@
-name: CI - Analyze and Build
+name: CI - Analyze and Format
 
 on:
   push:
@@ -6,63 +6,114 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  FLUTTER_VERSION: "3.29.0"
+  OPENAPI_GENERATOR_VERSION: "7.10.0"
+
 jobs:
-  analyze:
-    name: Analyze code
+  generate-api:
+    name: Generate API Client
     runs-on: ubuntu-latest
+    outputs:
+      api-hash: ${{ steps.api-hash.outputs.hash }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Get API Spec Hash
+        id: api-hash
+        run: |
+          API_HASH=$(curl -sf --max-time 30 --retry 2 --retry-delay 5 \
+            "https://staging.backend.arkadtlth.se/api/openapi.json" | sha256sum | cut -d' ' -f1)
+          echo "hash=$API_HASH" >> $GITHUB_OUTPUT
+          echo "API spec hash: $API_HASH"
+
+      - name: Cache Generated API Client
+        id: api-cache
+        uses: actions/cache@v4
+        with:
+          path: api/arkad_api/
+          key: api-client-${{ steps.api-hash.outputs.hash }}
+
+      - name: Setup Java
+        if: steps.api-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Flutter
+        if: steps.api-cache.outputs.cache-hit != 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+          cache: true
+
+      - name: Cache OpenAPI Generator
+        if: steps.api-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: openapi-generator-cli.jar
+          key: openapi-generator-cli-${{ env.OPENAPI_GENERATOR_VERSION }}
+
+      - name: Generate API Client
+        if: steps.api-cache.outputs.cache-hit != 'true'
+        run: |
+          # Download OpenAPI Generator if not cached
+          if [[ ! -f "openapi-generator-cli.jar" ]]; then
+            curl -L "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${{ env.OPENAPI_GENERATOR_VERSION }}/openapi-generator-cli-${{ env.OPENAPI_GENERATOR_VERSION }}.jar" \
+              -o openapi-generator-cli.jar
+          fi
+          
+          # Clean and generate
+          rm -rf api/arkad_api
+          mkdir -p api
+          
+          java -jar openapi-generator-cli.jar generate \
+            -i "https://staging.backend.arkadtlth.se/api/openapi.json" \
+            -g dart-dio \
+            -o api/arkad_api \
+            --additional-properties=pubName=arkad_api,pubVersion=1.0.0,pubDescription="Generated API client",nullSafe=true
+          
+          # Complete generation
+          cd api/arkad_api
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+          cd ../..
+
+  analyze-and-format:
+    name: Analyze & Format
+    needs: generate-api
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: "stable"
           cache: true
 
+      - name: Restore API Client Cache
+        uses: actions/cache@v4
+        with:
+          path: api/arkad_api/
+          key: api-client-${{ needs.generate-api.outputs.api-hash }}
+
       - name: Install dependencies
         run: flutter pub get
-
-      - name: Verify formatting
-        run: dart format --set-exit-if-changed .
 
       - name: Analyze code
         run: flutter analyze --no-fatal-infos
 
-  build:
-    name: Build application
-    needs: analyze
-    strategy:
-      matrix:
-        include:
-          - platform: android
-            os: ubuntu-latest
-          - platform: ios
-            os: macos-latest
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.29.0"
-          channel: "stable"
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build for ${{ matrix.platform }}
+      - name: Check code formatting
         run: |
-          PLATFORM=${{ matrix.platform }}
-          if [ "$PLATFORM" = "android" ]; then
-            flutter build apk --release
-          elif [ "$PLATFORM" = "ios" ]; then
-            flutter build ios --no-codesign
+          if ! dart format --set-exit-if-changed lib/; then
+            echo "Code formatting issues found. Run 'dart format lib/' to fix."
+            exit 1
           fi

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/programme.dart';
 
 class ProfileFormComponents {
@@ -71,16 +72,17 @@ class ProfileFormComponents {
           ),
           value: selectedProgramme,
           hint: const Text('Select your programme'),
-          items: availableProgrammes.map((program) {
-            return DropdownMenuItem<Programme>(
-              value: program.value,
-              child: Text(
-                program.label,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            );
-          }).toList(),
+          items:
+              availableProgrammes.map((program) {
+                return DropdownMenuItem<Programme>(
+                  value: program.value,
+                  child: Text(
+                    program.label,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                );
+              }).toList(),
           onChanged: readOnlyMode ? null : onProgrammeChanged,
         ),
         const SizedBox(height: 16),
@@ -94,12 +96,13 @@ class ProfileFormComponents {
           ),
           value: studyYear,
           hint: const Text('Select your study year'),
-          items: [1, 2, 3, 4, 5].map((year) {
-            return DropdownMenuItem<int>(
-              value: year,
-              child: Text('Year $year'),
-            );
-          }).toList(),
+          items:
+              [1, 2, 3, 4, 5].map((year) {
+                return DropdownMenuItem<int>(
+                  value: year,
+                  child: Text('Year $year'),
+                );
+              }).toList(),
           onChanged: readOnlyMode ? null : onStudyYearChanged,
         ),
         const SizedBox(height: 16),
@@ -131,26 +134,23 @@ class ProfileFormComponents {
           readOnly: readOnlyMode,
           decoration: const InputDecoration(
             labelText: 'LinkedIn',
+            hintText: 'e.g., yourname or linkedin.com/in/yourname',
             border: OutlineInputBorder(),
-            helperText: 'Optional - Enter your LinkedIn username or URL',
+            helperText:
+                'Optional - Enter your LinkedIn username or full profile URL',
           ),
         ),
         const SizedBox(height: 16),
-
         TextFormField(
           controller: foodPreferencesController,
           readOnly: readOnlyMode,
+          textInputAction: TextInputAction.done,
           decoration: const InputDecoration(
-            labelText: 'Food Preferences *',
+            labelText: 'Food Preferences',
+            hintText: 'e.g., Vegetarian, allergic to nuts, etc. (Optional)',
             border: OutlineInputBorder(),
-            helperText: 'Required - Enter any dietary restrictions or preferences (or "None")',
+            helperText: 'Optional - Leave empty if none',
           ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Food preferences are required (put "None" if not applicable)';
-            }
-            return null;
-          },
         ),
       ],
     );
@@ -191,11 +191,11 @@ class ProfileFormComponents {
               right: 0,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.blue,
+                  color: ArkadColors.arkadTurkos,
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.camera_alt, color: Colors.white),
+                  icon: const Icon(Icons.camera_alt, color: ArkadColors.white),
                   onPressed: onPickImage,
                 ),
               ),
@@ -207,10 +207,10 @@ class ProfileFormComponents {
             currentProfilePicture.isNotEmpty &&
             onDeleteImage != null)
           TextButton.icon(
-            icon: const Icon(Icons.delete, color: Colors.red),
+            icon: const Icon(Icons.delete, color: ArkadColors.lightRed),
             label: const Text(
               'Remove Picture',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: ArkadColors.lightRed),
             ),
             onPressed: onDeleteImage,
           ),
@@ -232,7 +232,7 @@ class ProfileFormComponents {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
+            border: Border.all(color: ArkadColors.lightGray),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -249,8 +249,8 @@ class ProfileFormComponents {
                             (!cvDeleted &&
                                 currentCV != null &&
                                 currentCV.isNotEmpty)
-                        ? Colors.green
-                        : Colors.grey,
+                        ? ArkadColors.arkadGreen
+                        : ArkadColors.gray,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -275,7 +275,7 @@ class ProfileFormComponents {
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: onPickCV,
-                icon: const Icon(Icons.attach_file),
+                icon: const Icon(Icons.attach_file, color: ArkadColors.white),
                 label: Text(
                   currentCV != null && currentCV.isNotEmpty
                       ? 'Change CV'
@@ -290,10 +290,10 @@ class ProfileFormComponents {
               const SizedBox(width: 8),
               TextButton.icon(
                 onPressed: onDeleteCV,
-                icon: const Icon(Icons.delete, color: Colors.red),
+                icon: const Icon(Icons.delete, color: ArkadColors.lightRed),
                 label: const Text(
                   'Remove',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(color: ArkadColors.lightRed),
                 ),
               ),
             ],

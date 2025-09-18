@@ -37,7 +37,9 @@ class AuthViewModel extends ChangeNotifier {
     _signUpCommand = SignUpCommand(signUpUseCase);
     _completeSignupCommand = CompleteSignupCommand(completeSignupUseCase);
     _resetPasswordCommand = ResetPasswordCommand(resetPasswordUseCase);
-    _resendVerificationCommand = ResendVerificationCommand(resendVerificationUseCase);
+    _resendVerificationCommand = ResendVerificationCommand(
+      resendVerificationUseCase,
+    );
 
     // Listen to command changes
     _signInCommand.addListener(_onSignInCommandChanged);
@@ -78,14 +80,16 @@ class AuthViewModel extends ChangeNotifier {
   // Signup flow getters
   SignupData? get pendingSignupData => _pendingSignupData;
   String? get signupToken => _signupToken;
-  bool get hassPendingSignup => _pendingSignupData != null && _signupToken != null;
+  bool get hasPendingSignup =>
+      _pendingSignupData != null && _signupToken != null;
 
   // Command getters
   SignInCommand get signInCommand => _signInCommand;
   SignUpCommand get signUpCommand => _signUpCommand;
   CompleteSignupCommand get completeSignupCommand => _completeSignupCommand;
   ResetPasswordCommand get resetPasswordCommand => _resetPasswordCommand;
-  ResendVerificationCommand get resendVerificationCommand => _resendVerificationCommand;
+  ResendVerificationCommand get resendVerificationCommand =>
+      _resendVerificationCommand;
 
   // Loading state getters
   bool get isSigningIn => _signInCommand.isExecuting;
@@ -93,7 +97,13 @@ class AuthViewModel extends ChangeNotifier {
   bool get isCompletingSignup => _completeSignupCommand.isExecuting;
   bool get isResettingPassword => _resetPasswordCommand.isExecuting;
   bool get isResendingVerification => _resendVerificationCommand.isExecuting;
-  bool get isBusy => isSigningIn || isSigningUp || isCompletingSignup || isResettingPassword || isResendingVerification || _isInitializing;
+  bool get isBusy =>
+      isSigningIn ||
+      isSigningUp ||
+      isCompletingSignup ||
+      isResettingPassword ||
+      isResendingVerification ||
+      _isInitializing;
 
   /// Initialize authentication state on app start
   Future<void> _initializeAuth() async {
@@ -125,7 +135,10 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> startSignUp(SignupData signupData) async {
     _clearGlobalError();
     _pendingSignupData = signupData;
-    
+    _signupToken = null; // Clear stale token from previous attempt
+    _signUpCommand.reset(); // Clear stale command state
+    _completeSignupCommand.reset(); // Ensure verification command is clean
+
     await _signUpCommand.signUp(signupData);
   }
 
@@ -137,7 +150,7 @@ class AuthViewModel extends ChangeNotifier {
     }
 
     _clearGlobalError();
-    
+
     await _completeSignupCommand.completeSignup(
       signupToken: _signupToken!,
       verificationCode: verificationCode,
@@ -154,17 +167,16 @@ class AuthViewModel extends ChangeNotifier {
   /// Sign out current user
   Future<void> signOut() async {
     _clearGlobalError();
-    
+
     try {
       final result = await _signOutUseCase.call();
       result.when(
         success: (_) {
           _currentSession = null;
           _clearSignupState();
-          
-          // Fire user logged out event for cleanup (minimal usage)
+
           _fireAuthEvent(const UserLoggedOutEvent());
-          
+
           notifyListeners();
         },
         failure: (error) {
@@ -208,42 +220,39 @@ class AuthViewModel extends ChangeNotifier {
     if (_signInCommand.isCompleted && _signInCommand.result != null) {
       _currentSession = _signInCommand.result;
       _clearSignupState();
-      
-      // Fire auth session changed event (simple AppEvents pattern)
+
       _fireAuthEvent(AuthSessionChangedEvent(_signInCommand.result!));
-      
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   void _onSignUpCommandChanged() {
     if (_signUpCommand.isCompleted && _signUpCommand.result != null) {
       _signupToken = _signUpCommand.result;
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   void _onCompleteSignupCommandChanged() {
-    if (_completeSignupCommand.isCompleted && _completeSignupCommand.result != null) {
+    if (_completeSignupCommand.isCompleted &&
+        _completeSignupCommand.result != null) {
       _currentSession = _completeSignupCommand.result;
       _clearSignupState();
-      
-      // Fire auth session changed event (simple AppEvents pattern)
+
       _fireAuthEvent(AuthSessionChangedEvent(_completeSignupCommand.result!));
-      
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   void _onResetPasswordCommandChanged() {
-    // Reset password command completed successfully
-    // UI will handle success/error states reactively
     notifyListeners();
   }
 
   void _onResendVerificationCommandChanged() {
-    // Resend verification command completed
-    // UI will handle success/error states reactively
+    if (_resendVerificationCommand.isCompleted &&
+        _resendVerificationCommand.result != null) {
+      _signupToken = _resendVerificationCommand.result;
+    }
     notifyListeners();
   }
 
@@ -262,7 +271,6 @@ class AuthViewModel extends ChangeNotifier {
     _globalError = null;
   }
 
-  /// Fire simple app events for cross-feature communication (minimal usage)
   void _fireAuthEvent(Object event) {
     AppEvents.fire(event);
   }
@@ -273,14 +281,16 @@ class AuthViewModel extends ChangeNotifier {
     _signUpCommand.removeListener(_onSignUpCommandChanged);
     _completeSignupCommand.removeListener(_onCompleteSignupCommandChanged);
     _resetPasswordCommand.removeListener(_onResetPasswordCommandChanged);
-    _resendVerificationCommand.removeListener(_onResendVerificationCommandChanged);
-    
+    _resendVerificationCommand.removeListener(
+      _onResendVerificationCommandChanged,
+    );
+
     _signInCommand.dispose();
     _signUpCommand.dispose();
     _completeSignupCommand.dispose();
     _resetPasswordCommand.dispose();
     _resendVerificationCommand.dispose();
-    
+
     super.dispose();
   }
 }

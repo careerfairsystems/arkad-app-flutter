@@ -59,5 +59,5 @@ class SignupData {
       Object.hash(email, password, firstName, lastName, foodPreferences);
 
   @override
-  String toString() => 'SignupData(email: $email)';
+  String toString() => 'SignupData';
 }

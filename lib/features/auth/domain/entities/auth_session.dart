@@ -15,8 +15,7 @@ class AuthSession {
   final bool isValid;
 
   /// Check if the session is expired (24 hours)
-  bool get isExpired =>
-      DateTime.now().difference(createdAt).inHours > 24;
+  bool get isExpired => DateTime.now().difference(createdAt).inHours > 24;
 
   /// Check if the session is still active
   bool get isActive => isValid && !isExpired;
@@ -50,5 +49,5 @@ class AuthSession {
 
   @override
   String toString() =>
-      'AuthSession(user: ${user.email}, isValid: $isValid, isExpired: $isExpired)';
+      'AuthSession(userId: ${user.id}, isValid: $isValid, isExpired: $isExpired)';
 }

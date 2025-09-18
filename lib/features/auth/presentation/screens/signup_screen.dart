@@ -5,8 +5,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../shared/domain/validation/validation_service.dart';
-import '../../../../shared/errors/app_error.dart';
-import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/error/error_display.dart';
 import '../../domain/entities/signup_data.dart';
@@ -28,26 +26,24 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   // Step 2 controllers
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _foodPreferencesController = TextEditingController();
 
   int _currentStep = 1;
-  bool _isLoading = false;
   bool _policyAccepted = false;
-  AppError? _error;
 
   String? _emailErrorText;
   String? _passwordErrorText;
   String? _confirmPasswordErrorText;
   String? _policyErrorText;
-  
+
   // Step 2 validation
   String? _firstNameErrorText;
   String? _lastNameErrorText;
-  
+
   // Food preferences
   bool _hasFoodPreferences = false;
 
@@ -71,6 +67,18 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.addListener(_validateEmail);
     _passwordController.addListener(_validatePassword);
     _confirmPasswordController.addListener(_validateConfirmPassword);
+
+    // Add listeners for step 2 form fields
+    _firstNameController.addListener(() => setState(() {}));
+    _lastNameController.addListener(() => setState(() {}));
+    _foodPreferencesController.addListener(() => setState(() {}));
+
+    // Reset command state when entering screen to prevent stale state display
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+      authViewModel.signUpCommand.reset();
+      authViewModel.completeSignupCommand.reset();
+    });
   }
 
   void _validateEmail() {
@@ -84,7 +92,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _validatePassword() {
     setState(() {
-      // Keep password strength display for UX - but domain handles validation
       _passwordStrength = ValidationService.checkPasswordStrength(
         _passwordController.text,
       );
@@ -124,8 +131,6 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   bool _validateStep1() {
-    // Only validate that required fields are filled and policy accepted
-    // Domain layer handles business validation rules
     bool isValid = true;
     setState(() {
       _emailErrorText = null;
@@ -136,17 +141,26 @@ class _SignupScreenState extends State<SignupScreen> {
       if (_emailController.text.isEmpty) {
         _emailErrorText = 'Email is required';
         isValid = false;
+      } else if (!_isEmailValid) {
+        _emailErrorText = 'Enter a valid email';
+        isValid = false;
       }
 
       if (_passwordController.text.isEmpty) {
         _passwordErrorText = 'Password is required';
+        isValid = false;
+      } else if (!_isPasswordValid) {
+        _passwordErrorText = 'Password does not meet requirements';
         isValid = false;
       }
 
       if (_confirmPasswordController.text.isEmpty) {
         _confirmPasswordErrorText = 'Please confirm your password';
         isValid = false;
-      } else if (!ValidationService.doPasswordsMatch(_passwordController.text, _confirmPasswordController.text)) {
+      } else if (!ValidationService.doPasswordsMatch(
+        _passwordController.text,
+        _confirmPasswordController.text,
+      )) {
         _confirmPasswordErrorText = 'Passwords do not match';
         isValid = false;
       }
@@ -186,6 +200,11 @@ class _SignupScreenState extends State<SignupScreen> {
         _lastNameErrorText = 'Last name is required';
         isValid = false;
       }
+
+      if (_hasFoodPreferences &&
+          _foodPreferencesController.text.trim().isEmpty) {
+        isValid = false;
+      }
     });
     return isValid;
   }
@@ -193,51 +212,29 @@ class _SignupScreenState extends State<SignupScreen> {
   void _goToStep(int step) {
     setState(() {
       _currentStep = step;
-      _error = null; // Clear any error messages when changing steps
     });
   }
 
   Future<void> _handleSignup() async {
-    setState(() => _isLoading = true);
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
 
-    try {
-      final signupData = SignupData(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        foodPreferences: _hasFoodPreferences 
-            ? _foodPreferencesController.text.trim().isNotEmpty 
-                ? _foodPreferencesController.text.trim()
-                : null
-            : "None",
-      );
-      
-      await authViewModel.startSignUp(signupData);
-      
-      if (mounted) {
-        if (authViewModel.signUpCommand.isCompleted && authViewModel.signUpCommand.error == null) {
-          await context.push(
-            '/auth/verification?email=${Uri.encodeComponent(_emailController.text.trim())}',
-          );
-        } else if (authViewModel.signUpCommand.error != null) {
-          final errorWithActions = _addRecoveryActions(authViewModel.signUpCommand.error!);
-          setState(() => _error = errorWithActions);
-        } else if (authViewModel.globalError != null) {
-          final errorWithActions = _addRecoveryActions(authViewModel.globalError!);
-          setState(() => _error = errorWithActions);
-        }
-      }
-    } catch (e) {
-      await Sentry.captureException(e);
-      if (mounted) {
-        setState(() {
-          _error = UnknownError(e.toString());
-        });
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    final signupData = SignupData(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+      foodPreferences:
+          _hasFoodPreferences
+              ? (_foodPreferencesController.text.trim().isNotEmpty
+                  ? _foodPreferencesController.text.trim()
+                  : null)
+              : null,
+    );
+
+    await authViewModel.startSignUp(signupData);
+
+    if (mounted && authViewModel.signUpCommand.isCompleted) {
+      await context.push('/auth/verification');
     }
   }
 
@@ -245,37 +242,12 @@ class _SignupScreenState extends State<SignupScreen> {
     context.pop();
   }
 
-  /// Add context-specific recovery actions to errors
-  AppError _addRecoveryActions(AppError error) {
-    final recoveryActions = ErrorMapper.createRecoveryActions(
-      error,
-      context,
-      () => _handleSignup(), // Retry action
-    );
-
-    // Create a new error with the recovery actions
-    switch (error.runtimeType) {
-      case EmailExistsError _:
-        final emailError = error as EmailExistsError;
-        return EmailExistsError(emailError.email, recoveryActions: recoveryActions);
-      case RateLimitError _:
-        final rateLimitError = error as RateLimitError;
-        return RateLimitError(rateLimitError.waitTime, recoveryActions: recoveryActions);
-      default:
-        // For other error types, return the original error (they don't support recovery actions yet)
-        return error;
-    }
-  }
-
   Widget _buildStep1() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AuthFormWidgets.buildLogoHeader(),
-        AuthFormWidgets.buildHeading(
-          'Sign up',
-          'Create your account',
-        ),
+        AuthFormWidgets.buildHeading('Sign up', 'Create your account'),
         AuthFormWidgets.buildEmailField(
           _emailController,
           isValid: _emailController.text.isNotEmpty ? _isEmailValid : null,
@@ -391,18 +363,41 @@ class _SignupScreenState extends State<SignupScreen> {
             ],
           ),
         ),
-        if (_error != null) ...[
-          const SizedBox(height: 16),
-          ErrorDisplay(
-            error: _error!,
-            onDismiss: () => setState(() => _error = null),
-          ),
-        ],
+        Consumer<AuthViewModel>(
+          builder: (context, authViewModel, child) {
+            final error = authViewModel.signUpCommand.error;
+            if (error != null) {
+              return Column(
+                children: [
+                  const SizedBox(height: 16),
+                  ErrorDisplay(
+                    error: error,
+                    onDismiss: () => authViewModel.signUpCommand.clearError(),
+                  ),
+                ],
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
         const SizedBox(height: 30),
-        AuthFormWidgets.buildSubmitButton(
-          text: 'Continue',
-          onPressed: _isLoading ? null : _handleSubmit,
-          isLoading: _isLoading,
+        Consumer<AuthViewModel>(
+          builder: (context, authViewModel, child) {
+            final canProceed =
+                _emailController.text.isNotEmpty &&
+                _isEmailValid &&
+                _passwordController.text.isNotEmpty &&
+                _isPasswordValid &&
+                _confirmPasswordController.text.isNotEmpty &&
+                _isConfirmPasswordValid &&
+                _policyAccepted &&
+                !authViewModel.signUpCommand.isExecuting;
+            return AuthFormWidgets.buildSubmitButton(
+              text: 'Continue',
+              onPressed: canProceed ? _handleSubmit : null,
+              isLoading: authViewModel.signUpCommand.isExecuting,
+            );
+          },
         ),
         const SizedBox(height: 24),
         AuthFormWidgets.buildAuthLinkRow(
@@ -419,10 +414,7 @@ class _SignupScreenState extends State<SignupScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AuthFormWidgets.buildLogoHeader(),
-        AuthFormWidgets.buildHeading(
-          'Sign up',
-          'Tell us about yourself',
-        ),
+        AuthFormWidgets.buildHeading('Sign up', 'Tell us about yourself'),
         Row(
           children: [
             Expanded(
@@ -430,7 +422,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _firstNameController,
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
-                  labelText: 'First name',
+                  labelText: 'First name *',
                   hintText: 'Enter your first name',
                   errorText: _firstNameErrorText,
                   border: OutlineInputBorder(
@@ -450,7 +442,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _lastNameController,
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
-                  labelText: 'Last name',
+                  labelText: 'Last name *',
                   hintText: 'Enter your last name',
                   errorText: _lastNameErrorText,
                   border: OutlineInputBorder(
@@ -495,7 +487,7 @@ class _SignupScreenState extends State<SignupScreen> {
             textInputAction: TextInputAction.done,
             maxLines: 3,
             decoration: InputDecoration(
-              labelText: 'Food preferences',
+              labelText: 'Food preferences *',
               hintText: 'e.g., Vegetarian, allergic to nuts, etc.',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -505,13 +497,23 @@ class _SignupScreenState extends State<SignupScreen> {
             onFieldSubmitted: (_) => _handleSubmit(),
           ),
         ],
-        if (_error != null) ...[
-          const SizedBox(height: 16),
-          ErrorDisplay(
-            error: _error!,
-            onDismiss: () => setState(() => _error = null),
-          ),
-        ],
+        Consumer<AuthViewModel>(
+          builder: (context, authViewModel, child) {
+            final error = authViewModel.signUpCommand.error;
+            if (error != null) {
+              return Column(
+                children: [
+                  const SizedBox(height: 16),
+                  ErrorDisplay(
+                    error: error,
+                    onDismiss: () => authViewModel.signUpCommand.clearError(),
+                  ),
+                ],
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
         const SizedBox(height: 30),
         Row(
           children: [
@@ -524,10 +526,20 @@ class _SignupScreenState extends State<SignupScreen> {
             const SizedBox(width: 16),
             Expanded(
               flex: 2,
-              child: AuthFormWidgets.buildSubmitButton(
-                text: 'Complete',
-                onPressed: _isLoading ? null : _handleSubmit,
-                isLoading: _isLoading,
+              child: Consumer<AuthViewModel>(
+                builder: (context, authViewModel, child) {
+                  final canComplete =
+                      _firstNameController.text.trim().isNotEmpty &&
+                      _lastNameController.text.trim().isNotEmpty &&
+                      (!_hasFoodPreferences ||
+                          _foodPreferencesController.text.trim().isNotEmpty) &&
+                      !authViewModel.signUpCommand.isExecuting;
+                  return AuthFormWidgets.buildSubmitButton(
+                    text: 'Complete',
+                    onPressed: canComplete ? _handleSubmit : null,
+                    isLoading: authViewModel.signUpCommand.isExecuting,
+                  );
+                },
               ),
             ),
           ],

@@ -40,18 +40,21 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
 
   Future<void> _loadUserData() async {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    final profileViewModel = Provider.of<ProfileViewModel>(
+      context,
+      listen: false,
+    );
     final currentUser = authViewModel.currentUser;
 
     if (currentUser != null) {
       // Load detailed profile data for form pre-population
       await profileViewModel.loadProfile();
       final profile = profileViewModel.currentProfile;
-      
+
       if (profile != null) {
         _selectedProgramme = profile.programme;
         _studyYear = profile.studyYear;
-        
+
         if (profile.cvUrl != null) {
           _initialCvFileName = profile.cvUrl!.split('/').last;
         }

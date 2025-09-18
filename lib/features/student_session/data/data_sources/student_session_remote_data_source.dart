@@ -1,7 +1,7 @@
 import 'package:arkad_api/arkad_api.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-/// Remote data source for student session operations  
+/// Remote data source for student session operations
 class StudentSessionRemoteDataSource {
   final ArkadApi _api;
 
@@ -10,7 +10,10 @@ class StudentSessionRemoteDataSource {
   /// Get student sessions from the API
   Future<List<StudentSessionApplicationOutSchema>> getStudentSessions() async {
     try {
-      final response = await _api.getStudentSessionsApi().studentSessionsApiGetStudentSessions();
+      final _ =
+          await _api
+              .getStudentSessionsApi()
+              .studentSessionsApiGetStudentSessions();
       // For now, return empty list - will implement proper parsing when API structure is clear
       return <StudentSessionApplicationOutSchema>[];
     } catch (e) {
@@ -22,7 +25,9 @@ class StudentSessionRemoteDataSource {
   /// Get available timeslots for a company
   Future<List<TimeslotSchema>> getTimeslots(int companyId) async {
     try {
-      final response = await _api.getStudentSessionsApi().studentSessionsApiGetStudentSessionTimeslots(companyId: companyId);
+      final response = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiGetStudentSessionTimeslots(companyId: companyId);
       return response.data?.toList() ?? <TimeslotSchema>[];
     } catch (e) {
       await Sentry.captureException(e);
@@ -35,13 +40,18 @@ class StudentSessionRemoteDataSource {
     StudentSessionApplicationSchema application,
   ) async {
     try {
-      final response = await _api.getStudentSessionsApi().studentSessionsApiApplyForSession(
-        studentSessionApplicationSchema: application,
-      );
+      final _ = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiApplyForSession(
+            studentSessionApplicationSchema: application,
+          );
       // Create a minimal response for now
-      return StudentSessionApplicationOutSchema((b) => b
-        ..companyId = application.companyId
-        ..motivationText = application.motivationText);
+      return StudentSessionApplicationOutSchema(
+        (b) =>
+            b
+              ..companyId = application.companyId
+              ..motivationText = application.motivationText,
+      );
     } catch (e) {
       await Sentry.captureException(e);
       throw Exception('Failed to apply for student session: $e');
@@ -51,7 +61,9 @@ class StudentSessionRemoteDataSource {
   /// Cancel/unbook a student session
   Future<void> cancelApplication(int companyId) async {
     try {
-      await _api.getStudentSessionsApi().studentSessionsApiUnbookStudentSession(companyId: companyId);
+      await _api.getStudentSessionsApi().studentSessionsApiUnbookStudentSession(
+        companyId: companyId,
+      );
     } catch (e) {
       await Sentry.captureException(e);
       throw Exception('Failed to cancel student session application: $e');

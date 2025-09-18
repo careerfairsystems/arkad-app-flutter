@@ -29,16 +29,17 @@ class CompanyList extends StatelessWidget {
     return AsyncStateBuilder<List<Company>>(
       command: command,
       builder: (context, _) => _buildCompanyList(context),
-      loadingBuilder: (context) => const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Loading companies...'),
-          ],
-        ),
-      ),
+      loadingBuilder:
+          (context) => const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading companies...'),
+              ],
+            ),
+          ),
       errorBuilder: (context, error) => _buildErrorState(context),
     );
   }
@@ -62,10 +63,7 @@ class CompanyList extends StatelessWidget {
 
     // Wrap with RefreshIndicator if refresh callback is provided
     if (onRefresh != null) {
-      return RefreshIndicator(
-        onRefresh: onRefresh!,
-        child: widget,
-      );
+      return RefreshIndicator(onRefresh: onRefresh!, child: widget);
     }
 
     return widget;
@@ -76,19 +74,29 @@ class CompanyList extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.search_off, size: 60, color: Colors.grey),
+          Icon(
+            Icons.search_off,
+            size: 60,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
           const SizedBox(height: 16),
           Text(
             'No companies found',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.grey[600],
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.8),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Try adjusting your search or filter criteria',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -102,7 +110,11 @@ class CompanyList extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 60, color: Colors.red),
+          Icon(
+            Icons.error_outline,
+            size: 60,
+            color: Theme.of(context).colorScheme.error,
+          ),
           const SizedBox(height: 16),
           Text(
             'Failed to load companies',

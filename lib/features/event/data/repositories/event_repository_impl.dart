@@ -5,7 +5,6 @@ import '../../domain/repositories/event_repository.dart';
 
 /// Implementation of event repository (placeholder for future implementation)
 class EventRepositoryImpl implements EventRepository {
-  
   @override
   Future<Result<List<Event>>> getEvents() async {
     // Placeholder implementation - return empty list for now
@@ -20,7 +19,10 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
-  Future<Result<List<Event>>> getEventsByDateRange(DateTime start, DateTime end) async {
+  Future<Result<List<Event>>> getEventsByDateRange(
+    DateTime start,
+    DateTime end,
+  ) async {
     // Placeholder implementation
     return Result.success(<Event>[]);
   }
@@ -28,13 +30,17 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Result<void>> registerForEvent(int eventId) async {
     // Placeholder implementation
-    return Result.failure(const UnknownError('Event registration not implemented'));
+    return Result.failure(
+      const UnknownError('Event registration not implemented'),
+    );
   }
 
   @override
   Future<Result<void>> unregisterFromEvent(int eventId) async {
     // Placeholder implementation
-    return Result.failure(const UnknownError('Event unregistration not implemented'));
+    return Result.failure(
+      const UnknownError('Event unregistration not implemented'),
+    );
   }
 
   @override

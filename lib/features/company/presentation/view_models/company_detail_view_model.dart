@@ -6,16 +6,21 @@ import '../commands/get_company_by_id_command.dart';
 
 /// ViewModel for managing company detail screen state
 class CompanyDetailViewModel extends ChangeNotifier {
-  CompanyDetailViewModel({
-    required GetCompanyByIdCommand getCompanyByIdCommand,
-  }) : _getCompanyByIdCommand = getCompanyByIdCommand {
+  CompanyDetailViewModel({required GetCompanyByIdCommand getCompanyByIdCommand})
+    : _getCompanyByIdCommand = getCompanyByIdCommand {
     _getCompanyByIdCommand.addListener(_onCommandChanged);
   }
 
   final GetCompanyByIdCommand _getCompanyByIdCommand;
 
+  // Message state for UI feedback
+  String? _message;
+
   // Command getter
   GetCompanyByIdCommand get getCompanyByIdCommand => _getCompanyByIdCommand;
+
+  // Message getter for UI
+  String? get message => _message;
 
   // State getters
   Company? get company => _getCompanyByIdCommand.result;
@@ -33,6 +38,20 @@ class CompanyDetailViewModel extends ChangeNotifier {
   void clearError() {
     _getCompanyByIdCommand.clearError();
     notifyListeners();
+  }
+
+  /// Handle session application request
+  void handleSessionApplication() {
+    _message = 'Student session application coming soon!';
+    notifyListeners();
+  }
+
+  /// Clear message after UI has consumed it (call from UI)
+  void clearMessage() {
+    if (_message != null) {
+      _message = null;
+      notifyListeners();
+    }
   }
 
   /// Listen to command state changes

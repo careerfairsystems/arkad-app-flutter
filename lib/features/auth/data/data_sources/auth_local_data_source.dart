@@ -25,6 +25,11 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
   final FlutterSecureStorage _secureStorage;
 
+  /// Helper method to strip "Bearer " prefix from tokens
+  String _stripBearer(String token) {
+    return token.startsWith('Bearer ') ? token.substring(7) : token;
+  }
+
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'auth_user';
   static const String _sessionValidKey = 'auth_session_valid';
@@ -36,13 +41,16 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> saveSession(AuthSession session) async {
     try {
       await Future.wait([
-        _secureStorage.write(key: _tokenKey, value: session.token),
         _secureStorage.write(
-          key: _userKey, 
+          key: _tokenKey,
+          value: _stripBearer(session.token),
+        ),
+        _secureStorage.write(
+          key: _userKey,
           value: jsonEncode(_userToJson(session.user)),
         ),
         _secureStorage.write(
-          key: _sessionValidKey, 
+          key: _sessionValidKey,
           value: session.isValid.toString(),
         ),
         _secureStorage.write(
@@ -64,7 +72,10 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       final isValidStr = await _secureStorage.read(key: _sessionValidKey);
       final createdAtStr = await _secureStorage.read(key: _sessionCreatedAtKey);
 
-      if (token == null || userJson == null || isValidStr == null || createdAtStr == null) {
+      if (token == null ||
+          userJson == null ||
+          isValidStr == null ||
+          createdAtStr == null) {
         return null;
       }
 
@@ -108,7 +119,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
           key: _signupDataKey,
           value: jsonEncode(_signupDataToJson(data)),
         ),
-        _secureStorage.write(key: _signupTokenKey, value: token),
+        _secureStorage.write(key: _signupTokenKey, value: _stripBearer(token)),
       ]);
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -172,6 +183,9 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       'email': user.email,
       'firstName': user.firstName,
       'lastName': user.lastName,
+      'isStudent': user.isStudent,
+      'isActive': user.isActive,
+      'isStaff': user.isStaff,
       'foodPreferences': user.foodPreferences,
       'programme': user.programme,
       'studyYear': user.studyYear,
@@ -188,6 +202,9 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       email: json['email'] as String,
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String,
+      isStudent: _readBool(json, 'isStudent'),
+      isActive: _readBool(json, 'isActive'),
+      isStaff: _readBool(json, 'isStaff'),
       foodPreferences: json['foodPreferences'] as String?,
       programme: json['programme'] as String?,
       studyYear: json['studyYear'] as int?,
@@ -198,10 +215,18 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     );
   }
 
+  bool _readBool(Map<String, dynamic> json, String key) {
+    final v = json[key];
+    if (v is bool) return v;
+    if (v is String) return v.toLowerCase() == 'true';
+    if (v is num) return v != 0;
+    return false;
+  }
+
   Map<String, dynamic> _signupDataToJson(SignupData data) {
     return {
       'email': data.email,
-      'password': data.password,
+      // Password intentionally excluded from storage for security
       'firstName': data.firstName,
       'lastName': data.lastName,
       'foodPreferences': data.foodPreferences,
@@ -211,7 +236,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   SignupData _signupDataFromJson(Map<String, dynamic> json) {
     return SignupData(
       email: json['email'] as String,
-      password: json['password'] as String,
+      password: '', // Password not stored, empty string as placeholder
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
       foodPreferences: json['foodPreferences'] as String?,

@@ -8,9 +8,8 @@ import '../../domain/repositories/map_repository.dart';
 class MapViewModel extends ChangeNotifier {
   final MapRepository _mapRepository;
 
-  MapViewModel({
-    required MapRepository mapRepository,
-  }) : _mapRepository = mapRepository;
+  MapViewModel({required MapRepository mapRepository})
+    : _mapRepository = mapRepository;
 
   // State
   bool _isLoading = false;
@@ -32,7 +31,7 @@ class MapViewModel extends ChangeNotifier {
     _clearError();
 
     final result = await _mapRepository.getLocations();
-    
+
     result.when(
       success: (locations) {
         _locations = locations;
@@ -50,7 +49,7 @@ class MapViewModel extends ChangeNotifier {
   /// Filter locations by type
   Future<void> filterByType(LocationType? type) async {
     _filterType = type;
-    
+
     if (type == null) {
       await loadLocations();
       return;
@@ -60,7 +59,7 @@ class MapViewModel extends ChangeNotifier {
     _clearError();
 
     final result = await _mapRepository.getLocationsByType(type);
-    
+
     result.when(
       success: (locations) {
         _locations = locations;
@@ -84,7 +83,7 @@ class MapViewModel extends ChangeNotifier {
     _clearError();
 
     final result = await _mapRepository.searchLocations(query);
-    
+
     result.when(
       success: (locations) {
         _locations = locations;

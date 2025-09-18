@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../services/service_locator.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
+import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/programme.dart';
 import '../view_models/profile_view_model.dart';
 import '../widgets/profile_form_components.dart';
@@ -47,6 +49,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     _profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
     _profileViewModel.addListener(_onProfileChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Reset all command states to prevent stale errors/states
+      _profileViewModel.getProfileCommand.reset();
+      _profileViewModel.updateProfileCommand.reset();
+      _profileViewModel.uploadCVCommand.reset();
+      _profileViewModel.uploadProfilePictureCommand.reset();
+    });
+
     _initializeControllers();
   }
 
@@ -58,7 +69,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _initializeControllers() {
     final profile = _profileViewModel.currentProfile;
-    
+
     _emailController = TextEditingController(text: profile?.email ?? '');
     _firstNameController = TextEditingController(
       text: profile?.firstName ?? '',
@@ -70,8 +81,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     // Extract LinkedIn username from URL if it exists
     String linkedinUsername = '';
-    if (profile?.linkedin != null &&
-        profile!.linkedin!.isNotEmpty) {
+    if (profile?.linkedin != null && profile!.linkedin!.isNotEmpty) {
       final url = profile.linkedin!;
       if (url.contains('linkedin.com/in/')) {
         final parts = url.split('/in/');
@@ -100,9 +110,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickImage() async {
     final fileService = serviceLocator<FileService>();
-    final File? image = await fileService.pickProfileImage(
-      context: context,
-    );
+    final File? image = await fileService.pickProfileImage(context: context);
 
     if (image != null) {
       setState(() {
@@ -129,9 +137,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     // Get references to providers and other objects
-    final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    final profileViewModel = Provider.of<ProfileViewModel>(
+      context,
+      listen: false,
+    );
     final currentProfile = profileViewModel.currentProfile;
 
     try {
@@ -147,46 +157,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         programme: _selectedProgramme,
-        linkedin: _linkedinController.text.isEmpty ? null : _linkedinController.text,
-        masterTitle: _masterTitleController.text.isEmpty ? null : _masterTitleController.text,
+        linkedin:
+            _linkedinController.text.isEmpty ? null : _linkedinController.text,
+        masterTitle:
+            _masterTitleController.text.isEmpty
+                ? null
+                : _masterTitleController.text,
         studyYear: _studyYear,
-        foodPreferences: _foodPreferencesController.text,
+        foodPreferences:
+            _foodPreferencesController.text.trim().isNotEmpty
+                ? _foodPreferencesController.text.trim()
+                : null,
       );
 
       // Update profile using clean architecture
       bool success = await profileViewModel.updateProfile(updatedProfile);
-      
+
       // Handle file uploads if needed
-      if (success && _selectedImage != null) {
-        success = await profileViewModel.uploadProfilePicture(_selectedImage!);
+      var overallSuccess = success;
+      if (overallSuccess && _selectedImage != null) {
+        overallSuccess = await profileViewModel.uploadProfilePicture(
+          _selectedImage!,
+        );
       }
-      
-      if (success && _selectedCV != null) {
-        success = await profileViewModel.uploadCV(_selectedCV!);
+      if (overallSuccess && _selectedCV != null) {
+        overallSuccess = await profileViewModel.uploadCV(_selectedCV!);
       }
-      
+
       // Handle file deletions if needed
-      if (success && _profilePictureDeleted) {
-        await profileViewModel.deleteProfilePicture();
+      if (overallSuccess && _profilePictureDeleted) {
+        overallSuccess = await profileViewModel.deleteProfilePicture();
       }
-      
-      if (success && _cvDeleted) {
-        await profileViewModel.deleteCV();
+      if (overallSuccess && _cvDeleted) {
+        overallSuccess = await profileViewModel.deleteCV();
       }
 
-      if (success) {
-        // Bail out if the widget got disposed while we were waiting
-        if (!mounted) return;
-
-        // Return to previous screen
-        navigator.pop();
+      if (mounted && overallSuccess && profileViewModel.error == null) {
         messenger.showSnackBar(
           const SnackBar(content: Text('Profile updated successfully!')),
         );
-      } else if (profileViewModel.error != null && mounted) {
+        context.pop();
+      } else if (mounted) {
         messenger.showSnackBar(
           SnackBar(
-            content: Text('Failed to update profile: ${profileViewModel.error!.userMessage}'),
+            content: Text(
+              profileViewModel.error != null
+                  ? 'Failed to update profile: ${profileViewModel.error!.userMessage}'
+                  : 'Some changes could not be saved. Please try again.',
+            ),
           ),
         );
       }
@@ -261,13 +279,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               onPickImage: _pickImage,
                               onDeleteImage: _deleteProfilePicture,
                               profilePictureDeleted: _profilePictureDeleted,
-                              currentProfilePicture:
-                                  profile?.profilePictureUrl,
+                              currentProfilePicture: profile?.profilePictureUrl,
                             ),
                             const Text(
                               'Profile Picture (Optional)',
                               style: TextStyle(
-                                color: Colors.grey,
+                                color: ArkadColors.gray,
                                 fontSize: 12,
                               ),
                             ),
@@ -282,11 +299,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           margin: const EdgeInsets.only(bottom: 16),
-                          color: Colors.red.shade100,
+                          color: ArkadColors.lightRed.withValues(alpha: 0.1),
                           child: Text(
                             error.userMessage,
                             style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: Colors.red.shade800),
+                                ?.copyWith(color: ArkadColors.lightRed),
                           ),
                         ),
 
@@ -341,9 +358,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               _programmeController.text =
                                   availableProgrammes
                                       .firstWhere(
-                                        (program) =>
-                                            program.value == newValue,
-                                      ).label;
+                                        (program) => program.value == newValue,
+                                      )
+                                      .label;
                             }
                           });
                         },
@@ -355,11 +372,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       const Text(
                         'Additional Information',
                         style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Food preferences are required, other fields are optional',
-                        style: TextStyle(fontSize: 12),
                       ),
                       const SizedBox(height: 16),
 
@@ -373,10 +385,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       // CV management section
                       const Text(
                         'CV / Resume (Optional)',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
 
@@ -394,12 +403,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       // Save button
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
+                        child: ElevatedButton.icon(
                           onPressed: _updateProfile,
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Text('Save Changes'),
+                          icon: const Icon(
+                            Icons.save,
+                            color: ArkadColors.white,
+                          ),
+                          label: const Text('Save Changes'),
                         ),
                       ),
                     ],

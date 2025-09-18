@@ -40,16 +40,26 @@ class _StudentSessionTimeSelection
 
   Future<void> _loadAvailableSlots() async {
     try {
-      final provider = Provider.of<StudentSessionViewModel>(context, listen: false);
+      final provider = Provider.of<StudentSessionViewModel>(
+        context,
+        listen: false,
+      );
       final companyId = int.parse(widget.id);
       await provider.loadTimeslots(companyId);
       final slots = provider.availableTimeslots;
 
-      // Convert Timeslot domain entities to TimeslotSchema for compatibility  
-      final schemSlots = slots.map((slot) => TimeslotSchema((b) => b
-        ..id = slot.id
-        ..startTime = slot.startTime
-      )).toList();
+      // Convert Timeslot domain entities to TimeslotSchema for compatibility
+      final schemSlots =
+          slots
+              .map(
+                (slot) => TimeslotSchema(
+                  (b) =>
+                      b
+                        ..id = slot.id
+                        ..startTime = slot.startTime,
+                ),
+              )
+              .toList();
 
       setState(() {
         _availableSlots = schemSlots;
@@ -85,7 +95,9 @@ class _StudentSessionTimeSelection
     return groupedSlots;
   }
 
-  List<String> _getSortedWeekdays(Map<String, List<TimeslotSchema>> groupedSlots) {
+  List<String> _getSortedWeekdays(
+    Map<String, List<TimeslotSchema>> groupedSlots,
+  ) {
     return groupedSlots.keys.toList()..sort((a, b) {
       // Get the first slot from each day to compare dates
       final dateA = groupedSlots[a]!.first.startTime;
@@ -96,7 +108,9 @@ class _StudentSessionTimeSelection
 
   String _formatTimeRange(TimeslotSchema slot) {
     final startTime = DateFormat('HH:mm').format(slot.startTime);
-    final endTime = DateFormat('HH:mm').format(slot.startTime.add(Duration(minutes: slot.duration)));
+    final endTime = DateFormat(
+      'HH:mm',
+    ).format(slot.startTime.add(Duration(minutes: slot.duration)));
     return '$startTime - $endTime';
   }
 

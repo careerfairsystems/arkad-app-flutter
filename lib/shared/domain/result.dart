@@ -31,16 +31,11 @@ sealed class Result<T> {
   bool get isFailure => this is Failure<T>;
 
   /// Get the success value or null
-  T? get valueOrNull => when(
-    success: (value) => value,
-    failure: (_) => null,
-  );
+  T? get valueOrNull => when(success: (value) => value, failure: (_) => null);
 
   /// Get the error or null
-  AppError? get errorOrNull => when(
-    success: (_) => null,
-    failure: (error) => error,
-  );
+  AppError? get errorOrNull =>
+      when(success: (_) => null, failure: (error) => error);
 }
 
 /// Success result containing a value
@@ -53,13 +48,14 @@ class Success<T> extends Result<T> {
   R when<R>({
     required R Function(T value) success,
     required R Function(AppError error) failure,
-  }) =>
-      success(value);
+  }) => success(value);
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Success<T> && runtimeType == other.runtimeType && value == other.value;
+      other is Success<T> &&
+          runtimeType == other.runtimeType &&
+          value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -78,13 +74,14 @@ class Failure<T> extends Result<T> {
   R when<R>({
     required R Function(T value) success,
     required R Function(AppError error) failure,
-  }) =>
-      failure(error);
+  }) => failure(error);
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Failure<T> && runtimeType == other.runtimeType && error == other.error;
+      other is Failure<T> &&
+          runtimeType == other.runtimeType &&
+          error == other.error;
 
   @override
   int get hashCode => error.hashCode;

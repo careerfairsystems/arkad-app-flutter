@@ -21,7 +21,7 @@ class ErrorDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       color: _getErrorColor(error.severity, colorScheme),
       elevation: 2,
@@ -65,35 +65,38 @@ class ErrorDisplay extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: error.recoveryActions.map((action) {
-                  return action.isPrimary
-                      ? ElevatedButton.icon(
-                          onPressed: action.action,
-                          icon: action.icon != null 
-                              ? Icon(action.icon, size: 16) 
-                              : null,
-                          label: Text(action.label),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16, 
-                              vertical: 8,
+                children:
+                    error.recoveryActions.map((action) {
+                      return action.isPrimary
+                          ? ElevatedButton.icon(
+                            onPressed: action.action,
+                            icon:
+                                action.icon != null
+                                    ? Icon(action.icon, size: 16)
+                                    : null,
+                            label: Text(action.label),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
                             ),
-                          ),
-                        )
-                      : TextButton.icon(
-                          onPressed: action.action,
-                          icon: action.icon != null 
-                              ? Icon(action.icon, size: 16) 
-                              : null,
-                          label: Text(action.label),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16, 
-                              vertical: 8,
+                          )
+                          : TextButton.icon(
+                            onPressed: action.action,
+                            icon:
+                                action.icon != null
+                                    ? Icon(action.icon, size: 16)
+                                    : null,
+                            label: Text(action.label),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
                             ),
-                          ),
-                        );
-                }).toList(),
+                          );
+                    }).toList(),
               ),
             ],
           ],
@@ -176,18 +179,12 @@ class InlineErrorDisplay extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: colorScheme.error.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: colorScheme.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           if (showIcon) ...[
-            Icon(
-              Icons.error_outline,
-              color: colorScheme.error,
-              size: 16,
-            ),
+            Icon(Icons.error_outline, color: colorScheme.error, size: 16),
             const SizedBox(width: 8),
           ],
           Expanded(

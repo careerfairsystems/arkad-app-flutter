@@ -1,3 +1,6 @@
+import 'package:dio/dio.dart';
+
+import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/profile.dart';
 import '../../domain/use_cases/get_current_profile_use_case.dart';
@@ -12,15 +15,31 @@ class GetProfileCommand extends Command<Profile> {
   Future<void> execute() async {
     if (isExecuting) return;
 
+    clearError();
     setExecuting(true);
 
-    final result = await _useCase();
-    
-    result.when(
-      success: (profile) => setResult(profile),
-      failure: (error) => setError(error),
-    );
-
-    setExecuting(false);
+    try {
+      final result = await _useCase();
+      result.when(
+        success: (profile) => setResult(profile),
+        failure: (error) => setError(error),
+      );
+    } catch (e) {
+      if (e is DioException) {
+        setError(
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'get_profile',
+          ),
+        );
+      } else {
+        setError(
+          ErrorMapper.fromException(e, null, operationContext: 'get_profile'),
+        );
+      }
+    } finally {
+      setExecuting(false);
+    }
   }
 }

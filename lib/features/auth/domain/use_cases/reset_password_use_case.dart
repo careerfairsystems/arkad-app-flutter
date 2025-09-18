@@ -14,9 +14,7 @@ class ResetPasswordUseCase extends UseCase<void, ResetPasswordParams> {
   Future<Result<void>> call(ResetPasswordParams params) async {
     // Validate email
     if (params.email.isEmpty) {
-      return Result.failure(
-        const ValidationError("Email is required"),
-      );
+      return Result.failure(const ValidationError("Email is required"));
     }
 
     if (!ValidationService.isValidEmail(params.email)) {
@@ -28,15 +26,11 @@ class ResetPasswordUseCase extends UseCase<void, ResetPasswordParams> {
     // Attempt password reset
     return await _repository.resetPassword(params.email.trim());
   }
-
-  // Email validation now handled by ValidationService
 }
 
 /// Parameters for reset password use case
 class ResetPasswordParams {
-  const ResetPasswordParams({
-    required this.email,
-  });
+  const ResetPasswordParams({required this.email});
 
   final String email;
 

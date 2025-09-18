@@ -56,7 +56,9 @@ class StudentSessionApplication {
   }
 
   /// Check if application can be cancelled
-  bool get canCancel => status == ApplicationStatus.pending || status == ApplicationStatus.approved;
+  bool get canCancel =>
+      status == ApplicationStatus.pending ||
+      status == ApplicationStatus.approved;
 
   /// Check if application is editable
   bool get canEdit => status == ApplicationStatus.pending;
@@ -122,5 +124,6 @@ enum ApplicationStatus {
   bool get isPositive => this == ApplicationStatus.approved;
 
   /// Check if status is negative (rejected/cancelled)
-  bool get isNegative => this == ApplicationStatus.rejected || this == ApplicationStatus.cancelled;
+  bool get isNegative =>
+      this == ApplicationStatus.rejected || this == ApplicationStatus.cancelled;
 }

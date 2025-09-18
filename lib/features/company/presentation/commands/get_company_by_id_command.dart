@@ -1,11 +1,13 @@
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/errors/app_error.dart';
+import 'package:dio/dio.dart';
+
+import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/company.dart';
 import '../../domain/use_cases/get_company_by_id_use_case.dart';
 
-/// Command for getting a specific company by ID
 class GetCompanyByIdCommand extends ParameterizedCommand<int, Company> {
   GetCompanyByIdCommand(this._useCase);
 
@@ -13,6 +15,9 @@ class GetCompanyByIdCommand extends ParameterizedCommand<int, Company> {
 
   @override
   Future<void> executeWithParams(int companyId) async {
+    if (isExecuting) return;
+
+    clearError();
     setExecuting(true);
 
     try {
@@ -22,15 +27,29 @@ class GetCompanyByIdCommand extends ParameterizedCommand<int, Company> {
         success: (company) => setResult(company),
         failure: (error) => setError(error),
       );
-    } catch (e, stackTrace) {
-      await Sentry.captureException(e, stackTrace: stackTrace);
-      setError(UnknownError(e.toString()));
+    } catch (e) {
+      if (e is DioException) {
+        setError(
+          ErrorMapper.fromDioException(
+            e,
+            null,
+            operationContext: 'get_company_by_id',
+          ),
+        );
+      } else {
+        setError(
+          ErrorMapper.fromException(
+            e,
+            null,
+            operationContext: 'get_company_by_id',
+          ),
+        );
+      }
     } finally {
       setExecuting(false);
     }
   }
 
-  /// Convenience method for getting company by ID
   Future<void> getCompanyById(int companyId) {
     return executeWithParams(companyId);
   }

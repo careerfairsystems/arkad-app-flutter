@@ -1,8 +1,10 @@
+import 'package:dio/dio.dart';
+
+import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/signup_data.dart';
 import '../../domain/use_cases/sign_up_use_case.dart';
 
-/// Command for sign up operation
 class SignUpCommand extends ParameterizedCommand<SignupData, String> {
   SignUpCommand(this._signUpUseCase);
 
@@ -10,21 +12,34 @@ class SignUpCommand extends ParameterizedCommand<SignupData, String> {
 
   @override
   Future<void> executeWithParams(SignupData params) async {
-    if (isExecuting) return; // Prevent multiple concurrent executions
+    if (isExecuting) return;
 
+    clearError();
     setExecuting(true);
 
-    final result = await _signUpUseCase.call(params);
+    try {
+      final result = await _signUpUseCase.call(params);
 
-    result.when(
-      success: (token) => setResult(token),
-      failure: (error) => setError(error),
-    );
-
-    setExecuting(false);
+      result.when(
+        success: (token) => setResult(token),
+        failure: (error) => setError(error),
+      );
+    } catch (e) {
+      if (e is DioException) {
+        setError(
+          ErrorMapper.fromDioException(e, null, operationContext: 'signup'),
+        );
+      } else {
+        setError(
+          ErrorMapper.fromException(e, null, operationContext: 'sign_up'),
+        );
+      }
+    } finally {
+      setExecuting(false);
+    }
   }
 
-  /// Convenience method for executing with signup data
+  /// Start signup process with user data
   Future<void> signUp(SignupData signupData) async {
     await executeWithParams(signupData);
   }

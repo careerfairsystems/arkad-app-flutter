@@ -1,5 +1,7 @@
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'package:flutter/foundation.dart';
+
 import '../../domain/result.dart';
 import '../../errors/app_error.dart';
 
@@ -9,7 +11,7 @@ abstract class BaseRepository {
   const BaseRepository();
 
   /// Execute an operation with consistent error handling and result mapping
-  /// 
+  ///
   /// [operation] - The async operation to execute
   /// [errorContext] - Context string for error logging (e.g., "sign in", "load profile")
   /// [onSuccess] - Optional callback for successful operations
@@ -27,10 +29,10 @@ abstract class BaseRepository {
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
       final appError = _mapException(e, errorContext);
-      
+
       // Log error for debugging (in development mode)
       _logError(appError, stackTrace);
-      
+
       onError?.call(appError);
       return Result.failure(appError);
     }
@@ -51,15 +53,15 @@ abstract class BaseRepository {
         onError?.call(error);
         return Result.failure(error);
       }
-      
+
       onSuccess?.call(result);
       return Result.success(result);
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
       final appError = _mapException(e, errorContext);
-      
+
       _logError(appError, stackTrace);
-      
+
       onError?.call(appError);
       return Result.failure(appError);
     }
@@ -101,12 +103,12 @@ abstract class BaseRepository {
         await Sentry.captureException(e);
         attempts++;
         lastException = e is Exception ? e : Exception(e.toString());
-        
+
         // Check if we should retry this error
         if (shouldRetry != null && !shouldRetry(lastException)) {
           break;
         }
-        
+
         // If this was the last attempt, don't delay
         if (attempts < maxRetries) {
           await Future.delayed(delay);
@@ -118,7 +120,7 @@ abstract class BaseRepository {
       lastException!,
       '$errorContext (after $attempts attempts)',
     );
-    
+
     _logError(appError, StackTrace.current);
     return Result.failure(appError);
   }
@@ -126,20 +128,20 @@ abstract class BaseRepository {
   /// Check if an error is recoverable/retryable
   bool isRetryableError(Exception error) {
     // Network errors are typically retryable
-    if (error.toString().contains('network') || 
+    if (error.toString().contains('network') ||
         error.toString().contains('connection') ||
         error.toString().contains('timeout')) {
       return true;
     }
-    
+
     // Server errors (5xx) are typically retryable
-    if (error.toString().contains('500') || 
+    if (error.toString().contains('500') ||
         error.toString().contains('502') ||
         error.toString().contains('503') ||
         error.toString().contains('504')) {
       return true;
     }
-    
+
     return false;
   }
 
@@ -153,13 +155,12 @@ abstract class BaseRepository {
   /// Log error for debugging purposes
   void _logError(AppError error, StackTrace stackTrace) {
     // In development, print detailed error information
-    assert(() {
+    if (kDebugMode) {
       print('Repository Error: ${error.userMessage}');
       print('Technical details: ${error.technicalDetails}');
       print('Stack trace: $stackTrace');
-      return true;
-    }());
-    
+    }
+
     // In production, you might want to send to crash reporting service
     // crashlytics.recordError(error, stackTrace);
   }
@@ -168,7 +169,7 @@ abstract class BaseRepository {
 /// Repository mixin for caching functionality
 mixin CachedRepositoryMixin<T> {
   final Map<String, _CacheEntry<T>> _cache = {};
-  
+
   /// Cache duration for different types of data
   Duration get cacheExpiration => const Duration(minutes: 5);
 
@@ -213,7 +214,7 @@ mixin CachedRepositoryMixin<T> {
 
     // Execute operation
     final result = await operation();
-    
+
     // Cache successful results
     result.when(
       success: (data) => setCache(cacheKey, data as T),

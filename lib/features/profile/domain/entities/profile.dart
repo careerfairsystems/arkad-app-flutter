@@ -29,19 +29,19 @@ class Profile {
   final String? cvUrl;
 
   /// Check if profile has all required fields completed
-  bool get isComplete =>
-      firstName.isNotEmpty &&
-      lastName.isNotEmpty &&
-      (foodPreferences?.isNotEmpty ?? false) &&
-      programme != null;
+  bool get isComplete => firstName.isNotEmpty && lastName.isNotEmpty;
 
-  /// Get completion percentage (0.0 to 1.0)
+  /// Includes optional fields for better user experience
   double get completionPercentage {
     int completed = 0;
-    int total = 7; // firstName, lastName, food, programme, linkedin, picture, cv
+    int total =
+        7; // firstName, lastName, foodPreferences, programme, linkedin, picture, cv
 
+    // Required fields
     if (firstName.isNotEmpty) completed++;
     if (lastName.isNotEmpty) completed++;
+
+    // Optional fields (improve completion score)
     if (foodPreferences?.isNotEmpty ?? false) completed++;
     if (programme != null) completed++;
     if (linkedin?.isNotEmpty ?? false) completed++;
@@ -52,12 +52,11 @@ class Profile {
   }
 
   /// Get missing required fields
+  /// Only first name and last name are required for profile completion
   List<String> get missingRequiredFields {
     final missing = <String>[];
     if (firstName.isEmpty) missing.add('First Name');
     if (lastName.isEmpty) missing.add('Last Name');
-    if (foodPreferences?.isEmpty ?? true) missing.add('Food Preferences');
-    if (programme == null) missing.add('Programme');
     return missing;
   }
 
@@ -92,13 +91,13 @@ class Profile {
       email: email ?? this.email,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
-      foodPreferences: foodPreferences ?? this.foodPreferences,
+      foodPreferences: foodPreferences,
       programme: programme ?? this.programme,
       studyYear: studyYear ?? this.studyYear,
-      masterTitle: masterTitle ?? this.masterTitle,
-      linkedin: linkedin ?? this.linkedin,
-      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
-      cvUrl: cvUrl ?? this.cvUrl,
+      masterTitle: masterTitle,
+      linkedin: linkedin,
+      profilePictureUrl: profilePictureUrl,
+      cvUrl: cvUrl,
     );
   }
 
@@ -114,5 +113,5 @@ class Profile {
   int get hashCode => Object.hash(id, email);
 
   @override
-  String toString() => 'Profile(id: $id, email: $email, name: $fullName)';
+  String toString() => 'Profile(id: $id)';
 }

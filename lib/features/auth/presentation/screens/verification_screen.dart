@@ -11,9 +11,7 @@ import '../widgets/auth_form_widgets.dart';
 ///
 /// Allows the user to enter or paste a 6-digit code sent to their email.
 class VerificationScreen extends StatefulWidget {
-  final String email;
-
-  const VerificationScreen({super.key, required this.email});
+  const VerificationScreen({super.key});
 
   @override
   State<VerificationScreen> createState() => _VerificationScreenState();
@@ -21,7 +19,18 @@ class VerificationScreen extends StatefulWidget {
 
 class _VerificationScreenState extends State<VerificationScreen> {
   final TextEditingController _codeController = TextEditingController();
-  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Reset command state to prevent stale state display
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+      authViewModel.completeSignupCommand.reset();
+      authViewModel.resendVerificationCommand.reset();
+    });
+  }
 
   @override
   void dispose() {
@@ -33,48 +42,58 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   Future<void> _verifyCode() async {
     if (!_isCodeComplete) return;
-    setState(() {
-      _errorMessage = null;
-    });
+
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     await authViewModel.completeSignUp(_codeController.text);
-    
-    if (mounted) {
-      if (authViewModel.completeSignupCommand.isCompleted && authViewModel.completeSignupCommand.error == null) {
-        context.go('/profile');
-      } else if (authViewModel.completeSignupCommand.error != null) {
-        setState(() => _errorMessage = authViewModel.completeSignupCommand.error!.userMessage);
-      } else if (authViewModel.globalError != null) {
-        setState(() => _errorMessage = authViewModel.globalError!.userMessage);
-      }
+
+    // Only navigate on successful completion, not on error
+    if (mounted &&
+        authViewModel.completeSignupCommand.isCompleted &&
+        authViewModel.completeSignupCommand.result != null &&
+        !authViewModel.completeSignupCommand.hasError) {
+      context.go('/profile');
     }
   }
 
   Future<void> _resendCode() async {
-    setState(() {
-      _errorMessage = null;
-    });
-    
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    await authViewModel.resendVerification(widget.email);
-    
+    final email = authViewModel.pendingSignupData?.email;
+
+    if (email == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: No email found for verification'),
+          backgroundColor: ArkadColors.lightRed,
+        ),
+      );
+      return;
+    }
+
+    await authViewModel.resendVerification(email);
+
     if (mounted) {
-      if (authViewModel.resendVerificationCommand.isCompleted && !authViewModel.resendVerificationCommand.hasError) {
+      if (authViewModel.resendVerificationCommand.isCompleted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Verification code sent! Check your email.'),
-            backgroundColor: Colors.green,
+            backgroundColor: ArkadColors.arkadGreen,
           ),
         );
       } else if (authViewModel.resendVerificationCommand.hasError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to resend: ${authViewModel.resendVerificationCommand.error!.userMessage}'),
-            backgroundColor: Colors.red,
+            content: Text(
+              'Failed to resend: ${authViewModel.resendVerificationCommand.error!.userMessage}',
+            ),
+            backgroundColor: ArkadColors.lightRed,
           ),
         );
       }
     }
+  }
+
+  void _goBackToSignup() {
+    context.pop();
   }
 
   @override
@@ -94,12 +113,19 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   "We've sent a verification code to",
                 ),
 
-                Text(
-                  widget.email,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+                Consumer<AuthViewModel>(
+                  builder: (context, authViewModel, child) {
+                    final email =
+                        authViewModel.pendingSignupData?.email ??
+                        'Unknown email';
+                    return Text(
+                      email,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    );
+                  },
                 ),
                 const SizedBox(height: 40),
 
@@ -153,14 +179,27 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   ],
                 ),
 
-                AuthFormWidgets.buildErrorMessage(_errorMessage),
+                Consumer<AuthViewModel>(
+                  builder: (context, authViewModel, child) {
+                    final error = authViewModel.completeSignupCommand.error;
+                    if (error != null) {
+                      return AuthFormWidgets.buildErrorMessage(
+                        error.userMessage,
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
 
                 const SizedBox(height: 30),
 
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
                     return ElevatedButton(
-                      onPressed: authViewModel.isCompletingSignup || !_isCodeComplete ? null : _verifyCode,
+                      onPressed:
+                          authViewModel.isCompletingSignup || !_isCodeComplete
+                              ? null
+                              : _verifyCode,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ArkadColors.arkadTurkos,
                         foregroundColor: Colors.white,
@@ -171,40 +210,58 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         elevation: 0,
                         disabledBackgroundColor: Colors.grey.shade300,
                       ),
-                      child: authViewModel.isCompletingSignup
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                      child:
+                          authViewModel.isCompletingSignup
+                              ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                              : const Text(
+                                'Verify',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            )
-                          : const Text(
-                              'Verify',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                     );
                   },
                 ),
 
                 const SizedBox(height: 24),
 
+                // Back button
+                TextButton(
+                  onPressed: _goBackToSignup,
+                  style: TextButton.styleFrom(
+                    foregroundColor: ArkadColors.gray,
+                  ),
+                  child: const Text('← Back to signup'),
+                ),
+
+                const SizedBox(height: 8),
+
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
                     return TextButton(
-                      onPressed: authViewModel.isResendingVerification ? null : _resendCode,
+                      onPressed:
+                          authViewModel.isResendingVerification
+                              ? null
+                              : _resendCode,
                       style: TextButton.styleFrom(
                         foregroundColor: ArkadColors.arkadTurkos,
                       ),
-                      child: authViewModel.isResendingVerification
-                          ? const Text('Sending...')
-                          : const Text("Didn't receive the code? Send again"),
+                      child:
+                          authViewModel.isResendingVerification
+                              ? const Text('Sending...')
+                              : const Text(
+                                "Didn't receive the code? Send again",
+                              ),
                     );
                   },
                 ),

@@ -13,10 +13,7 @@ import '../mappers/user_mapper.dart';
 
 /// Implementation of auth repository
 class AuthRepositoryImpl implements AuthRepository {
-  const AuthRepositoryImpl(
-    this._remoteDataSource,
-    this._localDataSource,
-  );
+  const AuthRepositoryImpl(this._remoteDataSource, this._localDataSource);
 
   final AuthRemoteDataSource _remoteDataSource;
   final AuthLocalDataSource _localDataSource;
@@ -26,14 +23,14 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       // Attempt sign in via remote API
       final token = await _remoteDataSource.signIn(email, password);
-      
+
       // Set auth token for subsequent API calls
       _remoteDataSource.setBearerAuth("AuthBearer", token);
-      
+
       // Load user profile
       final userDto = await _remoteDataSource.getUserProfile();
       final user = UserMapper.fromDto(userDto);
-      
+
       // Create session
       final session = AuthSession(
         user: user,
@@ -41,10 +38,10 @@ class AuthRepositoryImpl implements AuthRepository {
         createdAt: DateTime.now(),
         isValid: true,
       );
-      
+
       // Save session locally
       await _localDataSource.saveSession(session);
-      
+
       return Result.success(session);
     } on AuthException catch (e, stackTrace) {
       // Auth errors are expected domain errors - log as warning
@@ -52,17 +49,21 @@ class AuthRepositoryImpl implements AuthRepository {
         'Sign in failed - invalid credentials',
         level: SentryLevel.warning,
       );
-      Sentry.addBreadcrumb(Breadcrumb(
-        message: 'Auth exception in signIn: ${e.message}',
-        level: SentryLevel.info,
-      ));
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Auth exception in signIn: ${e.message}',
+          level: SentryLevel.info,
+        ),
+      );
       return Result.failure(SignInError(details: e.message));
     } on ValidationException catch (e, stackTrace) {
       // Validation errors are expected domain errors - record as breadcrumb
-      Sentry.addBreadcrumb(Breadcrumb(
-        message: 'Validation error in signIn: ${e.message}',
-        level: SentryLevel.info,
-      ));
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Validation error in signIn: ${e.message}',
+          level: SentryLevel.info,
+        ),
+      );
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e, stackTrace) {
       // Network errors are expected - log as warning
@@ -70,18 +71,22 @@ class AuthRepositoryImpl implements AuthRepository {
         'Sign in failed - network unavailable',
         level: SentryLevel.warning,
       );
-      Sentry.addBreadcrumb(Breadcrumb(
-        message: 'Network exception in signIn: ${e.message}',
-        level: SentryLevel.info,
-      ));
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Network exception in signIn: ${e.message}',
+          level: SentryLevel.info,
+        ),
+      );
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         // Rate limit errors are expected - record as breadcrumb
-        Sentry.addBreadcrumb(Breadcrumb(
-          message: 'Rate limit hit in signIn: ${e.message}',
-          level: SentryLevel.info,
-        ));
+        Sentry.addBreadcrumb(
+          Breadcrumb(
+            message: 'Rate limit hit in signIn: ${e.message}',
+            level: SentryLevel.info,
+          ),
+        );
         return Result.failure(RateLimitError(const Duration(minutes: 5)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -96,25 +101,29 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Result<String>> beginSignup(SignupData data) async {
     try {
       final token = await _remoteDataSource.beginSignup(data);
-      
+
       // Save signup data and token for later use
       await _localDataSource.saveSignupData(data, token);
-      
+
       return Result.success(token);
     } on ValidationException catch (e, stackTrace) {
       if (e.message.contains('already exists')) {
         // Email exists is expected validation error - record as breadcrumb
-        Sentry.addBreadcrumb(Breadcrumb(
-          message: 'Email already exists in beginSignup: ${data.email}',
-          level: SentryLevel.info,
-        ));
+        Sentry.addBreadcrumb(
+          Breadcrumb(
+            message: 'Email already exists in beginSignup: ${data.email}',
+            level: SentryLevel.info,
+          ),
+        );
         return Result.failure(EmailExistsError(data.email));
       }
       // Other validation errors are expected - record as breadcrumb
-      Sentry.addBreadcrumb(Breadcrumb(
-        message: 'Validation error in beginSignup: ${e.message}',
-        level: SentryLevel.info,
-      ));
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Validation error in beginSignup: ${e.message}',
+          level: SentryLevel.info,
+        ),
+      );
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e, stackTrace) {
       // Network errors are expected - log as warning
@@ -122,18 +131,22 @@ class AuthRepositoryImpl implements AuthRepository {
         'Signup begin failed - network unavailable',
         level: SentryLevel.warning,
       );
-      Sentry.addBreadcrumb(Breadcrumb(
-        message: 'Network exception in beginSignup: ${e.message}',
-        level: SentryLevel.info,
-      ));
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Network exception in beginSignup: ${e.message}',
+          level: SentryLevel.info,
+        ),
+      );
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         // Rate limit errors are expected - record as breadcrumb
-        Sentry.addBreadcrumb(Breadcrumb(
-          message: 'Rate limit hit in beginSignup: ${e.message}',
-          level: SentryLevel.info,
-        ));
+        Sentry.addBreadcrumb(
+          Breadcrumb(
+            message: 'Rate limit hit in beginSignup: ${e.message}',
+            level: SentryLevel.info,
+          ),
+        );
         return Result.failure(RateLimitError(const Duration(minutes: 5)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -146,26 +159,28 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Result<AuthSession>> completeSignup(
-    String token, 
-    String code, 
+    String token,
+    String code,
     SignupData data,
   ) async {
     try {
       // Complete signup via remote API
       await _remoteDataSource.completeSignup(token, code, data);
-      
+
       // Clear signup data as it's no longer needed
       await _localDataSource.clearSignupData();
-      
+
       // Now sign in to get the auth token
       final signInResult = await signIn(data.email, data.password);
       return signInResult;
     } on ValidationException catch (e, stackTrace) {
       // Validation errors are expected domain errors - record as breadcrumb
-      Sentry.addBreadcrumb(Breadcrumb(
-        message: 'Validation error: ${e.message}',
-        level: SentryLevel.info,
-      ));
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Validation error: ${e.message}',
+          level: SentryLevel.info,
+        ),
+      );
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e, stackTrace) {
       // Network errors are expected - log as warning
@@ -177,10 +192,12 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         // Rate limit errors are expected - record as breadcrumb
-        Sentry.addBreadcrumb(Breadcrumb(
-          message: 'Rate limit hit: ${e.message}',
-          level: SentryLevel.info,
-        ));
+        Sentry.addBreadcrumb(
+          Breadcrumb(
+            message: 'Rate limit hit: ${e.message}',
+            level: SentryLevel.info,
+          ),
+        );
         return Result.failure(RateLimitError(const Duration(minutes: 5)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -198,10 +215,12 @@ class AuthRepositoryImpl implements AuthRepository {
       return Result.success(null);
     } on ValidationException catch (e, stackTrace) {
       // Validation errors are expected domain errors - record as breadcrumb
-      Sentry.addBreadcrumb(Breadcrumb(
-        message: 'Validation error: ${e.message}',
-        level: SentryLevel.info,
-      ));
+      Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Validation error: ${e.message}',
+          level: SentryLevel.info,
+        ),
+      );
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e, stackTrace) {
       // Network errors are expected - log as warning
@@ -213,10 +232,12 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         // Rate limit errors are expected - record as breadcrumb
-        Sentry.addBreadcrumb(Breadcrumb(
-          message: 'Rate limit hit: ${e.message}',
-          level: SentryLevel.info,
-        ));
+        Sentry.addBreadcrumb(
+          Breadcrumb(
+            message: 'Rate limit hit: ${e.message}',
+            level: SentryLevel.info,
+          ),
+        );
         return Result.failure(RateLimitError(const Duration(minutes: 5)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -237,15 +258,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Set the existing token for API calls
       _remoteDataSource.setBearerAuth("AuthBearer", session.token);
-      
+
       // Try to refresh user profile
       final userDto = await _remoteDataSource.getUserProfile();
       final user = UserMapper.fromDto(userDto);
-      
+
       // Update session with fresh user data
       final refreshedSession = session.copyWith(user: user);
       await _localDataSource.saveSession(refreshedSession);
-      
+
       return Result.success(refreshedSession);
     } on AuthException catch (e, stackTrace) {
       // Auth errors are expected domain errors - log as warning
@@ -274,10 +295,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       // Clear local session
       await _localDataSource.clearSession();
-      
+
       // Clear API auth
       _remoteDataSource.clearAuth();
-      
+
       return Result.success(null);
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -318,7 +339,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Result<void>> requestVerificationCode(String email) async {
+  Future<Result<String>> requestVerificationCode(String email) async {
     try {
       // Get stored signup data to resend verification
       final signupData = await _localDataSource.getSignupData();
@@ -329,17 +350,15 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       // Request new verification code by re-initiating signup
-      await _remoteDataSource.beginSignup(signupData);
-      
-      return Result.success(null);
-    } on ValidationException catch (e, stackTrace) {
-      // Validation errors are expected domain errors - record as breadcrumb
-      Sentry.addBreadcrumb(Breadcrumb(
-        message: 'Validation error: ${e.message}',
-        level: SentryLevel.info,
-      ));
+      final newToken = await _remoteDataSource.beginSignup(signupData);
+
+      // Update stored token with the new one
+      await _localDataSource.saveSignupData(signupData, newToken);
+
+      return Result.success(newToken);
+    } on ValidationException catch (e) {
       return Result.failure(ValidationError(e.message));
-    } on NetworkException catch (e, stackTrace) {
+    } on NetworkException catch (e) {
       // Network errors are expected - log as warning
       await Sentry.captureMessage(
         'Network unavailable',
@@ -349,10 +368,12 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         // Rate limit errors are expected - record as breadcrumb
-        Sentry.addBreadcrumb(Breadcrumb(
-          message: 'Rate limit hit: ${e.message}',
-          level: SentryLevel.info,
-        ));
+        Sentry.addBreadcrumb(
+          Breadcrumb(
+            message: 'Rate limit hit: ${e.message}',
+            level: SentryLevel.info,
+          ),
+        );
         return Result.failure(RateLimitError(const Duration(minutes: 5)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);

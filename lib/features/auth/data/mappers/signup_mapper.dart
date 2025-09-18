@@ -6,12 +6,14 @@ import '../../domain/entities/signup_data.dart';
 class SignupMapper {
   /// Convert SignupData to SignupSchema DTO
   static SignupSchema toSignupDto(SignupData data) {
-    return SignupSchema((b) => b
-      ..email = data.email
-      ..password = data.password
-      ..firstName = data.firstName
-      ..lastName = data.lastName
-      ..foodPreferences = data.foodPreferences
+    return SignupSchema(
+      (b) =>
+          b
+            ..email = data.email
+            ..password = data.password
+            ..firstName = data.firstName
+            ..lastName = data.lastName
+            ..foodPreferences = data.foodPreferences,
     );
   }
 
@@ -21,14 +23,16 @@ class SignupMapper {
     required String code,
     required SignupData data,
   }) {
-    return CompleteSignupSchema((b) => b
-      ..token = token
-      ..code = code
-      ..email = data.email
-      ..password = data.password
-      ..firstName = data.firstName
-      ..lastName = data.lastName
-      ..foodPreferences = data.foodPreferences
+    return CompleteSignupSchema(
+      (b) =>
+          b
+            ..token = token
+            ..code = code
+            ..email = data.email
+            ..password = data.password
+            ..firstName = data.firstName
+            ..lastName = data.lastName
+            ..foodPreferences = data.foodPreferences,
     );
   }
 }

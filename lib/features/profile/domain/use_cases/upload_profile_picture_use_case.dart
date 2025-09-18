@@ -7,13 +7,16 @@ import '../entities/file_upload_result.dart';
 import '../repositories/profile_repository.dart';
 
 /// Use case for uploading profile picture
-class UploadProfilePictureUseCase extends UseCase<FileUploadResult, UploadProfilePictureParams> {
+class UploadProfilePictureUseCase
+    extends UseCase<FileUploadResult, UploadProfilePictureParams> {
   const UploadProfilePictureUseCase(this._repository);
 
   final ProfileRepository _repository;
 
   @override
-  Future<Result<FileUploadResult>> call(UploadProfilePictureParams params) async {
+  Future<Result<FileUploadResult>> call(
+    UploadProfilePictureParams params,
+  ) async {
     // Validate file
     final validation = _validateImageFile(params.imageFile);
     if (validation.isFailure) {
@@ -56,9 +59,7 @@ class UploadProfilePictureUseCase extends UseCase<FileUploadResult, UploadProfil
 
 /// Parameters for upload profile picture use case
 class UploadProfilePictureParams {
-  const UploadProfilePictureParams({
-    required this.imageFile,
-  });
+  const UploadProfilePictureParams({required this.imageFile});
 
   final File imageFile;
 }

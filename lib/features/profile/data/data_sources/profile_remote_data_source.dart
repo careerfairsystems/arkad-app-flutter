@@ -26,7 +26,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<ProfileSchema> getUserProfile() async {
     try {
-      final response = await _api.getUserProfileApi().userModelsApiGetUserProfile();
+      final response =
+          await _api.getUserProfileApi().userModelsApiGetUserProfile();
 
       if (response.isSuccess && response.data != null) {
         return response.data!;
@@ -50,9 +51,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<ProfileSchema> updateProfile(UpdateProfileSchema updateData) async {
     try {
-      final response = await _api.getUserProfileApi().userModelsApiUpdateProfile(
-        updateProfileSchema: updateData,
-      );
+      final response = await _api
+          .getUserProfileApi()
+          .userModelsApiUpdateProfile(updateProfileSchema: updateData);
 
       if (response.isSuccess && response.data != null) {
         return response.data!;
@@ -67,7 +68,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         } else if (e.response?.statusCode == 400) {
           throw ValidationException('Invalid profile data');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException('Too many requests. Please wait before trying again.');
+          throw ApiException(
+            'Too many requests. Please wait before trying again.',
+          );
         }
         throw NetworkException('Network error: ${e.message}');
       }
@@ -84,12 +87,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         filename: 'profile_picture.${imageFile.path.split('.').last}',
       );
 
-      final response = await _api.getUserProfileApi().userModelsApiUpdateProfilePicture(
-        profilePicture: multipartFile,
-      );
+      final response = await _api
+          .getUserProfileApi()
+          .userModelsApiUpdateProfilePicture(profilePicture: multipartFile);
 
-      if (response.isSuccess && response.data != null) {
-        return response.data!;
+      if (response.isSuccess) {
+        return 'success'; // Return success indicator, not a URL
       } else {
         throw ApiException('Profile picture upload failed: ${response.error}');
       }
@@ -103,7 +106,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         } else if (e.response?.statusCode == 415) {
           throw ValidationException('Unsupported image format');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException('Too many requests. Please wait before trying again.');
+          throw ApiException(
+            'Too many requests. Please wait before trying again.',
+          );
         }
         throw NetworkException('Network error: ${e.message}');
       }
@@ -124,8 +129,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         cv: multipartFile,
       );
 
-      if (response.isSuccess && response.data != null) {
-        return response.data!;
+      if (response.isSuccess) {
+        return 'success'; // Return success indicator, not a URL
       } else {
         throw ApiException('CV upload failed: ${response.error}');
       }
@@ -139,7 +144,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         } else if (e.response?.statusCode == 415) {
           throw ValidationException('Unsupported file format');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException('Too many requests. Please wait before trying again.');
+          throw ApiException(
+            'Too many requests. Please wait before trying again.',
+          );
         }
         throw NetworkException('Network error: ${e.message}');
       }
@@ -150,10 +157,13 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<void> deleteProfilePicture() async {
     try {
-      final response = await _api.getUserProfileApi().userModelsApiDeleteProfilePicture();
+      final response =
+          await _api.getUserProfileApi().userModelsApiDeleteProfilePicture();
 
       if (!response.isSuccess) {
-        throw ApiException('Profile picture deletion failed: ${response.error}');
+        throw ApiException(
+          'Profile picture deletion failed: ${response.error}',
+        );
       }
     } catch (e) {
       await Sentry.captureException(e);
@@ -163,7 +173,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         } else if (e.response?.statusCode == 404) {
           throw ApiException('Profile picture not found');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException('Too many requests. Please wait before trying again.');
+          throw ApiException(
+            'Too many requests. Please wait before trying again.',
+          );
         }
         throw NetworkException('Network error: ${e.message}');
       }
@@ -187,12 +199,13 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         } else if (e.response?.statusCode == 404) {
           throw ApiException('CV not found');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException('Too many requests. Please wait before trying again.');
+          throw ApiException(
+            'Too many requests. Please wait before trying again.',
+          );
         }
         throw NetworkException('Network error: ${e.message}');
       }
       throw ApiException('CV deletion failed: ${e.toString()}');
     }
   }
-
 }

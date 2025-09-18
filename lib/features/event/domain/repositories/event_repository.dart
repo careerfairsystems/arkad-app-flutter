@@ -10,7 +10,10 @@ abstract class EventRepository {
   Future<Result<Event>> getEventById(int id);
 
   /// Get events by date range
-  Future<Result<List<Event>>> getEventsByDateRange(DateTime start, DateTime end);
+  Future<Result<List<Event>>> getEventsByDateRange(
+    DateTime start,
+    DateTime end,
+  );
 
   /// Register for an event
   Future<Result<void>> registerForEvent(int eventId);
