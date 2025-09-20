@@ -7,6 +7,7 @@ import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/screens/verification_screen.dart';
 import '../features/company/presentation/screens/companies_screen.dart';
 import '../features/company/presentation/screens/company_detail_screen.dart';
+import '../features/event/presentation/screens/event_detail_screen.dart';
 import '../features/event/presentation/screens/event_screen.dart';
 import '../features/map/presentation/screens/map_screen.dart';
 import '../features/profile/presentation/screens/edit_profile_screen.dart';
@@ -136,6 +137,23 @@ class AppRouter {
               GoRoute(
                 path: '/events',
                 pageBuilder: _noAnim((_) => const EventScreen()),
+                routes: [
+                  GoRoute(
+                    path: 'detail/:id',
+                    pageBuilder: _slide((context, s) {
+                      final idStr = s.pathParameters['id'];
+                      final eventId = int.tryParse(idStr ?? '');
+                      if (eventId == null) {
+                        return const Scaffold(
+                          body: Center(
+                            child: Text('Error: Invalid event ID'),
+                          ),
+                        );
+                      }
+                      return EventDetailScreen(eventId: eventId);
+                    }),
+                  ),
+                ],
               ),
             ],
           ),

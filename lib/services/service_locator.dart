@@ -34,6 +34,9 @@ import '../features/company/presentation/commands/search_and_filter_companies_co
 import '../features/company/presentation/commands/search_companies_command.dart';
 import '../features/company/presentation/view_models/company_detail_view_model.dart';
 import '../features/company/presentation/view_models/company_view_model.dart';
+import '../features/event/data/data_sources/event_local_data_source.dart';
+import '../features/event/data/data_sources/event_remote_data_source.dart';
+import '../features/event/data/mappers/event_mapper.dart';
 import '../features/event/data/repositories/event_repository_impl.dart';
 import '../features/event/domain/repositories/event_repository.dart';
 import '../features/event/presentation/view_models/event_view_model.dart';
@@ -344,11 +347,28 @@ void _setupStudentSessionFeature() {
   );
 }
 
-/// Setup Event feature with minimal clean architecture
+/// Setup Event feature with clean architecture
 void _setupEventFeature() {
-  // Repository (placeholder implementation)
+  // Data sources
+  serviceLocator.registerLazySingleton<EventRemoteDataSource>(
+    () => EventRemoteDataSource(serviceLocator<ArkadApi>()),
+  );
+  serviceLocator.registerLazySingleton<EventLocalDataSource>(
+    () => EventLocalDataSource(),
+  );
+
+  // Mapper
+  serviceLocator.registerLazySingleton<EventMapper>(
+    () => EventMapper(),
+  );
+
+  // Repository
   serviceLocator.registerLazySingleton<EventRepository>(
-    () => EventRepositoryImpl(),
+    () => EventRepositoryImpl(
+      remoteDataSource: serviceLocator<EventRemoteDataSource>(),
+      localDataSource: serviceLocator<EventLocalDataSource>(),
+      mapper: serviceLocator<EventMapper>(),
+    ),
   );
 
   // View model
