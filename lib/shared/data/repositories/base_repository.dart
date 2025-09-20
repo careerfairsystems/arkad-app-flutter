@@ -1,6 +1,5 @@
-import 'package:sentry_flutter/sentry_flutter.dart';
-
 import 'package:flutter/foundation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../domain/result.dart';
 import '../../errors/app_error.dart';

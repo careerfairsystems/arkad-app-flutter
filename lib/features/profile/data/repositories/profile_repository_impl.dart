@@ -117,7 +117,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
-        // Rate limit errors are expected - record as breadcrumb
         await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
@@ -165,17 +164,17 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('413')) {
-        Sentry.captureException(e, stackTrace: stackTrace);
+        await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(
           const ValidationError("Image file is too large (max 5MB)"),
         );
       } else if (e.message.contains('415')) {
-        Sentry.captureException(e, stackTrace: stackTrace);
+        await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(
           const ValidationError("Unsupported image format"),
         );
       } else if (e.message.contains('429')) {
-        Sentry.captureException(e, stackTrace: stackTrace);
+        await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -222,15 +221,15 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('413')) {
-        Sentry.captureException(e, stackTrace: stackTrace);
+        await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(
           const ValidationError("CV file is too large (max 10MB)"),
         );
       } else if (e.message.contains('415')) {
-        Sentry.captureException(e, stackTrace: stackTrace);
+        await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(const ValidationError("Unsupported file format"));
       } else if (e.message.contains('429')) {
-        Sentry.captureException(e, stackTrace: stackTrace);
+        await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -264,7 +263,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
-        // Rate limit errors are expected - record as breadcrumb
         await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
@@ -299,7 +297,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
-        // Rate limit errors are expected - record as breadcrumb
         await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(RateLimitError(const Duration(minutes: 2)));
       }
