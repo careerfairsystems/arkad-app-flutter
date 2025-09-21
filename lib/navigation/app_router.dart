@@ -145,9 +145,7 @@ class AppRouter {
                       final eventId = int.tryParse(idStr ?? '');
                       if (eventId == null) {
                         return const Scaffold(
-                          body: Center(
-                            child: Text('Error: Invalid event ID'),
-                          ),
+                          body: Center(child: Text('Error: Invalid event ID')),
                         );
                       }
                       return EventDetailScreen(eventId: eventId);

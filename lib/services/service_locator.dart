@@ -358,9 +358,7 @@ void _setupEventFeature() {
   );
 
   // Mapper
-  serviceLocator.registerLazySingleton<EventMapper>(
-    () => EventMapper(),
-  );
+  serviceLocator.registerLazySingleton<EventMapper>(() => EventMapper());
 
   // Repository
   serviceLocator.registerLazySingleton<EventRepository>(

@@ -149,8 +149,10 @@ class ArkadButton extends StatelessWidget {
 
     // Get the appropriate text color based on variant
     final textColor = switch (variant) {
-      ArkadButtonVariant.primary || ArkadButtonVariant.danger => ArkadColors.white,
-      ArkadButtonVariant.secondary || ArkadButtonVariant.ghost => ArkadColors.arkadTurkos,
+      ArkadButtonVariant.primary ||
+      ArkadButtonVariant.danger => ArkadColors.white,
+      ArkadButtonVariant.secondary ||
+      ArkadButtonVariant.ghost => ArkadColors.arkadTurkos,
     };
 
     return theme.textTheme.labelLarge?.copyWith(
