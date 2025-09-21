@@ -1,58 +1,87 @@
 /// Domain entity representing a student session timeslot
+/// Maps from TimeslotSchema in API
 class Timeslot {
-  final int id;
-  final int companyId;
-  final DateTime startTime;
-  final DateTime endTime;
-  final int maxParticipants;
-  final int currentParticipants;
-  final bool isAvailable;
-
   const Timeslot({
     required this.id,
     required this.companyId,
     required this.startTime,
-    required this.endTime,
-    required this.maxParticipants,
-    required this.currentParticipants,
-    required this.isAvailable,
+    required this.durationMinutes,
+    this.maxParticipants,
+    this.currentParticipants,
+    this.isAvailable = true,
+    this.isBooked = false,
   });
 
-  /// Create a copy with updated values
-  Timeslot copyWith({
-    int? id,
-    int? companyId,
-    DateTime? startTime,
-    DateTime? endTime,
-    int? maxParticipants,
-    int? currentParticipants,
-    bool? isAvailable,
-  }) {
-    return Timeslot(
-      id: id ?? this.id,
-      companyId: companyId ?? this.companyId,
-      startTime: startTime ?? this.startTime,
-      endTime: endTime ?? this.endTime,
-      maxParticipants: maxParticipants ?? this.maxParticipants,
-      currentParticipants: currentParticipants ?? this.currentParticipants,
-      isAvailable: isAvailable ?? this.isAvailable,
-    );
+  /// Unique identifier for this timeslot
+  final int id;
+
+  /// ID of the company this timeslot belongs to
+  final int companyId;
+
+  /// Start time of the timeslot
+  final DateTime startTime;
+
+  /// Duration in minutes (from API TimeslotSchema)
+  final int durationMinutes;
+
+  /// Maximum participants for this timeslot (optional, may not be in API)
+  final int? maxParticipants;
+
+  /// Current number of participants (optional, may not be in API)
+  final int? currentParticipants;
+
+  /// Whether this timeslot is available for booking
+  final bool isAvailable;
+
+  /// Whether this timeslot is booked by current user
+  final bool isBooked;
+
+  /// End time calculated from start time and duration
+  DateTime get endTime => startTime.add(Duration(minutes: durationMinutes));
+
+  /// Duration as Duration object
+  Duration get duration => Duration(minutes: durationMinutes);
+
+  /// Check if timeslot is full (returns false if capacity info unavailable)
+  bool get isFull {
+    if (maxParticipants == null || currentParticipants == null) return false;
+    return currentParticipants! >= maxParticipants!;
   }
 
-  /// Duration of the timeslot
-  Duration get duration => endTime.difference(startTime);
-
-  /// Check if timeslot is full
-  bool get isFull => currentParticipants >= maxParticipants;
-
-  /// Available spots remaining
-  int get spotsRemaining => maxParticipants - currentParticipants;
+  /// Available spots remaining (returns null if capacity info unavailable)
+  int? get spotsRemaining {
+    if (maxParticipants == null || currentParticipants == null) return null;
+    return maxParticipants! - currentParticipants!;
+  }
 
   /// Format time range for display
   String get timeRangeDisplay {
     final startStr = _formatTime(startTime);
     final endStr = _formatTime(endTime);
     return '$startStr - $endStr';
+  }
+
+  /// Create a copy with updated values
+  Timeslot copyWith({
+    int? id,
+    int? companyId,
+    DateTime? startTime,
+    int? durationMinutes,
+    int? maxParticipants,
+    int? currentParticipants,
+    bool? isAvailable,
+    bool? isBooked,
+  }) {
+    return Timeslot(
+      id: id ?? this.id,
+      companyId: companyId ?? this.companyId,
+      startTime: startTime ?? this.startTime,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      maxParticipants: maxParticipants ?? this.maxParticipants,
+      currentParticipants: currentParticipants ?? this.currentParticipants,
+      isAvailable: isAvailable ?? this.isAvailable,
+      isBooked: isBooked ?? this.isBooked,
+    );
   }
 
   /// Format date for display
@@ -87,10 +116,11 @@ class Timeslot {
         other.id == id &&
         other.companyId == companyId &&
         other.startTime == startTime &&
-        other.endTime == endTime &&
+        other.durationMinutes == durationMinutes &&
         other.maxParticipants == maxParticipants &&
         other.currentParticipants == currentParticipants &&
-        other.isAvailable == isAvailable;
+        other.isAvailable == isAvailable &&
+        other.isBooked == isBooked;
   }
 
   @override
@@ -99,10 +129,11 @@ class Timeslot {
       id,
       companyId,
       startTime,
-      endTime,
+      durationMinutes,
       maxParticipants,
       currentParticipants,
       isAvailable,
+      isBooked,
     );
   }
 

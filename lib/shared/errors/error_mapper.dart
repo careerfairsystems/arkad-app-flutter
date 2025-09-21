@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'app_error.dart';
+import 'student_session_errors.dart';
 
 /// Maps HTTP errors and exceptions to user-friendly AppErrors
 class ErrorMapper {
@@ -18,6 +19,23 @@ class ErrorMapper {
 
     switch (statusCode) {
       case 400:
+        // Student session specific 400 errors
+        if (operationContext?.contains('student_session') == true) {
+          final errorMessage = _extractErrorMessage(responseData);
+          if (errorMessage?.contains('timeline') == true ||
+              errorMessage?.contains('application period') == true) {
+            return const StudentSessionTimelineError(
+              message:
+                  'You can only apply during the application period (Oct 13-26, 2025).',
+            );
+          }
+          if (errorMessage?.contains('invalid') == true ||
+              errorMessage?.contains('validation') == true) {
+            return StudentSessionApplicationError(
+              errorMessage ?? 'Invalid application data.',
+            );
+          }
+        }
         return ValidationError(
           _extractErrorMessage(responseData) ??
               "Please check your information and try again.",
@@ -30,6 +48,48 @@ class ErrorMapper {
         } else {
           return ProfileLoadingError(details: exception.toString());
         }
+
+      case 403:
+        // Student session access denied
+        if (operationContext?.contains('student_session') == true) {
+          return const StudentSessionApplicationError(
+            'You do not have permission to perform this action.',
+          );
+        }
+        return const ValidationError('Access denied.');
+
+      case 409:
+        // Student session conflicts
+        if (operationContext?.contains('student_session') == true) {
+          final errorMessage = _extractErrorMessage(responseData);
+          if (errorMessage?.contains('already applied') == true) {
+            return const StudentSessionAlreadyAppliedError('this company');
+          }
+          if (errorMessage?.contains('booking') == true ||
+              errorMessage?.contains('conflict') == true) {
+            return const StudentSessionBookingConflictError(
+              'This timeslot was just booked by someone else.',
+            );
+          }
+          if (errorMessage?.contains('capacity') == true ||
+              errorMessage?.contains('full') == true) {
+            return const StudentSessionCapacityError('this company');
+          }
+        }
+        return ValidationError(
+          _extractErrorMessage(responseData) ?? 'Conflict occurred.',
+        );
+
+      case 413:
+        // File size error
+        if (operationContext?.contains('student_session') == true ||
+            operationContext?.contains('upload') == true) {
+          return const StudentSessionFileUploadError(
+            'file',
+            details: 'File is too large. Maximum size is 10MB.',
+          );
+        }
+        return const ValidationError('File is too large.');
 
       case 415:
         // Email already exists during signup
@@ -222,6 +282,98 @@ class ErrorMapper {
           ),
         ];
 
+      case StudentSessionTimelineError _:
+        return [
+          RecoveryAction(
+            label: "Check Timeline",
+            action: () => _showTimelineInfo(context),
+            isPrimary: true,
+            icon: Icons.schedule,
+          ),
+          RecoveryAction(
+            label: "View Companies",
+            action: () => context.go('/companies'),
+            icon: Icons.business,
+          ),
+        ];
+
+      case StudentSessionApplicationError _:
+        return [
+          if (onRetry != null)
+            RecoveryAction(
+              label: "Try Again",
+              action: onRetry,
+              isPrimary: true,
+              icon: Icons.refresh,
+            ),
+          RecoveryAction(
+            label: "View Profile",
+            action: () => context.go('/profile'),
+            icon: Icons.person,
+          ),
+        ];
+
+      case StudentSessionAlreadyAppliedError _:
+        return [
+          RecoveryAction(
+            label: "View My Applications",
+            action: () => context.go('/profile'),
+            isPrimary: true,
+            icon: Icons.assignment,
+          ),
+          RecoveryAction(
+            label: "Browse Other Companies",
+            action: () => context.go('/companies'),
+            icon: Icons.business,
+          ),
+        ];
+
+      case StudentSessionBookingConflictError _:
+        return [
+          RecoveryAction(
+            label: "Choose Different Time",
+            action: () => context.pop(),
+            isPrimary: true,
+            icon: Icons.schedule,
+          ),
+          if (onRetry != null)
+            RecoveryAction(
+              label: "Try Again",
+              action: onRetry,
+              icon: Icons.refresh,
+            ),
+        ];
+
+      case StudentSessionCapacityError _:
+        return [
+          RecoveryAction(
+            label: "Browse Other Companies",
+            action: () => context.go('/companies'),
+            isPrimary: true,
+            icon: Icons.business,
+          ),
+          RecoveryAction(
+            label: "Check Back Later",
+            action: () => context.pop(),
+            icon: Icons.schedule,
+          ),
+        ];
+
+      case StudentSessionFileUploadError _:
+        return [
+          RecoveryAction(
+            label: "Choose Different File",
+            action: () => context.pop(),
+            isPrimary: true,
+            icon: Icons.file_upload,
+          ),
+          RecoveryAction(
+            label: "Compress File",
+            action: () => _showFileCompressionHelp(context),
+            icon: Icons.compress,
+          ),
+        ];
+
       case UnknownError _:
         return [
           if (onRetry != null)
@@ -307,6 +459,28 @@ class ErrorMapper {
   static void _showNetworkSettings(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Please check your internet connection')),
+    );
+  }
+
+  static void _showTimelineInfo(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Application period: Oct 13-26, 2025, Booking period: Nov 2 17:00 - Nov 5 23:59, 2025',
+        ),
+        duration: Duration(seconds: 5),
+      ),
+    );
+  }
+
+  static void _showFileCompressionHelp(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Please compress your file to under 10MB or use a different format.',
+        ),
+        duration: Duration(seconds: 3),
+      ),
     );
   }
 }

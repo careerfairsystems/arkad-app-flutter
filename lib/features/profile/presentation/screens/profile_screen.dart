@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
+import '../../../student_session/presentation/widgets/profile_student_sessions_tab.dart';
 import '../view_models/profile_view_model.dart';
 import '../widgets/profile_info_widget.dart';
 
@@ -155,15 +156,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
-                // Student Sessions Tab (Placeholder)
-                Center(
-                  child: Text(
-                    'Coming Soon',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: ArkadColors.arkadNavy,
-                    ),
-                  ),
-                ),
+                // Student Sessions Tab
+                const ProfileStudentSessionsTab(),
               ],
             ),
           ),

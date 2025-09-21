@@ -1,131 +1,268 @@
+import 'package:dio/dio.dart';
+
+import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
-import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/errors/student_session_errors.dart';
+import '../../../company/domain/use_cases/get_company_by_id_use_case.dart';
+import '../../domain/entities/student_session.dart';
 import '../../domain/entities/student_session_application.dart';
 import '../../domain/entities/timeslot.dart';
 import '../../domain/repositories/student_session_repository.dart';
-import '../data_sources/student_session_local_data_source.dart';
 import '../data_sources/student_session_remote_data_source.dart';
 import '../mappers/student_session_mapper.dart';
 
-/// Implementation of student session repository
-class StudentSessionRepositoryImpl implements StudentSessionRepository {
-  final StudentSessionRemoteDataSource _remoteDataSource;
-  final StudentSessionLocalDataSource _localDataSource;
-  final StudentSessionMapper _mapper;
-
-  StudentSessionRepositoryImpl({
+/// Enhanced implementation of student session repository using BaseRepository pattern
+class StudentSessionRepositoryImpl extends BaseRepository
+    implements StudentSessionRepository {
+  const StudentSessionRepositoryImpl({
     required StudentSessionRemoteDataSource remoteDataSource,
-    required StudentSessionLocalDataSource localDataSource,
     required StudentSessionMapper mapper,
+    required GetCompanyByIdUseCase getCompanyByIdUseCase,
   }) : _remoteDataSource = remoteDataSource,
-       _localDataSource = localDataSource,
-       _mapper = mapper;
+       _mapper = mapper,
+       _getCompanyByIdUseCase = getCompanyByIdUseCase;
+
+  final StudentSessionRemoteDataSource _remoteDataSource;
+  final StudentSessionMapper _mapper;
+  final GetCompanyByIdUseCase _getCompanyByIdUseCase;
 
   @override
-  Future<Result<List<StudentSessionApplication>>> getStudentSessions() async {
-    try {
-      // Try to get from remote first
-      final applications = await _remoteDataSource.getStudentSessions();
+  Future<Result<List<StudentSession>>> getStudentSessions() async {
+    return executeOperation(
+      () async {
+        final response = await _remoteDataSource.getStudentSessions();
 
-      // Convert to domain entities (minimal for now)
-      final domainApplications =
-          applications
-              .map((app) => _mapper.fromApiApplication(app, 'Unknown Company'))
-              .toList();
+        // Resolve company names for all student sessions
+        final studentSessions = <StudentSession>[];
+        for (final sessionDto in response.studentSessions) {
+          String? companyName;
 
-      return Result.success(domainApplications);
-    } catch (e) {
-      return Result.failure(
-        NetworkError(details: 'Failed to get student sessions: $e'),
-      );
-    }
+          // Fetch company name using the cached company data
+          final companyResult = await _getCompanyByIdUseCase.call(
+            sessionDto.companyId,
+          );
+          companyResult.when(
+            success: (company) => companyName = company.name,
+            failure:
+                (_) =>
+                    companyName = null, // Company not found, will use fallback
+          );
+
+          final studentSession = _mapper.fromApiStudentSession(
+            sessionDto,
+            companyName: companyName,
+          );
+          studentSessions.add(studentSession);
+        }
+
+        return studentSessions;
+      },
+      'load student sessions',
+      onError: (error) {
+        if (error is StudentSessionApplicationError) return;
+        // Convert generic errors to student session specific errors
+        throw StudentSessionApplicationError(
+          'Failed to load student sessions',
+          details: error.technicalDetails,
+        );
+      },
+    );
+  }
+
+  @override
+  Future<Result<StudentSession?>> getStudentSessionById(int companyId) async {
+    return executeOperation(
+      () async {
+        final response = await _remoteDataSource.getStudentSessions();
+        
+        // Find the session for the specified company
+        final sessionDto = response.studentSessions
+            .where((session) => session.companyId == companyId)
+            .firstOrNull;
+            
+        if (sessionDto == null) {
+          return null; // Session not found for this company
+        }
+        
+        String? companyName;
+        
+        // Fetch company name using the cached company data
+        final companyResult = await _getCompanyByIdUseCase.call(companyId);
+        companyResult.when(
+          success: (company) => companyName = company.name,
+          failure: (_) => companyName = null, // Company not found, will use fallback
+        );
+        
+        return _mapper.fromApiStudentSession(
+          sessionDto,
+          companyName: companyName,
+        );
+      },
+      'load student session for company $companyId',
+      onError: (error) {
+        if (error is StudentSessionApplicationError) return;
+        // Convert generic errors to student session specific errors
+        throw StudentSessionApplicationError(
+          'Failed to load student session',
+          details: error.technicalDetails,
+        );
+      },
+    );
+  }
+
+  @override
+  Future<Result<List<StudentSessionApplication>>> getMyApplications() async {
+    return executeOperation(() async {
+      // This would ideally be a separate endpoint, but for now we'll derive from getStudentSessions
+      final response = await _remoteDataSource.getStudentSessions();
+
+      // Filter and resolve company names for applications
+      final applications = <StudentSessionApplication>[];
+      for (final sessionDto in response.studentSessions.where(
+        (session) => session.userStatus != null,
+      )) {
+        String? companyName;
+
+        // Fetch company name using the cached company data
+        final companyResult = await _getCompanyByIdUseCase.call(
+          sessionDto.companyId,
+        );
+        companyResult.when(
+          success: (company) => companyName = company.name,
+          failure:
+              (_) => companyName = null, // Company not found, will use fallback
+        );
+
+        final application = _mapper.fromApiStudentSessionToApplication(
+          sessionDto,
+          companyName: companyName,
+        );
+        applications.add(application);
+      }
+
+      return applications;
+    }, 'load my applications');
   }
 
   @override
   Future<Result<List<Timeslot>>> getTimeslots(int companyId) async {
-    try {
+    return executeOperation(() async {
       final timeslots = await _remoteDataSource.getTimeslots(companyId);
-
-      // Convert to domain entities
-      final domainTimeslots =
-          timeslots
-              .map(
-                (timeslot) => _mapper
-                    .fromApiTimeslot(timeslot)
-                    .copyWith(companyId: companyId),
-              )
-              .toList();
-
-      return Result.success(domainTimeslots);
-    } catch (e) {
-      return Result.failure(
-        NetworkError(details: 'Failed to get timeslots: $e'),
-      );
-    }
+      return timeslots
+          .map((timeslotDto) => _mapper.fromApiTimeslot(timeslotDto, companyId))
+          .toList();
+    }, 'load timeslots for company $companyId');
   }
 
   @override
-  Future<Result<StudentSessionApplication>> applyForSession({
+  Future<Result<String>> applyForSession(
+    StudentSessionApplicationParams params,
+  ) async {
+    return executeOperation(
+      () async {
+        final apiSchema = _mapper.toApiApplicationSchema(params);
+        final response = await _remoteDataSource.applyForSession(apiSchema);
+
+        // API returns a string response for successful applications
+        return response.data ?? 'Application submitted successfully';
+      },
+      'student_session_apply',
+    );
+  }
+
+  @override
+  Future<Result<String>> uploadCVForSession({
     required int companyId,
-    required String motivationText,
-    String? programme,
-    String? linkedin,
-    String? masterTitle,
-    int? studyYear,
+    required String filePath,
   }) async {
-    try {
-      // Create the application to send
-      final application = StudentSessionApplication(
-        companyId: companyId,
-        companyName: 'Company', // Will be resolved later
-        motivationText: motivationText,
-        programme: programme,
-        linkedin: linkedin,
-        masterTitle: masterTitle,
-        studyYear: studyYear,
-        status: ApplicationStatus.pending,
-      );
+    return executeOperation(
+      () async {
+        // Create multipart file from path
+        final file = await MultipartFile.fromFile(
+          filePath,
+          filename: filePath.split('/').last,
+        );
 
-      // Convert to API schema
-      final apiApplication = _mapper.toApiApplication(application);
-
-      // Send to remote
-      final response = await _remoteDataSource.applyForSession(apiApplication);
-
-      // Convert response back to domain entity
-      final domainApplication = _mapper.fromApiApplication(response, 'Company');
-
-      return Result.success(domainApplication);
-    } catch (e) {
-      return Result.failure(
-        NetworkError(details: 'Failed to apply for session: $e'),
-      );
-    }
+        final response = await _remoteDataSource.uploadCV(companyId, file);
+        return response.data ?? 'CV uploaded successfully';
+      },
+      'upload CV for company $companyId',
+      onError: (error) {
+        final fileName = filePath.split('/').last;
+        if (error.toString().contains('413') ||
+            error.toString().contains('size')) {
+          throw StudentSessionFileUploadError(
+            fileName,
+            details: 'File too large',
+          );
+        }
+        throw StudentSessionFileUploadError(
+          fileName,
+          details: error.toString(),
+        );
+      },
+    );
   }
 
   @override
-  Future<Result<void>> cancelApplication(int companyId) async {
-    try {
-      await _remoteDataSource.cancelApplication(companyId);
-      return Result.success(null);
-    } catch (e) {
-      return Result.failure(
-        NetworkError(details: 'Failed to cancel application: $e'),
-      );
-    }
+  Future<Result<String>> bookTimeslot({
+    required int companyId,
+    required int timeslotId,
+  }) async {
+    return executeOperation(
+      () async {
+        final response = await _remoteDataSource.confirmTimeslot(
+          companyId,
+          timeslotId,
+        );
+        return response.data ?? 'Timeslot booked successfully';
+      },
+      'book timeslot $timeslotId for company $companyId',
+      onError: (error) {
+        // Handle booking conflicts
+        if (error.toString().contains('409') ||
+            error.toString().contains('conflict') ||
+            error.toString().contains('already booked')) {
+          throw StudentSessionBookingConflictError(
+            'Timeslot was just booked by someone else',
+          );
+        }
+      },
+    );
   }
 
   @override
-  Future<Result<void>> refreshStudentSessions() async {
-    try {
-      _localDataSource.clearCache();
-      // Force refresh from remote
-      await getStudentSessions();
-      return Result.success(null);
-    } catch (e) {
-      return Result.failure(
-        NetworkError(details: 'Failed to refresh student sessions: $e'),
+  Future<Result<String>> unbookTimeslot(int companyId) async {
+    return executeOperation(() async {
+      final response = await _remoteDataSource.unbookTimeslot(companyId);
+      return response.data ?? 'Timeslot unbooked successfully';
+    }, 'unbook timeslot for company $companyId');
+  }
+
+  @override
+  Future<Result<StudentSessionApplication?>> getApplicationForCompany(
+    int companyId,
+  ) async {
+    return executeOperation(() async {
+      final response = await _remoteDataSource.getApplicationForCompany(
+        companyId,
       );
-    }
+      if (response.data == null) return null;
+
+      // Fetch company name using the cached company data
+      String? companyName;
+      final companyResult = await _getCompanyByIdUseCase.call(companyId);
+      companyResult.when(
+        success: (company) => companyName = company.name,
+        failure:
+            (_) => companyName = null, // Company not found, will use fallback
+      );
+
+      return _mapper.fromApiApplicationOut(
+        response.data!,
+        companyId,
+        companyName: companyName,
+      );
+    }, 'get application for company $companyId');
   }
 }

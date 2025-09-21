@@ -1,4 +1,7 @@
 import 'package:arkad_api/arkad_api.dart';
+import 'package:dio/dio.dart';
+
+import '../../../../api/extensions.dart';
 
 /// Remote data source for student session operations
 class StudentSessionRemoteDataSource {
@@ -7,16 +10,25 @@ class StudentSessionRemoteDataSource {
   StudentSessionRemoteDataSource(this._api);
 
   /// Get student sessions from the API
-  Future<List<StudentSessionApplicationOutSchema>> getStudentSessions() async {
-    try {
-      final _ =
-          await _api
-              .getStudentSessionsApi()
-              .studentSessionsApiGetStudentSessions();
-      // For now, return empty list - will implement proper parsing when API structure is clear
-      return <StudentSessionApplicationOutSchema>[];
-    } catch (e) {
-      throw Exception('Failed to get student sessions: $e');
+  Future<StudentSessionNormalUserListSchema> getStudentSessions() async {
+    final response = await _api
+        .getStudentSessionsApi()
+        .studentSessionsApiGetStudentSessions(
+          extra: {
+            'secure': [
+              {
+                'type': 'http',
+                'scheme': 'bearer',
+                'name': 'AuthBearer',
+              }
+            ]
+          },
+        );
+
+    if (response.isSuccess && response.data != null) {
+      return response.data!;
+    } else {
+      throw Exception('Failed to get student sessions: ${response.error}');
     }
   }
 
@@ -33,35 +45,73 @@ class StudentSessionRemoteDataSource {
   }
 
   /// Apply for a student session
-  Future<StudentSessionApplicationOutSchema> applyForSession(
+  Future<Response<String>> applyForSession(
     StudentSessionApplicationSchema application,
   ) async {
     try {
-      final _ = await _api
+      final response = await _api
           .getStudentSessionsApi()
           .studentSessionsApiApplyForSession(
             studentSessionApplicationSchema: application,
           );
-      // Create a minimal response for now
-      return StudentSessionApplicationOutSchema(
-        (b) =>
-            b
-              ..companyId = application.companyId
-              ..motivationText = application.motivationText,
-      );
+      return response;
     } catch (e) {
       throw Exception('Failed to apply for student session: $e');
     }
   }
 
-  /// Cancel/unbook a student session
-  Future<void> cancelApplication(int companyId) async {
+  /// Upload CV for a student session
+  Future<Response<String>> uploadCV(int companyId, MultipartFile file) async {
     try {
-      await _api.getStudentSessionsApi().studentSessionsApiUnbookStudentSession(
-        companyId: companyId,
-      );
+      final response = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiUpdateCvForSession(companyId: companyId, cv: file);
+      return response;
     } catch (e) {
-      throw Exception('Failed to cancel student session application: $e');
+      throw Exception('Failed to upload CV: $e');
+    }
+  }
+
+  /// Confirm/book a timeslot for a student session
+  Future<Response<String>> confirmTimeslot(
+    int companyId,
+    int timeslotId,
+  ) async {
+    try {
+      final response = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiConfirmStudentSession(
+            companyId: companyId,
+            timeslotId: timeslotId,
+          );
+      return response;
+    } catch (e) {
+      throw Exception('Failed to confirm timeslot: $e');
+    }
+  }
+
+  /// Unbook a timeslot for a student session
+  Future<Response<String>> unbookTimeslot(int companyId) async {
+    try {
+      final response = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiUnbookStudentSession(companyId: companyId);
+      return response;
+    } catch (e) {
+      throw Exception('Failed to unbook timeslot: $e');
+    }
+  }
+
+  /// Get application for a specific company
+  Future<Response<StudentSessionApplicationOutSchema?>>
+  getApplicationForCompany(int companyId) async {
+    try {
+      final response = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiGetStudentSessionApplication(companyId: companyId);
+      return response;
+    } catch (e) {
+      throw Exception('Failed to get application for company $companyId: $e');
     }
   }
 }

@@ -1,9 +1,9 @@
-import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../../domain/entities/timeslot.dart';
 import '../view_models/student_session_view_model.dart';
 
 class StudentSessionTimeSelectionScreen extends StatefulWidget {
@@ -18,8 +18,8 @@ class StudentSessionTimeSelectionScreen extends StatefulWidget {
 
 class _StudentSessionTimeSelection
     extends State<StudentSessionTimeSelectionScreen> {
-  List<TimeslotSchema> _availableSlots = [];
-  TimeslotSchema? _selectedSlot;
+  List<Timeslot> _availableSlots = [];
+  Timeslot? _selectedSlot;
   bool _isLoading = true;
   bool _hasLoadedData = false;
 
@@ -45,36 +45,27 @@ class _StudentSessionTimeSelection
       );
       final companyId = int.parse(widget.id);
       await provider.loadTimeslots(companyId);
-      final slots = provider.availableTimeslots;
-
-      // Convert Timeslot domain entities to TimeslotSchema for compatibility
-      final schemSlots =
-          slots
-              .map(
-                (slot) => TimeslotSchema(
-                  (b) =>
-                      b
-                        ..id = slot.id
-                        ..startTime = slot.startTime,
-                ),
-              )
-              .toList();
+      final slots = provider.timeslots;
 
       setState(() {
-        _availableSlots = schemSlots;
+        _availableSlots = slots;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      // Handle error
-      print('Error loading time slots: $e');
+      // Handle error if needed - but don't use print in production
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading time slots: $e')));
+      }
     }
   }
 
-  Map<String, List<TimeslotSchema>> _groupSlotsByWeekday() {
-    final Map<String, List<TimeslotSchema>> groupedSlots = {};
+  Map<String, List<Timeslot>> _groupSlotsByWeekday() {
+    final Map<String, List<Timeslot>> groupedSlots = {};
 
     for (final slot in _availableSlots) {
       final weekday = DateFormat('EEEE (dd MMM yyyy)').format(slot.startTime);
@@ -93,9 +84,7 @@ class _StudentSessionTimeSelection
     return groupedSlots;
   }
 
-  List<String> _getSortedWeekdays(
-    Map<String, List<TimeslotSchema>> groupedSlots,
-  ) {
+  List<String> _getSortedWeekdays(Map<String, List<Timeslot>> groupedSlots) {
     return groupedSlots.keys.toList()..sort((a, b) {
       // Get the first slot from each day to compare dates
       final dateA = groupedSlots[a]!.first.startTime;
@@ -104,25 +93,22 @@ class _StudentSessionTimeSelection
     });
   }
 
-  String _formatTimeRange(TimeslotSchema slot) {
+  String _formatTimeRange(Timeslot slot) {
     final startTime = DateFormat('HH:mm').format(slot.startTime);
-    final endTime = DateFormat(
-      'HH:mm',
-    ).format(slot.startTime.add(Duration(minutes: slot.duration)));
+    final endTime = DateFormat('HH:mm').format(slot.endTime);
     return '$startTime - $endTime';
   }
 
-  void _selectTimeSlot(TimeslotSchema slot) {
+  void _selectTimeSlot(Timeslot slot) {
     setState(() {
       _selectedSlot = slot;
     });
   }
 
-  //TODO: Navigate to next screen? Maybe profile overview of the session?
   void _confirmSelection() {
     if (_selectedSlot != null) {
-      // Handle the confirmed selection
-      print('Selected time slot: $_selectedSlot');
+      // Handle the confirmed selection - for now just navigate back
+      Navigator.of(context).pop();
     }
   }
 
@@ -188,10 +174,10 @@ class _StudentSessionTimeSelection
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  leading: Radio<TimeslotSchema>(
+                                  leading: Radio<Timeslot>(
                                     value: slot,
                                     groupValue: _selectedSlot,
-                                    onChanged: (TimeslotSchema? value) {
+                                    onChanged: (Timeslot? value) {
                                       if (value != null) {
                                         _selectTimeSlot(value);
                                       }
