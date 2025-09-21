@@ -23,12 +23,12 @@ class StudentSessionRemoteDataSource {
   }
 
   /// Get available timeslots for a company
-  Future<List<TimeslotSchema>> getTimeslots(int companyId) async {
+  Future<List<TimeslotSchemaUser>> getTimeslots(int companyId) async {
     try {
       final response = await _api
           .getStudentSessionsApi()
           .studentSessionsApiGetStudentSessionTimeslots(companyId: companyId);
-      return response.data?.toList() ?? <TimeslotSchema>[];
+      return response.data?.toList() ?? <TimeslotSchemaUser>[];
     } catch (e) {
       await Sentry.captureException(e);
       throw Exception('Failed to get timeslots for company $companyId: $e');

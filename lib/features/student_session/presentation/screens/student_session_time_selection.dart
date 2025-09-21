@@ -56,7 +56,8 @@ class _StudentSessionTimeSelection
                   (b) =>
                       b
                         ..id = slot.id
-                        ..startTime = slot.startTime,
+                        ..startTime = slot.startTime
+                        ..duration = slot.endTime.difference(slot.startTime).inMinutes,
                 ),
               )
               .toList();

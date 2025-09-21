@@ -285,7 +285,14 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AuthSession?> getCurrentSession() async {
     try {
-      return await _localDataSource.getSession();
+      final session = await _localDataSource.getSession();
+
+      // If session exists, set the bearer token for API calls
+      if (session != null && session.isActive) {
+        _remoteDataSource.setBearerAuth("AuthBearer", session.token);
+      }
+
+      return session;
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
       return null;

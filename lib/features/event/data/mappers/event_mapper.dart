@@ -5,9 +5,9 @@ import '../../domain/entities/event.dart';
 class EventMapper {
   /// Convert EventSchema DTO to Event domain entity
   /// Note: EventSchema doesn't include ID, so we need to provide it separately
-  Event fromApiSchema(EventSchema schema, int id) {
+  Event fromApiSchema(EventSchema schema) {
     return Event(
-      id: id,
+      id: schema.id,
       title: schema.name,
       description: schema.description,
       startTime: schema.startTime,

@@ -15,12 +15,14 @@ class EventViewModel extends ChangeNotifier {
   bool _isLoading = false;
   AppError? _error;
   List<Event> _events = [];
+  List<Event> _bookedEvents = [];
   Event? _selectedEvent;
 
   // Getters
   bool get isLoading => _isLoading;
   AppError? get error => _error;
   List<Event> get events => _events;
+  List<Event> get bookedEvents => _bookedEvents;
   Event? get selectedEvent => _selectedEvent;
 
   /// Load events
@@ -87,9 +89,35 @@ class EventViewModel extends ChangeNotifier {
     return result.isSuccess;
   }
 
+  /// Load booked events for the current user
+  Future<bool> loadBookedEvents() async {
+    _setLoading(true);
+    _clearError();
+
+    final result = await _eventRepository.getBookedEvents();
+
+    result.when(
+      success: (events) {
+        _bookedEvents = events;
+        _setLoading(false);
+      },
+      failure: (error) {
+        _setError(error);
+        _setLoading(false);
+      },
+    );
+
+    return result.isSuccess;
+  }
+
   /// Refresh events
   Future<void> refreshEvents() async {
     await loadEvents();
+  }
+
+  /// Refresh booked events
+  Future<void> refreshBookedEvents() async {
+    await loadBookedEvents();
   }
 
   // State management helpers

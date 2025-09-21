@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
+import '../../../../shared/data/api_error_handler.dart';
 import '../../../../shared/errors/exception.dart';
 
 /// Abstract interface for profile remote data source
@@ -32,18 +33,17 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       if (response.isSuccess && response.data != null) {
         return response.data!;
       } else {
-        throw ApiException('Profile loading failed: ${response.error}');
+        response.logResponse('getUserProfile');
+        throw ApiException('Profile loading failed: ${response.detailedError}');
       }
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'getUserProfile',
+      );
+      throw exception;
     } catch (e) {
       await Sentry.captureException(e);
-      if (e is DioException) {
-        if (e.response?.statusCode == 401) {
-          throw AuthException('Authentication required');
-        } else if (e.response?.statusCode == 404) {
-          throw ApiException('Profile not found');
-        }
-        throw NetworkException('Network error: ${e.message}');
-      }
       throw ApiException('Profile loading failed: ${e.toString()}');
     }
   }
@@ -58,22 +58,17 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       if (response.isSuccess && response.data != null) {
         return response.data!;
       } else {
-        throw ApiException('Profile update failed: ${response.error}');
+        response.logResponse('updateProfile');
+        throw ApiException('Profile update failed: ${response.detailedError}');
       }
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'updateProfile',
+      );
+      throw exception;
     } catch (e) {
       await Sentry.captureException(e);
-      if (e is DioException) {
-        if (e.response?.statusCode == 401) {
-          throw AuthException('Authentication required');
-        } else if (e.response?.statusCode == 400) {
-          throw ValidationException('Invalid profile data');
-        } else if (e.response?.statusCode == 429) {
-          throw ApiException(
-            'Too many requests. Please wait before trying again.',
-          );
-        }
-        throw NetworkException('Network error: ${e.message}');
-      }
       throw ApiException('Profile update failed: ${e.toString()}');
     }
   }

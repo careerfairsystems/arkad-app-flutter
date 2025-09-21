@@ -1,3 +1,4 @@
+import 'package:arkad/features/event/presentation/screens/booked_events_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -147,14 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 // Events Tab (Placeholder)
-                Center(
-                  child: Text(
-                    'Coming Soon',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: ArkadColors.arkadNavy,
-                    ),
-                  ),
-                ),
+                Center(child: BookedEventsScreen()),
                 // Student Sessions Tab (Placeholder)
                 Center(
                   child: Text(

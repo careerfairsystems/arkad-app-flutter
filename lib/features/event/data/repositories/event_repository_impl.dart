@@ -36,7 +36,7 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
       // Note: API doesn't provide IDs, so we'll use index as ID for now
       final events =
           eventSchemas.asMap().entries.map((entry) {
-            return _mapper.fromApiSchema(entry.value, entry.key + 1);
+            return _mapper.fromApiSchema(entry.value);
           }).toList();
 
       // Cache the results
@@ -59,7 +59,7 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
       final eventSchema = await _remoteDataSource.getEventById(id);
 
       // Convert to domain entity
-      final event = _mapper.fromApiSchema(eventSchema, id);
+      final event = _mapper.fromApiSchema(eventSchema);
 
       return event;
     }, 'get event by id');
@@ -112,6 +112,23 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
   }
 
   @override
+  Future<Result<List<Event>>> getBookedEvents() async {
+    return executeOperation(() async {
+      // Fetch booked events from remote
+      final eventSchemas = await _remoteDataSource.getBookedEvents();
+
+      // Convert to domain entities
+      // Note: API doesn't provide IDs, so we'll use index as ID for now
+      final events =
+          eventSchemas.asMap().entries.map((entry) {
+            return _mapper.fromApiSchema(entry.value);
+          }).toList();
+
+      return events;
+    }, 'get booked events');
+  }
+
+  @override
   Future<Result<void>> refreshEvents() async {
     return executeOperation(() async {
       // Clear cache
@@ -120,5 +137,12 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
       // Force refresh from remote
       await getEvents();
     }, 'refresh events');
+  }
+
+  @override
+  Future<Result<bool>> isEventBooked(int eventId) async {
+    return executeOperation(() async {
+      return await _remoteDataSource.isEventBooked(eventId);
+    }, 'check if event is booked');
   }
 }

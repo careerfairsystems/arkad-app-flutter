@@ -6,65 +6,54 @@ import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../view_models/event_view_model.dart';
 import '../widgets/event_card.dart';
 
-class EventScreen extends StatefulWidget {
-  const EventScreen({super.key});
+class BookedEventsScreen extends StatefulWidget {
+  const BookedEventsScreen({super.key});
 
   @override
-  State<EventScreen> createState() => _EventScreenState();
+  State<BookedEventsScreen> createState() => _BookedEventsScreenState();
 }
 
-class _EventScreenState extends State<EventScreen> {
+class _BookedEventsScreenState extends State<BookedEventsScreen> {
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadEvents();
+      _loadBookedEvents();
     });
   }
 
-  Future<void> _loadEvents() async {
+  Future<void> _loadBookedEvents() async {
     final eventViewModel = Provider.of<EventViewModel>(context, listen: false);
-    await eventViewModel.loadEvents();
+    await eventViewModel.loadBookedEvents();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<EventViewModel>(
       builder: (context, viewModel, child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Events'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: viewModel.isLoading ? null : _loadEvents,
-              ),
-            ],
-          ),
-          body: RefreshIndicator(
-            onRefresh: _loadEvents,
-            child: _buildBody(viewModel),
-          ),
+        return RefreshIndicator(
+          onRefresh: _loadBookedEvents,
+          child: _buildBody(viewModel),
         );
       },
     );
   }
 
   Widget _buildBody(EventViewModel viewModel) {
-    if (viewModel.isLoading && viewModel.events.isEmpty) {
+    if (viewModel.isLoading && viewModel.bookedEvents.isEmpty) {
       return _buildLoadingState();
     }
 
-    if (viewModel.error != null && viewModel.events.isEmpty) {
+    if (viewModel.error != null && viewModel.bookedEvents.isEmpty) {
       return _buildErrorState(viewModel);
     }
 
-    if (viewModel.events.isEmpty) {
+    if (viewModel.bookedEvents.isEmpty) {
       return _buildEmptyState();
     }
 
-    return _buildEventsList(viewModel);
+    return _buildBookedEventsList(viewModel);
   }
 
   Widget _buildLoadingState() {
@@ -74,7 +63,7 @@ class _EventScreenState extends State<EventScreen> {
         children: [
           CircularProgressIndicator(),
           SizedBox(height: 16),
-          Text('Loading events...'),
+          Text('Loading your booked events...'),
         ],
       ),
     );
@@ -90,7 +79,7 @@ class _EventScreenState extends State<EventScreen> {
             Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
             const SizedBox(height: 16),
             Text(
-              'Failed to load events',
+              'Failed to load booked events',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -107,7 +96,7 @@ class _EventScreenState extends State<EventScreen> {
             const SizedBox(height: 24),
             ArkadButton(
               text: 'Try Again',
-              onPressed: _loadEvents,
+              onPressed: _loadBookedEvents,
               icon: Icons.refresh,
             ),
           ],
@@ -130,14 +119,14 @@ class _EventScreenState extends State<EventScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
-                Icons.event_available,
+                Icons.event_note,
                 size: 64,
                 color: ArkadColors.arkadTurkos,
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              'No Events Available',
+              'No Booked Events',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -145,7 +134,7 @@ class _EventScreenState extends State<EventScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Check back later for upcoming ARKAD events',
+              'You haven\'t booked any events yet. Browse available events and register for the ones that interest you!',
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
@@ -153,9 +142,9 @@ class _EventScreenState extends State<EventScreen> {
             ),
             const SizedBox(height: 24),
             ArkadButton(
-              text: 'Refresh',
-              onPressed: _loadEvents,
-              icon: Icons.refresh,
+              text: 'Browse Events',
+              onPressed: () => Navigator.of(context).pop(),
+              icon: Icons.explore,
               variant: ArkadButtonVariant.secondary,
             ),
           ],
@@ -164,35 +153,37 @@ class _EventScreenState extends State<EventScreen> {
     );
   }
 
-  Widget _buildEventsList(EventViewModel viewModel) {
+  Widget _buildBookedEventsList(EventViewModel viewModel) {
     final now = DateTime.now();
-    final upcomingEvents =
-        viewModel.events.where((event) => event.endTime.isAfter(now)).toList()
+    final upcomingBookedEvents =
+        viewModel.bookedEvents
+            .where((event) => event.endTime.isAfter(now))
+            .toList()
           ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
-    final pastEvents =
-        viewModel.events.where((event) => event.endTime.isBefore(now)).toList()
+    final pastBookedEvents =
+        viewModel.bookedEvents
+            .where((event) => event.endTime.isBefore(now))
+            .toList()
           ..sort((a, b) => b.startTime.compareTo(a.startTime));
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        if (upcomingEvents.isNotEmpty) ...[
-          _buildSectionHeader('Upcoming Events', upcomingEvents.length),
+        if (upcomingBookedEvents.isNotEmpty) ...[
+          _buildSectionHeader('Upcoming Events', upcomingBookedEvents.length),
           const SizedBox(height: 8),
-          ...upcomingEvents.map((event) => EventCard(
-                event: event,
-                status: EventStatus.upcoming,
-              )),
+          ...upcomingBookedEvents.map(
+            (event) => EventCard(event: event, status: EventStatus.booked),
+          ),
           const SizedBox(height: 24),
         ],
-        if (pastEvents.isNotEmpty) ...[
-          _buildSectionHeader('Past Events', pastEvents.length),
+        if (pastBookedEvents.isNotEmpty) ...[
+          _buildSectionHeader('Past Events', pastBookedEvents.length),
           const SizedBox(height: 8),
-          ...pastEvents.map((event) => EventCard(
-                event: event,
-                status: EventStatus.past,
-              )),
+          ...pastBookedEvents.map(
+            (event) => EventCard(event: event, status: EventStatus.past),
+          ),
         ],
       ],
     );
@@ -226,9 +217,4 @@ class _EventScreenState extends State<EventScreen> {
       ],
     );
   }
-
-
-
-
-
 }

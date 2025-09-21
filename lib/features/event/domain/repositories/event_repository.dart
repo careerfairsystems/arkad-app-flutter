@@ -21,6 +21,12 @@ abstract class EventRepository {
   /// Unregister from an event
   Future<Result<void>> unregisterFromEvent(int eventId);
 
+  /// Get booked events for the current user
+  Future<Result<List<Event>>> getBookedEvents();
+
+  /// Check if an event is booked by the current user
+  Future<Result<bool>> isEventBooked(int eventId);
+
   /// Refresh cached event data
   Future<Result<void>> refreshEvents();
 }
