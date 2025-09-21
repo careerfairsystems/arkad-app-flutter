@@ -144,12 +144,63 @@ class StudentSessionRepositoryImpl extends BaseRepository
     }, 'load my applications');
   }
 
+  /// Get applications with enhanced booking state determined from timeslots
+  /// This method provides the real booking status by checking timeslots
+  @override 
+  Future<Result<List<StudentSessionApplicationWithBookingState>>> getMyApplicationsWithBookingState() async {
+    return executeOperation(() async {
+      final applicationsResult = await getMyApplications();
+      final applications = applicationsResult.when(
+        success: (apps) => apps,
+        failure: (error) => throw error,
+      );
+
+      final applicationsWithBookingState = <StudentSessionApplicationWithBookingState>[];
+      
+      for (final application in applications) {
+        // Only check timeslots for accepted applications
+        if (application.status == ApplicationStatus.accepted) {
+          try {
+            final timslotsResult = await getTimeslots(application.companyId);
+            final timeslots = timslotsResult.when(
+              success: (slots) => slots,
+              failure: (_) => <Timeslot>[], // Fallback to empty list if timeslots fail
+            );
+
+            final hasBooking = timeslots.any((slot) => slot.status.isBookedByCurrentUser);
+            final bookedTimeslot = timeslots.where((slot) => slot.status.isBookedByCurrentUser).firstOrNull;
+
+            applicationsWithBookingState.add(StudentSessionApplicationWithBookingState(
+              application: application,
+              hasBooking: hasBooking,
+              bookedTimeslot: bookedTimeslot,
+            ));
+          } catch (e) {
+            // If timeslots fail to load, add application without booking info
+            applicationsWithBookingState.add(StudentSessionApplicationWithBookingState(
+              application: application,
+              hasBooking: false,
+            ));
+          }
+        } else {
+          // For non-accepted applications, no booking state needed
+          applicationsWithBookingState.add(StudentSessionApplicationWithBookingState(
+            application: application,
+            hasBooking: false,
+          ));
+        }
+      }
+
+      return applicationsWithBookingState;
+    }, 'load my applications with booking state');
+  }
+
   @override
   Future<Result<List<Timeslot>>> getTimeslots(int companyId) async {
     return executeOperation(() async {
       final timeslots = await _remoteDataSource.getTimeslots(companyId);
       return timeslots
-          .map((timeslotDto) => _mapper.fromApiTimeslot(timeslotDto, companyId))
+          .map((timeslotDto) => _mapper.fromApiTimeslotUser(timeslotDto, companyId))
           .toList();
     }, 'load timeslots for company $companyId');
   }

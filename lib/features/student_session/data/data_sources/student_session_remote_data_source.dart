@@ -32,13 +32,29 @@ class StudentSessionRemoteDataSource {
     }
   }
 
-  /// Get available timeslots for a company
-  Future<List<TimeslotSchema>> getTimeslots(int companyId) async {
+  /// Get available timeslots for a company with user-specific status
+  Future<List<TimeslotSchemaUser>> getTimeslots(int companyId) async {
     try {
       final response = await _api
           .getStudentSessionsApi()
-          .studentSessionsApiGetStudentSessionTimeslots(companyId: companyId);
-      return response.data?.toList() ?? <TimeslotSchema>[];
+          .studentSessionsApiGetStudentSessionTimeslots(
+            companyId: companyId,
+            extra: {
+              'secure': [
+                {
+                  'type': 'http',
+                  'scheme': 'bearer',
+                  'name': 'AuthBearer',
+                }
+              ]
+            },
+          );
+      
+      if (response.isSuccess && response.data != null) {
+        return response.data!.toList();
+      } else {
+        throw Exception('Failed to get timeslots: ${response.error}');
+      }
     } catch (e) {
       throw Exception('Failed to get timeslots for company $companyId: $e');
     }

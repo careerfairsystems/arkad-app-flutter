@@ -1,3 +1,5 @@
+import 'timeslot.dart';
+
 /// Domain entity representing a student session application
 /// Contains both the application data and its current status
 class StudentSessionApplication {
@@ -96,6 +98,19 @@ class StudentSessionApplication {
   /// Check if application is editable
   bool get canEdit => status == ApplicationStatus.pending;
 
+  /// Check if this application has a booking
+  /// Note: The actual implementation is in the repository layer that checks timeslots
+  /// This is a placeholder that will be overridden by repository logic
+  bool get hasBooking => false;
+
+  /// Check if this application can be booked (accepted but not yet booked)
+  /// Note: The actual booking state is determined by repository logic checking timeslots
+  bool get canBook => status == ApplicationStatus.accepted;
+
+  /// Check if this application can cancel booking (accepted and booked)
+  /// Note: The actual booking state is determined by repository logic checking timeslots  
+  bool get canCancelBooking => status == ApplicationStatus.accepted;
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -131,6 +146,39 @@ class StudentSessionApplication {
   @override
   String toString() {
     return 'StudentSessionApplication(id: $id, companyName: $companyName, status: $status)';
+  }
+}
+
+/// Enhanced application entity with real booking state from timeslots
+/// This provides the actual booking information determined from API timeslots
+class StudentSessionApplicationWithBookingState {
+  const StudentSessionApplicationWithBookingState({
+    required this.application,
+    required this.hasBooking,
+    this.bookedTimeslot,
+  });
+
+  /// The base application entity
+  final StudentSessionApplication application;
+
+  /// Whether this application has a timeslot booking (determined from API)
+  final bool hasBooking;
+
+  /// The specific timeslot that is booked (if any)
+  final Timeslot? bookedTimeslot;
+
+  /// Check if this application can be booked (accepted but not yet booked)
+  bool get canBook => application.status == ApplicationStatus.accepted && !hasBooking;
+
+  /// Check if this application can cancel booking (accepted and booked)
+  bool get canCancelBooking => application.status == ApplicationStatus.accepted && hasBooking;
+
+  /// Check if this application can rebook (accepted and currently booked)
+  bool get canRebook => application.status == ApplicationStatus.accepted && hasBooking;
+
+  @override
+  String toString() {
+    return 'StudentSessionApplicationWithBookingState(application: ${application.companyName}, hasBooking: $hasBooking)';
   }
 }
 
@@ -176,3 +224,4 @@ enum ApplicationStatus {
   bool get allowsActions =>
       this == ApplicationStatus.pending || this == ApplicationStatus.accepted;
 }
+

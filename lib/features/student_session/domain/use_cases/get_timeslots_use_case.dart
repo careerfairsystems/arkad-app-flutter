@@ -23,11 +23,9 @@ class GetTimeslotsUseCase extends UseCase<List<Timeslot>, int> {
 
       return result.when(
         success: (timeslots) {
-          // Filter to only show available timeslots
-          final availableTimeslots =
-              timeslots.where((timeslot) => timeslot.isAvailable).toList();
-
-          return Result.success(availableTimeslots);
+          // Return all timeslots - let UI decide what to display
+          // This includes both free and bookedByCurrentUser timeslots for booking management
+          return Result.success(timeslots);
         },
         failure: (error) => Result.failure(error),
       );

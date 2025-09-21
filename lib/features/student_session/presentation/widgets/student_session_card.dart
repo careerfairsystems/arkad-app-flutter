@@ -11,7 +11,7 @@ class StudentSessionCard extends StatelessWidget {
     super.key,
     required this.session,
     this.application,
-    this.onTap,
+    this.applicationWithBookingState,
     this.onApply,
     this.onViewTimeslots,
     this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -19,7 +19,7 @@ class StudentSessionCard extends StatelessWidget {
 
   final StudentSession session;
   final StudentSessionApplication? application;
-  final VoidCallback? onTap;
+  final StudentSessionApplicationWithBookingState? applicationWithBookingState;
   final VoidCallback? onApply;
   final VoidCallback? onViewTimeslots;
   final EdgeInsetsGeometry margin;
@@ -32,27 +32,23 @@ class StudentSessionCard extends StatelessWidget {
         elevation: 2,
         surfaceTintColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(context),
+              const SizedBox(height: 12),
+              if (session.description != null) ...[
+                _buildDescription(context),
                 const SizedBox(height: 12),
-                if (session.description != null) ...[
-                  _buildDescription(context),
-                  const SizedBox(height: 12),
-                ],
-                _buildStatus(context),
-                if (_shouldShowActions()) ...[
-                  const SizedBox(height: 16),
-                  _buildActions(context),
-                ],
               ],
-            ),
+              _buildStatus(context),
+              if (_shouldShowActions()) ...[
+                const SizedBox(height: 16),
+                _buildActions(context),
+              ],
+            ],
           ),
         ),
       ),
@@ -188,52 +184,16 @@ class StudentSessionCard extends StatelessWidget {
   }
 
   Widget _buildStatus(BuildContext context) {
-    // Only show application status if there is one, timeline is shown globally
-    if (application != null) {
-      return _buildApplicationStatus(context);
-    }
+    // Application status is already shown in the top-right badge
+    // No need for redundant status display here
     return const SizedBox.shrink();
   }
 
-
-  Widget _buildApplicationStatus(BuildContext context) {
-    if (application == null) return const SizedBox.shrink();
-
-    final status = application!.status;
-    Color statusColor;
-    IconData statusIcon;
-
-    switch (status) {
-      case ApplicationStatus.pending:
-        statusColor = Colors.orange;
-        statusIcon = Icons.hourglass_empty_rounded;
-      case ApplicationStatus.accepted:
-        statusColor = ArkadColors.arkadGreen;
-        statusIcon = Icons.check_circle_rounded;
-      case ApplicationStatus.rejected:
-        statusColor = ArkadColors.lightRed;
-        statusIcon = Icons.cancel_rounded;
-    }
-
-    return Row(
-      children: [
-        Icon(statusIcon, size: 16, color: statusColor),
-        const SizedBox(width: 6),
-        Text(
-          'Application ${status.displayName}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: statusColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildApplicationStatusBadge(BuildContext context) {
-    if (application == null) return const SizedBox.shrink();
+    final currentApplication = applicationWithBookingState?.application ?? application;
+    if (currentApplication == null) return const SizedBox.shrink();
 
-    final status = application!.status;
+    final status = currentApplication.status;
     Color badgeColor;
 
     switch (status) {
@@ -280,10 +240,10 @@ class StudentSessionCard extends StatelessWidget {
           Expanded(
             child: FilledButton.icon(
               onPressed: onViewTimeslots,
-              icon: const Icon(Icons.schedule_rounded, size: 18),
-              label: const Text('Book Timeslot'),
+              icon: Icon(_getBookingButtonIcon(), size: 18),
+              label: Text(_getBookingButtonText()),
               style: FilledButton.styleFrom(
-                backgroundColor: ArkadColors.arkadGreen,
+                backgroundColor: ArkadColors.arkadTurkos,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -299,7 +259,10 @@ class StudentSessionCard extends StatelessWidget {
 
   bool _shouldShowApplyButton() {
     if (!session.isAvailable) return false;
-    if (application != null) return false; // Already applied
+    
+    // Check if user has already applied (use enhanced booking state if available)
+    final currentApplication = applicationWithBookingState?.application ?? application;
+    if (currentApplication != null) return false; // Already applied
 
     // Check if we're in application period
     final status = TimelineValidationService.checkApplicationPeriod();
@@ -307,10 +270,24 @@ class StudentSessionCard extends StatelessWidget {
   }
 
   bool _shouldShowBookingButton() {
-    if (application?.status != ApplicationStatus.accepted) return false;
+    // Use enhanced booking state if available, otherwise fall back to regular application
+    final currentApplication = applicationWithBookingState?.application ?? application;
+    if (currentApplication?.status != ApplicationStatus.accepted) return false;
 
     // Check if we're in booking period
     final status = TimelineValidationService.checkBookingPeriod();
     return status.canBook;
+  }
+
+  String _getBookingButtonText() {
+    // Use enhanced booking state to determine if user has existing booking
+    final hasBooking = applicationWithBookingState?.hasBooking ?? false;
+    return hasBooking ? 'Manage Booking' : 'Book Timeslot';
+  }
+
+  IconData _getBookingButtonIcon() {
+    // Use enhanced booking state to determine if user has existing booking
+    final hasBooking = applicationWithBookingState?.hasBooking ?? false;
+    return hasBooking ? Icons.edit_calendar_rounded : Icons.schedule_rounded;
   }
 }

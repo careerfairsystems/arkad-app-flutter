@@ -120,6 +120,16 @@ class AppRouter {
                 },
               ),
               GoRoute(
+                path: '/sessions/book/:companyId',
+                builder: (context, state) {
+                  final companyId = state.pathParameters["companyId"]!;
+                  return StudentSessionTimeSelectionScreen(
+                    id: companyId,
+                    isBookingMode: true, // Flag to indicate this is for booking, not applying
+                  );
+                },
+              ),
+              GoRoute(
                 path: '/sessions/application-form/:companyId',
                 builder: (context, state) {
                   final session = state.extra as StudentSession?;

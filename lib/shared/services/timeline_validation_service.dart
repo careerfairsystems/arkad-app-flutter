@@ -3,12 +3,12 @@ import '../errors/student_session_errors.dart';
 /// Service for validating student session timeline constraints
 /// Enforces the exact dates from requirements (adjusted for testing):
 /// - Application Period: Sep 10-30, 2025
-/// - Booking Period: Oct 1 17:00 - Oct 5 23:59, 2025
+/// - Booking Period: Sep 15 09:00 - Oct 5 23:59, 2025
 class TimelineValidationService {
   // Timeline constants from requirements (adjusted for testing)
   static final DateTime applicationStart = DateTime(2025, 9, 10);
   static final DateTime applicationEnd = DateTime(2025, 9, 30, 23, 59, 59);
-  static final DateTime bookingStart = DateTime(2025, 10, 1, 17);
+  static final DateTime bookingStart = DateTime(2025, 9, 15, 9);
   static final DateTime bookingEnd = DateTime(2025, 10, 5, 23, 59, 59);
 
   /// Check if applications are currently allowed

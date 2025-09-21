@@ -68,13 +68,27 @@ class StudentSessionMapper {
     );
   }
 
-  /// Convert API TimeslotSchema to domain entity
+  /// Convert API TimeslotSchemaUser to domain entity
+  Timeslot fromApiTimeslotUser(TimeslotSchemaUser apiTimeslot, int companyId) {
+    final mappedStatus = _mapTimeslotStatus(apiTimeslot.status);
+    
+    return Timeslot(
+      id: apiTimeslot.id,
+      companyId: companyId,
+      startTime: apiTimeslot.startTime,
+      durationMinutes: apiTimeslot.duration,
+      status: mappedStatus,
+    );
+  }
+
+  /// Convert API TimeslotSchema to domain entity (legacy support)
   Timeslot fromApiTimeslot(TimeslotSchema apiTimeslot, int companyId) {
     return Timeslot(
       id: apiTimeslot.id,
       companyId: companyId,
       startTime: apiTimeslot.startTime,
       durationMinutes: apiTimeslot.duration,
+      status: TimeslotStatus.free, // Default to free for legacy timeslots
     );
   }
 
@@ -111,6 +125,20 @@ class StudentSessionMapper {
         return ApplicationStatus.pending;
       default:
         return null;
+    }
+  }
+
+  /// Helper method to map API timeslot status to domain TimeslotStatus
+  TimeslotStatus _mapTimeslotStatus(
+    TimeslotSchemaUserStatusEnum apiStatus,
+  ) {
+    switch (apiStatus) {
+      case TimeslotSchemaUserStatusEnum.free:
+        return TimeslotStatus.free;
+      case TimeslotSchemaUserStatusEnum.bookedByCurrentUser:
+        return TimeslotStatus.bookedByCurrentUser;
+      default:
+        throw ArgumentError('Unknown timeslot status: $apiStatus');
     }
   }
 }

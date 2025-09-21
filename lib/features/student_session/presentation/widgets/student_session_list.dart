@@ -66,7 +66,6 @@ class StudentSessionList extends StatelessWidget {
         return StudentSessionCard(
           session: session,
           application: application,
-          onTap: () => onSessionTap(session),
           onApply: () => onApply(session),
           onViewTimeslots: () => onViewTimeslots(session),
         );

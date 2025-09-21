@@ -1,5 +1,41 @@
+/// Status of a timeslot for the current user
+/// Maps from TimeslotSchemaUserStatusEnum in API
+enum TimeslotStatus {
+  free('free'),
+  bookedByCurrentUser('bookedByCurrentUser');
+
+  const TimeslotStatus(this.value);
+
+  final String value;
+
+  /// Display name for UI
+  String get displayName {
+    switch (this) {
+      case TimeslotStatus.free:
+        return 'Available';
+      case TimeslotStatus.bookedByCurrentUser:
+        return 'Booked by you';
+    }
+  }
+
+  /// Create from API string value
+  static TimeslotStatus? fromValue(String? value) {
+    if (value == null) return null;
+    for (final status in TimeslotStatus.values) {
+      if (status.value == value) return status;
+    }
+    return null;
+  }
+
+  /// Check if timeslot is available for booking
+  bool get isAvailable => this == TimeslotStatus.free;
+
+  /// Check if timeslot is booked by current user
+  bool get isBookedByCurrentUser => this == TimeslotStatus.bookedByCurrentUser;
+}
+
 /// Domain entity representing a student session timeslot
-/// Maps from TimeslotSchema in API
+/// Maps from TimeslotSchemaUser in API
 class Timeslot {
   const Timeslot({
     required this.id,
@@ -8,8 +44,7 @@ class Timeslot {
     required this.durationMinutes,
     this.maxParticipants,
     this.currentParticipants,
-    this.isAvailable = true,
-    this.isBooked = false,
+    required this.status,
   });
 
   /// Unique identifier for this timeslot
@@ -30,11 +65,14 @@ class Timeslot {
   /// Current number of participants (optional, may not be in API)
   final int? currentParticipants;
 
-  /// Whether this timeslot is available for booking
-  final bool isAvailable;
+  /// Status of this timeslot for the current user
+  final TimeslotStatus status;
 
-  /// Whether this timeslot is booked by current user
-  final bool isBooked;
+  /// Whether this timeslot is available for booking (convenience getter)
+  bool get isAvailable => status.isAvailable;
+
+  /// Whether this timeslot is booked by current user (convenience getter)
+  bool get isBooked => status.isBookedByCurrentUser;
 
   /// End time calculated from start time and duration
   DateTime get endTime => startTime.add(Duration(minutes: durationMinutes));
@@ -69,8 +107,7 @@ class Timeslot {
     int? durationMinutes,
     int? maxParticipants,
     int? currentParticipants,
-    bool? isAvailable,
-    bool? isBooked,
+    TimeslotStatus? status,
   }) {
     return Timeslot(
       id: id ?? this.id,
@@ -79,8 +116,7 @@ class Timeslot {
       durationMinutes: durationMinutes ?? this.durationMinutes,
       maxParticipants: maxParticipants ?? this.maxParticipants,
       currentParticipants: currentParticipants ?? this.currentParticipants,
-      isAvailable: isAvailable ?? this.isAvailable,
-      isBooked: isBooked ?? this.isBooked,
+      status: status ?? this.status,
     );
   }
 
@@ -119,8 +155,7 @@ class Timeslot {
         other.durationMinutes == durationMinutes &&
         other.maxParticipants == maxParticipants &&
         other.currentParticipants == currentParticipants &&
-        other.isAvailable == isAvailable &&
-        other.isBooked == isBooked;
+        other.status == status;
   }
 
   @override
@@ -132,13 +167,12 @@ class Timeslot {
       durationMinutes,
       maxParticipants,
       currentParticipants,
-      isAvailable,
-      isBooked,
+      status,
     );
   }
 
   @override
   String toString() {
-    return 'Timeslot(id: $id, timeRange: $timeRangeDisplay, available: $isAvailable)';
+    return 'Timeslot(id: $id, timeRange: $timeRangeDisplay, status: ${status.displayName})';
   }
 }

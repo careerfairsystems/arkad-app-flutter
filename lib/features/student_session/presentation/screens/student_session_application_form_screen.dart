@@ -46,9 +46,7 @@ class _StudentSessionApplicationFormScreenState
   Programme? _selectedProgramme;
   int? _studyYear;
   
-  // Message display tracking to prevent duplicates
-  String? _lastSuccessMessageId;
-  String? _lastErrorMessageId;
+  // Message display tracking is now handled by ViewModel flags
   
 
   @override
@@ -69,8 +67,9 @@ class _StudentSessionApplicationFormScreenState
         listen: false,
       );
 
-      // Reset command state
+      // Reset command state and clear any previous messages
       viewModel.applyForSessionCommand.reset();
+      viewModel.clearAllMessages();
       
       // If no session was passed, navigate back
       if (_session == null) {
@@ -215,6 +214,27 @@ class _StudentSessionApplicationFormScreenState
       cvFilePath: _selectedCV?.path,
     );
   }
+  
+  /// Retry CV upload for a failed application
+  Future<void> _retryCVUpload(StudentSessionViewModel viewModel) async {
+    if (_selectedCV == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a CV file first'),
+          backgroundColor: ArkadColors.lightRed,
+        ),
+      );
+      return;
+    }
+    
+    // The ViewModel will handle success/error message display through flags
+    await viewModel.retryCVUpload(
+      companyId: int.parse(widget.companyId),
+      filePath: _selectedCV!.path,
+    );
+    
+    // Success and error messages are now handled by the Consumer logic above
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -230,46 +250,39 @@ class _StudentSessionApplicationFormScreenState
       appBar: AppBar(title: const Text('Apply for Session'), elevation: 2),
       body: Consumer<StudentSessionViewModel>(
         builder: (context, viewModel, child) {
-          final command = viewModel.applyForSessionCommand;
-          
-          // Generate unique identifiers for current state
-          final successId = command.isCompleted && !command.hasError ? 
-              'success_${command.hashCode}_${DateTime.now().millisecondsSinceEpoch}' : null;
-          final errorId = command.hasError ? 
-              'error_${command.hashCode}_${command.error.hashCode}' : null;
-          
-          // Handle success state with duplicate prevention
-          if (command.isCompleted && !command.hasError && successId != null && successId != _lastSuccessMessageId) {
-            _lastSuccessMessageId = successId;
+          // Handle success messages
+          if (viewModel.showSuccessMessage) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('Application submitted successfully!'),
+                    content: Text(viewModel.successMessage ?? 'Success!'),
                     backgroundColor: ArkadColors.arkadGreen,
                   ),
                 );
-                // Navigation guard to prevent "nothing to pop" errors
-                if (Navigator.canPop(context)) {
-                  context.pop();
-                }
+                
+                // Clear the message flag
+                viewModel.clearSuccessMessage();
+                
+                // Navigate back after a short delay to ensure message is visible
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (mounted && context.mounted && Navigator.canPop(context)) {
+                    context.pop();
+                  }
+                });
               }
             });
           }
           
-          // Handle error state with duplicate prevention
-          if (command.hasError && errorId != null && errorId != _lastErrorMessageId) {
-            _lastErrorMessageId = errorId;
+          // Handle error messages
+          if (viewModel.showErrorMessage) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
-                final error = command.error;
-                String errorMessage = error?.userMessage ?? 'Failed to submit application. Please try again.';
+                final errorMessage = viewModel.errorMessage ?? 'An error occurred. Please try again.';
+                final showRetryOption = errorMessage.contains('CV') && _selectedCV != null;
                 
                 // Handle specific 401 authentication errors
-                if (error?.technicalDetails?.contains('401') == true || 
-                    error?.technicalDetails?.contains('Unauthorized') == true) {
-                  errorMessage = 'Your session has expired. Please sign in again.';
-                  
+                if (errorMessage.contains('session has expired') || errorMessage.contains('Unauthorized')) {
                   // Clear authentication and redirect to login
                   final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
                   authViewModel.signOut();
@@ -282,14 +295,22 @@ class _StudentSessionApplicationFormScreenState
                   });
                 }
                 
+                // Show error message
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(errorMessage),
                     backgroundColor: ArkadColors.lightRed,
+                    duration: showRetryOption ? const Duration(seconds: 6) : const Duration(seconds: 4),
+                    action: showRetryOption ? SnackBarAction(
+                      label: 'Retry CV',
+                      textColor: Colors.white,
+                      onPressed: () => _retryCVUpload(viewModel),
+                    ) : null,
                   ),
                 );
-                // Reset command to prevent state management race condition
-                command.reset();
+                
+                // Clear the message flag
+                viewModel.clearErrorMessage();
               }
             });
           }
@@ -834,9 +855,11 @@ class _StudentSessionApplicationFormScreenState
                         color: Colors.white,
                       ),
                     )
-                    : const Text(
-                      'Submit Application',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    : Text(
+                      _selectedCV != null 
+                          ? 'Submit Application with CV'
+                          : 'Submit Application',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
           ),
         ),

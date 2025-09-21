@@ -10,7 +10,6 @@ import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/services/timeline_validation_service.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../domain/entities/student_session.dart';
-import '../../domain/entities/student_session_application.dart';
 import '../view_models/student_session_view_model.dart';
 import '../widgets/student_session_card.dart';
 
@@ -61,8 +60,19 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
         context,
         listen: false,
       );
-      // Refresh both sessions and applications to get updated user status
-      _loadInitialData(viewModel);
+      final authViewModel = Provider.of<AuthViewModel>(
+        context,
+        listen: false,
+      );
+      
+      // Only load applications if user is authenticated
+      // For public users, only load student sessions
+      if (authViewModel.isAuthenticated) {
+        _loadInitialData(viewModel);
+      } else {
+        // Public view - only load student sessions
+        viewModel.loadStudentSessions();
+      }
     }
   }
 
@@ -74,14 +84,25 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
 
   void _resetCommandStates(StudentSessionViewModel viewModel) {
     viewModel.getStudentSessionsCommand.reset();
-    viewModel.getMyApplicationsCommand.reset();
+    viewModel.getMyApplicationsWithBookingStateCommand.reset();
   }
 
   Future<void> _loadInitialData(StudentSessionViewModel viewModel) async {
-    await Future.wait([
-      viewModel.loadStudentSessions(),
-      viewModel.loadMyApplications(),
-    ]);
+    final authViewModel = Provider.of<AuthViewModel>(
+      context,
+      listen: false,
+    );
+    
+    if (authViewModel.isAuthenticated) {
+      // Authenticated users: load sessions and applications
+      await Future.wait([
+        viewModel.loadStudentSessions(),
+        viewModel.loadMyApplicationsWithBookingState(),
+      ]);
+    } else {
+      // Public users: only load sessions
+      await viewModel.loadStudentSessions();
+    }
   }
 
   @override
@@ -243,7 +264,7 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
     }
 
     final sessions = viewModel.filteredStudentSessions;
-    final applications = viewModel.myApplications;
+    final applicationsWithBookingState = viewModel.myApplicationsWithBookingState;
 
     if (sessions.isEmpty) {
       return Center(
@@ -283,15 +304,15 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
         itemCount: sessions.length,
         itemBuilder: (context, index) {
           final session = sessions[index];
-          final application =
-              applications
-                  .where((app) => app.companyId == session.companyId)
+          final applicationWithBookingState =
+              applicationsWithBookingState
+                  .where((appWithState) => appWithState.application.companyId == session.companyId)
                   .firstOrNull;
 
           return StudentSessionCard(
             session: session,
-            application: application,
-            onTap: () => _onSessionTap(session),
+            application: applicationWithBookingState?.application,
+            applicationWithBookingState: applicationWithBookingState,
             onApply: () => _onApplyForSession(session),
             onViewTimeslots: () => _onViewTimeslots(session),
           );
@@ -300,12 +321,9 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
     );
   }
 
-  void _onSessionTap(StudentSession session) {
+
+  void _onApplyForSession(StudentSession session) {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    final sessionViewModel = Provider.of<StudentSessionViewModel>(
-      context,
-      listen: false,
-    );
 
     // Check authentication status
     if (!authViewModel.isAuthenticated) {
@@ -316,35 +334,21 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
     // Check timeline status
     final timelineStatus = TimelineValidationService.getCurrentStatus();
 
-    // Check if user has already applied
-    final existingApplication =
-        sessionViewModel.myApplications
-            .where((app) => app.companyId == session.companyId)
-            .firstOrNull;
-
-    if (timelineStatus.canApply && existingApplication == null) {
+    if (timelineStatus.canApply) {
       // Can apply - navigate to application form
       context.push(
         '/sessions/application-form/${session.companyId}',
         extra: session,
       );
-    } else if (existingApplication != null) {
-      // Already applied - show status or navigate to profile
-      _showApplicationStatus(session, existingApplication);
     } else {
       // Outside application period - show timeline info
       _showTimelineInfo(timelineStatus);
     }
   }
 
-  void _onApplyForSession(StudentSession session) {
-    // Use the same authentication and validation logic as card tap
-    _onSessionTap(session);
-  }
-
   void _onViewTimeslots(StudentSession session) {
-    // Navigate to timeslot selection
-    context.push('/sessions/apply/${session.companyId}');
+    // Navigate to booking flow for accepted applications
+    context.push('/sessions/book/${session.companyId}');
   }
 
   void _showSignInPrompt(StudentSession session) {
@@ -377,82 +381,6 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
     );
   }
 
-  void _showApplicationStatus(
-    StudentSession session,
-    StudentSessionApplication application,
-  ) {
-    final status = application.status;
-    String title;
-    String message;
-    List<Widget> actions;
-
-    switch (status) {
-      case ApplicationStatus.pending:
-        title = 'Application Submitted';
-        message =
-            'Your application to ${session.companyName} is under review. '
-            'You can check the status in your Profile > Student Sessions tab.';
-        actions = [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Navigate to profile student sessions tab
-              context.push('/profile');
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: ArkadColors.arkadTurkos,
-            ),
-            child: const Text('View in Profile'),
-          ),
-        ];
-      case ApplicationStatus.accepted:
-        title = 'Application Accepted! 🎉';
-        message =
-            'Congratulations! ${session.companyName} has accepted your application. '
-            'You can now book a timeslot when the booking period opens.';
-        actions = [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.push('/profile');
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: ArkadColors.arkadGreen,
-            ),
-            child: const Text('View Details'),
-          ),
-        ];
-      case ApplicationStatus.rejected:
-        title = 'Application Not Selected';
-        message =
-            'Unfortunately, ${session.companyName} did not select your application this time. '
-            'Keep trying with other companies!';
-        actions = [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ];
-    }
-
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(title),
-            content: Text(message),
-            actions: actions,
-          ),
-    );
-  }
 
   void _showTimelineInfo(TimelineStatus timelineStatus) {
     showDialog(
