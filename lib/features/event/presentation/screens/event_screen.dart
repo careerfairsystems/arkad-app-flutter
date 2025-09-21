@@ -89,25 +89,21 @@ class _EventScreenState extends State<EventScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: ArkadColors.lightRed,
-            ),
+            Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
             const SizedBox(height: 16),
             Text(
               'Failed to load events',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               viewModel.error?.userMessage ?? 'Something went wrong',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -144,17 +140,17 @@ class _EventScreenState extends State<EventScreen> {
             const SizedBox(height: 24),
             Text(
               'No Events Available',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'Check back later for upcoming ARKAD events',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -172,15 +168,13 @@ class _EventScreenState extends State<EventScreen> {
 
   Widget _buildEventsList(EventViewModel viewModel) {
     final now = DateTime.now();
-    final upcomingEvents = viewModel.events
-        .where((event) => event.endTime.isAfter(now))
-        .toList()
-      ..sort((a, b) => a.startTime.compareTo(b.startTime));
+    final upcomingEvents =
+        viewModel.events.where((event) => event.endTime.isAfter(now)).toList()
+          ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
-    final pastEvents = viewModel.events
-        .where((event) => event.endTime.isBefore(now))
-        .toList()
-      ..sort((a, b) => b.startTime.compareTo(a.startTime));
+    final pastEvents =
+        viewModel.events.where((event) => event.endTime.isBefore(now)).toList()
+          ..sort((a, b) => b.startTime.compareTo(a.startTime));
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -236,9 +230,7 @@ class _EventScreenState extends State<EventScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _onEventTap(event),
@@ -252,14 +244,18 @@ class _EventScreenState extends State<EventScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isPast
-                          ? Colors.grey.withValues(alpha: 0.1)
-                          : _getEventTypeColor(event.type).withValues(alpha: 0.1),
+                      color:
+                          isPast
+                              ? Colors.grey.withValues(alpha: 0.1)
+                              : _getEventTypeColor(
+                                event.type,
+                              ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       _getEventTypeIcon(event.type),
-                      color: isPast ? Colors.grey : _getEventTypeColor(event.type),
+                      color:
+                          isPast ? Colors.grey : _getEventTypeColor(event.type),
                       size: 24,
                     ),
                   ),
@@ -270,7 +266,9 @@ class _EventScreenState extends State<EventScreen> {
                       children: [
                         Text(
                           event.title,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: isPast ? Colors.grey : null,
                           ),
@@ -278,10 +276,13 @@ class _EventScreenState extends State<EventScreen> {
                         const SizedBox(height: 4),
                         Text(
                           event.type.displayName,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isPast
-                                ? Colors.grey
-                                : _getEventTypeColor(event.type),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
+                            color:
+                                isPast
+                                    ? Colors.grey
+                                    : _getEventTypeColor(event.type),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -366,8 +367,9 @@ class _EventScreenState extends State<EventScreen> {
 
   Widget _buildRegistrationIndicator(Event event) {
     final canRegister = event.canRegister;
-    final isFull = event.maxParticipants != null &&
-                   event.currentParticipants >= event.maxParticipants!;
+    final isFull =
+        event.maxParticipants != null &&
+        event.currentParticipants >= event.maxParticipants!;
 
     // Only show indicator for full or closed events, or when showing spots left
     if (!isFull && !(!canRegister) && event.maxParticipants == null) {

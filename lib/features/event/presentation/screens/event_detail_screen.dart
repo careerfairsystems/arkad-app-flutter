@@ -6,14 +6,12 @@ import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../domain/entities/event.dart';
 import '../view_models/event_view_model.dart';
+import '../widgets/event_actions.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final int eventId;
 
-  const EventDetailScreen({
-    super.key,
-    required this.eventId,
-  });
+  const EventDetailScreen({super.key, required this.eventId});
 
   @override
   State<EventDetailScreen> createState() => _EventDetailScreenState();
@@ -38,9 +36,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   Widget build(BuildContext context) {
     return Consumer<EventViewModel>(
       builder: (context, viewModel, child) {
-        return Scaffold(
-          body: _buildBody(viewModel),
-        );
+        return Scaffold(body: _buildBody(viewModel));
       },
     );
   }
@@ -79,34 +75,28 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
   Widget _buildErrorState(EventViewModel viewModel) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Event Details'),
-      ),
+      appBar: AppBar(title: const Text('Event Details')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: ArkadColors.lightRed,
-              ),
+              Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
               const SizedBox(height: 16),
               Text(
                 'Failed to load event',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 viewModel.error?.userMessage ?? 'Something went wrong',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -124,34 +114,28 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
   Widget _buildNotFoundState() {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Event Details'),
-      ),
+      appBar: AppBar(title: const Text('Event Details')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.event_busy,
-                size: 64,
-                color: ArkadColors.lightRed,
-              ),
+              Icon(Icons.event_busy, size: 64, color: ArkadColors.lightRed),
               const SizedBox(height: 16),
               Text(
                 'Event Not Found',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 'The event you\'re looking for doesn\'t exist or has been removed.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -174,9 +158,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     return CustomScrollView(
       slivers: [
         _buildAppBar(event, isPastEvent),
-        SliverToBoxAdapter(
-          child: _buildEventContent(event, isPastEvent),
-        ),
+        SliverToBoxAdapter(child: _buildEventContent(event, isPastEvent)),
       ],
     );
   }
@@ -222,21 +204,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    event.type.displayName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -267,9 +234,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             Icons.info_outline,
             Text(
               event.description,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                height: 1.5,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(height: 1.5),
             ),
           ),
 
@@ -299,9 +266,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Duration: ${_formatDuration(event.duration)}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -315,9 +282,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             Icons.location_on,
             Text(
               event.location,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
 
@@ -334,7 +301,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           const SizedBox(height: 32),
 
           // Action Button
-          if (!isPastEvent) _buildActionButton(event),
+          if (!isPastEvent)
+            EventActions(
+              event: event,
+              onRegister: () => _registerForEvent(event),
+            ),
 
           const SizedBox(height: 16),
         ],
@@ -369,8 +340,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
   Widget _buildRegistrationBanner(Event event) {
     final canRegister = event.canRegister;
-    final isFull = event.maxParticipants != null &&
-                   event.currentParticipants >= event.maxParticipants!;
+    final isFull =
+        event.maxParticipants != null &&
+        event.currentParticipants >= event.maxParticipants!;
 
     Color backgroundColor;
     Color textColor;
@@ -451,9 +423,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             const SizedBox(width: 4),
             Text(
               '${event.currentParticipants}${event.maxParticipants != null ? '/${event.maxParticipants}' : ''} participants',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -470,30 +442,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           ),
         ],
       ],
-    );
-  }
-
-  Widget _buildActionButton(Event event) {
-    if (!event.isRegistrationRequired) {
-      return const SizedBox.shrink();
-    }
-
-    return Consumer<EventViewModel>(
-      builder: (context, viewModel, child) {
-        final canRegister = event.canRegister;
-
-        return SizedBox(
-          width: double.infinity,
-          child: ArkadButton(
-            text: canRegister ? 'Register for Event' : 'Registration Closed',
-            onPressed: canRegister && !viewModel.isLoading
-                ? () => _registerForEvent(event)
-                : null,
-            isLoading: viewModel.isLoading,
-            icon: canRegister ? Icons.event_available : Icons.event_busy,
-          ),
-        );
-      },
     );
   }
 
@@ -560,7 +508,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(eventViewModel.error?.userMessage ?? 'Registration failed'),
+            content: Text(
+              eventViewModel.error?.userMessage ?? 'Registration failed',
+            ),
             backgroundColor: ArkadColors.lightRed,
             behavior: SnackBarBehavior.floating,
           ),
@@ -575,9 +525,7 @@ class _LoadingAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      title: const Text('Loading...'),
-    );
+    return AppBar(title: const Text('Loading...'));
   }
 
   @override
