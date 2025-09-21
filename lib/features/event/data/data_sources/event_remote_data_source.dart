@@ -10,9 +10,7 @@ class EventRemoteDataSource {
   /// Get all events from the API
   Future<List<EventSchema>> getEvents() async {
     try {
-      final response = await _api
-          .getEventsApi()
-          .eventBookingApiGetEvents();
+      final response = await _api.getEventsApi().eventBookingApiGetEvents();
       return response.data?.toList() ?? <EventSchema>[];
     } catch (e) {
       await Sentry.captureException(e);
@@ -23,9 +21,9 @@ class EventRemoteDataSource {
   /// Get a specific event by ID
   Future<EventSchema> getEventById(int eventId) async {
     try {
-      final response = await _api
-          .getEventsApi()
-          .eventBookingApiGetEvent(eventId: eventId);
+      final response = await _api.getEventsApi().eventBookingApiGetEvent(
+        eventId: eventId,
+      );
 
       if (response.data == null) {
         throw Exception('Event not found');
@@ -41,9 +39,8 @@ class EventRemoteDataSource {
   /// Get booked events for the current user
   Future<List<EventSchema>> getBookedEvents() async {
     try {
-      final response = await _api
-          .getEventsApi()
-          .eventBookingApiGetBookedEvents();
+      final response =
+          await _api.getEventsApi().eventBookingApiGetBookedEvents();
       return response.data?.toList() ?? <EventSchema>[];
     } catch (e) {
       await Sentry.captureException(e);
@@ -54,9 +51,9 @@ class EventRemoteDataSource {
   /// Book/register for an event
   Future<EventSchema> bookEvent(int eventId) async {
     try {
-      final response = await _api
-          .getEventsApi()
-          .eventBookingApiBookEvent(eventId: eventId);
+      final response = await _api.getEventsApi().eventBookingApiBookEvent(
+        eventId: eventId,
+      );
 
       if (response.data == null) {
         throw Exception('Failed to book event');
@@ -72,9 +69,9 @@ class EventRemoteDataSource {
   /// Unbook/unregister from an event
   Future<EventSchema> unbookEvent(int eventId) async {
     try {
-      final response = await _api
-          .getEventsApi()
-          .eventBookingApiUnbookEvent(eventId: eventId);
+      final response = await _api.getEventsApi().eventBookingApiUnbookEvent(
+        eventId: eventId,
+      );
 
       if (response.data == null) {
         throw Exception('Failed to unbook event');

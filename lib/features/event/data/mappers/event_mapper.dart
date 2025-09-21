@@ -23,17 +23,21 @@ class EventMapper {
   /// Convert Event domain entity to EventSchema DTO
   /// Note: This is mainly for creating new events (if supported in future)
   EventSchema toApiSchema(Event event) {
-    return EventSchema((b) => b
-      ..name = event.title
-      ..description = event.description
-      ..type = _mapEventTypeToString(event.type)
-      ..location = event.location
-      ..language = 'en' // Default language
-      ..startTime = event.startTime
-      ..endTime = event.endTime
-      ..capacity = event.maxParticipants ?? 0
-      ..numberBooked = event.currentParticipants
-      ..companyId = null);
+    return EventSchema(
+      (b) =>
+          b
+            ..name = event.title
+            ..description = event.description
+            ..type = _mapEventTypeToString(event.type)
+            ..location = event.location
+            ..language =
+                'en' // Default language
+            ..startTime = event.startTime
+            ..endTime = event.endTime
+            ..capacity = event.maxParticipants ?? 0
+            ..numberBooked = event.currentParticipants
+            ..companyId = null,
+    );
   }
 
   /// Map string event type from API to EventType enum
