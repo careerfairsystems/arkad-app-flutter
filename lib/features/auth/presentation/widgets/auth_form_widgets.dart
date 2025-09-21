@@ -37,6 +37,7 @@ class AuthFormWidgets {
     void Function(String)? onChanged,
     String? errorText,
     String? Function(String?)? validator,
+    Iterable<String>? autofillHints,
   }) {
     return TextFormField(
       controller: controller,
@@ -98,6 +99,7 @@ class AuthFormWidgets {
       ),
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
+      autofillHints: autofillHints,
       onChanged: onChanged,
       validator: validator,
     );
@@ -115,6 +117,7 @@ class AuthFormWidgets {
     void Function(String)? onFieldSubmitted,
     String? errorText,
     String? Function(String?)? validator,
+    Iterable<String>? autofillHints,
   }) {
     return TextFormField(
       controller: controller,
@@ -190,6 +193,7 @@ class AuthFormWidgets {
       ),
       obscureText: obscureText,
       textInputAction: textInputAction,
+      autofillHints: autofillHints,
       onChanged: onChanged,
       onFieldSubmitted: onFieldSubmitted,
       validator: validator,

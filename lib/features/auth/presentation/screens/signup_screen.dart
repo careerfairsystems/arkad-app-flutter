@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -233,6 +234,8 @@ class _SignupScreenState extends State<SignupScreen> {
     await authViewModel.startSignUp(signupData);
 
     if (mounted && authViewModel.signUpCommand.isCompleted) {
+      // Complete autofill context to help password managers save credentials
+      TextInput.finishAutofillContext();
       await context.push('/auth/verification');
     }
   }
@@ -256,6 +259,7 @@ class _SignupScreenState extends State<SignupScreen> {
             }
           },
           errorText: _emailErrorText,
+          autofillHints: const [AutofillHints.email],
         ),
         const SizedBox(height: 20),
         AuthFormWidgets.buildPasswordField(
@@ -268,6 +272,7 @@ class _SignupScreenState extends State<SignupScreen> {
             }
           },
           errorText: _passwordErrorText,
+          autofillHints: const [AutofillHints.newPassword],
         ),
         if (_passwordController.text.isNotEmpty)
           Padding(
@@ -324,6 +329,7 @@ class _SignupScreenState extends State<SignupScreen> {
             }
           },
           errorText: _confirmPasswordErrorText,
+          autofillHints: const [AutofillHints.newPassword],
         ),
         const SizedBox(height: 20),
         AuthFormWidgets.buildCheckboxWithError(
@@ -420,6 +426,7 @@ class _SignupScreenState extends State<SignupScreen> {
               child: TextFormField(
                 controller: _firstNameController,
                 textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.givenName],
                 decoration: InputDecoration(
                   labelText: 'First name *',
                   hintText: 'Enter your first name',
@@ -440,6 +447,7 @@ class _SignupScreenState extends State<SignupScreen> {
               child: TextFormField(
                 controller: _lastNameController,
                 textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.familyName],
                 decoration: InputDecoration(
                   labelText: 'Last name *',
                   hintText: 'Enter your last name',
@@ -552,11 +560,13 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: _currentStep == 1 ? _buildStep1() : _buildStep2(),
+        child: AutofillGroup(
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: _currentStep == 1 ? _buildStep1() : _buildStep2(),
+            ),
           ),
         ),
       ),
