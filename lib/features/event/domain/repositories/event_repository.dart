@@ -24,6 +24,9 @@ abstract class EventRepository {
   /// Get booked events for the current user
   Future<Result<List<Event>>> getBookedEvents();
 
+  /// Get event ticket (Should be rendered as QR code)
+  Future<Result<String>> getEventTicket(int eventId);
+
   /// Check if an event is booked by the current user
   Future<Result<bool>> isEventBooked(int eventId);
 

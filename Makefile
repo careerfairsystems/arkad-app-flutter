@@ -1,7 +1,7 @@
 lint:
 	flutter analyze --no-fatal-infos
 
-format:
+fmt:
 	dart format lib/
 
 format-check:
@@ -10,5 +10,5 @@ format-check:
 		exit 1; \
 	fi
 
-fix: lint format
+fix: lint fmt
 

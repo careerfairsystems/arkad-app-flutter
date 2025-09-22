@@ -221,13 +221,7 @@ class EventActions extends StatelessWidget {
   }
 
   void _showTicket(BuildContext context) {
-    // TODO: Navigate to ticket screen when implemented
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Ticket view will be implemented soon'),
-        backgroundColor: ArkadColors.arkadTurkos,
-      ),
-    );
+    context.go('/events/detail/${event.id}/ticket');
   }
 
   Future<void> _handleDeregister(

@@ -126,6 +126,29 @@ class EventViewModel extends ChangeNotifier {
     );
   }
 
+  /// Get event ticket for a specific event
+  Future<String?> getEventTicket(int eventId) async {
+    _setLoading(true);
+    _clearError();
+
+    final result = await _eventRepository.getEventTicket(eventId);
+
+    String? ticket;
+    result.when(
+      success: (ticketUuid) {
+        ticket = ticketUuid;
+        _setLoading(false);
+      },
+      failure: (error) {
+        _setError(error);
+        _setLoading(false);
+        ticket = null;
+      },
+    );
+
+    return ticket;
+  }
+
   /// Load booked events for the current user
   Future<bool> loadBookedEvents() async {
     _setLoading(true);

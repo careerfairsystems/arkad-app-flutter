@@ -145,4 +145,11 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
       return await _remoteDataSource.isEventBooked(eventId);
     }, 'check if event is booked');
   }
+
+  @override
+  Future<Result<String>> getEventTicket(int eventId) async {
+    return executeOperation(() async {
+      return await _remoteDataSource.getEventTicket(eventId);
+    }, 'get event ticket');
+  }
 }

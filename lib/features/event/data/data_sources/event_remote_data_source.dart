@@ -48,7 +48,9 @@ class EventRemoteDataSource {
         if (response.data == null) {
           throw Exception('Event not found');
         }
-        throw Exception('Failed to get event $eventId: ${response.detailedError}');
+        throw Exception(
+          'Failed to get event $eventId: ${response.detailedError}',
+        );
       }
     } on DioException catch (e) {
       final exception = await ApiErrorHandler.handleDioException(
@@ -73,7 +75,9 @@ class EventRemoteDataSource {
         return response.data?.toList() ?? <EventSchema>[];
       } else {
         response.logResponse('getBookedEvents');
-        throw Exception('Failed to get booked events: ${response.detailedError}');
+        throw Exception(
+          'Failed to get booked events: ${response.detailedError}',
+        );
       }
     } on DioException catch (e) {
       final exception = await ApiErrorHandler.handleDioException(
@@ -101,7 +105,9 @@ class EventRemoteDataSource {
         if (response.data == null) {
           throw Exception('Failed to book event');
         }
-        throw Exception('Failed to book event $eventId: ${response.detailedError}');
+        throw Exception(
+          'Failed to book event $eventId: ${response.detailedError}',
+        );
       }
     } on DioException catch (e) {
       final exception = await ApiErrorHandler.handleDioException(
@@ -130,7 +136,9 @@ class EventRemoteDataSource {
         if (response.data == null) {
           throw Exception('Failed to unbook event');
         }
-        throw Exception('Failed to unbook event $eventId: ${response.detailedError}');
+        throw Exception(
+          'Failed to unbook event $eventId: ${response.detailedError}',
+        );
       }
     } on DioException catch (e) {
       final exception = await ApiErrorHandler.handleDioException(
@@ -153,6 +161,37 @@ class EventRemoteDataSource {
     } catch (e) {
       await Sentry.captureException(e);
       throw Exception('Failed to check if event $eventId is booked: $e');
+    }
+  }
+
+  /// Get event ticket for a specific event
+  Future<String> getEventTicket(int eventId) async {
+    try {
+      final response = await _api.getEventsApi().eventBookingApiGetEventTicket(
+        eventId: eventId,
+      );
+
+      if (response.isSuccess && response.data != null) {
+        return response.data!.uuid;
+      } else {
+        response.logResponse('getEventTicket');
+        if (response.data == null) {
+          throw Exception('No ticket found for event');
+        }
+        throw Exception(
+          'Failed to get ticket for event $eventId: ${response.detailedError}',
+        );
+      }
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'getEventTicket',
+        additionalContext: {'eventId': eventId},
+      );
+      throw exception;
+    } catch (e) {
+      await Sentry.captureException(e);
+      throw Exception('Failed to get ticket for event $eventId: $e');
     }
   }
 }

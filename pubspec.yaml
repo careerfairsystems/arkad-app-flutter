@@ -30,6 +30,7 @@ dependencies:
   cached_network_image: ^3.4.1
   shimmer: ^3.0.0
   openapi_generator_annotations: ^6.1.0
+  qr_flutter: ^4.1.0
   arkad_api:
     path: ./api/arkad_api/
 dev_dependencies:
