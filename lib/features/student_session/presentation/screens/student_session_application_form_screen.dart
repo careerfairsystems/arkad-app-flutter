@@ -266,7 +266,7 @@ class _StudentSessionApplicationFormScreenState
                 
                 // Navigate back after a short delay to ensure message is visible
                 Future.delayed(const Duration(milliseconds: 500), () {
-                  if (mounted && context.mounted && Navigator.canPop(context)) {
+                  if (mounted && context.mounted && context.canPop()) {
                     context.pop();
                   }
                 });

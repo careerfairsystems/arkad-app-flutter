@@ -140,7 +140,7 @@ class StudentSessionCard extends StatelessWidget {
       switch (session.userStatus!) {
         case StudentSessionStatus.pending:
           statusText = 'Pending';
-          statusColor = Colors.orange;
+          statusColor = ArkadColors.arkadOrange;
         case StudentSessionStatus.accepted:
           statusText = 'Accepted';
           statusColor = ArkadColors.arkadGreen;
@@ -198,7 +198,7 @@ class StudentSessionCard extends StatelessWidget {
 
     switch (status) {
       case ApplicationStatus.pending:
-        badgeColor = Colors.orange;
+        badgeColor = ArkadColors.arkadOrange;
       case ApplicationStatus.accepted:
         badgeColor = ArkadColors.arkadGreen;
       case ApplicationStatus.rejected:

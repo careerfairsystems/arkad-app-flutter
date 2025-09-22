@@ -200,22 +200,26 @@ class StudentSessionViewModel extends ChangeNotifier {
     );
   }
 
+  /// Wait for authentication to complete with timeout protection
+  /// Returns true if user is authenticated, false if timeout or not authenticated
+  Future<bool> _waitForAuthCompletion() async {
+    try {
+      // Wait for auth initialization to complete with 5-second timeout
+      await _authViewModel.waitForInitialization.timeout(
+        const Duration(seconds: 5),
+      );
+      return _authViewModel.isAuthenticated;
+    } catch (e) {
+      // Timeout or other error - return false for graceful fallback
+      return false;
+    }
+  }
+
   /// Load my applications
   Future<void> loadMyApplications({bool forceRefresh = false}) async {
-    // Ensure authentication is ready before making API calls
-    if (!_authViewModel.isAuthenticated || _authViewModel.isInitializing) {
-      // Wait for authentication to complete if still initializing
-      if (_authViewModel.isInitializing) {
-        // Poll until auth initialization is complete
-        while (_authViewModel.isInitializing) {
-          await Future.delayed(const Duration(milliseconds: 100));
-        }
-      }
-      
-      // Check again after waiting
-      if (!_authViewModel.isAuthenticated) {
-        return; // Don't load applications if user is not authenticated
-      }
+    // Wait for authentication completion with timeout protection
+    if (!await _waitForAuthCompletion()) {
+      return; // Don't load applications if user is not authenticated or timeout occurred
     }
 
     await _getMyApplicationsCommand.loadMyApplications(
@@ -226,20 +230,9 @@ class StudentSessionViewModel extends ChangeNotifier {
   /// Load my applications with real booking state from timeslots
   /// This provides accurate booking information by checking API timeslot status
   Future<void> loadMyApplicationsWithBookingState({bool forceRefresh = false}) async {
-    // Ensure authentication is ready before making API calls
-    if (!_authViewModel.isAuthenticated || _authViewModel.isInitializing) {
-      // Wait for authentication to complete if still initializing
-      if (_authViewModel.isInitializing) {
-        // Poll until auth initialization is complete
-        while (_authViewModel.isInitializing) {
-          await Future.delayed(const Duration(milliseconds: 100));
-        }
-      }
-      
-      // Check again after waiting
-      if (!_authViewModel.isAuthenticated) {
-        return; // Don't load applications if user is not authenticated
-      }
+    // Wait for authentication completion with timeout protection
+    if (!await _waitForAuthCompletion()) {
+      return; // Don't load applications if user is not authenticated or timeout occurred
     }
 
     await _getMyApplicationsWithBookingStateCommand.loadMyApplicationsWithBookingState(

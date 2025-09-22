@@ -16,19 +16,15 @@ class StudentSessionRemoteDataSource {
         .studentSessionsApiGetStudentSessions(
           extra: {
             'secure': [
-              {
-                'type': 'http',
-                'scheme': 'bearer',
-                'name': 'AuthBearer',
-              }
-            ]
+              {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+            ],
           },
         );
 
     if (response.isSuccess && response.data != null) {
       return response.data!;
     } else {
-      throw Exception('Failed to get student sessions: ${response.error}');
+      throw Exception('Failed to get student sessions');
     }
   }
 
@@ -41,22 +37,18 @@ class StudentSessionRemoteDataSource {
             companyId: companyId,
             extra: {
               'secure': [
-                {
-                  'type': 'http',
-                  'scheme': 'bearer',
-                  'name': 'AuthBearer',
-                }
-              ]
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
             },
           );
-      
+
       if (response.isSuccess && response.data != null) {
         return response.data!.toList();
       } else {
-        throw Exception('Failed to get timeslots: ${response.error}');
+        throw Exception('Failed to get timeslots}');
       }
     } catch (e) {
-      throw Exception('Failed to get timeslots for company $companyId: $e');
+      throw Exception('Failed to get timeslots');
     }
   }
 
@@ -102,7 +94,7 @@ class StudentSessionRemoteDataSource {
           );
       return response;
     } catch (e) {
-      throw Exception('Failed to confirm timeslot: $e');
+      throw Exception('Failed to confirm timeslot');
     }
   }
 
@@ -124,10 +116,17 @@ class StudentSessionRemoteDataSource {
     try {
       final response = await _api
           .getStudentSessionsApi()
-          .studentSessionsApiGetStudentSessionApplication(companyId: companyId);
+          .studentSessionsApiGetStudentSessionApplication(
+            companyId: companyId,
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
+          );
       return response;
     } catch (e) {
-      throw Exception('Failed to get application for company $companyId: $e');
+      throw Exception('Failed to get application');
     }
   }
 }

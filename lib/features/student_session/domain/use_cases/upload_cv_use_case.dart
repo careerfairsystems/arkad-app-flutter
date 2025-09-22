@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/use_case.dart';
 import '../../../../shared/errors/student_session_errors.dart';
@@ -22,8 +24,10 @@ class UploadCVParams {
   int get hashCode => Object.hash(companyId, filePath);
 
   @override
-  String toString() =>
-      'UploadCVParams(companyId: $companyId, filePath: $filePath)';
+  String toString() {
+    final fileName = filePath.split('/').last;
+    return 'UploadCVParams(companyId: $companyId, fileName: $fileName)';
+  }
 }
 
 /// Use case for uploading CV file for student session application

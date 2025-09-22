@@ -4,6 +4,7 @@ import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/validation_service.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/exception.dart';
+import '../../../../shared/infrastructure/services/file_validation_service.dart';
 import '../../domain/entities/file_upload_result.dart';
 import '../../domain/entities/profile.dart';
 import '../../domain/entities/programme.dart';
@@ -96,6 +97,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   Future<Result<FileUploadResult>> uploadProfilePicture(File imageFile) async {
     try {
+      // Proactive file validation before sending to server
+      final validation = await FileValidationService.validateProfilePicture(imageFile);
+      if (validation.isFailure) {
+        return Result.failure(validation.errorOrNull!);
+      }
+
       await _remoteDataSource.uploadProfilePicture(imageFile);
 
       final result = FileUploadResult(
@@ -116,7 +123,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     } on ApiException catch (e) {
       if (e.message.contains('413')) {
         return Result.failure(
-          const ValidationError("Image file is too large (max 5MB)"),
+          const ValidationError("Image file is too large (server limit exceeded)"),
         );
       } else if (e.message.contains('415')) {
         return Result.failure(
@@ -134,6 +141,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   Future<Result<FileUploadResult>> uploadCV(File cvFile) async {
     try {
+      // Proactive file validation before sending to server
+      final validation = await FileValidationService.validateCVFile(cvFile);
+      if (validation.isFailure) {
+        return Result.failure(validation.errorOrNull!);
+      }
+
       await _remoteDataSource.uploadCV(cvFile);
 
       final result = FileUploadResult(
@@ -154,7 +167,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     } on ApiException catch (e) {
       if (e.message.contains('413')) {
         return Result.failure(
-          const ValidationError("CV file is too large (max 10MB)"),
+          const ValidationError("CV file is too large (server limit exceeded)"),
         );
       } else if (e.message.contains('415')) {
         return Result.failure(const ValidationError("Unsupported file format"));

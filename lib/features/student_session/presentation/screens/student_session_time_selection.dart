@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -73,7 +74,7 @@ class _StudentSessionTimeSelection
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error loading time slots: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error loading time slots')));
       }
     }
   }
@@ -220,7 +221,7 @@ class _StudentSessionTimeSelection
       // Navigation will be handled by success/error message system
     } else {
       // Handle application flow - just navigate back for now
-      Navigator.of(context).pop();
+      context.pop();
     }
   }
 
@@ -315,8 +316,8 @@ class _StudentSessionTimeSelection
                       
                       // Navigate back after a short delay
                       Future.delayed(const Duration(milliseconds: 500), () {
-                        if (mounted && context.mounted && Navigator.canPop(context)) {
-                          Navigator.of(context).pop();
+                        if (mounted && context.mounted && context.canPop()) {
+                          context.pop();
                         }
                       });
                     }

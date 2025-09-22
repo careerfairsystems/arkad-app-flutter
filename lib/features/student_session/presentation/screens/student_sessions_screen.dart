@@ -362,12 +362,12 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
                 child: const Text('Cancel'),
               ),
               FilledButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  context.pop();
                   // Navigate to login with return path
                   context.push('/auth/login');
                 },
@@ -409,7 +409,7 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
                 child: const Text('OK'),
               ),
             ],

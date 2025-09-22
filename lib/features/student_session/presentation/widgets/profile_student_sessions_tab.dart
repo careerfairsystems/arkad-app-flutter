@@ -145,7 +145,7 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: () => viewModel.loadMyApplications(),
+              onPressed: () => viewModel.loadMyApplicationsWithBookingState(),
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
             ),
@@ -211,7 +211,7 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
             context,
             title: 'PENDING APPLICATIONS',
             icon: Icons.hourglass_empty_rounded,
-            color: Colors.orange,
+            color: ArkadColors.arkadOrange,
             applications: groupedApplications[ApplicationStatus.pending]!,
             showActions: false,
           ),
@@ -342,7 +342,7 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
 
     switch (status) {
       case ApplicationStatus.pending:
-        statusColor = Colors.orange;
+        statusColor = ArkadColors.arkadOrange;
         statusIcon = Icons.hourglass_empty_rounded;
         statusText = 'Under Review';
       case ApplicationStatus.accepted:

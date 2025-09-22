@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../../shared/errors/app_error.dart';
@@ -68,6 +70,9 @@ class AuthViewModel extends ChangeNotifier {
   AuthSession? _currentSession;
   bool _isInitializing = true;
   AppError? _globalError;
+  
+  // Initialization completer for Future-based waiting
+  final Completer<void> _initCompleter = Completer<void>();
 
   // Signup flow state
   SignupData? _pendingSignupData;
@@ -79,6 +84,10 @@ class AuthViewModel extends ChangeNotifier {
   bool get isAuthenticated => _currentSession?.isActive ?? false;
   bool get isInitializing => _isInitializing;
   AppError? get globalError => _globalError;
+  
+  /// Future that completes when authentication initialization is finished
+  /// This allows other components to wait for auth state without polling
+  Future<void> get waitForInitialization => _initCompleter.future;
 
   // Signup flow getters
   SignupData? get pendingSignupData => _pendingSignupData;
@@ -130,6 +139,12 @@ class AuthViewModel extends ChangeNotifier {
     }
 
     _isInitializing = false;
+    
+    // Complete the initialization future to notify waiting components
+    if (!_initCompleter.isCompleted) {
+      _initCompleter.complete();
+    }
+    
     notifyListeners();
   }
 

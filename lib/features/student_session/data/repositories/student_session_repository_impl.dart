@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/student_session_errors.dart';
+import '../../../../shared/infrastructure/services/file_validation_service.dart';
 import '../../../company/domain/use_cases/get_company_by_id_use_case.dart';
 import '../../domain/entities/student_session.dart';
 import '../../domain/entities/student_session_application.dart';
@@ -228,23 +231,42 @@ class StudentSessionRepositoryImpl extends BaseRepository
   }) async {
     return executeOperation(
       () async {
+        // Proactive file validation before sending to server
+        final file = File(filePath);
+        final validation = await FileValidationService.validateCVFile(file);
+        if (validation.isFailure) {
+          throw StudentSessionFileUploadError(
+            filePath.split('/').last,
+            details: validation.errorOrNull!.userMessage,
+          );
+        }
+
         // Create multipart file from path
-        final file = await MultipartFile.fromFile(
+        final multipartFile = await MultipartFile.fromFile(
           filePath,
           filename: filePath.split('/').last,
         );
 
-        final response = await _remoteDataSource.uploadCV(companyId, file);
+        final response = await _remoteDataSource.uploadCV(companyId, multipartFile);
         return response.data ?? 'CV uploaded successfully';
       },
       'upload CV for company $companyId',
       onError: (error) {
         final fileName = filePath.split('/').last;
+        // Handle remaining server-side errors (network, auth, etc.)
         if (error.toString().contains('413') ||
             error.toString().contains('size')) {
           throw StudentSessionFileUploadError(
             fileName,
-            details: 'File too large',
+            details: 'File too large (server limit exceeded)',
+          );
+        }
+        if (error.toString().contains('415') ||
+            error.toString().contains('format') ||
+            error.toString().contains('type')) {
+          throw StudentSessionFileUploadError(
+            fileName,
+            details: 'Unsupported file format',
           );
         }
         throw StudentSessionFileUploadError(
