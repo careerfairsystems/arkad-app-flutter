@@ -10,6 +10,7 @@ import '../features/company/presentation/screens/company_detail_screen.dart';
 import '../features/event/presentation/screens/event_detail_screen.dart';
 import '../features/event/presentation/screens/event_screen.dart';
 import '../features/event/presentation/screens/event_ticket_screen.dart';
+import '../features/event/presentation/screens/scan_event_screen.dart';
 import '../features/map/presentation/screens/map_screen.dart';
 import '../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
@@ -139,6 +140,10 @@ class AppRouter {
                 path: '/events',
                 pageBuilder: _noAnim((_) => const EventScreen()),
                 routes: [
+                  GoRoute(
+                    path: 'scan',
+                    pageBuilder: _slide((context, s) => const ScanEventScreen()),
+                  ),
                   GoRoute(
                     path: 'detail/:id',
                     pageBuilder: _slide((context, s) {

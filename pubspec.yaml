@@ -32,6 +32,7 @@ dependencies:
   openapi_generator_annotations: ^6.1.0
   qr_flutter: ^4.1.0
   screen_brightness: ^2.1.7
+  mobile_scanner: ^6.0.2
   arkad_api:
     path: ./api/arkad_api/
 dev_dependencies:

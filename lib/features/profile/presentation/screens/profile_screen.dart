@@ -7,6 +7,7 @@ import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../view_models/profile_view_model.dart';
 import '../widgets/profile_info_widget.dart';
+import 'staff_actions.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -110,10 +111,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProfileViewModel>(
-      builder: (context, profileViewModel, _) {
+    return Consumer2<ProfileViewModel, AuthViewModel>(
+      builder: (context, profileViewModel, authViewModel, _) {
+        final isStaff = authViewModel.currentUser?.isStaff ?? false;
+        final tabCount = isStaff ? 4 : 3;
+
         return DefaultTabController(
-          length: 3,
+          length: tabCount,
           child: Scaffold(
             appBar: AppBar(
               title: const Text("Profile"),
@@ -125,10 +129,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
               bottom: TabBar(
-                tabs: const [
-                  Tab(text: "Info"),
-                  Tab(text: "Events"),
-                  Tab(text: "Student Sessions"),
+                tabs: [
+                  const Tab(text: "Info"),
+                  const Tab(text: "Events"),
+                  const Tab(text: "Student Sessions"),
+                  if (isStaff) const Tab(text: "Coordinator"),
                 ],
                 labelColor: ArkadColors.white,
                 unselectedLabelColor: ArkadColors.white.withValues(alpha: 0.7),
@@ -147,9 +152,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: _buildProfileContent(profileViewModel),
                   ),
                 ),
-                // Events Tab (Placeholder)
+                // Events Tab
                 Center(child: BookedEventsScreen()),
-                // Student Sessions Tab (Placeholder)
+                // Student Sessions Tab
                 Center(
                   child: Text(
                     'Coming Soon',
@@ -158,6 +163,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
+                // Coordinator Tab (only shown for staff)
+                if (isStaff) const StaffActionsScreen(),
               ],
             ),
           ),
