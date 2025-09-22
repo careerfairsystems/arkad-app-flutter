@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:screen_brightness/screen_brightness.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
@@ -20,12 +21,14 @@ class EventTicketScreen extends StatefulWidget {
 class _EventTicketScreenState extends State<EventTicketScreen> {
   String? _ticketUuid;
   bool _isLoadingTicket = false;
+  double? _originalBrightness;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadEventAndTicket();
+      _increaseBrightness();
     });
   }
 
@@ -49,6 +52,28 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
       _ticketUuid = ticket;
       _isLoadingTicket = false;
     });
+  }
+
+  Future<void> _increaseBrightness() async {
+    try {
+      await ScreenBrightness().setApplicationScreenBrightness(1.0);
+    } catch (e, stackTrace) {
+      Sentry.captureException(e, stackTrace: stackTrace);
+    }
+  }
+
+  Future<void> _restoreBrightness() async {
+    try {
+      await ScreenBrightness().resetApplicationScreenBrightness();
+    } catch (e, stackTrace) {
+      Sentry.captureException(e, stackTrace: stackTrace);
+    }
+  }
+
+  @override
+  void dispose() {
+    _restoreBrightness();
+    super.dispose();
   }
 
   @override
