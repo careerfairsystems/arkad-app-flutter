@@ -6,11 +6,7 @@ import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/event.dart';
 
 /// Status of an event for display purposes
-enum EventStatus {
-  upcoming,
-  booked,
-  past,
-}
+enum EventStatus { upcoming, booked, past }
 
 /// Reusable event card component
 class EventCard extends StatelessWidget {
@@ -48,14 +44,18 @@ class EventCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isPast
-                          ? Colors.grey.withValues(alpha: 0.1)
-                          : _getEventTypeColor(event.type).withValues(alpha: 0.1),
+                      color:
+                          isPast
+                              ? Colors.grey.withValues(alpha: 0.1)
+                              : _getEventTypeColor(
+                                event.type,
+                              ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       _getEventTypeIcon(event.type),
-                      color: isPast ? Colors.grey : _getEventTypeColor(event.type),
+                      color:
+                          isPast ? Colors.grey : _getEventTypeColor(event.type),
                       size: 24,
                     ),
                   ),
@@ -66,7 +66,9 @@ class EventCard extends StatelessWidget {
                       children: [
                         Text(
                           event.title,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: isPast ? Colors.grey : null,
                           ),
@@ -74,8 +76,13 @@ class EventCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           event.type.displayName,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isPast ? Colors.grey : _getEventTypeColor(event.type),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
+                            color:
+                                isPast
+                                    ? Colors.grey
+                                    : _getEventTypeColor(event.type),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -178,7 +185,8 @@ class EventCard extends StatelessWidget {
 
     // For upcoming events, show registration status
     final canRegister = event.canRegister;
-    final isFull = event.maxParticipants != null &&
+    final isFull =
+        event.maxParticipants != null &&
         event.currentParticipants >= event.maxParticipants!;
 
     // Only show indicator for full or closed events, or when showing spots left

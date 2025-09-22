@@ -180,19 +180,17 @@ class _EventScreenState extends State<EventScreen> {
         if (upcomingEvents.isNotEmpty) ...[
           _buildSectionHeader('Upcoming Events', upcomingEvents.length),
           const SizedBox(height: 8),
-          ...upcomingEvents.map((event) => EventCard(
-                event: event,
-                status: EventStatus.upcoming,
-              )),
+          ...upcomingEvents.map(
+            (event) => EventCard(event: event, status: EventStatus.upcoming),
+          ),
           const SizedBox(height: 24),
         ],
         if (pastEvents.isNotEmpty) ...[
           _buildSectionHeader('Past Events', pastEvents.length),
           const SizedBox(height: 8),
-          ...pastEvents.map((event) => EventCard(
-                event: event,
-                status: EventStatus.past,
-              )),
+          ...pastEvents.map(
+            (event) => EventCard(event: event, status: EventStatus.past),
+          ),
         ],
       ],
     );
@@ -226,9 +224,4 @@ class _EventScreenState extends State<EventScreen> {
       ],
     );
   }
-
-
-
-
-
 }

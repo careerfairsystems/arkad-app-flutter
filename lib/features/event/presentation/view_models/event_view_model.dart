@@ -89,6 +89,43 @@ class EventViewModel extends ChangeNotifier {
     return result.isSuccess;
   }
 
+  /// Unregister from an event
+  Future<bool> unregisterFromEvent(int eventId) async {
+    _setLoading(true);
+    _clearError();
+
+    final result = await _eventRepository.unregisterFromEvent(eventId);
+
+    result.when(
+      success: (_) {
+        _setLoading(false);
+        // Optionally refresh events to get updated participant count
+        loadEvents();
+      },
+      failure: (error) {
+        _setError(error);
+        _setLoading(false);
+      },
+    );
+
+    return result.isSuccess;
+  }
+
+  /// Check if an event is booked by the current user
+  Future<bool?> isEventBooked(int eventId) async {
+    _clearError();
+
+    final result = await _eventRepository.isEventBooked(eventId);
+
+    return result.when(
+      success: (isBooked) => isBooked,
+      failure: (error) {
+        _setError(error);
+        return null;
+      },
+    );
+  }
+
   /// Load booked events for the current user
   Future<bool> loadBookedEvents() async {
     _setLoading(true);

@@ -62,7 +62,10 @@ class ApiErrorHandler {
       withScope: (scope) {
         scope.setTag('error_type', 'api_error');
         scope.setTag('operation', operationName ?? 'unknown');
-        scope.setTag('status_code', response?.statusCode?.toString() ?? 'unknown');
+        scope.setTag(
+          'status_code',
+          response?.statusCode?.toString() ?? 'unknown',
+        );
         scope.setExtra('api_error_details', errorContext);
       },
     );
@@ -92,9 +95,7 @@ class ApiErrorHandler {
           responseBody ?? 'Access denied - insufficient permissions',
         );
       case 404:
-        return ApiException(
-          responseBody ?? 'Resource not found',
-        );
+        return ApiException(responseBody ?? 'Resource not found');
       case 409:
         return ValidationException(
           responseBody ?? 'Resource already exists or conflict occurred',
@@ -111,9 +112,7 @@ class ApiErrorHandler {
       case 502:
       case 503:
       case 504:
-        return NetworkException(
-          'Server error - please try again later',
-        );
+        return NetworkException('Server error - please try again later');
       default:
         if (statusCode != null && statusCode >= 400) {
           return ApiException(
@@ -172,5 +171,4 @@ class ApiErrorHandler {
 
     return sanitized;
   }
-
 }
