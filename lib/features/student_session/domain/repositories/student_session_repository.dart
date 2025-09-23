@@ -13,8 +13,6 @@ abstract class StudentSessionRepository {
   /// Maps from GET /api/student-session/all with filtering by company ID
   Future<Result<StudentSession?>> getStudentSessionById(int companyId);
 
-  /// Get user's student session applications (for profile screen)
-  Future<Result<List<StudentSessionApplication>>> getMyApplications();
 
   /// Get user's applications with enhanced booking state determined from timeslots
   /// This provides real booking status by checking timeslot status from the API

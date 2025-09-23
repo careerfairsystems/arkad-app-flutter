@@ -49,16 +49,17 @@ import '../features/profile/domain/use_cases/delete_cv_use_case.dart';
 import '../features/profile/domain/use_cases/delete_profile_picture_use_case.dart';
 import '../features/profile/domain/use_cases/get_current_profile_use_case.dart';
 import '../features/profile/domain/use_cases/update_profile_use_case.dart';
-import '../features/profile/domain/use_cases/upload_cv_use_case.dart' as profile_cv;
+import '../features/profile/domain/use_cases/upload_cv_use_case.dart'
+    as profile_cv;
 import '../features/profile/domain/use_cases/upload_profile_picture_use_case.dart';
 import '../features/profile/presentation/view_models/profile_view_model.dart';
 import '../features/student_session/data/data_sources/student_session_remote_data_source.dart';
 import '../features/student_session/data/mappers/student_session_mapper.dart';
 import '../features/student_session/data/repositories/student_session_repository_impl.dart';
 import '../features/student_session/domain/repositories/student_session_repository.dart';
+import '../features/student_session/domain/services/student_session_data_service.dart';
 import '../features/student_session/domain/use_cases/apply_for_session_use_case.dart';
 import '../features/student_session/domain/use_cases/book_timeslot_use_case.dart';
-import '../features/student_session/domain/use_cases/get_my_applications_use_case.dart';
 import '../features/student_session/domain/use_cases/get_my_applications_with_booking_state_use_case.dart';
 import '../features/student_session/domain/use_cases/get_student_sessions_use_case.dart';
 import '../features/student_session/domain/use_cases/get_timeslots_use_case.dart';
@@ -66,7 +67,6 @@ import '../features/student_session/domain/use_cases/unbook_timeslot_use_case.da
 import '../features/student_session/domain/use_cases/upload_cv_use_case.dart';
 import '../features/student_session/presentation/commands/apply_for_session_command.dart';
 import '../features/student_session/presentation/commands/book_timeslot_command.dart';
-import '../features/student_session/presentation/commands/get_my_applications_command.dart';
 import '../features/student_session/presentation/commands/get_my_applications_with_booking_state_command.dart';
 import '../features/student_session/presentation/commands/get_student_sessions_command.dart';
 import '../features/student_session/presentation/commands/get_timeslots_command.dart';
@@ -120,7 +120,7 @@ void _registerApiClientConditionally() {
       basePathOverride: 'https://staging.backend.arkadtlth.se',
     ),
   );
-  
+
   // Register the Dio instance from ArkadApi for other services that need it
   serviceLocator.registerLazySingleton<Dio>(
     () => serviceLocator<ArkadApi>().dio,
@@ -349,17 +349,24 @@ void _setupStudentSessionFeature() {
   serviceLocator.registerLazySingleton<UnbookTimeslotUseCase>(
     () => UnbookTimeslotUseCase(serviceLocator<StudentSessionRepository>()),
   );
-  serviceLocator.registerLazySingleton<GetMyApplicationsUseCase>(
-    () => GetMyApplicationsUseCase(serviceLocator<StudentSessionRepository>()),
-  );
-  serviceLocator.registerLazySingleton<GetMyApplicationsWithBookingStateUseCase>(
-    () => GetMyApplicationsWithBookingStateUseCase(serviceLocator<StudentSessionRepository>()),
-  );
+  serviceLocator
+      .registerLazySingleton<GetMyApplicationsWithBookingStateUseCase>(
+        () => GetMyApplicationsWithBookingStateUseCase(
+          serviceLocator<StudentSessionRepository>(),
+        ),
+      );
   serviceLocator.registerLazySingleton<GetTimeslotsUseCase>(
     () => GetTimeslotsUseCase(serviceLocator<StudentSessionRepository>()),
   );
   serviceLocator.registerLazySingleton<UploadCVUseCase>(
     () => UploadCVUseCase(serviceLocator<StudentSessionRepository>()),
+  );
+
+  // Services
+  serviceLocator.registerLazySingleton<StudentSessionDataService>(
+    () => StudentSessionDataService(
+      repository: serviceLocator<StudentSessionRepository>(),
+    ),
   );
 
   // Commands
@@ -376,12 +383,12 @@ void _setupStudentSessionFeature() {
   serviceLocator.registerLazySingleton<UnbookTimeslotCommand>(
     () => UnbookTimeslotCommand(serviceLocator<UnbookTimeslotUseCase>()),
   );
-  serviceLocator.registerLazySingleton<GetMyApplicationsCommand>(
-    () => GetMyApplicationsCommand(serviceLocator<GetMyApplicationsUseCase>()),
-  );
-  serviceLocator.registerLazySingleton<GetMyApplicationsWithBookingStateCommand>(
-    () => GetMyApplicationsWithBookingStateCommand(serviceLocator<GetMyApplicationsWithBookingStateUseCase>()),
-  );
+  serviceLocator
+      .registerLazySingleton<GetMyApplicationsWithBookingStateCommand>(
+        () => GetMyApplicationsWithBookingStateCommand(
+          serviceLocator<GetMyApplicationsWithBookingStateUseCase>(),
+        ),
+      );
   serviceLocator.registerLazySingleton<GetTimeslotsCommand>(
     () => GetTimeslotsCommand(serviceLocator<GetTimeslotsUseCase>()),
   );
@@ -393,8 +400,8 @@ void _setupStudentSessionFeature() {
       applyForSessionCommand: serviceLocator<ApplyForSessionCommand>(),
       bookTimeslotCommand: serviceLocator<BookTimeslotCommand>(),
       unbookTimeslotCommand: serviceLocator<UnbookTimeslotCommand>(),
-      getMyApplicationsCommand: serviceLocator<GetMyApplicationsCommand>(),
-      getMyApplicationsWithBookingStateCommand: serviceLocator<GetMyApplicationsWithBookingStateCommand>(),
+      getMyApplicationsWithBookingStateCommand:
+          serviceLocator<GetMyApplicationsWithBookingStateCommand>(),
       getTimeslotsCommand: serviceLocator<GetTimeslotsCommand>(),
       uploadCVUseCase: serviceLocator<UploadCVUseCase>(),
       authViewModel: serviceLocator<AuthViewModel>(),

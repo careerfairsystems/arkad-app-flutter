@@ -12,7 +12,6 @@ import '../../domain/entities/timeslot.dart';
 import '../../domain/use_cases/upload_cv_use_case.dart';
 import '../commands/apply_for_session_command.dart';
 import '../commands/book_timeslot_command.dart';
-import '../commands/get_my_applications_command.dart';
 import '../commands/get_my_applications_with_booking_state_command.dart';
 import '../commands/get_student_sessions_command.dart';
 import '../commands/get_timeslots_command.dart';
@@ -24,7 +23,6 @@ class StudentSessionViewModel extends ChangeNotifier {
   final ApplyForSessionCommand _applyForSessionCommand;
   final BookTimeslotCommand _bookTimeslotCommand;
   final UnbookTimeslotCommand _unbookTimeslotCommand;
-  final GetMyApplicationsCommand _getMyApplicationsCommand;
   final GetMyApplicationsWithBookingStateCommand
   _getMyApplicationsWithBookingStateCommand;
   final GetTimeslotsCommand _getTimeslotsCommand;
@@ -36,7 +34,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     required ApplyForSessionCommand applyForSessionCommand,
     required BookTimeslotCommand bookTimeslotCommand,
     required UnbookTimeslotCommand unbookTimeslotCommand,
-    required GetMyApplicationsCommand getMyApplicationsCommand,
     required GetMyApplicationsWithBookingStateCommand
     getMyApplicationsWithBookingStateCommand,
     required GetTimeslotsCommand getTimeslotsCommand,
@@ -46,7 +43,6 @@ class StudentSessionViewModel extends ChangeNotifier {
        _applyForSessionCommand = applyForSessionCommand,
        _bookTimeslotCommand = bookTimeslotCommand,
        _unbookTimeslotCommand = unbookTimeslotCommand,
-       _getMyApplicationsCommand = getMyApplicationsCommand,
        _getMyApplicationsWithBookingStateCommand =
            getMyApplicationsWithBookingStateCommand,
        _getTimeslotsCommand = getTimeslotsCommand,
@@ -84,8 +80,6 @@ class StudentSessionViewModel extends ChangeNotifier {
   ApplyForSessionCommand get applyForSessionCommand => _applyForSessionCommand;
   BookTimeslotCommand get bookTimeslotCommand => _bookTimeslotCommand;
   UnbookTimeslotCommand get unbookTimeslotCommand => _unbookTimeslotCommand;
-  GetMyApplicationsCommand get getMyApplicationsCommand =>
-      _getMyApplicationsCommand;
   GetMyApplicationsWithBookingStateCommand
   get getMyApplicationsWithBookingStateCommand =>
       _getMyApplicationsWithBookingStateCommand;
@@ -116,8 +110,12 @@ class StudentSessionViewModel extends ChangeNotifier {
     return sessions;
   }
 
-  List<StudentSessionApplication> get myApplications =>
-      _getMyApplicationsCommand.result ?? [];
+  List<StudentSessionApplication> get myApplications {
+    // Convert from enhanced applications for backward compatibility
+    return myApplicationsWithBookingState
+        .map((appWithBooking) => appWithBooking.application)
+        .toList();
+  }
   List<StudentSessionApplicationWithBookingState>
   get myApplicationsWithBookingState =>
       _getMyApplicationsWithBookingStateCommand.result ?? [];
@@ -148,14 +146,12 @@ class StudentSessionViewModel extends ChangeNotifier {
       (_applyForSessionCommand.isExecuting) ||
       (_bookTimeslotCommand.isExecuting) ||
       (_unbookTimeslotCommand.isExecuting) ||
-      (_getMyApplicationsCommand.isExecuting && myApplications.isEmpty) ||
       (_getMyApplicationsWithBookingStateCommand.isExecuting && myApplicationsWithBookingState.isEmpty) ||
       (_getTimeslotsCommand.isExecuting && timeslots.isEmpty);
 
   /// Background refresh state - indicates data refresh without blocking UI
   bool get isBackgroundRefreshing =>
       (_getStudentSessionsCommand.isExecuting && studentSessions.isNotEmpty) ||
-      (_getMyApplicationsCommand.isExecuting && myApplications.isNotEmpty) ||
       (_getMyApplicationsWithBookingStateCommand.isExecuting && myApplicationsWithBookingState.isNotEmpty) ||
       (_getTimeslotsCommand.isExecuting && timeslots.isNotEmpty);
 
@@ -167,7 +163,6 @@ class StudentSessionViewModel extends ChangeNotifier {
       _applyForSessionCommand.hasError ||
       _bookTimeslotCommand.hasError ||
       _unbookTimeslotCommand.hasError ||
-      _getMyApplicationsCommand.hasError ||
       _getMyApplicationsWithBookingStateCommand.hasError ||
       _getTimeslotsCommand.hasError ||
       _cvUploadError != null;
@@ -259,7 +254,7 @@ class StudentSessionViewModel extends ChangeNotifier {
       return; // Don't load applications if user is not authenticated or timeout occurred
     }
 
-    await _getMyApplicationsCommand.loadMyApplications(
+    await _getMyApplicationsWithBookingStateCommand.loadMyApplicationsWithBookingState(
       forceRefresh: forceRefresh,
     );
   }
@@ -489,7 +484,7 @@ class StudentSessionViewModel extends ChangeNotifier {
   Future<void> refreshAll() async {
     await Future.wait([
       loadStudentSessions(forceRefresh: true),
-      loadMyApplications(forceRefresh: true),
+      loadMyApplicationsWithBookingState(forceRefresh: true),
     ]);
   }
 
@@ -499,7 +494,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     _applyForSessionCommand.addListener(_onCommandStateChanged);
     _bookTimeslotCommand.addListener(_onBookTimeslotCommandChanged);
     _unbookTimeslotCommand.addListener(_onUnbookTimeslotCommandChanged);
-    _getMyApplicationsCommand.addListener(_onCommandStateChanged);
     _getMyApplicationsWithBookingStateCommand.addListener(
       _onCommandStateChanged,
     );
@@ -631,7 +625,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     _applyForSessionCommand.reset();
     _bookTimeslotCommand.reset();
     _unbookTimeslotCommand.reset();
-    _getMyApplicationsCommand.reset();
     _getMyApplicationsWithBookingStateCommand.reset();
     _getTimeslotsCommand.reset();
 
@@ -652,7 +645,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     _applyForSessionCommand.removeListener(_onCommandStateChanged);
     _bookTimeslotCommand.removeListener(_onBookTimeslotCommandChanged);
     _unbookTimeslotCommand.removeListener(_onUnbookTimeslotCommandChanged);
-    _getMyApplicationsCommand.removeListener(_onCommandStateChanged);
     _getMyApplicationsWithBookingStateCommand.removeListener(
       _onCommandStateChanged,
     );

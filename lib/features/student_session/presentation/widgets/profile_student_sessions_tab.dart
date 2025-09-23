@@ -18,64 +18,70 @@ class ProfileStudentSessionsTab extends StatefulWidget {
 }
 
 class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
+  bool _hasInitialized = false;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasInitialized) {
+      _initializeData();
+      _hasInitialized = true;
+    }
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewModel = Provider.of<StudentSessionViewModel>(
-        context,
-        listen: false,
-      );
-
-      // Reset command states and load data with real booking state
-      viewModel.getMyApplicationsCommand.reset();
+  void _initializeData() {
+    final viewModel = Provider.of<StudentSessionViewModel>(context, listen: false);
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    
+    // Only load if authenticated and not already executing
+    if (authViewModel.isAuthenticated && 
+        !authViewModel.isInitializing &&
+        !viewModel.getMyApplicationsWithBookingStateCommand.isExecuting) {
       viewModel.getMyApplicationsWithBookingStateCommand.reset();
       viewModel.loadMyApplicationsWithBookingState();
-    });
+    }
+  }
+
+  void _handleMessages(StudentSessionViewModel viewModel) {
+    if (viewModel.showSuccessMessage) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                viewModel.successMessage ?? 'Operation completed successfully!',
+              ),
+              backgroundColor: ArkadColors.arkadGreen,
+            ),
+          );
+          viewModel.clearSuccessMessage();
+        }
+      });
+    }
+
+    if (viewModel.showErrorMessage) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                viewModel.errorMessage ?? 'An error occurred. Please try again.',
+              ),
+              backgroundColor: ArkadColors.lightRed,
+            ),
+          );
+          viewModel.clearErrorMessage();
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer2<StudentSessionViewModel, AuthViewModel>(
       builder: (context, viewModel, authViewModel, child) {
-        // Handle booking/unbooking success/error messages
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (viewModel.showSuccessMessage) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  viewModel.successMessage ??
-                      'Operation completed successfully!',
-                ),
-                backgroundColor: ArkadColors.arkadGreen,
-              ),
-            );
-            viewModel.clearSuccessMessage();
-          }
-
-          if (viewModel.showErrorMessage) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  viewModel.errorMessage ??
-                      'An error occurred. Please try again.',
-                ),
-                backgroundColor: ArkadColors.lightRed,
-              ),
-            );
-            viewModel.clearErrorMessage();
-          }
-        });
-        // Auto-reload applications when authentication becomes ready
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (authViewModel.isAuthenticated &&
-              !authViewModel.isInitializing &&
-              viewModel.myApplicationsWithBookingState.isEmpty &&
-              !viewModel.getMyApplicationsWithBookingStateCommand.isExecuting) {
-            viewModel.loadMyApplicationsWithBookingState();
-          }
-        });
+        // Handle messages outside of build cycles
+        _handleMessages(viewModel);
 
         final applicationsWithBookingState = viewModel.myApplicationsWithBookingState;
         final groupedApplications = _groupApplicationsWithBookingStateByStatus(applicationsWithBookingState);
@@ -157,48 +163,15 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     final totalApplications =
         groupedApplications.values.expand((apps) => apps).length;
 
-    if (totalApplications == 0) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.assignment_outlined,
-              size: 64,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.4),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No Applications Yet',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Go to the Student Sessions tab to apply for companies',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
-    }
-
     return RefreshIndicator(
       onRefresh: () => viewModel.loadMyApplicationsWithBookingState(),
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Accepted applications section
+          // Always show all sections for consistent structure
           _buildStatusSection(
             context,
             title: 'ACCEPTED APPLICATIONS',
-            icon: Icons.check_circle_rounded,
             color: ArkadColors.arkadGreen,
             applications: groupedApplications[ApplicationStatus.accepted]!,
             showActions: true,
@@ -206,11 +179,9 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
 
           const SizedBox(height: 24),
 
-          // Pending applications section
           _buildStatusSection(
             context,
             title: 'PENDING APPLICATIONS',
-            icon: Icons.hourglass_empty_rounded,
             color: ArkadColors.arkadOrange,
             applications: groupedApplications[ApplicationStatus.pending]!,
             showActions: false,
@@ -218,16 +189,19 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
 
           const SizedBox(height: 24),
 
-          // Rejected applications section (only if there are rejected applications)
-          if (groupedApplications[ApplicationStatus.rejected]!.isNotEmpty)
-            _buildStatusSection(
-              context,
-              title: 'REJECTED APPLICATIONS',
-              icon: Icons.cancel_rounded,
-              color: ArkadColors.lightRed,
-              applications: groupedApplications[ApplicationStatus.rejected]!,
-              showActions: false,
-            ),
+          _buildStatusSection(
+            context,
+            title: 'REJECTED APPLICATIONS',
+            color: ArkadColors.lightRed,
+            applications: groupedApplications[ApplicationStatus.rejected]!,
+            showActions: false,
+          ),
+
+          // Show get started section only when no applications exist
+          if (totalApplications == 0) ...[
+            const SizedBox(height: 32),
+            _buildGetStartedSection(context),
+          ],
         ],
       ),
     );
@@ -237,7 +211,6 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
   Widget _buildStatusSection(
     BuildContext context, {
     required String title,
-    required IconData icon,
     required Color color,
     required List<StudentSessionApplicationWithBookingState> applications,
     required bool showActions,
@@ -245,38 +218,56 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section header
-        Row(
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              '$title (${applications.length})',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-                letterSpacing: 0.5,
+        // Section header - clean professional design
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '$title (${applications.length})',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
 
         const SizedBox(height: 12),
 
-        // Applications list
-        if (applications.isEmpty)
-          _buildEmptySection(context, title.split(' ')[0])
-        else
-          ...applications.map(
-            (app) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildUnifiedApplicationCard(
-                context,
-                app,
-                showActions: showActions,
-              ),
+        // Applications list with consistent container styling
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+            border: Border.all(
+              color: color.withValues(alpha: 0.2),
             ),
           ),
+          child: applications.isEmpty
+              ? _buildEmptySection(context, title.split(' ')[0])
+              : Column(
+                  children: applications.map(
+                    (app) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildUnifiedApplicationCard(
+                        context,
+                        app,
+                        showActions: showActions,
+                      ),
+                    ),
+                  ).toList(),
+                ),
+        ),
       ],
     );
   }
@@ -284,46 +275,62 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
   /// Build empty state for a section
   Widget _buildEmptySection(BuildContext context, String sectionType) {
     String message;
-    IconData iconData;
 
     switch (sectionType.toLowerCase()) {
       case 'accepted':
         message = 'No accepted applications yet';
-        iconData = Icons.check_circle_outline;
       case 'pending':
         message = 'No pending applications';
-        iconData = Icons.hourglass_empty_outlined;
       case 'rejected':
         message = 'No rejected applications';
-        iconData = Icons.cancel_outlined;
       default:
         message = 'No applications in this section';
-        iconData = Icons.assignment_outlined;
     }
 
     return Container(
       padding: const EdgeInsets.all(24),
       child: Center(
-        child: Column(
-          children: [
-            Icon(
-              iconData,
-              size: 48,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.4),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-          ],
+        child: Text(
+          message,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            fontStyle: FontStyle.italic,
+          ),
+          textAlign: TextAlign.center,
         ),
+      ),
+    );
+  }
+
+  /// Build get started section when no applications exist
+  Widget _buildGetStartedSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Get Started',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Apply to companies in the Student Sessions tab to see your applications here',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -337,21 +344,17 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     final application = applicationWithBookingState.application;
     final status = application.status;
     Color statusColor;
-    IconData statusIcon;
     String statusText;
 
     switch (status) {
       case ApplicationStatus.pending:
         statusColor = ArkadColors.arkadOrange;
-        statusIcon = Icons.hourglass_empty_rounded;
         statusText = 'Under Review';
       case ApplicationStatus.accepted:
         statusColor = ArkadColors.arkadGreen;
-        statusIcon = Icons.check_circle_rounded;
         statusText = 'You were accepted!';
       case ApplicationStatus.rejected:
         statusColor = ArkadColors.lightRed;
-        statusIcon = Icons.cancel_rounded;
         statusText = 'Not Selected';
     }
 
@@ -390,20 +393,14 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(statusIcon, size: 16, color: statusColor),
-                          const SizedBox(width: 6),
-                          Text(
-                            statusText,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(
-                              color: statusColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        statusText,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(
+                          color: statusColor,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -536,6 +533,10 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     BuildContext context,
     StudentSessionApplication application,
   ) {
+    // This method needs access to the booking state, but since we only have the application
+    // we'll use the status service with a dummy booking state for now
+    // In a real implementation, this would need to be passed from the parent
+    
     // Get current timeline status to show appropriate message
     final status = TimelineValidationService.checkBookingPeriod();
 

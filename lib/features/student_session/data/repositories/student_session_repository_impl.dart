@@ -113,13 +113,16 @@ class StudentSessionRepositoryImpl extends BaseRepository
     );
   }
 
-  @override
-  Future<Result<List<StudentSessionApplication>>> getMyApplications() async {
+
+  /// Get applications with enhanced booking state determined from timeslots
+  /// This method provides the real booking status by checking timeslots
+  @override 
+  Future<Result<List<StudentSessionApplicationWithBookingState>>> getMyApplicationsWithBookingState() async {
     return executeOperation(() async {
-      // This would ideally be a separate endpoint, but for now we'll derive from getStudentSessions
+      // Get user's applications directly from the API (replaces removed getMyApplications)
       final response = await _remoteDataSource.getStudentSessions();
 
-      // Filter and resolve company names for applications
+      // Filter and resolve company names for applications  
       final applications = <StudentSessionApplication>[];
       for (final sessionDto in response.studentSessions.where(
         (session) => session.userStatus != null,
@@ -142,21 +145,6 @@ class StudentSessionRepositoryImpl extends BaseRepository
         );
         applications.add(application);
       }
-
-      return applications;
-    }, 'load my applications');
-  }
-
-  /// Get applications with enhanced booking state determined from timeslots
-  /// This method provides the real booking status by checking timeslots
-  @override 
-  Future<Result<List<StudentSessionApplicationWithBookingState>>> getMyApplicationsWithBookingState() async {
-    return executeOperation(() async {
-      final applicationsResult = await getMyApplications();
-      final applications = applicationsResult.when(
-        success: (apps) => apps,
-        failure: (error) => throw error,
-      );
 
       final applicationsWithBookingState = <StudentSessionApplicationWithBookingState>[];
       

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../../domain/entities/student_session.dart';
 import '../../domain/entities/student_session_application.dart';
+import '../../domain/services/student_session_data_service.dart';
+import '../../domain/services/student_session_status_service.dart';
 
 /// Modern student session card with status indicators and actions
 class StudentSessionCard extends StatelessWidget {
@@ -26,6 +27,16 @@ class StudentSessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Create unified session with application state for status service
+    final sessionWithApp = StudentSessionWithApplicationState(
+      session: session,
+      applicationWithBookingState: applicationWithBookingState,
+    );
+
+    // Get status information using the unified status service
+    final statusInfo = StudentSessionStatusService.instance.getStatusInfo(sessionWithApp);
+    final actionInfo = StudentSessionStatusService.instance.getActionButtonInfo(sessionWithApp);
+
     return Container(
       margin: margin,
       child: Card(
@@ -37,16 +48,16 @@ class StudentSessionCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context),
+              _buildHeader(context, statusInfo),
               const SizedBox(height: 12),
               if (session.description != null) ...[
                 _buildDescription(context),
                 const SizedBox(height: 12),
               ],
               _buildStatus(context),
-              if (_shouldShowActions()) ...[
+              if (actionInfo.action != ActionType.none) ...[
                 const SizedBox(height: 16),
-                _buildActions(context),
+                _buildActions(context, actionInfo),
               ],
             ],
           ),
@@ -55,7 +66,7 @@ class StudentSessionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, StudentSessionStatusInfo statusInfo) {
     return Row(
       children: [
         _buildLogo(context),
@@ -73,11 +84,11 @@ class StudentSessionCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
-              _buildAvailabilityIndicator(context),
+              _buildAvailabilityIndicator(context, statusInfo),
             ],
           ),
         ),
-        _buildApplicationStatusBadge(context),
+        _buildApplicationStatusBadge(context, statusInfo),
       ],
     );
   }
@@ -123,33 +134,7 @@ class StudentSessionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAvailabilityIndicator(BuildContext context) {
-    // Determine status based on user's application state
-    String statusText;
-    Color statusColor;
-    
-    if (!session.isAvailable) {
-      statusText = 'Not available';
-      statusColor = Theme.of(context).colorScheme.outline;
-    } else if (session.userStatus == null) {
-      // No application made yet
-      statusText = 'Available';
-      statusColor = ArkadColors.arkadGreen;
-    } else {
-      // User has applied, show application status
-      switch (session.userStatus!) {
-        case StudentSessionStatus.pending:
-          statusText = 'Pending';
-          statusColor = ArkadColors.arkadOrange;
-        case StudentSessionStatus.accepted:
-          statusText = 'Accepted';
-          statusColor = ArkadColors.arkadGreen;
-        case StudentSessionStatus.rejected:
-          statusText = 'Rejected';
-          statusColor = ArkadColors.lightRed;
-      }
-    }
-
+  Widget _buildAvailabilityIndicator(BuildContext context, StudentSessionStatusInfo statusInfo) {
     return Row(
       children: [
         Container(
@@ -157,14 +142,14 @@ class StudentSessionCard extends StatelessWidget {
           height: 8,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: statusColor,
+            color: statusInfo.displayColor,
           ),
         ),
         const SizedBox(width: 6),
         Text(
-          statusText,
+          statusInfo.displayText,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: statusColor,
+            color: statusInfo.displayColor,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -189,105 +174,53 @@ class StudentSessionCard extends StatelessWidget {
     return const SizedBox.shrink();
   }
 
-  Widget _buildApplicationStatusBadge(BuildContext context) {
-    final currentApplication = applicationWithBookingState?.application ?? application;
-    if (currentApplication == null) return const SizedBox.shrink();
-
-    final status = currentApplication.status;
-    Color badgeColor;
-
-    switch (status) {
-      case ApplicationStatus.pending:
-        badgeColor = ArkadColors.arkadOrange;
-      case ApplicationStatus.accepted:
-        badgeColor = ArkadColors.arkadGreen;
-      case ApplicationStatus.rejected:
-        badgeColor = ArkadColors.lightRed;
-    }
+  Widget _buildApplicationStatusBadge(BuildContext context, StudentSessionStatusInfo statusInfo) {
+    if (statusInfo.badgeText == null) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: badgeColor.withValues(alpha: 0.1),
+        color: statusInfo.badgeColor!.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        status.displayName,
+        statusInfo.badgeText!,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: badgeColor,
+          color: statusInfo.badgeColor,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 
-  Widget _buildActions(BuildContext context) {
+  Widget _buildActions(BuildContext context, ActionButtonInfo actionInfo) {
+    VoidCallback? buttonCallback;
+    
+    switch (actionInfo.action) {
+      case ActionType.apply:
+        buttonCallback = onApply;
+      case ActionType.bookTimeslot:
+      case ActionType.manageBooking:
+        buttonCallback = onViewTimeslots;
+      case ActionType.none:
+        buttonCallback = null;
+    }
+
     return Row(
       children: [
-        if (_shouldShowApplyButton()) ...[
-          Expanded(
-            child: FilledButton.icon(
-              onPressed: onApply,
-              icon: const Icon(Icons.send_rounded, size: 18),
-              label: const Text('Apply'),
-              style: FilledButton.styleFrom(
-                backgroundColor: ArkadColors.arkadTurkos,
-                foregroundColor: Colors.white,
-              ),
+        Expanded(
+          child: FilledButton.icon(
+            onPressed: actionInfo.isEnabled ? buttonCallback : null,
+            icon: Icon(actionInfo.icon, size: 18),
+            label: Text(actionInfo.text),
+            style: FilledButton.styleFrom(
+              backgroundColor: actionInfo.isEnabled ? actionInfo.color : Colors.grey,
+              foregroundColor: Colors.white,
             ),
           ),
-        ] else if (_shouldShowBookingButton()) ...[
-          Expanded(
-            child: FilledButton.icon(
-              onPressed: onViewTimeslots,
-              icon: Icon(_getBookingButtonIcon(), size: 18),
-              label: Text(_getBookingButtonText()),
-              style: FilledButton.styleFrom(
-                backgroundColor: ArkadColors.arkadTurkos,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ),
-        ],
+        ),
       ],
     );
   }
 
-  bool _shouldShowActions() {
-    return _shouldShowApplyButton() || _shouldShowBookingButton();
-  }
-
-  bool _shouldShowApplyButton() {
-    if (!session.isAvailable) return false;
-    
-    // Check if user has already applied (use enhanced booking state if available)
-    final currentApplication = applicationWithBookingState?.application ?? application;
-    if (currentApplication != null) return false; // Already applied
-
-    // Check if we're in application period
-    final status = TimelineValidationService.checkApplicationPeriod();
-    return status.canApply;
-  }
-
-  bool _shouldShowBookingButton() {
-    // Use enhanced booking state if available, otherwise fall back to regular application
-    final currentApplication = applicationWithBookingState?.application ?? application;
-    if (currentApplication?.status != ApplicationStatus.accepted) return false;
-
-    // Check if we're in booking period
-    final status = TimelineValidationService.checkBookingPeriod();
-    return status.canBook;
-  }
-
-  String _getBookingButtonText() {
-    // Use enhanced booking state to determine if user has existing booking
-    final hasBooking = applicationWithBookingState?.hasBooking ?? false;
-    return hasBooking ? 'Manage Booking' : 'Book Timeslot';
-  }
-
-  IconData _getBookingButtonIcon() {
-    // Use enhanced booking state to determine if user has existing booking
-    final hasBooking = applicationWithBookingState?.hasBooking ?? false;
-    return hasBooking ? Icons.edit_calendar_rounded : Icons.schedule_rounded;
-  }
 }
