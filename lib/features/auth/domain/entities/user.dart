@@ -6,7 +6,6 @@ class User {
     required this.firstName,
     required this.lastName,
     required this.isStudent,
-    required this.isActive,
     required this.isStaff,
     this.foodPreferences,
     this.programme,
@@ -22,7 +21,6 @@ class User {
   final String firstName;
   final String lastName;
   final bool isStudent;
-  final bool isActive;
   final bool isStaff;
   final String? foodPreferences;
   final String? programme;
@@ -60,12 +58,11 @@ class User {
           firstName == other.firstName &&
           lastName == other.lastName &&
           isStudent == other.isStudent &&
-          isActive == other.isActive &&
           isStaff == other.isStaff;
 
   @override
   int get hashCode =>
-      Object.hash(id, email, firstName, lastName, isStudent, isActive, isStaff);
+      Object.hash(id, email, firstName, lastName, isStudent, isStaff);
 
   @override
   String toString() => 'User(id: $id)';

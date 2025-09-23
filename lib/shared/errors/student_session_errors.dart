@@ -300,7 +300,7 @@ class StudentSessionRecoveryActions {
   }
 
   static void _navigateToCompanies(BuildContext context) {
-    Navigator.of(
+    Navigator.of( 
       context,
     ).pushNamedAndRemoveUntil('/companies', (route) => false);
   }

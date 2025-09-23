@@ -27,14 +27,18 @@ class FileService {
 
       if (image != null) {
         final imageFile = File(image.path);
-        
+
         // Immediate validation for better UX
-        final validation = await FileValidationService.validateProfilePicture(imageFile);
+        final validation = await FileValidationService.validateProfilePicture(
+          imageFile,
+        );
         if (validation.isFailure) {
-          _showErrorSnackbar(context, validation.errorOrNull!.userMessage);
+          if (context.mounted) {
+            _showErrorSnackbar(context, validation.errorOrNull!.userMessage);
+          }
           return null;
         }
-        
+
         return imageFile;
       }
     } catch (e) {
@@ -53,8 +57,9 @@ class FileService {
   }) async {
     try {
       // Use validation service constants for consistent allowed extensions
-      final extensions = allowedExtensions ?? FileValidationService.allowedDocumentTypes;
-      
+      final extensions =
+          allowedExtensions ?? FileValidationService.allowedDocumentTypes;
+
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: extensions,
@@ -65,7 +70,7 @@ class FileService {
       if (!context.mounted) return null;
 
       File? cvFile;
-      
+
       if (result != null &&
           result.files.isNotEmpty &&
           result.files.first.path != null) {
@@ -85,10 +90,12 @@ class FileService {
         // Immediate validation for better UX
         final validation = await FileValidationService.validateCVFile(cvFile);
         if (validation.isFailure) {
-          _showErrorSnackbar(context, validation.errorOrNull!.userMessage);
+          if (context.mounted) {
+            _showErrorSnackbar(context, validation.errorOrNull!.userMessage);
+          }
           return null;
         }
-        
+
         return cvFile;
       }
 

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/use_case.dart';
 import '../../../../shared/errors/student_session_errors.dart';

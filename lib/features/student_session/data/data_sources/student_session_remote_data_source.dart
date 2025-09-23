@@ -94,7 +94,11 @@ class StudentSessionRemoteDataSource {
           );
       return response;
     } catch (e) {
-      throw Exception('Failed to confirm timeslot');
+      // CRITICAL: Preserve original DioException with HTTP status codes for proper conflict detection
+      if (e is DioException) {
+        rethrow; // Let repository handle HTTP status codes
+      }
+      throw Exception('Failed to confirm timeslot: ${e.toString()}');
     }
   }
 

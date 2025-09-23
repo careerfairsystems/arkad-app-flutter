@@ -25,7 +25,8 @@ class StudentSessionViewModel extends ChangeNotifier {
   final BookTimeslotCommand _bookTimeslotCommand;
   final UnbookTimeslotCommand _unbookTimeslotCommand;
   final GetMyApplicationsCommand _getMyApplicationsCommand;
-  final GetMyApplicationsWithBookingStateCommand _getMyApplicationsWithBookingStateCommand;
+  final GetMyApplicationsWithBookingStateCommand
+  _getMyApplicationsWithBookingStateCommand;
   final GetTimeslotsCommand _getTimeslotsCommand;
   final UploadCVUseCase _uploadCVUseCase;
   final AuthViewModel _authViewModel;
@@ -36,7 +37,8 @@ class StudentSessionViewModel extends ChangeNotifier {
     required BookTimeslotCommand bookTimeslotCommand,
     required UnbookTimeslotCommand unbookTimeslotCommand,
     required GetMyApplicationsCommand getMyApplicationsCommand,
-    required GetMyApplicationsWithBookingStateCommand getMyApplicationsWithBookingStateCommand,
+    required GetMyApplicationsWithBookingStateCommand
+    getMyApplicationsWithBookingStateCommand,
     required GetTimeslotsCommand getTimeslotsCommand,
     required UploadCVUseCase uploadCVUseCase,
     required AuthViewModel authViewModel,
@@ -45,7 +47,8 @@ class StudentSessionViewModel extends ChangeNotifier {
        _bookTimeslotCommand = bookTimeslotCommand,
        _unbookTimeslotCommand = unbookTimeslotCommand,
        _getMyApplicationsCommand = getMyApplicationsCommand,
-       _getMyApplicationsWithBookingStateCommand = getMyApplicationsWithBookingStateCommand,
+       _getMyApplicationsWithBookingStateCommand =
+           getMyApplicationsWithBookingStateCommand,
        _getTimeslotsCommand = getTimeslotsCommand,
        _uploadCVUseCase = uploadCVUseCase,
        _authViewModel = authViewModel {
@@ -56,10 +59,10 @@ class StudentSessionViewModel extends ChangeNotifier {
   // UI state
   String _searchQuery = '';
   int? _selectedCompanyId;
-  
+
   // CV upload error state (when CV upload fails after successful application)
   StudentSessionApplicationError? _cvUploadError;
-  
+
   // Message display flags to prevent duplicates
   bool _showSuccessMessage = false;
   String? _successMessage;
@@ -69,6 +72,12 @@ class StudentSessionViewModel extends ChangeNotifier {
   // Stream subscription for logout events
   StreamSubscription? _logoutSubscription;
 
+  // Simplified conflict resolution state
+  bool _isHandlingConflict = false;
+  bool _showConflictOverlay = false;
+  String? _conflictMessage;
+
+
   // Command getters for UI access
   GetStudentSessionsCommand get getStudentSessionsCommand =>
       _getStudentSessionsCommand;
@@ -77,58 +86,81 @@ class StudentSessionViewModel extends ChangeNotifier {
   UnbookTimeslotCommand get unbookTimeslotCommand => _unbookTimeslotCommand;
   GetMyApplicationsCommand get getMyApplicationsCommand =>
       _getMyApplicationsCommand;
-  GetMyApplicationsWithBookingStateCommand get getMyApplicationsWithBookingStateCommand =>
+  GetMyApplicationsWithBookingStateCommand
+  get getMyApplicationsWithBookingStateCommand =>
       _getMyApplicationsWithBookingStateCommand;
   GetTimeslotsCommand get getTimeslotsCommand => _getTimeslotsCommand;
 
   // Computed state from commands
   List<StudentSession> get studentSessions {
     final sessions = _getStudentSessionsCommand.result ?? [];
-    
+
     // If user is not authenticated, clear user status to show public view
     if (!_authViewModel.isAuthenticated) {
-      return sessions.map((session) => StudentSession(
-        id: session.id,
-        companyId: session.companyId,
-        companyName: session.companyName,
-        isAvailable: session.isAvailable,
-        bookingCloseTime: session.bookingCloseTime,
-        userStatus: null, // Clear user status for public view
-        logoUrl: session.logoUrl,
-        description: session.description,
-      )).toList();
+      return sessions
+          .map(
+            (session) => StudentSession(
+              id: session.id,
+              companyId: session.companyId,
+              companyName: session.companyName,
+              isAvailable: session.isAvailable,
+              bookingCloseTime: session.bookingCloseTime,
+              // userStatus omitted (defaults to null) for public view
+              logoUrl: session.logoUrl,
+              description: session.description,
+            ),
+          )
+          .toList();
     }
-    
+
     return sessions;
   }
+
   List<StudentSessionApplication> get myApplications =>
       _getMyApplicationsCommand.result ?? [];
-  List<StudentSessionApplicationWithBookingState> get myApplicationsWithBookingState =>
+  List<StudentSessionApplicationWithBookingState>
+  get myApplicationsWithBookingState =>
       _getMyApplicationsWithBookingStateCommand.result ?? [];
   List<Timeslot> get timeslots => _getTimeslotsCommand.result ?? [];
 
   // UI state getters
   String get searchQuery => _searchQuery;
   int? get selectedCompanyId => _selectedCompanyId;
-  
+
   // CV upload error getter
   StudentSessionApplicationError? get cvUploadError => _cvUploadError;
-  
+
   // Message display getters
   bool get showSuccessMessage => _showSuccessMessage;
   String? get successMessage => _successMessage;
   bool get showErrorMessage => _showErrorMessage;
   String? get errorMessage => _errorMessage;
 
-  // Computed getters
-  bool get isLoading =>
-      _getStudentSessionsCommand.isExecuting ||
-      _applyForSessionCommand.isExecuting ||
-      _bookTimeslotCommand.isExecuting ||
-      _unbookTimeslotCommand.isExecuting ||
-      _getMyApplicationsCommand.isExecuting ||
-      _getMyApplicationsWithBookingStateCommand.isExecuting ||
-      _getTimeslotsCommand.isExecuting;
+  // Conflict resolution getters
+  bool get isHandlingConflict => _isHandlingConflict;
+  bool get showConflictOverlay => _showConflictOverlay;
+  String? get conflictMessage => _conflictMessage;
+
+  // Computed getters for smart loading states
+  /// Initial loading state - shows spinner when no data exists
+  bool get isInitialLoading =>
+      (_getStudentSessionsCommand.isExecuting && studentSessions.isEmpty) ||
+      (_applyForSessionCommand.isExecuting) ||
+      (_bookTimeslotCommand.isExecuting) ||
+      (_unbookTimeslotCommand.isExecuting) ||
+      (_getMyApplicationsCommand.isExecuting && myApplications.isEmpty) ||
+      (_getMyApplicationsWithBookingStateCommand.isExecuting && myApplicationsWithBookingState.isEmpty) ||
+      (_getTimeslotsCommand.isExecuting && timeslots.isEmpty);
+
+  /// Background refresh state - indicates data refresh without blocking UI
+  bool get isBackgroundRefreshing =>
+      (_getStudentSessionsCommand.isExecuting && studentSessions.isNotEmpty) ||
+      (_getMyApplicationsCommand.isExecuting && myApplications.isNotEmpty) ||
+      (_getMyApplicationsWithBookingStateCommand.isExecuting && myApplicationsWithBookingState.isNotEmpty) ||
+      (_getTimeslotsCommand.isExecuting && timeslots.isNotEmpty);
+
+  /// Legacy loading getter for backward compatibility
+  bool get isLoading => isInitialLoading;
 
   bool get hasError =>
       _getStudentSessionsCommand.hasError ||
@@ -168,17 +200,20 @@ class StudentSessionViewModel extends ChangeNotifier {
           .toList();
 
   // Enhanced getters with real booking state
-  List<StudentSessionApplicationWithBookingState> get pendingApplicationsWithBookingState =>
+  List<StudentSessionApplicationWithBookingState>
+  get pendingApplicationsWithBookingState =>
       myApplicationsWithBookingState
           .where((app) => app.application.status == ApplicationStatus.pending)
           .toList();
 
-  List<StudentSessionApplicationWithBookingState> get acceptedApplicationsWithBookingState =>
+  List<StudentSessionApplicationWithBookingState>
+  get acceptedApplicationsWithBookingState =>
       myApplicationsWithBookingState
           .where((app) => app.application.status == ApplicationStatus.accepted)
           .toList();
 
-  List<StudentSessionApplicationWithBookingState> get rejectedApplicationsWithBookingState =>
+  List<StudentSessionApplicationWithBookingState>
+  get rejectedApplicationsWithBookingState =>
       myApplicationsWithBookingState
           .where((app) => app.application.status == ApplicationStatus.rejected)
           .toList();
@@ -191,7 +226,9 @@ class StudentSessionViewModel extends ChangeNotifier {
       myApplicationsWithBookingState.where((app) => app.hasBooking).toList();
 
   List<StudentSessionApplicationWithBookingState> get cancellableApplications =>
-      myApplicationsWithBookingState.where((app) => app.canCancelBooking).toList();
+      myApplicationsWithBookingState
+          .where((app) => app.canCancelBooking)
+          .toList();
 
   /// Load student sessions with optional force refresh
   Future<void> loadStudentSessions({bool forceRefresh = false}) async {
@@ -229,15 +266,16 @@ class StudentSessionViewModel extends ChangeNotifier {
 
   /// Load my applications with real booking state from timeslots
   /// This provides accurate booking information by checking API timeslot status
-  Future<void> loadMyApplicationsWithBookingState({bool forceRefresh = false}) async {
+  Future<void> loadMyApplicationsWithBookingState({
+    bool forceRefresh = false,
+  }) async {
     // Wait for authentication completion with timeout protection
     if (!await _waitForAuthCompletion()) {
       return; // Don't load applications if user is not authenticated or timeout occurred
     }
 
-    await _getMyApplicationsWithBookingStateCommand.loadMyApplicationsWithBookingState(
-      forceRefresh: forceRefresh,
-    );
+    await _getMyApplicationsWithBookingStateCommand
+        .loadMyApplicationsWithBookingState(forceRefresh: forceRefresh);
   }
 
   /// Load timeslots for a company
@@ -267,7 +305,9 @@ class StudentSessionViewModel extends ChangeNotifier {
         },
         failure: (error) {
           // Log for debugging - don't set UI error here as it's handled by calling methods
-          print('CV upload failed for company $companyId: ${error.userMessage}');
+          print(
+            'CV upload failed for company $companyId: ${error.userMessage}',
+          );
           return false;
         },
       );
@@ -293,7 +333,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     // Clear any previous messages and errors
     clearAllMessages();
     _cvUploadError = null;
-    
+
     // First, apply for the session to create the StudentSessionApplication record
     await _applyForSessionCommand.applyForSession(
       companyId: companyId,
@@ -303,21 +343,22 @@ class StudentSessionViewModel extends ChangeNotifier {
       masterTitle: masterTitle,
       studyYear: studyYear,
     );
-    
+
     // Check if application submission failed
     if (_applyForSessionCommand.hasError) {
       final error = _applyForSessionCommand.error;
-      _setErrorMessage(error?.userMessage ?? 'Failed to submit application. Please try again.');
+      _setErrorMessage(
+        error?.userMessage ?? 'Failed to submit application. Please try again.',
+      );
       return;
     }
-    
+
     // Only proceed with CV upload if application was successful
-    if (_applyForSessionCommand.isCompleted && 
+    if (_applyForSessionCommand.isCompleted &&
         !_applyForSessionCommand.hasError) {
-      
       // Backend always updates user profile with application data, so refresh session
       await _authViewModel.refreshSession();
-      
+
       // If CV file is provided, upload it after successful application
       // CV upload failure is now BLOCKING - it will fail the entire application
       if (cvFilePath != null && cvFilePath.isNotEmpty) {
@@ -325,28 +366,32 @@ class StudentSessionViewModel extends ChangeNotifier {
           companyId: companyId,
           filePath: cvFilePath,
         );
-        
+
         if (!cvUploaded) {
           // CV upload failed - this is now a blocking error
           // Note: The application record exists in the backend but without CV attachment
           // This approach allows users to retry CV upload without re-submitting application data
-          _setErrorMessage('Application failed: Could not upload your CV. Please check your file and try again.');
-          print('Application failed for company $companyId due to CV upload failure - application data preserved for retry');
+          _setErrorMessage(
+            'Application failed: Could not upload your CV. Please check your file and try again.',
+          );
+          print(
+            'Application failed for company $companyId due to CV upload failure - application data preserved for retry',
+          );
           return;
         }
-        
+
         // Both application and CV upload succeeded
         _setSuccessMessage('Application with CV submitted successfully!');
       } else {
         // Application succeeded without CV
         _setSuccessMessage('Application submitted successfully!');
       }
-      
+
       print('Application and CV upload successful for company $companyId');
     }
   }
 
-  /// Book a timeslot
+  /// Book a timeslot with unified conflict resolution
   Future<void> bookTimeslot({
     required int companyId,
     required int timeslotId,
@@ -373,41 +418,41 @@ class StudentSessionViewModel extends ChangeNotifier {
     _searchQuery = '';
     notifyListeners();
   }
-  
+
   /// Clear CV upload error
   void clearCVUploadError() {
     _cvUploadError = null;
     notifyListeners();
   }
-  
+
   /// Set success message for display
   void _setSuccessMessage(String message) {
     _showSuccessMessage = true;
     _successMessage = message;
     notifyListeners();
   }
-  
+
   /// Set error message for display
   void _setErrorMessage(String message) {
     _showErrorMessage = true;
     _errorMessage = message;
     notifyListeners();
   }
-  
+
   /// Clear success message after display
   void clearSuccessMessage() {
     _showSuccessMessage = false;
     _successMessage = null;
     notifyListeners();
   }
-  
+
   /// Clear error message after display
   void clearErrorMessage() {
     _showErrorMessage = false;
     _errorMessage = null;
     notifyListeners();
   }
-  
+
   /// Clear all message flags
   void clearAllMessages() {
     _showSuccessMessage = false;
@@ -416,7 +461,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
-  
+
   /// Retry CV upload for a previously failed application
   /// This allows users to retry CV upload without re-submitting the entire application
   Future<bool> retryCVUpload({
@@ -426,18 +471,22 @@ class StudentSessionViewModel extends ChangeNotifier {
     // Clear previous messages and errors before retry
     clearAllMessages();
     _cvUploadError = null;
-    
+
     final success = await uploadCVForSession(
       companyId: companyId,
       filePath: filePath,
     );
-    
+
     if (success) {
-      _setSuccessMessage('CV uploaded successfully! Application is now complete.');
+      _setSuccessMessage(
+        'CV uploaded successfully! Application is now complete.',
+      );
     } else {
-      _setErrorMessage('CV upload failed. Please check your file and try again.');
+      _setErrorMessage(
+        'CV upload failed. Please check your file and try again.',
+      );
     }
-    
+
     return success;
   }
 
@@ -462,7 +511,9 @@ class StudentSessionViewModel extends ChangeNotifier {
     _bookTimeslotCommand.addListener(_onBookTimeslotCommandChanged);
     _unbookTimeslotCommand.addListener(_onUnbookTimeslotCommandChanged);
     _getMyApplicationsCommand.addListener(_onCommandStateChanged);
-    _getMyApplicationsWithBookingStateCommand.addListener(_onCommandStateChanged);
+    _getMyApplicationsWithBookingStateCommand.addListener(
+      _onCommandStateChanged,
+    );
     _getTimeslotsCommand.addListener(_onCommandStateChanged);
   }
 
@@ -473,31 +524,101 @@ class StudentSessionViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Handle book timeslot command state changes
-  void _onBookTimeslotCommandChanged() {
-    if (_bookTimeslotCommand.isCompleted && !_bookTimeslotCommand.hasError) {
-      _setSuccessMessage('Timeslot booked successfully!');
-      // Refresh applications to get updated booking info
-      loadMyApplicationsWithBookingState(forceRefresh: true);
-    } else if (_bookTimeslotCommand.hasError) {
+  /// Handle book timeslot command state changes with unified conflict resolution
+  void _onBookTimeslotCommandChanged() async {
+    // CRITICAL: Check errors FIRST to prevent success flow during error states
+    if (_bookTimeslotCommand.hasError) {
       final error = _bookTimeslotCommand.error;
-      _setErrorMessage(error?.userMessage ?? 'Failed to book timeslot. Please try again.');
+
+      if (_bookTimeslotCommand.isBookingConflict) {
+        // Handle booking conflict with immediate refresh and user guidance
+        await _handleBookingConflict();
+      } else {
+        // Other errors - show error message, keep polling active for retry
+        _setErrorMessage(
+          error?.userMessage ?? 'Failed to book timeslot. Please try again.',
+        );
+        notifyListeners(); // Ensure error message shows immediately
+      }
+      return; // CRITICAL: Exit early to prevent success flow after error
+    }
+    
+    // Success flow - only execute if NO errors exist
+    if (_bookTimeslotCommand.isCompleted && _bookTimeslotCommand.result != null) {
+      // Booking successful - show success message
+      _setSuccessMessage('Timeslot booked successfully!');
+      
+      // Refresh profile data to immediately reflect new booking state
+      await loadMyApplicationsWithBookingState(forceRefresh: true);
+      
+      notifyListeners(); // Ensure success state is reflected
+    }
+  }
+
+  /// Handle unbook timeslot command state changes
+  void _onUnbookTimeslotCommandChanged() async {
+    if (_unbookTimeslotCommand.isCompleted &&
+        !_unbookTimeslotCommand.hasError) {
+      _setSuccessMessage('Booking cancelled successfully!');
+      
+      // Refresh profile data to immediately reflect cancelled booking state
+      await loadMyApplicationsWithBookingState(forceRefresh: true);
+    } else if (_unbookTimeslotCommand.hasError) {
+      final error = _unbookTimeslotCommand.error;
+      _setErrorMessage(
+        error?.userMessage ?? 'Failed to cancel booking. Please try again.',
+      );
     }
     notifyListeners();
   }
 
-  /// Handle unbook timeslot command state changes
-  void _onUnbookTimeslotCommandChanged() {
-    if (_unbookTimeslotCommand.isCompleted && !_unbookTimeslotCommand.hasError) {
-      _setSuccessMessage('Booking cancelled successfully!');
-      // Refresh applications to get updated booking info
-      loadMyApplicationsWithBookingState(forceRefresh: true);
-    } else if (_unbookTimeslotCommand.hasError) {
-      final error = _unbookTimeslotCommand.error;
-      _setErrorMessage(error?.userMessage ?? 'Failed to cancel booking. Please try again.');
+
+  /// Handle booking conflict with simple refresh
+  Future<void> _handleBookingConflict() async {
+    if (_isHandlingConflict) return; // Prevent concurrent conflict handling
+
+    _isHandlingConflict = true;
+
+    try {
+      // Show single clear conflict message
+      _showConflictOverlay = true;
+      _conflictMessage = 'This timeslot was just taken by someone else.\nPlease select another slot.';
+      notifyListeners(); // Show overlay immediately
+
+      // Refresh timeslots data in background
+      if (_selectedCompanyId != null) {
+        await loadTimeslots(_selectedCompanyId!, forceRefresh: true);
+      }
+
+      // Auto-hide overlay after allowing user to read message
+      await Future.delayed(const Duration(seconds: 2));
+      _showConflictOverlay = false;
+      _conflictMessage = null;
+      notifyListeners();
+      
+    } catch (e) {
+      // Handle refresh failure
+      _conflictMessage = 'Failed to refresh timeslot data.\nPlease try again.';
+      notifyListeners();
+      
+      // Hide overlay after error display
+      await Future.delayed(const Duration(seconds: 3));
+      _showConflictOverlay = false;
+      _conflictMessage = null;
+      notifyListeners();
+    } finally {
+      _isHandlingConflict = false;
     }
+  }
+
+  /// Clear conflict overlay manually (for user dismissal)
+  void clearConflictOverlay() {
+    _showConflictOverlay = false;
+    _conflictMessage = null;
     notifyListeners();
   }
+
+
 
   /// Subscribe to logout events for cleanup
   void _subscribeToLogoutEvents() {
@@ -512,7 +633,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     _searchQuery = '';
     _selectedCompanyId = null;
     _cvUploadError = null;
-    
+
     // Clear all message flags
     clearAllMessages();
 
@@ -543,9 +664,19 @@ class StudentSessionViewModel extends ChangeNotifier {
     _bookTimeslotCommand.removeListener(_onBookTimeslotCommandChanged);
     _unbookTimeslotCommand.removeListener(_onUnbookTimeslotCommandChanged);
     _getMyApplicationsCommand.removeListener(_onCommandStateChanged);
-    _getMyApplicationsWithBookingStateCommand.removeListener(_onCommandStateChanged);
+    _getMyApplicationsWithBookingStateCommand.removeListener(
+      _onCommandStateChanged,
+    );
     _getTimeslotsCommand.removeListener(_onCommandStateChanged);
 
     super.dispose();
+  }
+
+  /// Override notifyListeners for better state change detection
+  @override
+  void notifyListeners() {
+    // Always notify listeners for consistent UI updates
+    // Let the UI decide what needs to rebuild based on data changes
+    super.notifyListeners();
   }
 }

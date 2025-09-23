@@ -7,6 +7,35 @@ import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/timeslot.dart';
 import '../view_models/student_session_view_model.dart';
 
+/// State class for action button to enable granular updates
+class ActionButtonState {
+  final bool isEnabled;
+  final bool isLoading;
+  final String text;
+  final Color color;
+  
+  const ActionButtonState({
+    required this.isEnabled,
+    required this.isLoading,
+    required this.text,
+    required this.color,
+  });
+  
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ActionButtonState &&
+          runtimeType == other.runtimeType &&
+          isEnabled == other.isEnabled &&
+          isLoading == other.isLoading &&
+          text == other.text &&
+          color == other.color;
+  
+  @override
+  int get hashCode => Object.hash(isEnabled, isLoading, text, color);
+}
+
+
 class StudentSessionTimeSelectionScreen extends StatefulWidget {
   final String id;
   final bool isBookingMode;
@@ -24,14 +53,39 @@ class StudentSessionTimeSelectionScreen extends StatefulWidget {
 
 class _StudentSessionTimeSelection
     extends State<StudentSessionTimeSelectionScreen> {
-  List<Timeslot> _availableSlots = [];
-  Timeslot? _selectedSlot;
-  bool _isLoading = true;
+  int? _selectedTimeslotId;
   bool _hasLoadedData = false;
+
+  /// Get selected timeslot from current timeslots list using ID
+  Timeslot? _getSelectedTimeslot(List<Timeslot> timeslots) {
+    if (_selectedTimeslotId == null) return null;
+    return timeslots.where((slot) => slot.id == _selectedTimeslotId).firstOrNull;
+  }
+
+  /// Check if current selection is valid (exists and is available)
+  bool _isSelectionValid(List<Timeslot> timeslots) {
+    final selectedSlot = _getSelectedTimeslot(timeslots);
+    return selectedSlot != null && (selectedSlot.status.isAvailable || selectedSlot.status.isBookedByCurrentUser);
+  }
+
+
+
 
   @override
   void initState() {
     super.initState();
+    
+    // Set company context on next frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final viewModel = Provider.of<StudentSessionViewModel>(
+          context,
+          listen: false,
+        );
+        final companyId = int.parse(widget.id);
+        viewModel.setSelectedCompany(companyId);
+      }
+    });
   }
 
   @override
@@ -55,21 +109,16 @@ class _StudentSessionTimeSelection
       final slots = provider.timeslots;
 
       setState(() {
-        _availableSlots = slots;
-        _isLoading = false;
-        
         // Auto-select booked timeslot if user has one
         final bookedSlot = slots
             .where((slot) => slot.status.isBookedByCurrentUser)
             .firstOrNull;
         if (bookedSlot != null) {
-          _selectedSlot = bookedSlot;
+          _selectedTimeslotId = bookedSlot.id;
         }
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      // No need to set loading state - handled by ViewModel
       // Handle error if needed - but don't use print in production
       if (mounted) {
         ScaffoldMessenger.of(
@@ -77,41 +126,6 @@ class _StudentSessionTimeSelection
         ).showSnackBar(SnackBar(content: Text('Error loading time slots')));
       }
     }
-  }
-
-  Map<String, List<Timeslot>> _groupSlotsByWeekday() {
-    final Map<String, List<Timeslot>> groupedSlots = {};
-
-    for (final slot in _availableSlots) {
-      final weekday = DateFormat('EEEE (dd MMM yyyy)').format(slot.startTime);
-
-      if (!groupedSlots.containsKey(weekday)) {
-        groupedSlots[weekday] = [];
-      }
-      groupedSlots[weekday]!.add(slot);
-    }
-
-    // Sort slots within each day by start time
-    for (final daySlots in groupedSlots.values) {
-      daySlots.sort((a, b) => a.startTime.compareTo(b.startTime));
-    }
-
-    return groupedSlots;
-  }
-
-  List<String> _getSortedWeekdays(Map<String, List<Timeslot>> groupedSlots) {
-    return groupedSlots.keys.toList()..sort((a, b) {
-      // Get the first slot from each day to compare dates
-      final dateA = groupedSlots[a]!.first.startTime;
-      final dateB = groupedSlots[b]!.first.startTime;
-      return dateA.compareTo(dateB);
-    });
-  }
-
-  String _formatTimeRange(Timeslot slot) {
-    final startTime = DateFormat('HH:mm').format(slot.startTime);
-    final endTime = DateFormat('HH:mm').format(slot.endTime);
-    return '$startTime - $endTime';
   }
 
   Widget _buildEmptyState() {
@@ -161,34 +175,7 @@ class _StudentSessionTimeSelection
   }
 
 
-  String _getButtonText() {
-    if (!widget.isBookingMode) {
-      return 'Confirm Selection';
-    }
-    
-    // Check if user has an existing booking
-    final currentBookedSlot = _availableSlots
-        .where((slot) => slot.status.isBookedByCurrentUser)
-        .firstOrNull;
-    
-    if (currentBookedSlot == null) {
-      // No existing booking - show book button
-      return _selectedSlot != null ? 'Book Selected Timeslot' : 'Select a Timeslot';
-    } else {
-      // Has existing booking - show cancel or change based on selection
-      if (_selectedSlot == null || _selectedSlot == currentBookedSlot) {
-        return 'Cancel Booking';
-      } else {
-        return 'Change to Selected Timeslot';
-      }
-    }
-  }
 
-  void _selectTimeSlot(Timeslot slot) {
-    setState(() {
-      _selectedSlot = slot;
-    });
-  }
 
   void _confirmSelection() async {
     if (widget.isBookingMode) {
@@ -200,21 +187,23 @@ class _StudentSessionTimeSelection
       final companyId = int.parse(widget.id);
       
       // Check if user already has a booking for this company
-      final currentBookedSlot = _availableSlots
+      final currentBookedSlot = viewModel.timeslots
           .where((slot) => slot.status.isBookedByCurrentUser)
           .firstOrNull;
       
-      if (currentBookedSlot != null && (_selectedSlot == null || _selectedSlot == currentBookedSlot)) {
+      final selectedSlot = _getSelectedTimeslot(viewModel.timeslots);
+      
+      if (currentBookedSlot != null && (selectedSlot == null || selectedSlot.id == currentBookedSlot.id)) {
         // User wants to cancel their existing booking
         await viewModel.unbookTimeslot(companyId);
-      } else if (currentBookedSlot != null && _selectedSlot != currentBookedSlot) {
+      } else if (currentBookedSlot != null && selectedSlot != null && selectedSlot.id != currentBookedSlot.id) {
         // User wants to change to a different timeslot
-        await _changeBooking(viewModel, companyId, _selectedSlot!.id);
-      } else if (currentBookedSlot == null && _selectedSlot != null) {
+        await _changeBooking(viewModel, companyId, selectedSlot.id);
+      } else if (currentBookedSlot == null && selectedSlot != null) {
         // User is booking for the first time
         await viewModel.bookTimeslot(
           companyId: companyId,
-          timeslotId: _selectedSlot!.id,
+          timeslotId: selectedSlot.id,
         );
       }
       
@@ -226,47 +215,292 @@ class _StudentSessionTimeSelection
   }
 
   Future<void> _changeBooking(StudentSessionViewModel viewModel, int companyId, int newTimeslotId) async {
-    // First unbook the current slot
+    // IMPROVED: Handle booking change flow with proper session management
+    
+    // First unbook the current slot (this will stop any active session)
     await viewModel.unbookTimeslot(companyId);
     
     // Only proceed with new booking if unbook was successful
     if (!viewModel.unbookTimeslotCommand.hasError) {
+      // Start new booking (this will create a new active session)
       await viewModel.bookTimeslot(
         companyId: companyId,
         timeslotId: newTimeslotId,
       );
     }
+    // If unbooking failed, the active session is already stopped by the unbook handler
   }
 
-  Widget _buildActionButton(bool isLoading) {
-    final buttonText = _getButtonText();
-    final currentBookedSlot = _availableSlots
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.isBookingMode ? 'Book Time Slot' : 'Select Time Slot'),
+      ),
+      body: Consumer<StudentSessionViewModel>(
+        builder: (context, viewModel, child) {
+          return Stack(
+            children: [
+              // Main content
+              Column(
+                children: [
+                  // Timeslot list
+                  Expanded(
+                    child: _buildTimeslotList(viewModel),
+                  ),
+                  // Action button for booking mode
+                  if (widget.isBookingMode)
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: _buildActionButton(viewModel),
+                      ),
+                    ),
+                ],
+              ),
+              
+              // Message handling
+              _buildMessageHandlers(viewModel),
+              
+              // Conflict overlay
+              if (viewModel.showConflictOverlay)
+                _buildConflictOverlay(viewModel.conflictMessage),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// Build simple timeslot list
+  Widget _buildTimeslotList(StudentSessionViewModel viewModel) {
+    // Show loading for initial load
+    if (viewModel.isInitialLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    // Show empty state if no timeslots
+    if (viewModel.timeslots.isEmpty) {
+      return _buildEmptyState();
+    }
+    
+    // Group timeslots by weekday
+    final groupedSlots = _groupSlotsByWeekday(viewModel.timeslots);
+    final sortedWeekdays = _getSortedWeekdays(groupedSlots);
+    
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: sortedWeekdays.length,
+      itemBuilder: (context, dayIndex) {
+        final weekday = sortedWeekdays[dayIndex];
+        final daySlots = groupedSlots[weekday]!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 8,
+              ),
+              child: Text(
+                weekday,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+            ),
+            // Simple timeslot cards
+            ...daySlots.map((slot) => _buildTimeslotCard(slot)),
+            const SizedBox(height: 8),
+          ],
+        );
+      },
+    );
+  }
+  
+  /// Group timeslots by weekday
+  Map<String, List<Timeslot>> _groupSlotsByWeekday(List<Timeslot> slots) {
+    final Map<String, List<Timeslot>> groupedSlots = {};
+
+    for (final slot in slots) {
+      final weekday = DateFormat('EEEE (dd MMM yyyy)').format(slot.startTime);
+
+      if (!groupedSlots.containsKey(weekday)) {
+        groupedSlots[weekday] = [];
+      }
+      groupedSlots[weekday]!.add(slot);
+    }
+
+    // Sort slots within each day by start time
+    for (final daySlots in groupedSlots.values) {
+      daySlots.sort((a, b) => a.startTime.compareTo(b.startTime));
+    }
+
+    return groupedSlots;
+  }
+
+  /// Get sorted weekdays
+  List<String> _getSortedWeekdays(Map<String, List<Timeslot>> groupedSlots) {
+    return groupedSlots.keys.toList()..sort((a, b) {
+      // Get the first slot from each day to compare dates
+      final dateA = groupedSlots[a]!.first.startTime;
+      final dateB = groupedSlots[b]!.first.startTime;
+      return dateA.compareTo(dateB);
+    });
+  }
+  
+  /// Build simple timeslot card
+  Widget _buildTimeslotCard(Timeslot slot) {
+    final isSelected = _selectedTimeslotId == slot.id;
+    final isBookedByUser = slot.status.isBookedByCurrentUser;
+    final isAvailable = slot.status.isAvailable;
+
+    // Determine card color based on status
+    Color? cardColor;
+    if (isBookedByUser) {
+      cardColor = ArkadColors.arkadGreen.withValues(alpha: 0.2);
+    } else if (isSelected) {
+      cardColor = ArkadColors.lightGray;
+    }
+
+    // Border for booked slots
+    Border? cardBorder;
+    if (isBookedByUser) {
+      cardBorder = Border.all(
+        color: ArkadColors.arkadGreen.withValues(alpha: 0.6),
+        width: 2.5,
+      );
+    }
+
+    return Card(
+      key: ValueKey('timeslot_${slot.id}'),
+      margin: const EdgeInsets.only(
+        bottom: 8,
+        left: 8,
+        right: 8,
+      ),
+      color: cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: cardBorder?.top ?? BorderSide.none,
+      ),
+      child: ListTile(
+        title: Row(
+          children: [
+            Text(_formatTimeRange(slot)),
+            if (isBookedByUser) ...[
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: ArkadColors.arkadGreen,
+                size: 20,
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: ArkadColors.arkadGreen,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Booked by you',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        leading: Radio<int>(
+          value: slot.id,
+          groupValue: _selectedTimeslotId,
+          activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
+          onChanged: (isAvailable || isBookedByUser) ? (int? value) {
+            if (value != null) {
+              setState(() {
+                _selectedTimeslotId = value;
+              });
+            }
+          } : null,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 8,
+          vertical: 6,
+        ),
+        visualDensity: VisualDensity.compact,
+        onTap: (isAvailable || isBookedByUser) ? () {
+          setState(() {
+            _selectedTimeslotId = slot.id;
+          });
+        } : null,
+        enabled: (isAvailable || isBookedByUser),
+      ),
+    );
+  }
+  
+  /// Format time range for display
+  String _formatTimeRange(Timeslot slot) {
+    final startTime = DateFormat('HH:mm').format(slot.startTime);
+    final endTime = DateFormat('HH:mm').format(slot.endTime);
+    return '$startTime - $endTime';
+  }
+
+
+  /// Build simple action button
+  Widget _buildActionButton(StudentSessionViewModel viewModel) {
+    final timeslots = viewModel.timeslots;
+    final selectedSlot = _getSelectedTimeslot(timeslots);
+    final currentBookedSlot = timeslots
         .where((slot) => slot.status.isBookedByCurrentUser)
         .firstOrNull;
     
-    // Determine button color based on action
-    Color? buttonColor;
-    if (currentBookedSlot != null && (_selectedSlot == null || _selectedSlot == currentBookedSlot)) {
-      // Cancel action - red
-      buttonColor = ArkadColors.lightRed;
+    // Determine button text
+    String buttonText;
+    if (!widget.isBookingMode) {
+      buttonText = 'Confirm Selection';
+    } else if (currentBookedSlot == null) {
+      buttonText = selectedSlot != null ? 'Book Selected Timeslot' : 'Select a Timeslot';
     } else {
-      // Book or change action - blue
-      buttonColor = ArkadColors.arkadTurkos;
+      if (selectedSlot == null || selectedSlot.id == currentBookedSlot.id) {
+        buttonText = 'Cancel Booking';
+      } else {
+        buttonText = 'Change to Selected Timeslot';
+      }
     }
-
-    // Determine if button should be enabled
-    bool isEnabled = !isLoading;
+    
+    // Determine button color
+    Color buttonColor;
+    if (currentBookedSlot != null && (selectedSlot == null || selectedSlot.id == currentBookedSlot.id)) {
+      buttonColor = ArkadColors.lightRed; // Cancel action
+    } else {
+      buttonColor = ArkadColors.arkadTurkos; // Book or change action
+    }
+    
+    // Determine if button is enabled
+    bool isEnabled = !viewModel.bookTimeslotCommand.isExecuting;
     if (widget.isBookingMode) {
       if (currentBookedSlot == null) {
-        // First time booking - need selection
-        isEnabled = isEnabled && _selectedSlot != null;
+        isEnabled = isEnabled && _isSelectionValid(timeslots);
       } else {
-        // Has existing booking - always enabled for cancel/change
-        isEnabled = isEnabled; // Always enabled when not loading
+        if (selectedSlot == null || selectedSlot.id == currentBookedSlot.id) {
+          isEnabled = isEnabled; // Cancel action - always enabled when not loading
+        } else {
+          isEnabled = isEnabled && _isSelectionValid(timeslots); // Change action
+        }
       }
     } else {
-      // Application mode - need selection
-      isEnabled = isEnabled && _selectedSlot != null;
+      isEnabled = isEnabled && _isSelectionValid(timeslots);
     }
 
     return ElevatedButton(
@@ -275,7 +509,7 @@ class _StudentSessionTimeSelection
         backgroundColor: buttonColor,
         foregroundColor: Colors.white,
       ),
-      child: isLoading 
+      child: viewModel.bookTimeslotCommand.isExecuting 
           ? const SizedBox(
               height: 20,
               width: 20,
@@ -288,202 +522,123 @@ class _StudentSessionTimeSelection
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final groupedSlots = _groupSlotsByWeekday();
-    final sortedWeekdays = _getSortedWeekdays(groupedSlots);
+  /// Build simple message handlers
+  Widget _buildMessageHandlers(StudentSessionViewModel viewModel) {
+    // Show success message
+    if (viewModel.showSuccessMessage) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(viewModel.successMessage ?? 'Timeslot booked successfully!'),
+              backgroundColor: ArkadColors.arkadGreen,
+            ),
+          );
+          
+          viewModel.clearSuccessMessage();
+          
+          // Navigate back after a short delay
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted && context.mounted && context.canPop()) {
+              context.pop();
+            }
+          });
+        }
+      });
+    }
+    
+    // Show error message
+    if (viewModel.showErrorMessage) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final errorMessage = viewModel.errorMessage ?? 'Failed to book timeslot. Please try again.';
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: ArkadColors.lightRed,
+            ),
+          );
+          
+          viewModel.clearErrorMessage();
+        }
+      });
+    }
+    
+    return const SizedBox.shrink();
+  }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isBookingMode ? 'Book Time Slot' : 'Select Time Slot'),
+  /// Build conflict overlay (granular updates)
+  Widget _buildConflictOverlay(String? message) {
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black54,
+        child: Center(
+          child: Card(
+            margin: const EdgeInsets.all(32),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: ArkadColors.lightRed,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Booking Conflict',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    message ?? 'Resolving conflict...',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Selector<StudentSessionViewModel, bool>(
+                    selector: (context, viewModel) => viewModel.isHandlingConflict,
+                    builder: (context, isHandling, child) {
+                      if (isHandling) {
+                        return const CircularProgressIndicator();
+                      } else {
+                        return TextButton(
+                          onPressed: () {
+                            final viewModel = Provider.of<StudentSessionViewModel>(context, listen: false);
+                            viewModel.clearConflictOverlay();
+                          },
+                          child: const Text('Got it'),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
-      body: widget.isBookingMode 
-          ? Consumer<StudentSessionViewModel>(
-              builder: (context, viewModel, child) {
-                // Handle booking success/error messages
-                if (viewModel.showSuccessMessage) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(viewModel.successMessage ?? 'Timeslot booked successfully!'),
-                          backgroundColor: ArkadColors.arkadGreen,
-                        ),
-                      );
-                      
-                      // Clear the message flag
-                      viewModel.clearSuccessMessage();
-                      
-                      // Navigate back after a short delay
-                      Future.delayed(const Duration(milliseconds: 500), () {
-                        if (mounted && context.mounted && context.canPop()) {
-                          context.pop();
-                        }
-                      });
-                    }
-                  });
-                }
-                
-                // Handle booking errors
-                if (viewModel.showErrorMessage) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      final errorMessage = viewModel.errorMessage ?? 'Failed to book timeslot. Please try again.';
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(errorMessage),
-                          backgroundColor: ArkadColors.lightRed,
-                        ),
-                      );
-                      
-                      // Clear the message flag
-                      viewModel.clearErrorMessage();
-                    }
-                  });
-                }
-                
-                return _buildTimeSelectionBody(groupedSlots, sortedWeekdays, viewModel.bookTimeslotCommand.isExecuting);
-              },
-            )
-          : _buildTimeSelectionBody(groupedSlots, sortedWeekdays, false),
     );
   }
 
-  Widget _buildTimeSelectionBody(Map<String, List<Timeslot>> groupedSlots, List<String> sortedWeekdays, bool isBooking) {
-    return _isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : _availableSlots.isEmpty
-            ? _buildEmptyState()
-            : Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: sortedWeekdays.length,
-                      itemBuilder: (context, dayIndex) {
-                        final weekday = sortedWeekdays[dayIndex];
-                        final daySlots = groupedSlots[weekday]!;
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                                horizontal: 8,
-                              ),
-                              child: Text(
-                                weekday,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                              ),
-                            ),
-                            ...daySlots.map((slot) {
-                              final isSelected = _selectedSlot == slot;
-                              final isBookedByUser = slot.status.isBookedByCurrentUser;
-                              final isAvailable = slot.status.isAvailable;
-
-                              // Determine card color based on status
-                              Color? cardColor;
-                              if (isBookedByUser) {
-                                cardColor = ArkadColors.arkadGreen.withValues(alpha: 0.2);
-                              } else if (isSelected) {
-                                cardColor = ArkadColors.lightGray;
-                              }
-
-                              // Border for booked slots
-                              Border? cardBorder;
-                              if (isBookedByUser) {
-                                cardBorder = Border.all(
-                                  color: ArkadColors.arkadGreen.withValues(alpha: 0.6),
-                                  width: 2.5,
-                                );
-                              }
-
-                              return Card(
-                                margin: const EdgeInsets.only(
-                                  bottom: 8,
-                                  left: 8,
-                                  right: 8,
-                                ),
-                                color: cardColor,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: cardBorder?.top ?? BorderSide.none,
-                                ),
-                                child: ListTile(
-                                  title: Row(
-                                    children: [
-                                      Text(_formatTimeRange(slot)),
-                                      if (isBookedByUser) ...[
-                                        const SizedBox(width: 8),
-                                        Icon(
-                                          Icons.check_circle_rounded,
-                                          color: ArkadColors.arkadGreen,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: ArkadColors.arkadGreen,
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Text(
-                                            'Booked by you',
-                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  leading: Radio<Timeslot>(
-                                    value: slot,
-                                    groupValue: _selectedSlot,
-                                    activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
-                                    onChanged: (isAvailable || isBookedByUser) ? (Timeslot? value) {
-                                      if (value != null) {
-                                        _selectTimeSlot(value);
-                                      }
-                                    } : null,
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 6,
-                                  ),
-                                  visualDensity: VisualDensity.compact,
-                                  onTap: (isAvailable || isBookedByUser) ? () => _selectTimeSlot(slot) : null,
-                                  enabled: (isAvailable || isBookedByUser),
-                                ),
-                              );
-                            }),
-                            const SizedBox(height: 8),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: _buildActionButton(isBooking),
-                    ),
-                  ),
-                ],
-              );
+  @override
+  void dispose() {
+    // Essential cleanup to prevent memory leaks
+    if (mounted) {
+      final viewModel = Provider.of<StudentSessionViewModel>(
+        context,
+        listen: false,
+      );
+      // Clear company selection
+      viewModel.setSelectedCompany(null);
+    }
+    
+    super.dispose();
   }
 }

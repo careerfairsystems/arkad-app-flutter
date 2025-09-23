@@ -282,26 +282,39 @@ class StudentSessionRepositoryImpl extends BaseRepository
     required int companyId,
     required int timeslotId,
   }) async {
-    return executeOperation(
-      () async {
-        final response = await _remoteDataSource.confirmTimeslot(
-          companyId,
-          timeslotId,
-        );
-        return response.data ?? 'Timeslot booked successfully';
-      },
-      'book timeslot $timeslotId for company $companyId',
-      onError: (error) {
-        // Handle booking conflicts
-        if (error.toString().contains('409') ||
-            error.toString().contains('conflict') ||
-            error.toString().contains('already booked')) {
-          throw StudentSessionBookingConflictError(
+    try {
+      final response = await _remoteDataSource.confirmTimeslot(
+        companyId,
+        timeslotId,
+      );
+      return Result.success(response.data ?? 'Timeslot booked successfully');
+    } catch (e) {
+      // ENHANCED: Handle booking conflicts directly from original exception
+      if (e is DioException) {
+        // Check HTTP status code for conflict
+        if (e.response?.statusCode == 409) {
+          return Result.failure(StudentSessionBookingConflictError(
             'Timeslot was just booked by someone else',
-          );
+          ));
         }
-      },
-    );
+        // Check error message for other conflict indicators
+        final errorMessage = e.response?.data?.toString() ?? e.message ?? '';
+        if (errorMessage.contains('conflict') || 
+            errorMessage.contains('already booked') ||
+            errorMessage.contains('taken') ||
+            errorMessage.contains('unavailable')) {
+          return Result.failure(StudentSessionBookingConflictError(
+            'Timeslot was just booked by someone else',
+          ));
+        }
+      }
+      
+      // For all other errors, use the base repository error handling
+      return executeOperation(
+        () => throw e, // Re-throw to trigger base error handling
+        'book timeslot $timeslotId for company $companyId',
+      );
+    }
   }
 
   @override

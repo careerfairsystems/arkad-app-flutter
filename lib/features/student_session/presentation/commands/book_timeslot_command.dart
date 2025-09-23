@@ -1,4 +1,3 @@
-import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../../../shared/services/timeline_validation_service.dart';
@@ -47,8 +46,8 @@ class BookTimeslotCommand
         return;
       }
 
-      // Execute the use case with retry logic for conflicts
-      final result = await _executeWithRetry(params);
+      // Execute single booking attempt - conflict resolution handled at ViewModel level
+      final result = await _bookTimeslotUseCase.call(params);
 
       result.when(
         success: (successMessage) => setResult(successMessage),
@@ -67,32 +66,6 @@ class BookTimeslotCommand
     }
   }
 
-  /// Execute booking with retry logic for handling conflicts
-  Future<Result<String>> _executeWithRetry(
-    BookTimeslotParams params, {
-    int retryCount = 0,
-  }) async {
-    const maxRetries = 2;
-
-    final result = await _bookTimeslotUseCase.call(params);
-
-    // Check if we got a booking conflict and should retry
-    if (retryCount < maxRetries) {
-      return result.when(
-        success: (value) => result,
-        failure: (error) async {
-          if (error is StudentSessionBookingConflictError) {
-            // Wait a short time before retrying
-            await Future.delayed(const Duration(milliseconds: 500));
-            return _executeWithRetry(params, retryCount: retryCount + 1);
-          }
-          return result;
-        },
-      );
-    }
-
-    return result;
-  }
 
   /// Validates booking parameters before execution
   StudentSessionApplicationError? _validateBookingParams(

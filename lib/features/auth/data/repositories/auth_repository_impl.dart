@@ -183,7 +183,6 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final session = await _localDataSource.getSession();
       
-      // CRITICAL FIX: Restore API authentication when session exists
       if (session != null && session.isActive) {
         _remoteDataSource.setBearerAuth("AuthBearer", session.token);
       }
