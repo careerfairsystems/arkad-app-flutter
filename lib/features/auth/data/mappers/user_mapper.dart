@@ -12,7 +12,6 @@ class UserMapper {
       firstName: dto.firstName,
       lastName: dto.lastName,
       isStudent: dto.isStudent,
-      isActive: dto.isActive,
       isStaff: dto.isStaff,
       foodPreferences: dto.foodPreferences,
       programme: dto.programme,
@@ -34,7 +33,6 @@ class UserMapper {
             ..firstName = user.firstName
             ..lastName = user.lastName
             ..isStudent = user.isStudent
-            ..isActive = user.isActive
             ..isStaff = user.isStaff
             ..foodPreferences = user.foodPreferences
             ..programme = user.programme

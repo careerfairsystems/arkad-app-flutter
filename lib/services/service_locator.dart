@@ -38,6 +38,7 @@ import '../features/event/data/data_sources/event_local_data_source.dart';
 import '../features/event/data/data_sources/event_remote_data_source.dart';
 import '../features/event/data/mappers/event_attendee_mapper.dart';
 import '../features/event/data/mappers/event_mapper.dart';
+import '../features/event/data/mappers/ticket_verification_mapper.dart';
 import '../features/event/data/repositories/event_repository_impl.dart';
 import '../features/event/domain/repositories/event_repository.dart';
 import '../features/event/presentation/view_models/event_view_model.dart';
@@ -361,6 +362,7 @@ void _setupEventFeature() {
   // Mappers
   serviceLocator.registerLazySingleton<EventMapper>(() => EventMapper());
   serviceLocator.registerLazySingleton<EventAttendeeMapper>(() => EventAttendeeMapper());
+  serviceLocator.registerLazySingleton<TicketVerificationMapper>(() => TicketVerificationMapper());
 
   // Repository
   serviceLocator.registerLazySingleton<EventRepository>(
@@ -369,6 +371,7 @@ void _setupEventFeature() {
       localDataSource: serviceLocator<EventLocalDataSource>(),
       mapper: serviceLocator<EventMapper>(),
       attendeeMapper: serviceLocator<EventAttendeeMapper>(),
+      ticketMapper: serviceLocator<TicketVerificationMapper>(),
     ),
   );
 

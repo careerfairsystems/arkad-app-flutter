@@ -4,11 +4,13 @@ import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/event_attendee.dart';
+import '../../domain/entities/ticket_verification_result.dart';
 import '../../domain/repositories/event_repository.dart';
-import '../data_sources/event_local_data_source.dart';
 import '../data_sources/event_remote_data_source.dart';
+import '../data_sources/event_local_data_source.dart';
 import '../mappers/event_attendee_mapper.dart';
 import '../mappers/event_mapper.dart';
+import '../mappers/ticket_verification_mapper.dart';
 
 /// Implementation of event repository
 class EventRepositoryImpl extends BaseRepository implements EventRepository {
@@ -16,16 +18,19 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
   final EventLocalDataSource _localDataSource;
   final EventMapper _mapper;
   final EventAttendeeMapper _attendeeMapper;
+  final TicketVerificationMapper _ticketMapper;
 
   EventRepositoryImpl({
     required EventRemoteDataSource remoteDataSource,
     required EventLocalDataSource localDataSource,
     required EventMapper mapper,
     required EventAttendeeMapper attendeeMapper,
+    required TicketVerificationMapper ticketMapper,
   }) : _remoteDataSource = remoteDataSource,
        _localDataSource = localDataSource,
        _mapper = mapper,
-       _attendeeMapper = attendeeMapper;
+       _attendeeMapper = attendeeMapper,
+       _ticketMapper = ticketMapper;
 
   @override
   Future<Result<List<Event>>> getEvents() async {
@@ -176,9 +181,15 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
   }
 
   @override
-  Future<Result<TicketSchema>> useTicket(String token, int eventId) async {
+  Future<Result<TicketVerificationResult>> useTicket(String token, int eventId) async {
     return executeOperation(() async {
-      return await _remoteDataSource.useTicket(token, eventId);
+      try {
+        final ticketSchema = await _remoteDataSource.useTicket(token, eventId);
+        return _ticketMapper.fromSuccessfulTicketSchema(ticketSchema);
+      } on TicketAlreadyUsedException catch (_) {
+        // Convert the exception to a domain result
+        return _ticketMapper.createAlreadyUsedResult(token, eventId);
+      }
     }, 'use ticket');
   }
 }

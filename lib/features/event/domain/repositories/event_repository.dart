@@ -3,6 +3,7 @@ import 'package:arkad_api/arkad_api.dart';
 import '../../../../shared/domain/result.dart';
 import '../entities/event.dart';
 import '../entities/event_attendee.dart';
+import '../entities/ticket_verification_result.dart';
 
 /// Repository interface for event operations
 abstract class EventRepository {
@@ -40,5 +41,5 @@ abstract class EventRepository {
   Future<Result<List<EventAttendee>>> getEventAttendees(int eventId);
 
   /// Use/verify a ticket (staff only)
-  Future<Result<TicketSchema>> useTicket(String token, int eventId);
+  Future<Result<TicketVerificationResult>> useTicket(String token, int eventId);
 }

@@ -5,6 +5,7 @@ import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/event_attendee.dart';
+import '../../domain/entities/ticket_verification_result.dart';
 import '../../domain/repositories/event_repository.dart';
 
 /// ViewModel for managing event state and operations
@@ -189,7 +190,7 @@ class EventViewModel extends ChangeNotifier {
   }
 
   /// Use/verify a ticket (staff only)
-  Future<Result<TicketSchema>> useTicket(String token, int eventId) async {
+  Future<Result<TicketVerificationResult>> useTicket(String token, int eventId) async {
     _setLoading(true);
     _clearError();
 

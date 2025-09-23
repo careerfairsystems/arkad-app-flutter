@@ -5,6 +5,17 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import '../../../../api/extensions.dart';
 import '../../../../shared/data/api_error_handler.dart';
 
+/// Exception thrown when a ticket has already been used or user doesn't have a ticket
+class TicketAlreadyUsedException implements Exception {
+  final String token;
+  final int eventId;
+
+  const TicketAlreadyUsedException(this.token, this.eventId);
+
+  @override
+  String toString() => 'TicketAlreadyUsedException: Ticket $token for event $eventId has already been used or does not exist';
+}
+
 /// Remote data source for event operations
 class EventRemoteDataSource {
   final ArkadApi _api;
@@ -224,6 +235,7 @@ class EventRemoteDataSource {
   }
 
   /// Use/verify a ticket (staff only)
+  /// Returns either TicketSchema for successful verification or throws specific exceptions
   Future<TicketSchema> useTicket(String token, int eventId) async {
     try {
       final useTicketSchema = UseTicketSchema((b) => b
@@ -246,6 +258,11 @@ class EventRemoteDataSource {
         );
       }
     } on DioException catch (e) {
+      // Check for 404 error indicating ticket already used or no ticket
+      if (e.response?.statusCode == 404) {
+        throw TicketAlreadyUsedException(token, eventId);
+      }
+
       final exception = await ApiErrorHandler.handleDioException(
         e,
         operationName: 'useTicket',
@@ -253,6 +270,9 @@ class EventRemoteDataSource {
       );
       throw exception;
     } catch (e) {
+      if (e is TicketAlreadyUsedException) {
+        rethrow;
+      }
       await Sentry.captureException(e);
       throw Exception('Failed to use ticket: $e');
     }

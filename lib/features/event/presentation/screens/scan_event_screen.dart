@@ -1,3 +1,4 @@
+import 'package:arkad/shared/data/api_error_handler.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -5,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
+import '../../domain/entities/ticket_verification_result.dart';
 import '../view_models/event_view_model.dart';
 
 class ScanEventScreen extends StatefulWidget {
@@ -21,7 +23,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
   String? scannedData;
   bool isScanning = true;
   bool isProcessingTicket = false;
-  TicketSchema? ticketResult;
+  TicketVerificationResult? ticketResult;
 
   @override
   void dispose() {
@@ -101,10 +103,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
           body: Column(
             children: [
               // Scanner or result display
-              Expanded(
-                flex: 3,
-                child: _buildMainContent(eventViewModel),
-              ),
+              Expanded(flex: 3, child: _buildMainContent(eventViewModel)),
 
               // Action buttons
               if (scannedData != null && !isProcessingTicket) ...[
@@ -303,9 +302,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const CircularProgressIndicator(
-                  color: ArkadColors.arkadTurkos,
-                ),
+                const CircularProgressIndicator(color: ArkadColors.arkadTurkos),
                 const SizedBox(height: 24),
                 const Text(
                   'Processing ticket...',
@@ -335,6 +332,8 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
   }
 
   Widget _buildErrorCard(error) {
+    print("Error is: $error");
+
     return Container(
       padding: const EdgeInsets.all(24),
       child: Center(
@@ -407,7 +406,11 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
     );
   }
 
-  Widget _buildTicketResultCard(TicketSchema ticket) {
+  Widget _buildTicketResultCard(TicketVerificationResult ticket) {
+    final isAlreadyUsed = ticket.status == TicketVerificationStatus.alreadyUsed;
+    final isConsumed = ticket.status == TicketVerificationStatus.consumed;
+    final fullName = ticket.userInfo?.fullName ?? 'Unknown User';
+
     return Container(
       padding: const EdgeInsets.all(24),
       child: Center(
@@ -422,29 +425,64 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Success icon and title
+                // Status badge and title
                 Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: ArkadColors.arkadGreen.withValues(alpha: 0.1),
+                        color: isAlreadyUsed
+                            ? ArkadColors.lightRed.withValues(alpha: 0.1)
+                            : ArkadColors.arkadGreen.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
-                        Icons.check_circle,
-                        color: ArkadColors.arkadGreen,
+                      child: Icon(
+                        isAlreadyUsed ? Icons.error : Icons.check_circle,
+                        color: isAlreadyUsed
+                            ? ArkadColors.lightRed
+                            : ArkadColors.arkadGreen,
                         size: 24,
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Text(
-                      'Ticket Used Successfully',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: ArkadColors.arkadNavy,
-                        fontFamily: 'MyriadProCondensed',
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isAlreadyUsed
+                                ? 'Ticket Already Used'
+                                : 'Ticket Consumed Successfully',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: ArkadColors.arkadNavy,
+                              fontFamily: 'MyriadProCondensed',
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isAlreadyUsed
+                                  ? ArkadColors.lightRed
+                                  : ArkadColors.arkadGreen,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              isAlreadyUsed ? 'ALREADY USED' : 'CONSUMED',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: ArkadColors.white,
+                                fontFamily: 'MyriadProCondensed',
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -452,14 +490,27 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
 
                 const SizedBox(height: 24),
 
+                // User information (only show if we have user info)
+                if (ticket.userInfo != null) ...[
+                  if (fullName != 'Unknown User') ...[
+                    _buildTicketDetailRow('Name', fullName),
+                    const SizedBox(height: 12),
+                  ],
+
+                  if (ticket.userInfo!.foodPreferences != null &&
+                      ticket.userInfo!.foodPreferences!.isNotEmpty) ...[
+                    _buildTicketDetailRow(
+                      'Food Preferences',
+                      ticket.userInfo!.foodPreferences!,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ],
+
                 // Ticket details
-                _buildTicketDetailRow('User ID', ticket.userId.toString()),
+                _buildTicketDetailRow('Ticket ID', ticket.uuid),
                 const SizedBox(height: 12),
                 _buildTicketDetailRow('Event ID', ticket.eventId.toString()),
-                const SizedBox(height: 12),
-                _buildTicketDetailRow('Ticket UUID', ticket.uuid),
-                const SizedBox(height: 12),
-                _buildTicketDetailRow('Status', ticket.used ? 'Used' : 'Valid'),
               ],
             ),
           ),
