@@ -194,4 +194,67 @@ class EventRemoteDataSource {
       throw Exception('Failed to get ticket for event $eventId: $e');
     }
   }
+
+  /// Get attendees for a specific event (staff only)
+  Future<List<EventUserInformation>> getEventAttendees(int eventId) async {
+    try {
+      final response = await _api.getEventsApi().eventBookingApiGetUsersAttendingEvent(
+        eventId: eventId,
+      );
+
+      if (response.isSuccess) {
+        return response.data?.toList() ?? <EventUserInformation>[];
+      } else {
+        response.logResponse('getEventAttendees');
+        throw Exception(
+          'Failed to get attendees for event $eventId: ${response.detailedError}',
+        );
+      }
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'getEventAttendees',
+        additionalContext: {'eventId': eventId},
+      );
+      throw exception;
+    } catch (e) {
+      await Sentry.captureException(e);
+      throw Exception('Failed to get attendees for event $eventId: $e');
+    }
+  }
+
+  /// Use/verify a ticket (staff only)
+  Future<TicketSchema> useTicket(String token, int eventId) async {
+    try {
+      final useTicketSchema = UseTicketSchema((b) => b
+        ..uuid = token
+        ..eventId = eventId);
+
+      final response = await _api.getEventsApi().eventBookingApiVerifyTicket(
+        useTicketSchema: useTicketSchema,
+      );
+
+      if (response.isSuccess && response.data != null) {
+        return response.data!;
+      } else {
+        response.logResponse('useTicket');
+        if (response.data == null) {
+          throw Exception('Failed to use ticket');
+        }
+        throw Exception(
+          'Failed to use ticket: ${response.detailedError}',
+        );
+      }
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'useTicket',
+        additionalContext: {'eventId': eventId, 'token': token},
+      );
+      throw exception;
+    } catch (e) {
+      await Sentry.captureException(e);
+      throw Exception('Failed to use ticket: $e');
+    }
+  }
 }

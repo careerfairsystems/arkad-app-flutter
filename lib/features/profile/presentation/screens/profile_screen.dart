@@ -7,7 +7,6 @@ import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../view_models/profile_view_model.dart';
 import '../widgets/profile_info_widget.dart';
-import 'staff_actions.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -113,8 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Consumer2<ProfileViewModel, AuthViewModel>(
       builder: (context, profileViewModel, authViewModel, _) {
-        final isStaff = authViewModel.currentUser?.isStaff ?? false;
-        final tabCount = isStaff ? 4 : 3;
+        const tabCount = 3;
 
         return DefaultTabController(
           length: tabCount,
@@ -133,7 +131,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const Tab(text: "Info"),
                   const Tab(text: "Events"),
                   const Tab(text: "Student Sessions"),
-                  if (isStaff) const Tab(text: "Coordinator"),
                 ],
                 labelColor: ArkadColors.white,
                 unselectedLabelColor: ArkadColors.white.withValues(alpha: 0.7),
@@ -163,8 +160,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
-                // Coordinator Tab (only shown for staff)
-                if (isStaff) const StaffActionsScreen(),
               ],
             ),
           ),

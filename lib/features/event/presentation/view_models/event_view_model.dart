@@ -1,7 +1,10 @@
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/event_attendee.dart';
 import '../../domain/repositories/event_repository.dart';
 
 /// ViewModel for managing event state and operations
@@ -178,6 +181,31 @@ class EventViewModel extends ChangeNotifier {
   /// Refresh booked events
   Future<void> refreshBookedEvents() async {
     await loadBookedEvents();
+  }
+
+  /// Get attendees for an event (staff only)
+  Future<Result<List<EventAttendee>>> getEventAttendees(int eventId) async {
+    return await _eventRepository.getEventAttendees(eventId);
+  }
+
+  /// Use/verify a ticket (staff only)
+  Future<Result<TicketSchema>> useTicket(String token, int eventId) async {
+    _setLoading(true);
+    _clearError();
+
+    final result = await _eventRepository.useTicket(token, eventId);
+
+    result.when(
+      success: (_) {
+        _setLoading(false);
+      },
+      failure: (error) {
+        _setError(error);
+        _setLoading(false);
+      },
+    );
+
+    return result;
   }
 
   // State management helpers

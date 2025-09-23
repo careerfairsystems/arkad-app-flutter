@@ -36,6 +36,7 @@ import '../features/company/presentation/view_models/company_detail_view_model.d
 import '../features/company/presentation/view_models/company_view_model.dart';
 import '../features/event/data/data_sources/event_local_data_source.dart';
 import '../features/event/data/data_sources/event_remote_data_source.dart';
+import '../features/event/data/mappers/event_attendee_mapper.dart';
 import '../features/event/data/mappers/event_mapper.dart';
 import '../features/event/data/repositories/event_repository_impl.dart';
 import '../features/event/domain/repositories/event_repository.dart';
@@ -357,8 +358,9 @@ void _setupEventFeature() {
     () => EventLocalDataSource(),
   );
 
-  // Mapper
+  // Mappers
   serviceLocator.registerLazySingleton<EventMapper>(() => EventMapper());
+  serviceLocator.registerLazySingleton<EventAttendeeMapper>(() => EventAttendeeMapper());
 
   // Repository
   serviceLocator.registerLazySingleton<EventRepository>(
@@ -366,6 +368,7 @@ void _setupEventFeature() {
       remoteDataSource: serviceLocator<EventRemoteDataSource>(),
       localDataSource: serviceLocator<EventLocalDataSource>(),
       mapper: serviceLocator<EventMapper>(),
+      attendeeMapper: serviceLocator<EventAttendeeMapper>(),
     ),
   );
 

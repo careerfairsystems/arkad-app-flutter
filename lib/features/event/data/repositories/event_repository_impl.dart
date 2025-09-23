@@ -1,9 +1,13 @@
+import 'package:arkad_api/arkad_api.dart';
+
 import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/event_attendee.dart';
 import '../../domain/repositories/event_repository.dart';
 import '../data_sources/event_local_data_source.dart';
 import '../data_sources/event_remote_data_source.dart';
+import '../mappers/event_attendee_mapper.dart';
 import '../mappers/event_mapper.dart';
 
 /// Implementation of event repository
@@ -11,14 +15,17 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
   final EventRemoteDataSource _remoteDataSource;
   final EventLocalDataSource _localDataSource;
   final EventMapper _mapper;
+  final EventAttendeeMapper _attendeeMapper;
 
   EventRepositoryImpl({
     required EventRemoteDataSource remoteDataSource,
     required EventLocalDataSource localDataSource,
     required EventMapper mapper,
+    required EventAttendeeMapper attendeeMapper,
   }) : _remoteDataSource = remoteDataSource,
        _localDataSource = localDataSource,
-       _mapper = mapper;
+       _mapper = mapper,
+       _attendeeMapper = attendeeMapper;
 
   @override
   Future<Result<List<Event>>> getEvents() async {
@@ -151,5 +158,27 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
     return executeOperation(() async {
       return await _remoteDataSource.getEventTicket(eventId);
     }, 'get event ticket');
+  }
+
+  @override
+  Future<Result<List<EventAttendee>>> getEventAttendees(int eventId) async {
+    return executeOperation(() async {
+      // Fetch attendees from remote
+      final attendeeSchemas = await _remoteDataSource.getEventAttendees(eventId);
+
+      // Convert to domain entities
+      final attendees = attendeeSchemas
+          .map((schema) => _attendeeMapper.fromApiSchema(schema))
+          .toList();
+
+      return attendees;
+    }, 'get event attendees');
+  }
+
+  @override
+  Future<Result<TicketSchema>> useTicket(String token, int eventId) async {
+    return executeOperation(() async {
+      return await _remoteDataSource.useTicket(token, eventId);
+    }, 'use ticket');
   }
 }

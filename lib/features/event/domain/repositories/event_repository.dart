@@ -1,5 +1,8 @@
+import 'package:arkad_api/arkad_api.dart';
+
 import '../../../../shared/domain/result.dart';
 import '../entities/event.dart';
+import '../entities/event_attendee.dart';
 
 /// Repository interface for event operations
 abstract class EventRepository {
@@ -32,4 +35,10 @@ abstract class EventRepository {
 
   /// Refresh cached event data
   Future<Result<void>> refreshEvents();
+
+  /// Get attendees for an event (staff only)
+  Future<Result<List<EventAttendee>>> getEventAttendees(int eventId);
+
+  /// Use/verify a ticket (staff only)
+  Future<Result<TicketSchema>> useTicket(String token, int eventId);
 }

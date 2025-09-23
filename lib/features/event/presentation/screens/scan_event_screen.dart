@@ -1,11 +1,16 @@
+import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
+import '../view_models/event_view_model.dart';
 
 class ScanEventScreen extends StatefulWidget {
-  const ScanEventScreen({super.key});
+  final int eventId;
+
+  const ScanEventScreen({super.key, required this.eventId});
 
   @override
   State<ScanEventScreen> createState() => _ScanEventScreenState();
@@ -15,6 +20,8 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
   MobileScannerController cameraController = MobileScannerController();
   String? scannedData;
   bool isScanning = true;
+  bool isProcessingTicket = false;
+  TicketSchema? ticketResult;
 
   @override
   void dispose() {
@@ -23,7 +30,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
   }
 
   void _onDetect(BarcodeCapture capture) {
-    if (!isScanning) return;
+    if (!isScanning || isProcessingTicket) return;
 
     final List<Barcode> barcodes = capture.barcodes;
     for (final barcode in barcodes) {
@@ -32,69 +39,118 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
           scannedData = barcode.rawValue;
           isScanning = false;
         });
+        _processTicket(barcode.rawValue!);
         break;
       }
     }
+  }
+
+  Future<void> _processTicket(String uuid) async {
+    if (isProcessingTicket) return;
+
+    setState(() {
+      isProcessingTicket = true;
+    });
+
+    final eventViewModel = Provider.of<EventViewModel>(context, listen: false);
+    final result = await eventViewModel.useTicket(uuid, widget.eventId);
+
+    result.when(
+      success: (ticket) {
+        setState(() {
+          ticketResult = ticket;
+          isProcessingTicket = false;
+        });
+      },
+      failure: (error) {
+        setState(() {
+          isProcessingTicket = false;
+        });
+        // Error will be shown through the EventViewModel's error state
+      },
+    );
   }
 
   void _scanAgain() {
     setState(() {
       scannedData = null;
       isScanning = true;
+      isProcessingTicket = false;
+      ticketResult = null;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Scan Event QR Code',
-          style: TextStyle(
-            fontFamily: 'MyriadProCondensed',
-            fontWeight: FontWeight.w600,
-            color: ArkadColors.arkadNavy,
-          ),
-        ),
-        backgroundColor: ArkadColors.white,
-        iconTheme: const IconThemeData(color: ArkadColors.arkadNavy),
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          // Scanner or result display
-          Expanded(
-            flex: 3,
-            child: scannedData != null ? _buildResultCard() : _buildScanner(),
-          ),
-
-          // Action buttons
-          if (scannedData != null) ...[
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  ArkadButton(
-                    text: 'Scan Again',
-                    onPressed: _scanAgain,
-                    variant: ArkadButtonVariant.secondary,
-                    fullWidth: true,
-                    icon: Icons.qr_code_scanner,
-                  ),
-                  const SizedBox(height: 12),
-                  ArkadButton(
-                    text: 'Consume ticket',
-                    onPressed: () => Navigator.of(context).pop(),
-                    variant: ArkadButtonVariant.primary,
-                    fullWidth: true,
-                  ),
-                ],
+    return Consumer<EventViewModel>(
+      builder: (context, eventViewModel, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              'Scan Event QR Code',
+              style: TextStyle(
+                fontFamily: 'MyriadProCondensed',
+                fontWeight: FontWeight.w600,
+                color: ArkadColors.arkadNavy,
               ),
             ),
-          ],
-        ],
-      ),
+            backgroundColor: ArkadColors.white,
+            iconTheme: const IconThemeData(color: ArkadColors.arkadNavy),
+            elevation: 0,
+          ),
+          body: Column(
+            children: [
+              // Scanner or result display
+              Expanded(
+                flex: 3,
+                child: _buildMainContent(eventViewModel),
+              ),
+
+              // Action buttons
+              if (scannedData != null && !isProcessingTicket) ...[
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      ArkadButton(
+                        text: 'Scan Again',
+                        onPressed: _scanAgain,
+                        variant: ArkadButtonVariant.secondary,
+                        fullWidth: true,
+                        icon: Icons.qr_code_scanner,
+                      ),
+                      if (ticketResult != null) ...[
+                        const SizedBox(height: 12),
+                        ArkadButton(
+                          text: 'Close',
+                          onPressed: () => Navigator.of(context).pop(),
+                          variant: ArkadButtonVariant.primary,
+                          fullWidth: true,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
+  }
+
+  Widget _buildMainContent(EventViewModel eventViewModel) {
+    if (scannedData == null) {
+      return _buildScanner();
+    } else if (isProcessingTicket) {
+      return _buildLoadingCard();
+    } else if (eventViewModel.error != null) {
+      return _buildErrorCard(eventViewModel.error!);
+    } else if (ticketResult != null) {
+      return _buildTicketResultCard(ticketResult!);
+    } else {
+      return _buildResultCard();
+    }
   }
 
   Widget _buildScanner() {
@@ -229,6 +285,222 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingCard() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(
+                  color: ArkadColors.arkadTurkos,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Processing ticket...',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: ArkadColors.arkadNavy,
+                    fontFamily: 'MyriadProCondensed',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Verifying: ${scannedData ?? ''}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: ArkadColors.arkadNavy,
+                    fontFamily: 'MyriadProCondensed',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorCard(error) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Error icon and title
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: ArkadColors.lightRed.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.error,
+                        color: ArkadColors.lightRed,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Text(
+                      'Ticket Error',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: ArkadColors.arkadNavy,
+                        fontFamily: 'MyriadProCondensed',
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Error message
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: ArkadColors.lightRed.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: ArkadColors.lightRed.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Text(
+                    error.userMessage,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: ArkadColors.arkadNavy,
+                      fontFamily: 'MyriadProCondensed',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTicketResultCard(TicketSchema ticket) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Success icon and title
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: ArkadColors.arkadGreen.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.check_circle,
+                        color: ArkadColors.arkadGreen,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Text(
+                      'Ticket Used Successfully',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: ArkadColors.arkadNavy,
+                        fontFamily: 'MyriadProCondensed',
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Ticket details
+                _buildTicketDetailRow('User ID', ticket.userId.toString()),
+                const SizedBox(height: 12),
+                _buildTicketDetailRow('Event ID', ticket.eventId.toString()),
+                const SizedBox(height: 12),
+                _buildTicketDetailRow('Ticket UUID', ticket.uuid),
+                const SizedBox(height: 12),
+                _buildTicketDetailRow('Status', ticket.used ? 'Used' : 'Valid'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTicketDetailRow(String label, String value) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ArkadColors.arkadTurkos.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: ArkadColors.arkadTurkos.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: ArkadColors.arkadNavy,
+              fontFamily: 'MyriadProCondensed',
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              color: ArkadColors.arkadNavy,
+              fontFamily: 'MyriadProCondensed',
+            ),
+          ),
+        ],
       ),
     );
   }

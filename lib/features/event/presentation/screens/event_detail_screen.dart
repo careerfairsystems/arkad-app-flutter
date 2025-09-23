@@ -4,9 +4,11 @@ import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
+import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../domain/entities/event.dart';
 import '../view_models/event_view_model.dart';
 import '../widgets/event_actions.dart';
+import '../widgets/event_coordinator_tools.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final int eventId;
@@ -34,14 +36,26 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<EventViewModel>(
-      builder: (context, viewModel, child) {
-        return Scaffold(body: _buildBody(viewModel));
+    return Consumer2<EventViewModel, AuthViewModel>(
+      builder: (context, eventViewModel, authViewModel, child) {
+        final isStaff = authViewModel.currentUser?.isStaff ?? false;
+        final tabCount = isStaff ? 2 : 1;
+
+        return DefaultTabController(
+          length: tabCount,
+          child: Scaffold(
+            body: _buildBody(eventViewModel, authViewModel, isStaff),
+          ),
+        );
       },
     );
   }
 
-  Widget _buildBody(EventViewModel viewModel) {
+  Widget _buildBody(
+    EventViewModel viewModel,
+    AuthViewModel authViewModel,
+    bool isStaff,
+  ) {
     if (viewModel.isLoading && viewModel.selectedEvent == null) {
       return _buildLoadingState();
     }
@@ -54,7 +68,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       return _buildNotFoundState();
     }
 
-    return _buildEventDetail(viewModel.selectedEvent!);
+    return _buildEventDetailWithTabs(viewModel.selectedEvent!, isStaff);
   }
 
   Widget _buildLoadingState() {
@@ -152,62 +166,53 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     );
   }
 
-  Widget _buildEventDetail(Event event) {
+  Widget _buildEventDetailWithTabs(Event event, bool isStaff) {
     final isPastEvent = event.endTime.isBefore(DateTime.now());
 
     return CustomScrollView(
       slivers: [
-        _buildAppBar(event, isPastEvent),
-        SliverToBoxAdapter(child: _buildEventContent(event, isPastEvent)),
+        _buildAppBarWithTabs(event, isPastEvent, isStaff),
+        SliverFillRemaining(
+          child: TabBarView(
+            children: [
+              _buildEventDetailsTab(event, isPastEvent),
+              if (isStaff) _buildCoordinatorTab(event),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildAppBar(Event event, bool isPastEvent) {
+  Widget _buildEventDetailsTab(Event event, bool isPastEvent) {
+    return SingleChildScrollView(child: _buildEventContent(event, isPastEvent));
+  }
+
+  Widget _buildCoordinatorTab(Event event) {
+    return EventCoordinatorTools(event: event);
+  }
+
+  Widget _buildAppBarWithTabs(Event event, bool isPastEvent, bool isStaff) {
     return SliverAppBar(
-      expandedHeight: 200.0,
+      //rexpandedHeight: 10.0,
       pinned: true,
       backgroundColor: _getEventTypeColor(event.type),
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          event.title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+      title: Text(
+        event.title,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
         ),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                _getEventTypeColor(event.type),
-                _getEventTypeColor(event.type).withValues(alpha: 0.8),
-              ],
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40), // Account for status bar
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    _getEventTypeIcon(event.type),
-                    size: 48,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+      ),
+      bottom: TabBar(
+        tabs: [
+          const Tab(text: "Details"),
+          if (isStaff) const Tab(text: "Coordinator"),
+        ],
+        labelColor: ArkadColors.white,
+        unselectedLabelColor: ArkadColors.white.withValues(alpha: 0.7),
+        indicatorColor: ArkadColors.arkadTurkos,
+        indicatorWeight: 3,
       ),
     );
   }

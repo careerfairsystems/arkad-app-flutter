@@ -7,6 +7,7 @@ import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/screens/verification_screen.dart';
 import '../features/company/presentation/screens/companies_screen.dart';
 import '../features/company/presentation/screens/company_detail_screen.dart';
+import '../features/event/presentation/screens/event_attendees_wrapper.dart';
 import '../features/event/presentation/screens/event_detail_screen.dart';
 import '../features/event/presentation/screens/event_screen.dart';
 import '../features/event/presentation/screens/event_ticket_screen.dart';
@@ -141,8 +142,17 @@ class AppRouter {
                 pageBuilder: _noAnim((_) => const EventScreen()),
                 routes: [
                   GoRoute(
-                    path: 'scan',
-                    pageBuilder: _slide((context, s) => const ScanEventScreen()),
+                    path: 'scan/:eventId',
+                    pageBuilder: _slide((context, s) {
+                      final eventIdStr = s.pathParameters['eventId'];
+                      final eventId = int.tryParse(eventIdStr ?? '');
+                      if (eventId == null) {
+                        return const Scaffold(
+                          body: Center(child: Text('Error: Invalid event ID')),
+                        );
+                      }
+                      return ScanEventScreen(eventId: eventId);
+                    }),
                   ),
                   GoRoute(
                     path: 'detail/:id',
@@ -168,6 +178,21 @@ class AppRouter {
                             );
                           }
                           return EventTicketScreen(eventId: eventId);
+                        }),
+                      ),
+                      GoRoute(
+                        path: 'attendees',
+                        pageBuilder: _slide((context, s) {
+                          final idStr = s.pathParameters['id'];
+                          final eventId = int.tryParse(idStr ?? '');
+                          if (eventId == null) {
+                            return const Scaffold(
+                              body: Center(child: Text('Error: Invalid event ID')),
+                            );
+                          }
+                          // We need to get the event object somehow
+                          // For now, we'll need to fetch it in the screen
+                          return EventAttendeesWrapper(eventId: eventId);
                         }),
                       ),
                     ],
