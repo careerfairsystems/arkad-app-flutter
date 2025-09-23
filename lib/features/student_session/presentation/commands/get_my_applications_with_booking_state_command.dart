@@ -57,36 +57,15 @@ class GetMyApplicationsWithBookingStateCommand
     return result?.where((app) => app.application.status == status).toList() ?? [];
   }
 
-  /// Get pending applications
-  List<StudentSessionApplicationWithBookingState> get pendingApplications =>
-      getApplicationsByStatus(ApplicationStatus.pending);
-
-  /// Get accepted applications
-  List<StudentSessionApplicationWithBookingState> get acceptedApplications =>
-      getApplicationsByStatus(ApplicationStatus.accepted);
-
-  /// Get rejected applications
-  List<StudentSessionApplicationWithBookingState> get rejectedApplications =>
-      getApplicationsByStatus(ApplicationStatus.rejected);
-
-  /// Get accepted applications that can be booked
-  List<StudentSessionApplicationWithBookingState> get bookableApplications =>
-      acceptedApplications.where((app) => app.canBook).toList();
-
-  /// Get accepted applications that are currently booked
-  List<StudentSessionApplicationWithBookingState> get bookedApplications =>
-      acceptedApplications.where((app) => app.hasBooking).toList();
-
-  /// Get accepted applications that can cancel their booking
-  List<StudentSessionApplicationWithBookingState> get cancellableApplications =>
-      acceptedApplications.where((app) => app.canCancelBooking).toList();
 
   /// Get a user-friendly description of the current state
   String get statusDescription {
     if (isExecuting) return 'Loading your applications...';
     if (isCompleted && result != null) {
       final totalApps = result!.length;
-      final bookedCount = bookedApplications.length;
+      final bookedCount = result!
+          .where((app) => app.application.status == ApplicationStatus.accepted && app.hasBooking)
+          .length;
       return 'Loaded $totalApps applications ($bookedCount with bookings)';
     }
     if (hasError) {

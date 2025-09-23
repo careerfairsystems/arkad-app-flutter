@@ -178,52 +178,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     }).toList();
   }
 
-  // Get applications by status
-  List<StudentSessionApplication> get pendingApplications =>
-      myApplications
-          .where((app) => app.status == ApplicationStatus.pending)
-          .toList();
-
-  List<StudentSessionApplication> get acceptedApplications =>
-      myApplications
-          .where((app) => app.status == ApplicationStatus.accepted)
-          .toList();
-
-  List<StudentSessionApplication> get rejectedApplications =>
-      myApplications
-          .where((app) => app.status == ApplicationStatus.rejected)
-          .toList();
-
-  // Enhanced getters with real booking state
-  List<StudentSessionApplicationWithBookingState>
-  get pendingApplicationsWithBookingState =>
-      myApplicationsWithBookingState
-          .where((app) => app.application.status == ApplicationStatus.pending)
-          .toList();
-
-  List<StudentSessionApplicationWithBookingState>
-  get acceptedApplicationsWithBookingState =>
-      myApplicationsWithBookingState
-          .where((app) => app.application.status == ApplicationStatus.accepted)
-          .toList();
-
-  List<StudentSessionApplicationWithBookingState>
-  get rejectedApplicationsWithBookingState =>
-      myApplicationsWithBookingState
-          .where((app) => app.application.status == ApplicationStatus.rejected)
-          .toList();
-
-  // Booking-specific getters using real API data
-  List<StudentSessionApplicationWithBookingState> get bookableApplications =>
-      myApplicationsWithBookingState.where((app) => app.canBook).toList();
-
-  List<StudentSessionApplicationWithBookingState> get bookedApplications =>
-      myApplicationsWithBookingState.where((app) => app.hasBooking).toList();
-
-  List<StudentSessionApplicationWithBookingState> get cancellableApplications =>
-      myApplicationsWithBookingState
-          .where((app) => app.canCancelBooking)
-          .toList();
 
   /// Load student sessions with optional force refresh
   Future<void> loadStudentSessions({bool forceRefresh = false}) async {

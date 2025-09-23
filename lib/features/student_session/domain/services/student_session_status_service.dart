@@ -11,11 +11,14 @@ import 'student_session_data_service.dart';
 class StudentSessionStatusService {
   const StudentSessionStatusService._();
 
-  static const StudentSessionStatusService instance = StudentSessionStatusService._();
+  static const StudentSessionStatusService instance =
+      StudentSessionStatusService._();
 
   /// Get unified status information for a student session with application state
   /// This is the authoritative method for determining what status to display
-  StudentSessionStatusInfo getStatusInfo(StudentSessionWithApplicationState sessionWithApp) {
+  StudentSessionStatusInfo getStatusInfo(
+    StudentSessionWithApplicationState sessionWithApp,
+  ) {
     // Check if session is available first
     if (!sessionWithApp.session.isAvailable) {
       return StudentSessionStatusInfo(
@@ -52,7 +55,7 @@ class StudentSessionStatusService {
         return StudentSessionStatusInfo(
           displayText: 'Under Review',
           displayColor: ArkadColors.arkadOrange,
-          badgeText: 'Under Review',
+          badgeText: 'Pending',
           badgeColor: ArkadColors.arkadOrange,
           canApply: false,
           canBook: false,
@@ -62,11 +65,11 @@ class StudentSessionStatusService {
       case ApplicationStatus.accepted:
         final timelineStatus = TimelineValidationService.checkBookingPeriod();
         final hasBooking = sessionWithApp.hasBooking;
-        
+
         return StudentSessionStatusInfo(
           displayText: 'You were accepted!',
           displayColor: ArkadColors.arkadGreen,
-          badgeText: 'You were accepted!',
+          badgeText: 'Accepted!',
           badgeColor: ArkadColors.arkadGreen,
           canApply: false,
           canBook: timelineStatus.canBook && !hasBooking,
@@ -77,7 +80,7 @@ class StudentSessionStatusService {
         return StudentSessionStatusInfo(
           displayText: 'Not Selected',
           displayColor: ArkadColors.lightRed,
-          badgeText: 'Not Selected',
+          badgeText: 'Rejected',
           badgeColor: ArkadColors.lightRed,
           canApply: false,
           canBook: false,
@@ -87,7 +90,9 @@ class StudentSessionStatusService {
   }
 
   /// Get action button information for a session
-  ActionButtonInfo getActionButtonInfo(StudentSessionWithApplicationState sessionWithApp) {
+  ActionButtonInfo getActionButtonInfo(
+    StudentSessionWithApplicationState sessionWithApp,
+  ) {
     final statusInfo = getStatusInfo(sessionWithApp);
 
     if (statusInfo.canApply) {
@@ -131,9 +136,11 @@ class StudentSessionStatusService {
   }
 
   /// Get status information for applications in profile view
-  StudentSessionStatusInfo getApplicationStatusInfo(StudentSessionApplicationWithBookingState appWithBooking) {
+  StudentSessionStatusInfo getApplicationStatusInfo(
+    StudentSessionApplicationWithBookingState appWithBooking,
+  ) {
     final status = appWithBooking.application.status;
-    
+
     switch (status) {
       case ApplicationStatus.pending:
         return StudentSessionStatusInfo(
@@ -149,9 +156,10 @@ class StudentSessionStatusService {
       case ApplicationStatus.accepted:
         final timelineStatus = TimelineValidationService.checkBookingPeriod();
         final hasBooking = appWithBooking.hasBooking;
-        
+
         return StudentSessionStatusInfo(
-          displayText: hasBooking ? 'Booking confirmed' : 'Ready to book timeslot',
+          displayText:
+              hasBooking ? 'Booking confirmed' : 'Ready to book timeslot',
           displayColor: ArkadColors.arkadGreen,
           badgeText: 'You were accepted!',
           badgeColor: ArkadColors.arkadGreen,
@@ -184,9 +192,11 @@ class StudentSessionStatusService {
     return Colors.grey;
   }
 
-  String _getDisabledButtonText(StudentSessionWithApplicationState sessionWithApp) {
+  String _getDisabledButtonText(
+    StudentSessionWithApplicationState sessionWithApp,
+  ) {
     final applicationStatus = sessionWithApp.effectiveApplicationStatus;
-    
+
     if (applicationStatus == ApplicationStatus.accepted) {
       final timelineStatus = TimelineValidationService.checkBookingPeriod();
       if (!timelineStatus.canBook) {
@@ -195,15 +205,15 @@ class StudentSessionStatusService {
             : 'Booking Ended';
       }
     }
-    
+
     if (applicationStatus == ApplicationStatus.rejected) {
       return 'Application Rejected';
     }
-    
+
     if (applicationStatus == ApplicationStatus.pending) {
       return 'Application Pending';
     }
-    
+
     // No application yet but can't apply
     final timelineStatus = TimelineValidationService.checkApplicationPeriod();
     if (!timelineStatus.canApply) {
@@ -211,21 +221,23 @@ class StudentSessionStatusService {
           ? 'Applications Open Later'
           : 'Applications Closed';
     }
-    
+
     return 'Not Available';
   }
 
-  IconData _getDisabledButtonIcon(StudentSessionWithApplicationState sessionWithApp) {
+  IconData _getDisabledButtonIcon(
+    StudentSessionWithApplicationState sessionWithApp,
+  ) {
     final applicationStatus = sessionWithApp.effectiveApplicationStatus;
-    
+
     if (applicationStatus == ApplicationStatus.accepted) {
       return Icons.schedule_rounded;
     }
-    
+
     if (applicationStatus != null) {
       return Icons.info_outline_rounded;
     }
-    
+
     return Icons.send_rounded;
   }
 }
@@ -291,9 +303,4 @@ class ActionButtonInfo {
 }
 
 /// Types of actions that can be performed on a student session
-enum ActionType {
-  apply,
-  bookTimeslot,
-  manageBooking,
-  none,
-}
+enum ActionType { apply, bookTimeslot, manageBooking, none }
