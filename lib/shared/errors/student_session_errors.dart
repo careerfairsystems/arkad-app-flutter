@@ -177,14 +177,8 @@ class StudentSessionRecoveryActions {
 
     switch (error.currentPhase) {
       case StudentSessionPhase.beforeApplication:
-        actions.add(
-          RecoveryAction(
-            label: 'Set Reminder',
-            action: () => _showReminderDialog(context, error.applicationStart),
-            icon: Icons.notification_add,
-            isPrimary: true,
-          ),
-        );
+        // Reminder functionality not implemented yet
+        break;
 
       case StudentSessionPhase.applicationClosed:
         actions.add(
@@ -271,11 +265,6 @@ class StudentSessionRecoveryActions {
           isPrimary: true,
         ),
       RecoveryAction(
-        label: 'Save Draft',
-        action: () => _saveDraft(context),
-        icon: Icons.save,
-      ),
-      RecoveryAction(
         label: 'Contact Support',
         action: () => _contactSupport(context),
         icon: Icons.help_outline,
@@ -284,20 +273,6 @@ class StudentSessionRecoveryActions {
   }
 
   // Helper methods for navigation and actions
-  static void _showReminderDialog(
-    BuildContext context,
-    DateTime? reminderTime,
-  ) {
-    // TODO: Implement reminder functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Reminder set for ${reminderTime != null ? _formatDate(reminderTime) : 'application period'}',
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
 
   static void _navigateToCompanies(BuildContext context) {
     Navigator.of( 
@@ -346,31 +321,5 @@ class StudentSessionRecoveryActions {
     );
   }
 
-  static void _saveDraft(BuildContext context) {
-    // TODO: Implement draft saving functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Draft saved locally'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
 
-  static String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
 }

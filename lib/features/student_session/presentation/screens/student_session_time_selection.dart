@@ -7,34 +7,6 @@ import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/timeslot.dart';
 import '../view_models/student_session_view_model.dart';
 
-/// State class for action button to enable granular updates
-class ActionButtonState {
-  final bool isEnabled;
-  final bool isLoading;
-  final String text;
-  final Color color;
-  
-  const ActionButtonState({
-    required this.isEnabled,
-    required this.isLoading,
-    required this.text,
-    required this.color,
-  });
-  
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ActionButtonState &&
-          runtimeType == other.runtimeType &&
-          isEnabled == other.isEnabled &&
-          isLoading == other.isLoading &&
-          text == other.text &&
-          color == other.color;
-  
-  @override
-  int get hashCode => Object.hash(isEnabled, isLoading, text, color);
-}
-
 
 class StudentSessionTimeSelectionScreen extends StatefulWidget {
   final String id;

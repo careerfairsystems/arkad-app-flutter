@@ -304,16 +304,10 @@ class StudentSessionViewModel extends ChangeNotifier {
           return true;
         },
         failure: (error) {
-          // Log for debugging - don't set UI error here as it's handled by calling methods
-          print(
-            'CV upload failed for company $companyId: ${error.userMessage}',
-          );
           return false;
         },
       );
     } catch (e) {
-      // Log unexpected errors - don't set UI error here as it's handled by calling methods
-      print('Unexpected error during CV upload for company $companyId: $e');
       return false;
     }
   }
@@ -374,9 +368,6 @@ class StudentSessionViewModel extends ChangeNotifier {
           _setErrorMessage(
             'Application failed: Could not upload your CV. Please check your file and try again.',
           );
-          print(
-            'Application failed for company $companyId due to CV upload failure - application data preserved for retry',
-          );
           return;
         }
 
@@ -386,8 +377,6 @@ class StudentSessionViewModel extends ChangeNotifier {
         // Application succeeded without CV
         _setSuccessMessage('Application submitted successfully!');
       }
-
-      print('Application and CV upload successful for company $companyId');
     }
   }
 
