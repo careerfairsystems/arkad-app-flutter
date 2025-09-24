@@ -42,47 +42,10 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     }
   }
 
-  void _handleMessages(StudentSessionViewModel viewModel) {
-    if (viewModel.showSuccessMessage) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                viewModel.successMessage ?? 'Operation completed successfully!',
-              ),
-              backgroundColor: ArkadColors.arkadGreen,
-            ),
-          );
-          viewModel.clearSuccessMessage();
-        }
-      });
-    }
-
-    if (viewModel.showErrorMessage) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                viewModel.errorMessage ?? 'An error occurred. Please try again.',
-              ),
-              backgroundColor: ArkadColors.lightRed,
-            ),
-          );
-          viewModel.clearErrorMessage();
-        }
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer2<StudentSessionViewModel, AuthViewModel>(
       builder: (context, viewModel, authViewModel, child) {
-        // Handle messages outside of build cycles
-        _handleMessages(viewModel);
-
         final applicationsWithBookingState = viewModel.myApplicationsWithBookingState;
         final groupedApplications = _groupApplicationsWithBookingStateByStatus(applicationsWithBookingState);
 

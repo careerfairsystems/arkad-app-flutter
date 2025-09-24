@@ -9,6 +9,51 @@ class BookTimeslotCommand
   BookTimeslotCommand(this._bookTimeslotUseCase);
 
   final BookTimeslotUseCase _bookTimeslotUseCase;
+  
+  // Message state for this command
+  bool _showSuccessMessage = false;
+  String? _successMessage;
+  bool _showErrorMessage = false;
+  String? _errorMessage;
+  
+  // Message getters
+  bool get showSuccessMessage => _showSuccessMessage;
+  String? get successMessage => _successMessage;
+  bool get showErrorMessage => _showErrorMessage;
+  String? get errorMessage => _errorMessage;
+  
+  // Message management methods
+  void _setSuccessMessage(String message) {
+    _showSuccessMessage = true;
+    _successMessage = message;
+    notifyListeners();
+  }
+  
+  void _setErrorMessage(String message) {
+    _showErrorMessage = true;
+    _errorMessage = message;
+    notifyListeners();
+  }
+  
+  void clearSuccessMessage() {
+    _showSuccessMessage = false;
+    _successMessage = null;
+    notifyListeners();
+  }
+  
+  void clearErrorMessage() {
+    _showErrorMessage = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
+  
+  void clearAllMessages() {
+    _showSuccessMessage = false;
+    _successMessage = null;
+    _showErrorMessage = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
 
   /// Book a timeslot with comprehensive validation and conflict resolution
   Future<void> bookTimeslot({
@@ -28,6 +73,7 @@ class BookTimeslotCommand
     if (isExecuting) return;
 
     clearError();
+    clearAllMessages(); // Clear any previous messages
     setExecuting(true);
 
     try {
@@ -36,6 +82,7 @@ class BookTimeslotCommand
         TimelineValidationService.validateBookingAllowed();
       } on StudentSessionTimelineError catch (e) {
         setError(e);
+        _setErrorMessage(e.userMessage);
         return;
       }
 
@@ -43,6 +90,7 @@ class BookTimeslotCommand
       final validationError = _validateBookingParams(params);
       if (validationError != null) {
         setError(validationError);
+        _setErrorMessage(validationError.userMessage);
         return;
       }
 
@@ -50,17 +98,23 @@ class BookTimeslotCommand
       final result = await _bookTimeslotUseCase.call(params);
 
       result.when(
-        success: (successMessage) => setResult(successMessage),
-        failure: (error) => setError(error),
+        success: (successMessage) {
+          setResult(successMessage);
+          _setSuccessMessage('Timeslot booked successfully!');
+        },
+        failure: (error) {
+          setError(error);
+          _setErrorMessage(error.userMessage);
+        },
       );
     } catch (e) {
       // Convert unexpected exceptions to user-friendly errors
-      setError(
-        StudentSessionApplicationError(
-          'Failed to book timeslot',
-          details: e.toString(),
-        ),
+      final error = StudentSessionApplicationError(
+        'Failed to book timeslot',
+        details: e.toString(),
       );
+      setError(error);
+      _setErrorMessage(error.userMessage);
     } finally {
       setExecuting(false);
     }
@@ -112,9 +166,10 @@ class BookTimeslotCommand
     return 'Ready to book';
   }
 
-  /// Reset command state and clear any errors
+  /// Reset command state and clear any errors and messages
   @override
   void reset({bool notify = true}) {
+    clearAllMessages();
     super.reset(notify: notify);
   }
 }

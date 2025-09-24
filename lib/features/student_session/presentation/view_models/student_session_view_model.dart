@@ -59,12 +59,6 @@ class StudentSessionViewModel extends ChangeNotifier {
   // CV upload error state (when CV upload fails after successful application)
   StudentSessionApplicationError? _cvUploadError;
 
-  // Message display flags to prevent duplicates
-  bool _showSuccessMessage = false;
-  String? _successMessage;
-  bool _showErrorMessage = false;
-  String? _errorMessage;
-
   // Stream subscription for logout events
   StreamSubscription? _logoutSubscription;
 
@@ -128,11 +122,6 @@ class StudentSessionViewModel extends ChangeNotifier {
   // CV upload error getter
   StudentSessionApplicationError? get cvUploadError => _cvUploadError;
 
-  // Message display getters
-  bool get showSuccessMessage => _showSuccessMessage;
-  String? get successMessage => _successMessage;
-  bool get showErrorMessage => _showErrorMessage;
-  String? get errorMessage => _errorMessage;
 
   // Conflict resolution getters
   bool get isHandlingConflict => _isHandlingConflict;
@@ -273,8 +262,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     int? studyYear,
     String? cvFilePath,
   }) async {
-    // Clear any previous messages and errors
-    clearAllMessages();
+    // Clear any previous CV upload errors
     _cvUploadError = null;
 
     // First, apply for the session to create the StudentSessionApplication record
@@ -289,10 +277,6 @@ class StudentSessionViewModel extends ChangeNotifier {
 
     // Check if application submission failed
     if (_applyForSessionCommand.hasError) {
-      final error = _applyForSessionCommand.error;
-      _setErrorMessage(
-        error?.userMessage ?? 'Failed to submit application. Please try again.',
-      );
       return;
     }
 
@@ -314,17 +298,8 @@ class StudentSessionViewModel extends ChangeNotifier {
           // CV upload failed - this is now a blocking error
           // Note: The application record exists in the backend but without CV attachment
           // This approach allows users to retry CV upload without re-submitting application data
-          _setErrorMessage(
-            'Application failed: Could not upload your CV. Please check your file and try again.',
-          );
           return;
         }
-
-        // Both application and CV upload succeeded
-        _setSuccessMessage('Application with CV submitted successfully!');
-      } else {
-        // Application succeeded without CV
-        _setSuccessMessage('Application submitted successfully!');
       }
     }
   }
@@ -363,42 +338,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Set success message for display
-  void _setSuccessMessage(String message) {
-    _showSuccessMessage = true;
-    _successMessage = message;
-    notifyListeners();
-  }
-
-  /// Set error message for display
-  void _setErrorMessage(String message) {
-    _showErrorMessage = true;
-    _errorMessage = message;
-    notifyListeners();
-  }
-
-  /// Clear success message after display
-  void clearSuccessMessage() {
-    _showSuccessMessage = false;
-    _successMessage = null;
-    notifyListeners();
-  }
-
-  /// Clear error message after display
-  void clearErrorMessage() {
-    _showErrorMessage = false;
-    _errorMessage = null;
-    notifyListeners();
-  }
-
-  /// Clear all message flags
-  void clearAllMessages() {
-    _showSuccessMessage = false;
-    _successMessage = null;
-    _showErrorMessage = false;
-    _errorMessage = null;
-    notifyListeners();
-  }
 
   /// Retry CV upload for a previously failed application
   /// This allows users to retry CV upload without re-submitting the entire application
@@ -406,24 +345,13 @@ class StudentSessionViewModel extends ChangeNotifier {
     required int companyId,
     required String filePath,
   }) async {
-    // Clear previous messages and errors before retry
-    clearAllMessages();
+    // Clear previous errors before retry
     _cvUploadError = null;
 
     final success = await uploadCVForSession(
       companyId: companyId,
       filePath: filePath,
     );
-
-    if (success) {
-      _setSuccessMessage(
-        'CV uploaded successfully! Application is now complete.',
-      );
-    } else {
-      _setErrorMessage(
-        'CV upload failed. Please check your file and try again.',
-      );
-    }
 
     return success;
   }
@@ -465,26 +393,15 @@ class StudentSessionViewModel extends ChangeNotifier {
   void _onBookTimeslotCommandChanged() async {
     // CRITICAL: Check errors FIRST to prevent success flow during error states
     if (_bookTimeslotCommand.hasError) {
-      final error = _bookTimeslotCommand.error;
-
       if (_bookTimeslotCommand.isBookingConflict) {
         // Handle booking conflict with immediate refresh and user guidance
         await _handleBookingConflict();
-      } else {
-        // Other errors - show error message, keep polling active for retry
-        _setErrorMessage(
-          error?.userMessage ?? 'Failed to book timeslot. Please try again.',
-        );
-        notifyListeners(); // Ensure error message shows immediately
       }
       return; // CRITICAL: Exit early to prevent success flow after error
     }
     
     // Success flow - only execute if NO errors exist
     if (_bookTimeslotCommand.isCompleted && _bookTimeslotCommand.result != null) {
-      // Booking successful - show success message
-      _setSuccessMessage('Timeslot booked successfully!');
-      
       // Refresh profile data to immediately reflect new booking state
       await loadMyApplicationsWithBookingState(forceRefresh: true);
       
@@ -496,15 +413,8 @@ class StudentSessionViewModel extends ChangeNotifier {
   void _onUnbookTimeslotCommandChanged() async {
     if (_unbookTimeslotCommand.isCompleted &&
         !_unbookTimeslotCommand.hasError) {
-      _setSuccessMessage('Booking cancelled successfully!');
-      
       // Refresh profile data to immediately reflect cancelled booking state
       await loadMyApplicationsWithBookingState(forceRefresh: true);
-    } else if (_unbookTimeslotCommand.hasError) {
-      final error = _unbookTimeslotCommand.error;
-      _setErrorMessage(
-        error?.userMessage ?? 'Failed to cancel booking. Please try again.',
-      );
     }
     notifyListeners();
   }
@@ -570,9 +480,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     _searchQuery = '';
     _selectedCompanyId = null;
     _cvUploadError = null;
-
-    // Clear all message flags
-    clearAllMessages();
 
     // Reset all commands
     _getStudentSessionsCommand.reset();

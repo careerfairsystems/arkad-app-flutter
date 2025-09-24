@@ -67,9 +67,8 @@ class _StudentSessionApplicationFormScreenState
         listen: false,
       );
 
-      // Reset command state and clear any previous messages
+      // Reset command state
       viewModel.applyForSessionCommand.reset();
-      viewModel.clearAllMessages();
       
       // If no session was passed, navigate back
       if (_session == null) {
@@ -227,13 +226,11 @@ class _StudentSessionApplicationFormScreenState
       return;
     }
     
-    // The ViewModel will handle success/error message display through flags
+    // Success and error messages are handled by the Consumer logic above
     await viewModel.retryCVUpload(
       companyId: int.parse(widget.companyId),
       filePath: _selectedCV!.path,
     );
-    
-    // Success and error messages are now handled by the Consumer logic above
   }
 
   @override
@@ -250,21 +247,21 @@ class _StudentSessionApplicationFormScreenState
       appBar: AppBar(title: const Text('Apply for Session'), elevation: 2),
       body: Consumer<StudentSessionViewModel>(
         builder: (context, viewModel, child) {
-          // Handle success messages
-          if (viewModel.showSuccessMessage) {
+          // Handle command completion states directly without centralized message system
+          final command = viewModel.applyForSessionCommand;
+          
+          // Navigate back on successful application
+          if (command.isCompleted && !command.hasError) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(viewModel.successMessage ?? 'Success!'),
+                  const SnackBar(
+                    content: Text('Application submitted successfully!'),
                     backgroundColor: ArkadColors.arkadGreen,
                   ),
                 );
                 
-                // Clear the message flag
-                viewModel.clearSuccessMessage();
-                
-                // Navigate back after a short delay to ensure message is visible
+                // Navigate back after a short delay
                 Future.delayed(const Duration(milliseconds: 500), () {
                   if (mounted && context.mounted && context.canPop()) {
                     context.pop();
@@ -274,20 +271,18 @@ class _StudentSessionApplicationFormScreenState
             });
           }
           
-          // Handle error messages
-          if (viewModel.showErrorMessage) {
+          // Handle command errors
+          if (command.hasError) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
-                final errorMessage = viewModel.errorMessage ?? 'An error occurred. Please try again.';
+                final errorMessage = command.error?.userMessage ?? 'An error occurred. Please try again.';
                 final showRetryOption = errorMessage.contains('CV') && _selectedCV != null;
                 
                 // Handle specific 401 authentication errors
                 if (errorMessage.contains('session has expired') || errorMessage.contains('Unauthorized')) {
-                  // Clear authentication and redirect to login
                   final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
                   authViewModel.signOut();
                   
-                  // Navigate to login after showing error
                   Future.delayed(const Duration(seconds: 2), () {
                     if (mounted && context.mounted) {
                       context.go('/auth/login');
@@ -295,7 +290,6 @@ class _StudentSessionApplicationFormScreenState
                   });
                 }
                 
-                // Show error message
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(errorMessage),
@@ -308,9 +302,6 @@ class _StudentSessionApplicationFormScreenState
                     ) : null,
                   ),
                 );
-                
-                // Clear the message flag
-                viewModel.clearErrorMessage();
               }
             });
           }

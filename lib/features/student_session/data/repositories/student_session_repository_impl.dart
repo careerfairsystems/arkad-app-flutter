@@ -39,21 +39,27 @@ class StudentSessionRepositoryImpl extends BaseRepository
         final studentSessions = <StudentSession>[];
         for (final sessionDto in response.studentSessions) {
           String? companyName;
+          String? logoUrl;
 
-          // Fetch company name using the cached company data
+          // Fetch company data using the cached company service
           final companyResult = await _getCompanyByIdUseCase.call(
             sessionDto.companyId,
           );
           companyResult.when(
-            success: (company) => companyName = company.name,
-            failure:
-                (_) =>
-                    companyName = null, // Company not found, will use fallback
+            success: (company) {
+              companyName = company.name;
+              logoUrl = company.fullLogoUrl;
+            },
+            failure: (_) {
+              companyName = null; // Company not found, will use fallback
+              logoUrl = null;
+            },
           );
 
           final studentSession = _mapper.fromApiStudentSession(
             sessionDto,
             companyName: companyName,
+            logoUrl: logoUrl,
           );
           studentSessions.add(studentSession);
         }
@@ -88,17 +94,25 @@ class StudentSessionRepositoryImpl extends BaseRepository
         }
         
         String? companyName;
+        String? logoUrl;
         
-        // Fetch company name using the cached company data
+        // Fetch company data using the cached company service
         final companyResult = await _getCompanyByIdUseCase.call(companyId);
         companyResult.when(
-          success: (company) => companyName = company.name,
-          failure: (_) => companyName = null, // Company not found, will use fallback
+          success: (company) {
+            companyName = company.name;
+            logoUrl = company.fullLogoUrl;
+          },
+          failure: (_) {
+            companyName = null; // Company not found, will use fallback
+            logoUrl = null;
+          },
         );
         
         return _mapper.fromApiStudentSession(
           sessionDto,
           companyName: companyName,
+          logoUrl: logoUrl,
         );
       },
       'load student session for company $companyId',

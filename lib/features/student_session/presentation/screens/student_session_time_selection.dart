@@ -27,6 +27,12 @@ class _StudentSessionTimeSelection
     extends State<StudentSessionTimeSelectionScreen> {
   int? _selectedTimeslotId;
   bool _hasLoadedData = false;
+  
+  // Message handling state to prevent duplicates and setState during build
+  bool _hasHandledBookingSuccess = false;
+  bool _hasHandledBookingError = false;
+  bool _hasHandledUnbookingSuccess = false;
+  bool _hasHandledUnbookingError = false;
 
   /// Get selected timeslot from current timeslots list using ID
   Timeslot? _getSelectedTimeslot(List<Timeslot> timeslots) {
@@ -58,6 +64,117 @@ class _StudentSessionTimeSelection
         viewModel.setSelectedCompany(companyId);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    // Essential cleanup to prevent memory leaks
+    if (mounted) {
+      final viewModel = Provider.of<StudentSessionViewModel>(
+        context,
+        listen: false,
+      );
+      // Clear company selection
+      viewModel.setSelectedCompany(null);
+    }
+    
+    super.dispose();
+  }
+
+  /// Smart message handling with guards to prevent setState during build
+  void _handleCommandMessages(StudentSessionViewModel viewModel) {
+    final bookCommand = viewModel.bookTimeslotCommand;
+    final unbookCommand = viewModel.unbookTimeslotCommand;
+    
+    // Handle booking success messages
+    if (bookCommand.showSuccessMessage && !_hasHandledBookingSuccess) {
+      _hasHandledBookingSuccess = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(bookCommand.successMessage ?? 'Timeslot booked successfully!'),
+              backgroundColor: ArkadColors.arkadGreen,
+            ),
+          );
+          
+          bookCommand.clearSuccessMessage();
+          
+          // Navigate back after success
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted && context.mounted && context.canPop()) {
+              context.pop();
+            }
+          });
+        }
+      });
+    } else if (!bookCommand.showSuccessMessage) {
+      _hasHandledBookingSuccess = false; // Reset when message is cleared
+    }
+    
+    // Handle booking error messages  
+    if (bookCommand.showErrorMessage && !_hasHandledBookingError) {
+      _hasHandledBookingError = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(bookCommand.errorMessage ?? 'Failed to book timeslot. Please try again.'),
+              backgroundColor: ArkadColors.lightRed,
+            ),
+          );
+          
+          bookCommand.clearErrorMessage();
+        }
+      });
+    } else if (!bookCommand.showErrorMessage) {
+      _hasHandledBookingError = false; // Reset when message is cleared
+    }
+    
+    // Handle unbooking success messages
+    if (unbookCommand.showSuccessMessage && !_hasHandledUnbookingSuccess) {
+      _hasHandledUnbookingSuccess = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(unbookCommand.successMessage ?? 'Booking cancelled successfully!'),
+              backgroundColor: ArkadColors.arkadGreen,
+            ),
+          );
+          
+          unbookCommand.clearSuccessMessage();
+          
+          // Navigate back after success (same as booking)
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted && context.mounted && context.canPop()) {
+              context.pop();
+            }
+          });
+        }
+      });
+    } else if (!unbookCommand.showSuccessMessage) {
+      _hasHandledUnbookingSuccess = false; // Reset when message is cleared
+    }
+    
+    // Handle unbooking error messages
+    if (unbookCommand.showErrorMessage && !_hasHandledUnbookingError) {
+      _hasHandledUnbookingError = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(unbookCommand.errorMessage ?? 'Failed to cancel booking. Please try again.'),
+              backgroundColor: ArkadColors.lightRed,
+            ),
+          );
+          
+          unbookCommand.clearErrorMessage();
+        }
+      });
+    } else if (!unbookCommand.showErrorMessage) {
+      _hasHandledUnbookingError = false; // Reset when message is cleared
+    }
   }
 
   @override
@@ -212,6 +329,9 @@ class _StudentSessionTimeSelection
       ),
       body: Consumer<StudentSessionViewModel>(
         builder: (context, viewModel, child) {
+          // Smart message handling with guards to prevent setState during build
+          _handleCommandMessages(viewModel);
+          
           return Stack(
             children: [
               // Main content
@@ -232,9 +352,6 @@ class _StudentSessionTimeSelection
                     ),
                 ],
               ),
-              
-              // Message handling
-              _buildMessageHandlers(viewModel),
               
               // Conflict overlay
               if (viewModel.showConflictOverlay)
@@ -494,51 +611,6 @@ class _StudentSessionTimeSelection
     );
   }
 
-  /// Build simple message handlers
-  Widget _buildMessageHandlers(StudentSessionViewModel viewModel) {
-    // Show success message
-    if (viewModel.showSuccessMessage) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(viewModel.successMessage ?? 'Timeslot booked successfully!'),
-              backgroundColor: ArkadColors.arkadGreen,
-            ),
-          );
-          
-          viewModel.clearSuccessMessage();
-          
-          // Navigate back after a short delay
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted && context.mounted && context.canPop()) {
-              context.pop();
-            }
-          });
-        }
-      });
-    }
-    
-    // Show error message
-    if (viewModel.showErrorMessage) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          final errorMessage = viewModel.errorMessage ?? 'Failed to book timeslot. Please try again.';
-          
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: ArkadColors.lightRed,
-            ),
-          );
-          
-          viewModel.clearErrorMessage();
-        }
-      });
-    }
-    
-    return const SizedBox.shrink();
-  }
 
   /// Build conflict overlay (granular updates)
   Widget _buildConflictOverlay(String? message) {
@@ -599,18 +671,4 @@ class _StudentSessionTimeSelection
   }
 
 
-  @override
-  void dispose() {
-    // Essential cleanup to prevent memory leaks
-    if (mounted) {
-      final viewModel = Provider.of<StudentSessionViewModel>(
-        context,
-        listen: false,
-      );
-      // Clear company selection
-      viewModel.setSelectedCompany(null);
-    }
-    
-    super.dispose();
-  }
 }

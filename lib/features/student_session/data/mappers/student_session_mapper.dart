@@ -9,10 +9,11 @@ class StudentSessionMapper {
   const StudentSessionMapper();
 
   /// Convert API StudentSessionNormalUserSchema to StudentSession domain entity
-  /// Note: companyName should be populated by repository layer using company data
+  /// Note: companyName and logoUrl should be populated by repository layer using company data
   StudentSession fromApiStudentSession(
     StudentSessionNormalUserSchema apiSession, {
     String? companyName,
+    String? logoUrl,
   }) {
     return StudentSession(
       id: apiSession.id,
@@ -21,6 +22,7 @@ class StudentSessionMapper {
       isAvailable: apiSession.available,
       bookingCloseTime: apiSession.bookingCloseTime,
       userStatus: _mapUserStatusToStudentSessionStatus(apiSession.userStatus),
+      logoUrl: logoUrl,
     );
   }
 
