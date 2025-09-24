@@ -79,7 +79,7 @@ class UnbookTimeslotCommand extends ParameterizedCommand<int, String> {
 
       // Validate company ID
       if (companyId <= 0) {
-        final error = const StudentSessionApplicationError(
+        const error = StudentSessionApplicationError(
           'Invalid company selection. Please select a valid company.',
         );
         setError(error);
