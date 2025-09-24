@@ -1,3 +1,5 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../entities/student_session.dart';
@@ -48,7 +50,8 @@ class StudentSessionDataService {
       }
 
       return Result.success(unifiedData);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(e is AppError ? e : UnknownError(e.toString()));
     }
   }

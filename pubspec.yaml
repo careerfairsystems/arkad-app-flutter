@@ -9,6 +9,7 @@ environment:
   sdk: ">=3.7.0 <4.0.0"
 
 dependencies:
+  sentry_flutter: ^9.6.0
   flutter:
     sdk: flutter
   provider: ^6.1.4
@@ -32,6 +33,7 @@ dependencies:
   arkad_api:
     path: ./api/arkad_api/
 dev_dependencies:
+  sentry_dart_plugin: ^3.1.1
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
@@ -57,3 +59,9 @@ flutter:
       fonts:
         - asset: assets/fonts/BAHNSCHRIFT.ttf
           weight: 400
+
+sentry:
+  upload_debug_symbols: true
+  upload_source_maps: true
+  project: arkad-flutter
+  org: hugo-pi

@@ -1,3 +1,5 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/use_case.dart';
 import '../../../../shared/errors/student_session_errors.dart';
@@ -71,7 +73,9 @@ class UploadCVUseCase extends UseCase<String, UploadCVParams> {
         companyId: params.companyId,
         filePath: params.filePath,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
+      
       // Check if it's a file size error or other upload error
       if (e.toString().contains('size') || e.toString().contains('413')) {
         return Result.failure(

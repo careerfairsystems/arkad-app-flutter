@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/events/app_events.dart';
@@ -135,6 +136,7 @@ class AuthViewModel extends ChangeNotifier {
         },
       );
     } catch (e) {
+      await Sentry.captureException(e);
       _currentSession = null;
     }
 
@@ -201,6 +203,7 @@ class AuthViewModel extends ChangeNotifier {
         },
       );
     } catch (e) {
+      await Sentry.captureException(e);
       _setGlobalError(UnknownError(e.toString()));
     }
   }

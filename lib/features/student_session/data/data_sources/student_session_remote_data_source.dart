@@ -1,5 +1,6 @@
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
 
@@ -47,7 +48,8 @@ class StudentSessionRemoteDataSource {
       } else {
         throw Exception('Failed to get timeslots');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       throw Exception('Failed to get timeslots');
     }
   }
@@ -63,7 +65,8 @@ class StudentSessionRemoteDataSource {
             studentSessionApplicationSchema: application,
           );
       return response;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       throw Exception('Failed to apply for student session: $e');
     }
   }
@@ -83,7 +86,8 @@ class StudentSessionRemoteDataSource {
             },
           );
       return response;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       throw Exception('Failed to upload CV: $e');
     }
   }
@@ -106,11 +110,12 @@ class StudentSessionRemoteDataSource {
             },
           );
       return response;
-    } catch (e) {
+    } catch (e, stackTrace) {
       // CRITICAL: Preserve original DioException with HTTP status codes for proper conflict detection
       if (e is DioException) {
         rethrow; // Let repository handle HTTP status codes
       }
+      await Sentry.captureException(e, stackTrace: stackTrace);
       throw Exception('Failed to confirm timeslot: ${e.toString()}');
     }
   }
@@ -129,7 +134,8 @@ class StudentSessionRemoteDataSource {
             },
           );
       return response;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       throw Exception('Failed to unbook timeslot: $e');
     }
   }
@@ -149,7 +155,8 @@ class StudentSessionRemoteDataSource {
             },
           );
       return response;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       throw Exception('Failed to get application');
     }
   }

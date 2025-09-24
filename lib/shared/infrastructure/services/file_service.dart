@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'file_validation_service.dart';
 
@@ -42,6 +43,7 @@ class FileService {
         return imageFile;
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (context.mounted) {
         _showErrorSnackbar(context, 'Failed to pick image: $e');
       }
@@ -106,6 +108,7 @@ class FileService {
         );
       }
     } catch (e) {
+      await Sentry.captureException(e);
       if (context.mounted) {
         _showErrorSnackbar(context, 'Failed to pick CV: $e');
       }

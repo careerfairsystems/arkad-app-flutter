@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../domain/result.dart';
 import '../../errors/app_error.dart';
@@ -26,6 +27,7 @@ abstract class BaseRepository {
       onSuccess?.call(result);
       return Result.success(result);
     } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       final appError = _mapException(e, errorContext);
 
       // Log error for debugging (in development mode)
@@ -55,6 +57,7 @@ abstract class BaseRepository {
       onSuccess?.call(result);
       return Result.success(result);
     } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       final appError = _mapException(e, errorContext);
 
       _logError(appError, stackTrace);
@@ -74,6 +77,7 @@ abstract class BaseRepository {
       final results = await Future.wait(futures);
       return Result.success(results);
     } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       final appError = _mapException(e, errorContext);
       _logError(appError, stackTrace);
       return Result.failure(appError);
@@ -96,6 +100,7 @@ abstract class BaseRepository {
         final result = await operation();
         return Result.success(result);
       } catch (e) {
+        await Sentry.captureException(e);
         attempts++;
         lastException = e is Exception ? e : Exception(e.toString());
 
