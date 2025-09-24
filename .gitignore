@@ -58,6 +58,7 @@ arkad/linux/flutter/ephemeral/.plugin_symlinks
 arkad/macos
 arkad/windows/flutter/ephemeral/.plugin_symlinks
 api/arkad_api
+!api/arkad_api/.openapi-generator-ignore
 sentry.properties
 
 sentry.properties
