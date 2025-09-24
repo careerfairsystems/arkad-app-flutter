@@ -45,7 +45,7 @@ class StudentSessionRemoteDataSource {
       if (response.isSuccess && response.data != null) {
         return response.data!.toList();
       } else {
-        throw Exception('Failed to get timeslots}');
+        throw Exception('Failed to get timeslots');
       }
     } catch (e) {
       throw Exception('Failed to get timeslots');
@@ -73,7 +73,15 @@ class StudentSessionRemoteDataSource {
     try {
       final response = await _api
           .getStudentSessionsApi()
-          .studentSessionsApiUpdateCvForSession(companyId: companyId, cv: file);
+          .studentSessionsApiUpdateCvForSession(
+            companyId: companyId,
+            cv: file,
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
+          );
       return response;
     } catch (e) {
       throw Exception('Failed to upload CV: $e');
@@ -91,6 +99,11 @@ class StudentSessionRemoteDataSource {
           .studentSessionsApiConfirmStudentSession(
             companyId: companyId,
             timeslotId: timeslotId,
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
           );
       return response;
     } catch (e) {
@@ -107,7 +120,14 @@ class StudentSessionRemoteDataSource {
     try {
       final response = await _api
           .getStudentSessionsApi()
-          .studentSessionsApiUnbookStudentSession(companyId: companyId);
+          .studentSessionsApiUnbookStudentSession(
+            companyId: companyId,
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
+          );
       return response;
     } catch (e) {
       throw Exception('Failed to unbook timeslot: $e');

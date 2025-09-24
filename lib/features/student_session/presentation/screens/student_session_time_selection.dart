@@ -102,7 +102,8 @@ class _StudentSessionTimeSelection
           
           // Navigate back after success
           Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted && context.mounted && context.canPop()) {
+            if (mounted && context.mounted && context.canPop() && 
+                bookCommand.isCompleted && !bookCommand.hasError) {
               context.pop();
             }
           });
@@ -147,7 +148,8 @@ class _StudentSessionTimeSelection
           
           // Navigate back after success (same as booking)
           Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted && context.mounted && context.canPop()) {
+            if (mounted && context.mounted && context.canPop() && 
+                unbookCommand.isCompleted && !unbookCommand.hasError) {
               context.pop();
             }
           });

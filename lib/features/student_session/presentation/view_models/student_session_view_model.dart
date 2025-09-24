@@ -168,11 +168,9 @@ class StudentSessionViewModel extends ChangeNotifier {
   }
 
 
-  /// Load student sessions with optional force refresh
-  Future<void> loadStudentSessions({bool forceRefresh = false}) async {
-    await _getStudentSessionsCommand.loadStudentSessions(
-      forceRefresh: forceRefresh,
-    );
+  /// Load student sessions with comprehensive error handling
+  Future<void> loadStudentSessions() async {
+    await _getStudentSessionsCommand.loadStudentSessions();
   }
 
   /// Wait for authentication to complete with timeout protection
@@ -365,7 +363,7 @@ class StudentSessionViewModel extends ChangeNotifier {
   /// Refresh all data
   Future<void> refreshAll() async {
     await Future.wait([
-      loadStudentSessions(forceRefresh: true),
+      loadStudentSessions(),
       loadMyApplicationsWithBookingState(forceRefresh: true),
     ]);
   }

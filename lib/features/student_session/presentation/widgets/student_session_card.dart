@@ -214,8 +214,8 @@ class StudentSessionCard extends StatelessWidget {
             icon: Icon(actionInfo.icon, size: 18),
             label: Text(actionInfo.text),
             style: FilledButton.styleFrom(
-              backgroundColor: actionInfo.isEnabled ? actionInfo.color : Colors.grey,
-              foregroundColor: Colors.white,
+              backgroundColor: actionInfo.isEnabled ? actionInfo.color : ArkadColors.lightGray,
+              foregroundColor: ArkadColors.white,
             ),
           ),
         ),

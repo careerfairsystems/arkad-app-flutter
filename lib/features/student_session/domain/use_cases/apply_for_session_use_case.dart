@@ -44,7 +44,7 @@ class ApplyForSessionUseCase
       return Result.failure(
         StudentSessionApplicationError(
           'Failed to submit application',
-          details: e.toString(),
+          details: 'An unexpected error occurred',
         ),
       );
     }

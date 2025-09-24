@@ -33,7 +33,7 @@ class UnbookTimeslotUseCase extends UseCase<String, int> {
       return Result.failure(
         StudentSessionApplicationError(
           'Failed to unbook timeslot',
-          details: e.toString(),
+          details: 'An unexpected error occurred',
         ),
       );
     }

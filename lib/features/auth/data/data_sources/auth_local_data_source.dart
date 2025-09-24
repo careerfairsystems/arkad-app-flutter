@@ -58,7 +58,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         ),
       ]);
     } catch (e) {
-      throw Exception('Failed to save session: $e');
+      throw Exception('Failed to save session');
     }
   }
 
@@ -118,7 +118,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         _secureStorage.write(key: _signupTokenKey, value: _stripBearer(token)),
       ]);
     } catch (e) {
-      throw Exception('Failed to save signup data: $e');
+      throw Exception('Failed to save signup data');
     }
   }
 
@@ -163,7 +163,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
         value: jsonEncode(_userToJson(user)),
       );
     } catch (e) {
-      throw Exception('Failed to update session user: $e');
+      throw Exception('Failed to update session user');
     }
   }
 

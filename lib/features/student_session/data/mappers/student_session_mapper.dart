@@ -1,4 +1,5 @@
 import 'package:arkad_api/arkad_api.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/student_session.dart';
 import '../../domain/entities/student_session_application.dart';
@@ -140,7 +141,11 @@ class StudentSessionMapper {
       case TimeslotSchemaUserStatusEnum.bookedByCurrentUser:
         return TimeslotStatus.bookedByCurrentUser;
       default:
-        throw ArgumentError('Unknown timeslot status: $apiStatus');
+        if (kDebugMode) {
+          debugPrint('Warning: Unknown timeslot status: $apiStatus');
+        }
+        // Return safe default to prevent exposing technical details
+        return TimeslotStatus.free;
     }
   }
 }

@@ -10,7 +10,7 @@ class GetStudentSessionsCommand extends Command<List<StudentSession>> {
   final GetStudentSessionsUseCase _getStudentSessionsUseCase;
 
   /// Load student sessions with comprehensive error handling
-  Future<void> loadStudentSessions({bool forceRefresh = false}) async {
+  Future<void> loadStudentSessions() async {
     return execute();
   }
 

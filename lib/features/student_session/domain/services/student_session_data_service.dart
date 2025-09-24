@@ -49,15 +49,13 @@ class StudentSessionDataService {
 
       return Result.success(unifiedData);
     } catch (e) {
-      return Result.failure(e as AppError);
+      return Result.failure(e is AppError ? e : UnknownError(e.toString()));
     }
   }
 
   /// Get applications with booking state only (for profile view)
   /// This delegates to the repository but ensures consistent error handling
-  Future<Result<List<StudentSessionApplicationWithBookingState>>> getMyApplicationsWithBookingState({
-    bool forceRefresh = false,
-  }) async {
+  Future<Result<List<StudentSessionApplicationWithBookingState>>> getMyApplicationsWithBookingState() async {
     return await _repository.getMyApplicationsWithBookingState();
   }
 
