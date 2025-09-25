@@ -126,17 +126,19 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
   @override
   Future<Result<List<Event>>> getBookedEvents() async {
     return executeOperation(() async {
-      // Fetch booked events from remote
-      final eventSchemas = await _remoteDataSource.getBookedEvents();
+      // Get all events and filter by booked status
+      final allEventsResult = await getEvents();
 
-      // Convert to domain entities
-      // Note: API doesn't provide IDs, so we'll use index as ID for now
-      final events =
-          eventSchemas.asMap().entries.map((entry) {
-            return _mapper.fromApiSchema(entry.value);
+      return allEventsResult.when(
+        success: (events) {
+          // Filter events that are booked or have tickets used
+          final bookedEvents = events.where((event) {
+            return event.status?.isBooked == true;
           }).toList();
-
-      return events;
+          return bookedEvents;
+        },
+        failure: (error) => throw Exception(error.userMessage),
+      );
     }, 'get booked events');
   }
 
@@ -151,12 +153,6 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
     }, 'refresh events');
   }
 
-  @override
-  Future<Result<bool>> isEventBooked(int eventId) async {
-    return executeOperation(() async {
-      return await _remoteDataSource.isEventBooked(eventId);
-    }, 'check if event is booked');
-  }
 
   @override
   Future<Result<String>> getEventTicket(int eventId) async {

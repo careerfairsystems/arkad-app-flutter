@@ -25,14 +25,11 @@ abstract class EventRepository {
   /// Unregister from an event
   Future<Result<void>> unregisterFromEvent(int eventId);
 
-  /// Get booked events for the current user
+  /// Get booked events for the current user (filters events with booked or ticketUsed status)
   Future<Result<List<Event>>> getBookedEvents();
 
   /// Get event ticket (Should be rendered as QR code)
   Future<Result<String>> getEventTicket(int eventId);
-
-  /// Check if an event is booked by the current user
-  Future<Result<bool>> isEventBooked(int eventId);
 
   /// Refresh cached event data
   Future<Result<void>> refreshEvents();

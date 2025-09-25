@@ -6,6 +6,7 @@ import '../../../../features/auth/presentation/view_models/auth_view_model.dart'
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/event_status.dart';
 import '../view_models/event_view_model.dart';
 
 /// Widget that displays appropriate actions based on authentication status
@@ -44,26 +45,16 @@ class EventActions extends StatelessWidget {
   Widget _buildRegisterButton(BuildContext context) {
     return Consumer<EventViewModel>(
       builder: (context, viewModel, child) {
-        return FutureBuilder<bool?>(
-          future: viewModel.isEventBooked(event.id),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
+        final status = event.status ?? EventStatus.notBooked;
 
-            final isBooked = snapshot.data ?? false;
-
-            if (isBooked) {
-              return _buildBookedEventActions(context, viewModel);
-            } else {
-              return _buildUnbookedEventActions(context, viewModel);
-            }
-          },
-        );
+        switch (status) {
+          case EventStatus.notBooked:
+            return _buildNotBookedEventActions(context, viewModel);
+          case EventStatus.booked:
+            return _buildBookedEventActions(context, viewModel);
+          case EventStatus.ticketUsed:
+            return _buildTicketUsedEventActions(context);
+        }
       },
     );
   }
@@ -143,7 +134,7 @@ class EventActions extends StatelessWidget {
     );
   }
 
-  Widget _buildUnbookedEventActions(
+  Widget _buildNotBookedEventActions(
     BuildContext context,
     EventViewModel viewModel,
   ) {
@@ -156,6 +147,46 @@ class EventActions extends StatelessWidget {
         onPressed: canRegister && !viewModel.isLoading ? onRegister : null,
         isLoading: viewModel.isLoading,
         icon: canRegister ? Icons.event_available : Icons.event_busy,
+      ),
+    );
+  }
+
+  Widget _buildTicketUsedEventActions(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ArkadColors.arkadNavy.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: ArkadColors.arkadNavy.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.event_available,
+            color: ArkadColors.arkadNavy,
+            size: 32,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'You have attended this event',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: ArkadColors.arkadNavy,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Your ticket has been used and you have successfully attended this event',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

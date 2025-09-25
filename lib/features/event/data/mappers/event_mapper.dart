@@ -1,5 +1,6 @@
 import 'package:arkad_api/arkad_api.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/event_status.dart';
 
 /// Mapper for converting between Event domain entity and EventSchema DTO
 class EventMapper {
@@ -17,6 +18,7 @@ class EventMapper {
       isRegistrationRequired: schema.capacity > 0,
       maxParticipants: schema.capacity > 0 ? schema.capacity : null,
       currentParticipants: schema.numberBooked,
+      status: _mapApiStatusToDomain(schema.status),
     );
   }
 
@@ -36,7 +38,8 @@ class EventMapper {
             ..endTime = event.endTime
             ..capacity = event.maxParticipants ?? 0
             ..numberBooked = event.currentParticipants
-            ..companyId = null,
+            ..companyId = null
+            ..status = _mapDomainStatusToApi(event.status),
     );
   }
 
@@ -79,6 +82,34 @@ class EventMapper {
         return 'career fair';
       case EventType.social:
         return 'social';
+    }
+  }
+
+  /// Map API EventUserStatus to domain EventStatus
+  EventStatus? _mapApiStatusToDomain(EventUserStatus? apiStatus) {
+    if (apiStatus == null) return null;
+
+    switch (apiStatus) {
+      case EventUserStatus.notBooked:
+        return EventStatus.notBooked;
+      case EventUserStatus.booked:
+        return EventStatus.booked;
+      case EventUserStatus.ticketUsed:
+        return EventStatus.ticketUsed;
+    }
+  }
+
+  /// Map domain EventStatus to API EventUserStatus
+  EventUserStatus? _mapDomainStatusToApi(EventStatus? domainStatus) {
+    if (domainStatus == null) return null;
+
+    switch (domainStatus) {
+      case EventStatus.notBooked:
+        return EventUserStatus.notBooked;
+      case EventStatus.booked:
+        return EventUserStatus.booked;
+      case EventStatus.ticketUsed:
+        return EventUserStatus.ticketUsed;
     }
   }
 }

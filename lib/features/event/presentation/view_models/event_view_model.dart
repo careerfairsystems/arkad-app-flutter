@@ -115,20 +115,6 @@ class EventViewModel extends ChangeNotifier {
     return result.isSuccess;
   }
 
-  /// Check if an event is booked by the current user
-  Future<bool?> isEventBooked(int eventId) async {
-    _clearError();
-
-    final result = await _eventRepository.isEventBooked(eventId);
-
-    return result.when(
-      success: (isBooked) => isBooked,
-      failure: (error) {
-        _setError(error);
-        return null;
-      },
-    );
-  }
 
   /// Get event ticket for a specific event
   Future<String?> getEventTicket(int eventId) async {

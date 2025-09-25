@@ -164,16 +164,6 @@ class EventRemoteDataSource {
     }
   }
 
-  /// Check if an event is booked by the current user
-  Future<bool> isEventBooked(int eventId) async {
-    try {
-      final bookedEvents = await getBookedEvents();
-      return bookedEvents.any((event) => event.id == eventId);
-    } catch (e) {
-      await Sentry.captureException(e);
-      throw Exception('Failed to check if event $eventId is booked: $e');
-    }
-  }
 
   /// Get event ticket for a specific event
   Future<String> getEventTicket(int eventId) async {
