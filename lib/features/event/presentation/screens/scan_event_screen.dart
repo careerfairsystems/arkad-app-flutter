@@ -407,7 +407,6 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
   }
 
   Widget _buildTicketResultCard(TicketVerificationResult ticket) {
-    final isAlreadyUsed = ticket.status == TicketVerificationStatus.alreadyUsed;
     final isConsumed = ticket.status == TicketVerificationStatus.consumed;
     final fullName = ticket.userInfo?.fullName ?? 'Unknown User';
 
@@ -431,16 +430,12 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isAlreadyUsed
-                            ? ArkadColors.lightRed.withValues(alpha: 0.1)
-                            : ArkadColors.arkadGreen.withValues(alpha: 0.1),
+                        color: ArkadColors.arkadGreen.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
-                        isAlreadyUsed ? Icons.error : Icons.check_circle,
-                        color: isAlreadyUsed
-                            ? ArkadColors.lightRed
-                            : ArkadColors.arkadGreen,
+                        Icons.check_circle,
+                        color: ArkadColors.arkadGreen,
                         size: 24,
                       ),
                     ),
@@ -450,9 +445,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isAlreadyUsed
-                                ? 'Ticket Already Used'
-                                : 'Ticket Consumed Successfully',
+                            'Ticket Consumed Successfully',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -467,13 +460,11 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: isAlreadyUsed
-                                  ? ArkadColors.lightRed
-                                  : ArkadColors.arkadGreen,
+                              color: ArkadColors.arkadGreen,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              isAlreadyUsed ? 'ALREADY USED' : 'CONSUMED',
+                              'CONSUMED',
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,

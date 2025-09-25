@@ -5,6 +5,7 @@ import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/event_attendee.dart';
+import '../../domain/entities/event_status.dart';
 import '../../domain/entities/ticket_verification_result.dart';
 import '../../domain/repositories/event_repository.dart';
 
@@ -80,9 +81,28 @@ class EventViewModel extends ChangeNotifier {
 
     result.when(
       success: (_) {
+        // Update the selected event status to booked
+        if (_selectedEvent?.id == eventId) {
+          _selectedEvent = _selectedEvent!.copyWith(
+            status: EventStatus.booked,
+          );
+        }
+
+        // Update the event in the events list
+        _events = _events.map((event) {
+          if (event.id == eventId) {
+            return event.copyWith(status: EventStatus.booked);
+          }
+          return event;
+        }).toList();
+
+        // Add the event to booked events list if not already there
+        final eventToAdd = _events.firstWhere((event) => event.id == eventId);
+        if (!_bookedEvents.any((event) => event.id == eventId)) {
+          _bookedEvents.add(eventToAdd.copyWith(status: EventStatus.booked));
+        }
+
         _setLoading(false);
-        // Optionally refresh events to get updated participant count
-        loadEvents();
       },
       failure: (error) {
         _setError(error);
@@ -102,9 +122,25 @@ class EventViewModel extends ChangeNotifier {
 
     result.when(
       success: (_) {
+        // Update the selected event status to not booked
+        if (_selectedEvent?.id == eventId) {
+          _selectedEvent = _selectedEvent!.copyWith(
+            status: EventStatus.notBooked,
+          );
+        }
+
+        // Update the event in the events list
+        _events = _events.map((event) {
+          if (event.id == eventId) {
+            return event.copyWith(status: EventStatus.notBooked);
+          }
+          return event;
+        }).toList();
+
+        // Update the event in the booked events list (remove it)
+        _bookedEvents = _bookedEvents.where((event) => event.id != eventId).toList();
+
         _setLoading(false);
-        // Optionally refresh events to get updated participant count
-        loadEvents();
       },
       failure: (error) {
         _setError(error);

@@ -365,10 +365,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       icon = Icons.event_available;
       message = 'Registration is open';
     } else {
-      backgroundColor = ArkadColors.lightRed.withValues(alpha: 0.1);
-      textColor = ArkadColors.lightRed;
-      icon = Icons.event_busy;
-      message = 'Registration is closed';
+      return Container(); // No banner if registration is not required or already booked
     }
 
     return Container(
