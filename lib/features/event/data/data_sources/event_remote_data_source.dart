@@ -1,5 +1,6 @@
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
@@ -13,7 +14,8 @@ class TicketAlreadyUsedException implements Exception {
   const TicketAlreadyUsedException(this.token, this.eventId);
 
   @override
-  String toString() => 'TicketAlreadyUsedException: Ticket $token for event $eventId has already been used or does not exist';
+  String toString() =>
+      'TicketAlreadyUsedException: Ticket $token for event $eventId has already been used or does not exist';
 }
 
 /// Remote data source for event operations
@@ -38,6 +40,7 @@ class EventRemoteDataSource {
         e,
         operationName: 'getEvents',
       );
+
       throw exception;
     } catch (e) {
       await Sentry.captureException(e);
@@ -164,7 +167,6 @@ class EventRemoteDataSource {
     }
   }
 
-
   /// Get event ticket for a specific event
   Future<String> getEventTicket(int eventId) async {
     try {
@@ -199,9 +201,9 @@ class EventRemoteDataSource {
   /// Get attendees for a specific event (staff only)
   Future<List<EventUserInformation>> getEventAttendees(int eventId) async {
     try {
-      final response = await _api.getEventsApi().eventBookingApiGetUsersAttendingEvent(
-        eventId: eventId,
-      );
+      final response = await _api
+          .getEventsApi()
+          .eventBookingApiGetUsersAttendingEvent(eventId: eventId);
 
       if (response.isSuccess) {
         return response.data?.toList() ?? <EventUserInformation>[];
@@ -228,9 +230,12 @@ class EventRemoteDataSource {
   /// Returns either TicketSchema for successful verification or throws specific exceptions
   Future<TicketSchema> useTicket(String token, int eventId) async {
     try {
-      final useTicketSchema = UseTicketSchema((b) => b
-        ..uuid = token
-        ..eventId = eventId);
+      final useTicketSchema = UseTicketSchema(
+        (b) =>
+            b
+              ..uuid = token
+              ..eventId = eventId,
+      );
 
       final response = await _api.getEventsApi().eventBookingApiVerifyTicket(
         useTicketSchema: useTicketSchema,
@@ -243,9 +248,7 @@ class EventRemoteDataSource {
         if (response.data == null) {
           throw Exception('Failed to use ticket');
         }
-        throw Exception(
-          'Failed to use ticket: ${response.detailedError}',
-        );
+        throw Exception('Failed to use ticket: ${response.detailedError}');
       }
     } on DioException catch (e) {
       // Check for 404 error indicating ticket already used or no ticket

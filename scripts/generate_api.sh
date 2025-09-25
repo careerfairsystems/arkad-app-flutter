@@ -90,9 +90,8 @@ generate_api() {
   # Generate base API client
   if ! openapi-generator-cli generate \
     -i "$OPENAPI_URL" \
-    -g dart-dio \
-    -o "$OUTPUT_DIR" \
-    --additional-properties=pubName=arkad_api; then
+    -g dart-dio -o "$OUTPUT_DIR" \
+    --additional-properties=pubName=arkad_api,nullSafe=true; then
     log_error "API generation failed"
     exit 1
   fi
