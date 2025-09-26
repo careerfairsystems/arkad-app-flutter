@@ -71,47 +71,56 @@ class ApiErrorHandler {
     String? responseBody,
     DioException originalException,
   ) {
+  static Exception _mapStatusCodeToException(
+    int? statusCode,
+    String? responseBody,
+    DioException originalException,
+  ) {
     switch (statusCode) {
       case 400:
         return ValidationException(
-          responseBody ?? 'Bad request - please check your input',
+          responseBody ?? 'Please check your input and try again',
         );
       case 401:
         return AuthException(
-          responseBody ?? 'Authentication required - please sign in again',
+          responseBody ?? 'Please sign in to continue',
         );
       case 403:
         return AuthException(
-          responseBody ?? 'Access denied - insufficient permissions',
+          responseBody ?? 'You don\'t have permission to perform this action',
         );
       case 404:
-        return ApiException(responseBody ?? 'Resource not found');
+        return ApiException(
+          'The requested item could not be found',
+        );
       case 409:
         return ValidationException(
-          responseBody ?? 'Resource already exists or conflict occurred',
+          responseBody ?? 'This item already exists',
         );
       case 415:
         return ValidationException(
-          responseBody ?? 'Invalid data format or content type',
+          responseBody ?? 'Please check your input format',
         );
       case 429:
         return ApiException(
-          responseBody ?? 'Too many requests - please wait before trying again',
+          responseBody ?? 'Please wait a moment before trying again',
         );
       case 500:
       case 502:
       case 503:
       case 504:
-        return const NetworkException('Server error - please try again later');
+        return NetworkException(
+          'Something went wrong. Please try again later',
+        );
       default:
         if (statusCode != null && statusCode >= 400) {
           return ApiException(
-            responseBody ?? 'Request failed with status $statusCode',
+            responseBody ?? 'Something went wrong. Please try again',
           );
         }
         // Network-level errors (no response)
         return NetworkException(
-          originalException.message ?? 'Network error occurred',
+          'Please check your internet connection',
         );
     }
   }
