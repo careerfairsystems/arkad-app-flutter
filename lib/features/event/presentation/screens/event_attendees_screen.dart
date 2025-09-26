@@ -126,6 +126,14 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
   }
 
   Widget _buildBody() {
+    return RefreshIndicator(
+      onRefresh: _loadAttendees,
+      color: ArkadColors.arkadTurkos,
+      child: _buildContent(),
+    );
+  }
+
+  Widget _buildContent() {
     if (_isLoading) {
       return _buildLoadingState();
     }
@@ -142,119 +150,136 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: ArkadColors.arkadTurkos),
-          SizedBox(height: 16),
-          Text('Loading attendees...'),
-        ],
-      ),
+    return const CustomScrollView(
+      physics: AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverFillRemaining(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: ArkadColors.arkadTurkos),
+                SizedBox(height: 16),
+                Text('Loading attendees...'),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: ArkadColors.lightRed,
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverFillRemaining(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: ArkadColors.lightRed,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Failed to load attendees',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _error ?? 'Something went wrong',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ArkadButton(
+                    text: 'Try Again',
+                    onPressed: _loadAttendees,
+                    icon: Icons.refresh,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Failed to load attendees',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _error ?? 'Something went wrong',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ArkadButton(
-              text: 'Try Again',
-              onPressed: _loadAttendees,
-              icon: Icons.refresh,
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
   Widget _buildEmptyState() {
     final isSearching = _searchController.text.isNotEmpty;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverFillRemaining(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(
+                      isSearching ? Icons.search_off : Icons.people_outline,
+                      size: 64,
+                      color: ArkadColors.arkadTurkos,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    isSearching ? 'No matching attendees' : 'No attendees yet',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    isSearching
+                        ? 'Try adjusting your search terms'
+                        : 'No one has registered for this event yet.',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              child: Icon(
-                isSearching ? Icons.search_off : Icons.people_outline,
-                size: 64,
-                color: ArkadColors.arkadTurkos,
-              ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              isSearching ? 'No matching attendees' : 'No attendees yet',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              isSearching
-                  ? 'Try adjusting your search terms'
-                  : 'No one has registered for this event yet.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-              textAlign: TextAlign.center,
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
   Widget _buildAttendeesList() {
-    return RefreshIndicator(
-      onRefresh: _loadAttendees,
-      color: ArkadColors.arkadTurkos,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _filteredAttendees!.length + 1, // +1 for header
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return _buildHeader();
-          }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _filteredAttendees!.length + 1, // +1 for header
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return _buildHeader();
+        }
 
-          final attendee = _filteredAttendees![index - 1];
-          return _buildAttendeeCard(attendee);
-        },
-      ),
+        final attendee = _filteredAttendees![index - 1];
+        return _buildAttendeeCard(attendee);
+      },
     );
   }
 

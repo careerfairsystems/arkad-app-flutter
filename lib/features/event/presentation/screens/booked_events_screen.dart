@@ -58,103 +58,124 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Loading your booked events...'),
-        ],
-      ),
+    return const CustomScrollView(
+      physics: AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverFillRemaining(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading your booked events...'),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildErrorState(EventViewModel viewModel) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: ArkadColors.lightRed,
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverFillRemaining(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: ArkadColors.lightRed,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Failed to load booked events',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    viewModel.error?.userMessage ?? 'Something went wrong',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ArkadButton(
+                    text: 'Try Again',
+                    onPressed: _loadBookedEvents,
+                    icon: Icons.refresh,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Failed to load booked events',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              viewModel.error?.userMessage ?? 'Something went wrong',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ArkadButton(
-              text: 'Try Again',
-              onPressed: _loadBookedEvents,
-              icon: Icons.refresh,
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverFillRemaining(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.event_note,
+                      size: 64,
+                      color: ArkadColors.arkadTurkos,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'No Booked Events',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'You haven\'t booked any events yet. Browse available events and register for the ones that interest you!',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ArkadButton(
+                    text: 'Browse Events',
+                    onPressed: () => context.pop(),
+                    icon: Icons.explore,
+                    variant: ArkadButtonVariant.secondary,
+                  ),
+                ],
               ),
-              child: const Icon(
-                Icons.event_note,
-                size: 64,
-                color: ArkadColors.arkadTurkos,
-              ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'No Booked Events',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'You haven\'t booked any events yet. Browse available events and register for the ones that interest you!',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ArkadButton(
-              text: 'Browse Events',
-              onPressed: () => context.pop(),
-              icon: Icons.explore,
-              variant: ArkadButtonVariant.secondary,
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
