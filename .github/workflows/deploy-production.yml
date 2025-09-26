@@ -5,6 +5,8 @@ on:
     branches: [main]
   workflow_dispatch: # Allow manual deployment
 
+permissions:
+  contents: write
 env:
   FLUTTER_VERSION: "3.35.4"
   OPENAPI_GENERATOR_VERSION: "7.10.0"
@@ -43,8 +45,8 @@ jobs:
         if: steps.api-cache.outputs.cache-hit != 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          cache: 'pnpm'
+          node-version: "24"
+          cache: "pnpm"
 
       - name: Set up Flutter
         if: steps.api-cache.outputs.cache-hit != 'true'
@@ -126,17 +128,8 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: build/web/
+          folder: build/web # The folder the action should deploy.
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: Notify deployment success
-        run: |
-          echo "🚀 Successfully deployed to production!"
-          echo "URL: https://app.arkadtlth.se"
-          echo "Deployment ID: ${{ steps.deployment.outputs.page_url }}"
