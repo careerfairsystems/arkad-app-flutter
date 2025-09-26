@@ -86,11 +86,11 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
 
       return allEventsResult.when(
         success: (events) {
-          // Filter events by date range
+          // Filter events by date range - include any overlapping events
           final filteredEvents =
               events.where((event) {
-                return event.startTime.isAfter(start) &&
-                    event.endTime.isBefore(end);
+                return event.endTime.isAfter(start) &&
+                    event.startTime.isBefore(end);
               }).toList();
           return filteredEvents;
         },
