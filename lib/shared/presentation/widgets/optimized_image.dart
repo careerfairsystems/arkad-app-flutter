@@ -121,7 +121,7 @@ class CompanyLogoImage extends OptimizedImage {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+            ArkadColors.arkadTurkos.withOpacity(0.1),
             ArkadColors.arkadNavy.withValues(alpha: 0.1),
           ],
         ),

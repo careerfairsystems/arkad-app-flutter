@@ -158,17 +158,11 @@ class EventActions extends StatelessWidget {
       decoration: BoxDecoration(
         color: ArkadColors.arkadNavy.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: ArkadColors.arkadNavy.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: ArkadColors.arkadNavy.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.event_available,
-            color: ArkadColors.arkadNavy,
-            size: 32,
-          ),
+          Icon(Icons.event_available, color: ArkadColors.arkadNavy, size: 32),
           const SizedBox(height: 8),
           Text(
             'You have attended this event',
@@ -181,9 +175,9 @@ class EventActions extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'Your ticket has been used and you have successfully attended this event',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
         ],
@@ -199,7 +193,7 @@ class EventActions extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+            color: ArkadColors.arkadTurkos.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),

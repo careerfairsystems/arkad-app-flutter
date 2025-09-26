@@ -316,7 +316,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+              color: ArkadColors.arkadTurkos.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: ArkadColors.arkadTurkos, size: 20),
@@ -475,7 +475,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                 isSelected
                     ? [
                       BoxShadow(
-                        color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+                        color: ArkadColors.arkadTurkos.withOpacity(0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -591,7 +591,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+                  color: ArkadColors.arkadTurkos.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),

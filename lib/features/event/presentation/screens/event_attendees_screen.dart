@@ -10,10 +10,7 @@ import '../view_models/event_view_model.dart';
 class EventAttendeesScreen extends StatefulWidget {
   final Event event;
 
-  const EventAttendeesScreen({
-    super.key,
-    required this.event,
-  });
+  const EventAttendeesScreen({super.key, required this.event});
 
   @override
   State<EventAttendeesScreen> createState() => _EventAttendeesScreenState();
@@ -72,10 +69,12 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
 
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredAttendees = _attendees!.where((attendee) {
-        return attendee.fullName.toLowerCase().contains(query) ||
-            (attendee.foodPreferences?.toLowerCase().contains(query) ?? false);
-      }).toList();
+      _filteredAttendees =
+          _attendees!.where((attendee) {
+            return attendee.fullName.toLowerCase().contains(query) ||
+                (attendee.foodPreferences?.toLowerCase().contains(query) ??
+                    false);
+          }).toList();
     });
   }
 
@@ -88,10 +87,7 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
         foregroundColor: Colors.white,
       ),
       body: Column(
-        children: [
-          _buildSearchBar(),
-          Expanded(child: _buildBody()),
-        ],
+        children: [_buildSearchBar(), Expanded(child: _buildBody())],
       ),
     );
   }
@@ -169,17 +165,17 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
             const SizedBox(height: 16),
             Text(
               'Failed to load attendees',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               _error ?? 'Something went wrong',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -206,7 +202,7 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+                color: ArkadColors.arkadTurkos.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
@@ -218,9 +214,9 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
             const SizedBox(height: 24),
             Text(
               isSearching ? 'No matching attendees' : 'No attendees yet',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -228,9 +224,9 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
               isSearching
                   ? 'Try adjusting your search terms'
                   : 'No one has registered for this event yet.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
           ],
@@ -267,9 +263,7 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Card(
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -277,13 +271,10 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+                  color: ArkadColors.arkadTurkos.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
-                  Icons.people,
-                  color: ArkadColors.arkadTurkos,
-                ),
+                child: const Icon(Icons.people, color: ArkadColors.arkadTurkos),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -291,7 +282,9 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isFiltered ? '$filteredCount of $totalCount attendees' : '$totalCount attendees',
+                      isFiltered
+                          ? '$filteredCount of $totalCount attendees'
+                          : '$totalCount attendees',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: ArkadColors.arkadNavy,
@@ -318,16 +311,11 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
     return Card(
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+          backgroundColor: ArkadColors.arkadTurkos.withOpacity(0.1),
           child: Text(
             attendee.fullName.isNotEmpty
                 ? attendee.fullName[0].toUpperCase()
@@ -345,29 +333,33 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
             color: ArkadColors.arkadNavy,
           ),
         ),
-        subtitle: attendee.foodPreferences != null && attendee.foodPreferences!.isNotEmpty
-            ? Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.restaurant,
-                      size: 16,
-                      color: ArkadColors.arkadNavy.withValues(alpha: 0.6),
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        attendee.foodPreferences!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: ArkadColors.arkadNavy.withValues(alpha: 0.7),
+        subtitle:
+            attendee.foodPreferences != null &&
+                    attendee.foodPreferences!.isNotEmpty
+                ? Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.restaurant,
+                        size: 16,
+                        color: ArkadColors.arkadNavy.withValues(alpha: 0.6),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          attendee.foodPreferences!,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
+                            color: ArkadColors.arkadNavy.withValues(alpha: 0.7),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              )
-            : null,
+                    ],
+                  ),
+                )
+                : null,
       ),
     );
   }

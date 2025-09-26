@@ -352,7 +352,7 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+        color: ArkadColors.arkadTurkos.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),

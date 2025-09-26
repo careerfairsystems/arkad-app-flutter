@@ -97,7 +97,7 @@ class CompanyCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+        color: ArkadColors.arkadTurkos.withOpacity(0.1),
       ),
       child: Icon(
         Icons.business_rounded,

@@ -7,10 +7,7 @@ import '../../domain/entities/event.dart';
 class EventCoordinatorTools extends StatelessWidget {
   final Event event;
 
-  const EventCoordinatorTools({
-    super.key,
-    required this.event,
-  });
+  const EventCoordinatorTools({super.key, required this.event});
 
   @override
   Widget build(BuildContext context) {
@@ -47,9 +44,7 @@ class EventCoordinatorTools extends StatelessWidget {
   Widget _buildCoordinatorHeader() {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -57,7 +52,7 @@ class EventCoordinatorTools extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+                color: ArkadColors.arkadTurkos.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
@@ -99,9 +94,7 @@ class EventCoordinatorTools extends StatelessWidget {
   }) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
@@ -110,14 +103,10 @@ class EventCoordinatorTools extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+            color: ArkadColors.arkadTurkos.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(
-            icon,
-            color: ArkadColors.arkadTurkos,
-            size: 24,
-          ),
+          child: Icon(icon, color: ArkadColors.arkadTurkos, size: 24),
         ),
         title: Text(
           title,
@@ -144,5 +133,4 @@ class EventCoordinatorTools extends StatelessWidget {
       ),
     );
   }
-
 }
