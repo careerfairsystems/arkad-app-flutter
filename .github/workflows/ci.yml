@@ -70,7 +70,7 @@ jobs:
             -i "https://staging.backend.arkadtlth.se/api/openapi.json" \
             -g dart-dio \
             -o api/arkad_api \
-            --additional-properties=pubName=arkad_api,pubVersion=1.0.0,pubDescription="Generated API client",nullSafe=true
+            --additional-properties=pubName=arkad_api,nullSafe=true
 
           # Complete generation
           cd api/arkad_api
