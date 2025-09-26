@@ -428,7 +428,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                         color: ArkadColors.arkadGreen.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.check_circle,
                         color: ArkadColors.arkadGreen,
                         size: 24,
@@ -439,9 +439,9 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Ticket Consumed Successfully',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
                               color: ArkadColors.arkadNavy,
@@ -458,9 +458,9 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                               color: ArkadColors.arkadGreen,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(
+                            child: const Text(
                               'CONSUMED',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 color: ArkadColors.white,

@@ -87,7 +87,11 @@ class _EventScreenState extends State<EventScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: ArkadColors.lightRed,
+            ),
             const SizedBox(height: 16),
             Text(
               'Failed to load events',
@@ -129,7 +133,7 @@ class _EventScreenState extends State<EventScreen> {
                 color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.event_available,
                 size: 64,
                 color: ArkadColors.arkadTurkos,

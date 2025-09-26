@@ -102,7 +102,7 @@ class ApiErrorHandler {
       case 502:
       case 503:
       case 504:
-        return NetworkException('Server error - please try again later');
+        return const NetworkException('Server error - please try again later');
       default:
         if (statusCode != null && statusCode >= 400) {
           return ApiException(

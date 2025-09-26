@@ -130,7 +130,11 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: ArkadColors.lightRed,
+            ),
             const SizedBox(height: 16),
             Text(
               'Error Loading Event',
@@ -223,7 +227,7 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
       ),
       child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.confirmation_number_outlined,
             size: 48,
             color: Colors.white,
@@ -284,7 +288,11 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: ArkadColors.lightRed),
+            const Icon(
+              Icons.error_outline,
+              size: 48,
+              color: ArkadColors.lightRed,
+            ),
             const SizedBox(height: 8),
             const Text(
               'Failed to load ticket',
@@ -359,7 +367,7 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.info_outline,
                 color: ArkadColors.arkadTurkos,
                 size: 24,

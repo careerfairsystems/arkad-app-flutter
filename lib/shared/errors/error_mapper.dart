@@ -37,7 +37,9 @@ class ErrorMapper {
         if (email != null) {
           return EmailExistsError(email);
         }
-        return ValidationError("An account with this email already exists.");
+        return const ValidationError(
+          "An account with this email already exists.",
+        );
 
       case 429:
         // Rate limiting

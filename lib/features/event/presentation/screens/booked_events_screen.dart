@@ -77,7 +77,11 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: ArkadColors.lightRed,
+            ),
             const SizedBox(height: 16),
             Text(
               'Failed to load booked events',
@@ -119,7 +123,7 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
                 color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.event_note,
                 size: 64,
                 color: ArkadColors.arkadTurkos,

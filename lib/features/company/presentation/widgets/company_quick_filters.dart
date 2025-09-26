@@ -45,14 +45,14 @@ class CompanyQuickFilters extends StatelessWidget {
             height: 48,
             child: ShaderMask(
               shaderCallback: (Rect bounds) {
-                return LinearGradient(
+                return const LinearGradient(
                   colors: [
                     Colors.transparent,
                     Colors.black,
                     Colors.black,
                     Colors.transparent,
                   ],
-                  stops: const [0.0, 0.03, 0.97, 1.0],
+                  stops: [0.0, 0.03, 0.97, 1.0],
                 ).createShader(bounds);
               },
               blendMode: BlendMode.dstIn,
@@ -256,11 +256,11 @@ class CompanyQuickFilters extends StatelessWidget {
       child: ActionChip(
         elevation: 1,
         shadowColor: ArkadColors.lightRed.withValues(alpha: 0.2),
-        label: Row(
+        label: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.clear_rounded, size: 16, color: Colors.white),
-            const SizedBox(width: 6),
+            SizedBox(width: 6),
             Text(
               'Clear All',
               style: TextStyle(

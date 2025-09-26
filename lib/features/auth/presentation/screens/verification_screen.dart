@@ -132,8 +132,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4.0, bottom: 8.0),
                       child: Text(
                         'Verification Code',
                         style: TextStyle(

@@ -10,5 +10,8 @@ format-check:
 		exit 1; \
 	fi
 
-fix: lint fmt
+fix:
+	dart fix --apply
+	make lint
+	make fmt
 

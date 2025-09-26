@@ -99,7 +99,7 @@ class _StudentSessionsScreen extends State<StudentSessionsScreen> {
                           ),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
-                            gradient: LinearGradient(
+                            gradient: const LinearGradient(
                               colors: [
                                 ArkadColors.arkadNavy,
                                 ArkadColors.arkadTurkos,

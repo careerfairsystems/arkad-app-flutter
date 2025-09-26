@@ -56,7 +56,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     return Scaffold(
       appBar: AppBar(),
       body: Align(
-        alignment: FractionalOffset(0.5, 0.4), // x: center, y: 1/3 from top
+        alignment: const FractionalOffset(
+          0.5,
+          0.4,
+        ), // x: center, y: 1/3 from top
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),

@@ -190,17 +190,15 @@ class _MapScreenState extends State<MapScreen> {
       builder:
           (context) => AlertDialog(
             title: Text(_selectedLocation),
-            content: Column(
+            content: const Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Opening Hours: 9:00 AM - 5:00 PM'),
-                const SizedBox(height: 8),
-                const Text('Number of Companies: 42'),
-                const SizedBox(height: 8),
-                const Text(
-                  'Facilities: Restrooms, Refreshments, Information Desk',
-                ),
+                Text('Opening Hours: 9:00 AM - 5:00 PM'),
+                SizedBox(height: 8),
+                Text('Number of Companies: 42'),
+                SizedBox(height: 8),
+                Text('Facilities: Restrooms, Refreshments, Information Desk'),
               ],
             ),
             actions: [

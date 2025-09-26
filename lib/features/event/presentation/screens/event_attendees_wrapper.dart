@@ -83,7 +83,11 @@ class _EventAttendeesWrapperState extends State<EventAttendeesWrapper> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+              const Icon(
+                Icons.error_outline,
+                size: 64,
+                color: ArkadColors.lightRed,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Failed to load event',
@@ -126,7 +130,11 @@ class _EventAttendeesWrapperState extends State<EventAttendeesWrapper> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.event_busy, size: 64, color: ArkadColors.lightRed),
+              const Icon(
+                Icons.event_busy,
+                size: 64,
+                color: ArkadColors.lightRed,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Event Not Found',

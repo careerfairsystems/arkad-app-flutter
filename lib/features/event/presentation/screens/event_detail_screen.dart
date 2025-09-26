@@ -96,7 +96,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+              const Icon(
+                Icons.error_outline,
+                size: 64,
+                color: ArkadColors.lightRed,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Failed to load event',
@@ -135,7 +139,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.event_busy, size: 64, color: ArkadColors.lightRed),
+              const Icon(
+                Icons.event_busy,
+                size: 64,
+                color: ArkadColors.lightRed,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Event Not Found',
@@ -421,7 +429,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       children: [
         Row(
           children: [
-            Icon(Icons.people, size: 16, color: ArkadColors.arkadTurkos),
+            const Icon(Icons.people, size: 16, color: ArkadColors.arkadTurkos),
             const SizedBox(width: 4),
             Text(
               '${event.currentParticipants}${event.maxParticipants != null ? '/${event.maxParticipants}' : ''} participants',

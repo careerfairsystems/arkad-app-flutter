@@ -380,7 +380,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                             color: ArkadColors.lightRed.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.clear_rounded,
                             size: 16,
                             color: ArkadColors.lightRed,
@@ -405,7 +405,10 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: ArkadColors.arkadTurkos, width: 2),
+              borderSide: const BorderSide(
+                color: ArkadColors.arkadTurkos,
+                width: 2,
+              ),
             ),
             filled: true,
             fillColor: ArkadColors.white,
@@ -599,7 +602,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                 ),
                 child: Text(
                   '$totalSelected filter${totalSelected == 1 ? '' : 's'} will be applied',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: ArkadColors.arkadTurkos,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
@@ -712,12 +715,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
 
   void _clearAllFilters() {
     setState(() {
-      _currentFilter = CompanyFilter(
-        degrees: [],
-        competences: [],
-        positions: [],
-        industries: [],
-      );
+      _currentFilter = const CompanyFilter();
     });
   }
 }

@@ -282,7 +282,7 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Password must:',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -358,7 +358,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     await launchUrl(url, mode: LaunchMode.externalApplication);
                   }
                 },
-                child: Text(
+                child: const Text(
                   'privacy policy',
                   style: TextStyle(
                     color: ArkadColors.arkadTurkos,

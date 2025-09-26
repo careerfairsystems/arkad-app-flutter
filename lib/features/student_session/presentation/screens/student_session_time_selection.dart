@@ -194,7 +194,9 @@ class _StudentSessionTimeSelection
                                   ),
                                   leading: Radio<TimeslotSchema>(
                                     value: slot,
+                                    // ignore: deprecated_member_use
                                     groupValue: _selectedSlot,
+                                    // ignore: deprecated_member_use
                                     onChanged: (TimeslotSchema? value) {
                                       if (value != null) {
                                         _selectTimeSlot(value);

@@ -81,7 +81,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(RateLimitError(const Duration(minutes: 5)));
+        return Result.failure(const RateLimitError(Duration(minutes: 5)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
@@ -135,7 +135,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(RateLimitError(const Duration(minutes: 5)));
+        return Result.failure(const RateLimitError(Duration(minutes: 5)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
@@ -180,7 +180,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(RateLimitError(const Duration(minutes: 5)));
+        return Result.failure(const RateLimitError(Duration(minutes: 5)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
@@ -214,7 +214,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(RateLimitError(const Duration(minutes: 5)));
+        return Result.failure(const RateLimitError(Duration(minutes: 5)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
@@ -351,7 +351,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(RateLimitError(const Duration(minutes: 5)));
+        return Result.failure(const RateLimitError(Duration(minutes: 5)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));

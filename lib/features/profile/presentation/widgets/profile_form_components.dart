@@ -190,7 +190,7 @@ class ProfileFormComponents {
               bottom: 0,
               right: 0,
               child: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: ArkadColors.arkadTurkos,
                   shape: BoxShape.circle,
                 ),

@@ -24,12 +24,7 @@ class CompaniesScreen extends StatefulWidget {
 class _CompaniesScreenState extends State<CompaniesScreen> {
   late final TextEditingController _searchController;
 
-  CompanyFilter _currentFilter = CompanyFilter(
-    degrees: [],
-    competences: [],
-    positions: [],
-    industries: [],
-  );
+  CompanyFilter _currentFilter = const CompanyFilter();
 
   StreamSubscription? _logoutSubscription;
 
@@ -60,12 +55,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     if (mounted) {
       setState(() {
         _searchController.clear();
-        _currentFilter = CompanyFilter(
-          degrees: [],
-          competences: [],
-          positions: [],
-          industries: [],
-        );
+        _currentFilter = const CompanyFilter();
       });
     }
   }
@@ -123,8 +113,8 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               hintText: 'Search companies...',
               prefixIcon:
                   viewModel.isSearching
-                      ? Padding(
-                        padding: const EdgeInsets.all(14),
+                      ? const Padding(
+                        padding: EdgeInsets.all(14),
                         child: SizedBox(
                           width: 20,
                           height: 20,
@@ -153,7 +143,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: ArkadColors.arkadTurkos,
                   width: 2,
                 ),
@@ -197,7 +187,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             Icons.filter_list_rounded,
             size: 16,
             color: ArkadColors.arkadTurkos,
@@ -332,12 +322,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
 
   void _clearAllFilters() {
     setState(() {
-      _currentFilter = CompanyFilter(
-        degrees: [],
-        competences: [],
-        positions: [],
-        industries: [],
-      );
+      _currentFilter = const CompanyFilter();
     });
     _applyFilters();
   }

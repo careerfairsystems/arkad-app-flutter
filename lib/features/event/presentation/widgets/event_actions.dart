@@ -78,7 +78,7 @@ class EventActions extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(
+              const Icon(
                 Icons.check_circle_outline,
                 color: ArkadColors.arkadGreen,
                 size: 32,
@@ -162,7 +162,11 @@ class EventActions extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.event_available, color: ArkadColors.arkadNavy, size: 32),
+          const Icon(
+            Icons.event_available,
+            color: ArkadColors.arkadNavy,
+            size: 32,
+          ),
           const SizedBox(height: 8),
           Text(
             'You have attended this event',
@@ -201,7 +205,7 @@ class EventActions extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(
+              const Icon(
                 Icons.lock_outline,
                 color: ArkadColors.arkadTurkos,
                 size: 32,

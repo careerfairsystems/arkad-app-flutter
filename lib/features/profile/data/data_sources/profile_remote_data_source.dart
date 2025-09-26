@@ -95,13 +95,13 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
-          throw AuthException('Authentication required');
+          throw const AuthException('Authentication required');
         } else if (e.response?.statusCode == 413) {
-          throw ValidationException('Image file is too large');
+          throw const ValidationException('Image file is too large');
         } else if (e.response?.statusCode == 415) {
-          throw ValidationException('Unsupported image format');
+          throw const ValidationException('Unsupported image format');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException(
+          throw const ApiException(
             'Too many requests. Please wait before trying again.',
           );
         }
@@ -133,13 +133,13 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
-          throw AuthException('Authentication required');
+          throw const AuthException('Authentication required');
         } else if (e.response?.statusCode == 413) {
-          throw ValidationException('CV file is too large');
+          throw const ValidationException('CV file is too large');
         } else if (e.response?.statusCode == 415) {
-          throw ValidationException('Unsupported file format');
+          throw const ValidationException('Unsupported file format');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException(
+          throw const ApiException(
             'Too many requests. Please wait before trying again.',
           );
         }
@@ -164,11 +164,11 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
-          throw AuthException('Authentication required');
+          throw const AuthException('Authentication required');
         } else if (e.response?.statusCode == 404) {
-          throw ApiException('Profile picture not found');
+          throw const ApiException('Profile picture not found');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException(
+          throw const ApiException(
             'Too many requests. Please wait before trying again.',
           );
         }
@@ -190,11 +190,11 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
-          throw AuthException('Authentication required');
+          throw const AuthException('Authentication required');
         } else if (e.response?.statusCode == 404) {
-          throw ApiException('CV not found');
+          throw const ApiException('CV not found');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException(
+          throw const ApiException(
             'Too many requests. Please wait before trying again.',
           );
         }

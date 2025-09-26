@@ -544,7 +544,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.calendar_month_rounded,
                       color: Colors.white,
                       size: 24,

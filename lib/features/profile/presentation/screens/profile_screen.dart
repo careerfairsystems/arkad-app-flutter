@@ -62,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error, color: ArkadColors.lightRed, size: 48),
+            const Icon(Icons.error, color: ArkadColors.lightRed, size: 48),
             const SizedBox(height: 16),
             Text(error.userMessage, textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -127,10 +127,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
               bottom: TabBar(
-                tabs: [
-                  const Tab(text: "Info"),
-                  const Tab(text: "Events"),
-                  const Tab(text: "Student Sessions"),
+                tabs: const [
+                  Tab(text: "Info"),
+                  Tab(text: "Events"),
+                  Tab(text: "Student Sessions"),
                 ],
                 labelColor: ArkadColors.white,
                 unselectedLabelColor: ArkadColors.white.withValues(alpha: 0.7),
@@ -150,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 // Events Tab
-                Center(child: BookedEventsScreen()),
+                const Center(child: BookedEventsScreen()),
                 // Student Sessions Tab
                 Center(
                   child: Text(

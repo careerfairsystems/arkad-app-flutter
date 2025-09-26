@@ -51,11 +51,11 @@ class AuthFormWidgets {
         isDense: true,
         alignLabelWithHint: true,
         prefixIconConstraints: const BoxConstraints(minWidth: 50),
-        prefixIcon: Align(
+        prefixIcon: const Align(
           widthFactor: 1.0,
           heightFactor: 1.0,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12.0),
+            padding: EdgeInsets.only(left: 12.0),
             child: Icon(Icons.email, color: ArkadColors.arkadTurkos, size: 24),
           ),
         ),
@@ -73,28 +73,28 @@ class AuthFormWidgets {
                 )
                 : null,
         errorText: errorText,
-        errorStyle: TextStyle(color: ArkadColors.lightRed, fontSize: 12),
+        errorStyle: const TextStyle(color: ArkadColors.lightRed, fontSize: 12),
         errorBorder:
             errorText != null
-                ? OutlineInputBorder(
+                ? const OutlineInputBorder(
                   borderSide: BorderSide(color: ArkadColors.lightRed),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
                 )
                 : null,
         focusedErrorBorder:
             errorText != null
-                ? OutlineInputBorder(
+                ? const OutlineInputBorder(
                   borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
                 )
                 : null,
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(8),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: ArkadColors.arkadTurkos),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.all(Radius.circular(8)),
         ),
       ),
       keyboardType: TextInputType.emailAddress,
@@ -131,11 +131,11 @@ class AuthFormWidgets {
         isDense: true,
         alignLabelWithHint: true,
         prefixIconConstraints: const BoxConstraints(minWidth: 50),
-        prefixIcon: Align(
+        prefixIcon: const Align(
           widthFactor: 1.0,
           heightFactor: 1.0,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12.0),
+            padding: EdgeInsets.only(left: 12.0),
             child: Icon(Icons.lock, color: ArkadColors.arkadTurkos, size: 24),
           ),
         ),
@@ -167,28 +167,28 @@ class AuthFormWidgets {
                 )
                 : null,
         errorText: errorText,
-        errorStyle: TextStyle(color: ArkadColors.lightRed, fontSize: 12),
+        errorStyle: const TextStyle(color: ArkadColors.lightRed, fontSize: 12),
         errorBorder:
             errorText != null
-                ? OutlineInputBorder(
+                ? const OutlineInputBorder(
                   borderSide: BorderSide(color: ArkadColors.lightRed),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
                 )
                 : null,
         focusedErrorBorder:
             errorText != null
-                ? OutlineInputBorder(
+                ? const OutlineInputBorder(
                   borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
                 )
                 : null,
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(8),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: ArkadColors.arkadTurkos),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.all(Radius.circular(8)),
         ),
       ),
       obscureText: obscureText,
@@ -283,7 +283,7 @@ class AuthFormWidgets {
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Text(
         errorMessage,
-        style: TextStyle(color: ArkadColors.lightRed),
+        style: const TextStyle(color: ArkadColors.lightRed),
         textAlign: TextAlign.center,
       ),
     );
@@ -296,7 +296,7 @@ class AuthFormWidgets {
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Text(
         errorMessage,
-        style: TextStyle(color: ArkadColors.arkadGreen, fontSize: 18),
+        style: const TextStyle(color: ArkadColors.arkadGreen, fontSize: 18),
         textAlign: TextAlign.center,
       ),
     );
@@ -335,7 +335,7 @@ class AuthFormWidgets {
             padding: const EdgeInsets.only(left: 36.0),
             child: Text(
               errorText,
-              style: TextStyle(color: ArkadColors.lightRed, fontSize: 12),
+              style: const TextStyle(color: ArkadColors.lightRed, fontSize: 12),
             ),
           ),
       ],
