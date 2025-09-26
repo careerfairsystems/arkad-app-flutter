@@ -5,7 +5,6 @@ import '../../domain/entities/event_status.dart';
 /// Mapper for converting between Event domain entity and EventSchema DTO
 class EventMapper {
   /// Convert EventSchema DTO to Event domain entity
-  /// Note: EventSchema doesn't include ID, so we need to provide it separately
   Event fromApiSchema(EventSchema schema) {
     return Event(
       id: schema.id,
