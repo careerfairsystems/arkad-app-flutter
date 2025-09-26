@@ -183,7 +183,7 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
     final now = DateTime.now();
     final upcomingBookedEvents =
         viewModel.bookedEvents
-            .where((event) => event.endTime.isAfter(now))
+            .where((event) => !event.endTime.isBefore(now))
             .toList()
           ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
