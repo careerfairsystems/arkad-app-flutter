@@ -97,7 +97,7 @@ class EventActions extends StatelessWidget {
                 'You will receive updates and reminders about this event',
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                ).textTheme.bodyMedium?.copyWith(color: ArkadColors.gray),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -181,7 +181,7 @@ class EventActions extends StatelessWidget {
             'Your ticket has been used and you have successfully attended this event',
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+            ).textTheme.bodyMedium?.copyWith(color: ArkadColors.gray),
             textAlign: TextAlign.center,
           ),
         ],
@@ -223,7 +223,7 @@ class EventActions extends StatelessWidget {
                 'You need to sign in or create an account to register for this event',
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                ).textTheme.bodyMedium?.copyWith(color: ArkadColors.gray),
                 textAlign: TextAlign.center,
               ),
             ],
