@@ -41,7 +41,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Set up Flutter
         if: steps.api-cache.outputs.cache-hit != 'true'
@@ -53,7 +53,7 @@ jobs:
 
       - name: Install OpenAPI Generator
         if: steps.api-cache.outputs.cache-hit != 'true'
-        run: npm install -g @openapitools/openapi-generator-cli
+        run: pnpm install -g @openapitools/openapi-generator-cli
 
       - name: Generate API Client
         if: steps.api-cache.outputs.cache-hit != 'true'
