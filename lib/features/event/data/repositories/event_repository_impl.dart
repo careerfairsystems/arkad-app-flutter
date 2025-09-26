@@ -4,7 +4,6 @@ import '../../domain/entities/event.dart';
 import '../../domain/entities/event_attendee.dart';
 import '../../domain/entities/ticket_verification_result.dart';
 import '../../domain/repositories/event_repository.dart';
-import '../data_sources/event_local_data_source.dart';
 import '../data_sources/event_remote_data_source.dart';
 import '../mappers/event_attendee_mapper.dart';
 import '../mappers/event_mapper.dart';
@@ -13,19 +12,16 @@ import '../mappers/ticket_verification_mapper.dart';
 /// Implementation of event repository
 class EventRepositoryImpl extends BaseRepository implements EventRepository {
   final EventRemoteDataSource _remoteDataSource;
-  final EventLocalDataSource _localDataSource;
   final EventMapper _mapper;
   final EventAttendeeMapper _attendeeMapper;
   final TicketVerificationMapper _ticketMapper;
 
   EventRepositoryImpl({
     required EventRemoteDataSource remoteDataSource,
-    required EventLocalDataSource localDataSource,
     required EventMapper mapper,
     required EventAttendeeMapper attendeeMapper,
     required TicketVerificationMapper ticketMapper,
   }) : _remoteDataSource = remoteDataSource,
-       _localDataSource = localDataSource,
        _mapper = mapper,
        _attendeeMapper = attendeeMapper,
        _ticketMapper = ticketMapper;
@@ -33,12 +29,6 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
   @override
   Future<Result<List<Event>>> getEvents() async {
     return executeOperation(() async {
-      // Try cache first
-      final cachedEvents = _localDataSource.getCachedEvents();
-      if (cachedEvents != null) {
-        return cachedEvents;
-      }
-
       // Fetch from remote
       final eventSchemas = await _remoteDataSource.getEvents();
 
@@ -49,9 +39,6 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
             return _mapper.fromApiSchema(entry.value);
           }).toList();
 
-      // Cache the results
-      _localDataSource.cacheEvents(events);
-
       return events;
     }, 'get events');
   }
@@ -59,12 +46,6 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
   @override
   Future<Result<Event>> getEventById(int id) async {
     return executeOperation(() async {
-      // Try cache first
-      final cachedEvent = _localDataSource.getCachedEventById(id);
-      if (cachedEvent != null) {
-        return cachedEvent;
-      }
-
       // Fetch from remote
       final eventSchema = await _remoteDataSource.getEventById(id);
 
@@ -104,9 +85,6 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
     return executeOperation(() async {
       // Book the event
       await _remoteDataSource.bookEvent(eventId);
-
-      // Clear cache to force refresh next time
-      _localDataSource.clearCache();
     }, 'register for event');
   }
 
@@ -115,9 +93,6 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
     return executeOperation(() async {
       // Unbook the event
       await _remoteDataSource.unbookEvent(eventId);
-
-      // Clear cache to force refresh next time
-      _localDataSource.clearCache();
     }, 'unregister from event');
   }
 
@@ -144,9 +119,6 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
   @override
   Future<Result<void>> refreshEvents() async {
     return executeOperation(() async {
-      // Clear cache
-      _localDataSource.clearCache();
-
       // Force refresh from remote
       await getEvents();
     }, 'refresh events');

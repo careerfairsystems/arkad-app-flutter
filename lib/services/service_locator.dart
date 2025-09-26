@@ -34,7 +34,6 @@ import '../features/company/presentation/commands/search_and_filter_companies_co
 import '../features/company/presentation/commands/search_companies_command.dart';
 import '../features/company/presentation/view_models/company_detail_view_model.dart';
 import '../features/company/presentation/view_models/company_view_model.dart';
-import '../features/event/data/data_sources/event_local_data_source.dart';
 import '../features/event/data/data_sources/event_remote_data_source.dart';
 import '../features/event/data/mappers/event_attendee_mapper.dart';
 import '../features/event/data/mappers/event_mapper.dart';
@@ -355,9 +354,6 @@ void _setupEventFeature() {
   serviceLocator.registerLazySingleton<EventRemoteDataSource>(
     () => EventRemoteDataSource(serviceLocator<ArkadApi>()),
   );
-  serviceLocator.registerLazySingleton<EventLocalDataSource>(
-    () => EventLocalDataSource(),
-  );
 
   // Mappers
   serviceLocator.registerLazySingleton<EventMapper>(() => EventMapper());
@@ -372,7 +368,6 @@ void _setupEventFeature() {
   serviceLocator.registerLazySingleton<EventRepository>(
     () => EventRepositoryImpl(
       remoteDataSource: serviceLocator<EventRemoteDataSource>(),
-      localDataSource: serviceLocator<EventLocalDataSource>(),
       mapper: serviceLocator<EventMapper>(),
       attendeeMapper: serviceLocator<EventAttendeeMapper>(),
       ticketMapper: serviceLocator<TicketVerificationMapper>(),
