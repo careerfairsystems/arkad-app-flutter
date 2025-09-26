@@ -233,9 +233,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
     await authViewModel.startSignUp(signupData);
 
-    if (mounted && authViewModel.signUpCommand.isCompleted) {
+    if (mounted && authViewModel.signUpCommand.isCompleted && !authViewModel.signUpCommand.hasError) {
       // Complete autofill context to help password managers save credentials
-      TextInput.finishAutofillContext();
+      await TextInput.finishAutofillContext(shouldSave: true);
       await context.push('/auth/verification');
     }
   }
