@@ -52,7 +52,7 @@ class EventCoordinatorTools extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: ArkadColors.arkadTurkos.withOpacity(0.1),
+                color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
@@ -103,7 +103,7 @@ class EventCoordinatorTools extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: ArkadColors.arkadTurkos.withOpacity(0.1),
+            color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: ArkadColors.arkadTurkos, size: 24),

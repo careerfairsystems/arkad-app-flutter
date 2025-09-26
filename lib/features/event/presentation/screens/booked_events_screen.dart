@@ -116,7 +116,7 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: ArkadColors.arkadTurkos.withOpacity(0.1),
+                color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
@@ -204,7 +204,7 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: ArkadColors.arkadTurkos.withOpacity(0.1),
+            color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(

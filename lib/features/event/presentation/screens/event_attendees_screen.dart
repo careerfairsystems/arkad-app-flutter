@@ -202,7 +202,7 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: ArkadColors.arkadTurkos.withOpacity(0.1),
+                color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
@@ -271,7 +271,7 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: ArkadColors.arkadTurkos.withOpacity(0.1),
+                  color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.people, color: ArkadColors.arkadTurkos),
@@ -315,7 +315,7 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: ArkadColors.arkadTurkos.withOpacity(0.1),
+          backgroundColor: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
           child: Text(
             attendee.fullName.isNotEmpty
                 ? attendee.fullName[0].toUpperCase()

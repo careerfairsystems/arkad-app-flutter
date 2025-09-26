@@ -193,7 +193,7 @@ class EventActions extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: ArkadColors.arkadTurkos.withOpacity(0.1),
+            color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
