@@ -25,21 +25,6 @@ class ApiErrorHandler {
       }
     }
 
-    // Create detailed error context
-    final errorContext = {
-      'operation': operationName ?? 'API call',
-      'method': requestOptions.method,
-      'url': requestOptions.uri.toString(),
-      'statusCode': response?.statusCode,
-      'statusMessage': response?.statusMessage,
-      'responseBody': responseBody,
-      'requestHeaders': _sanitizeHeaders(requestOptions.headers),
-      'responseHeaders': response?.headers.map,
-      'dioErrorType': dioException.type.toString(),
-      'dioErrorMessage': dioException.message,
-      ...?additionalContext,
-    };
-
     // Debug logging (only in debug mode)
     if (kDebugMode) {
       print('=== API Error Details ===');
@@ -66,7 +51,12 @@ class ApiErrorHandler {
           'status_code',
           response?.statusCode?.toString() ?? 'unknown',
         );
-        scope.setExtra('api_error_details', errorContext);
+        // Note: setExtra is deprecated but setContext isn't available in this version
+        // We'll use tags for now since they're supported
+        scope.setTag('operation', operationName ?? 'unknown');
+        if (additionalContext?.isNotEmpty == true) {
+          scope.setTag('additional_context', additionalContext.toString());
+        }
       },
     );
 
@@ -147,28 +137,5 @@ class ApiErrorHandler {
     }
 
     return responseData.toString();
-  }
-
-  /// Sanitize headers to remove sensitive information
-  static Map<String, dynamic> _sanitizeHeaders(Map<String, dynamic> headers) {
-    final sanitized = Map<String, dynamic>.from(headers);
-
-    // Remove sensitive headers
-    const sensitiveKeys = [
-      'authorization',
-      'Authorization',
-      'cookie',
-      'Cookie',
-      'x-api-key',
-      'X-API-Key',
-    ];
-
-    for (final key in sensitiveKeys) {
-      if (sanitized.containsKey(key)) {
-        sanitized[key] = '[REDACTED]';
-      }
-    }
-
-    return sanitized;
   }
 }

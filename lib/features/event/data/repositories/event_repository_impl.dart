@@ -1,13 +1,11 @@
-import 'package:arkad_api/arkad_api.dart';
-
 import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/event_attendee.dart';
 import '../../domain/entities/ticket_verification_result.dart';
 import '../../domain/repositories/event_repository.dart';
-import '../data_sources/event_remote_data_source.dart';
 import '../data_sources/event_local_data_source.dart';
+import '../data_sources/event_remote_data_source.dart';
 import '../mappers/event_attendee_mapper.dart';
 import '../mappers/event_mapper.dart';
 import '../mappers/ticket_verification_mapper.dart';
@@ -132,9 +130,10 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
       return allEventsResult.when(
         success: (events) {
           // Filter events that are booked or have tickets used
-          final bookedEvents = events.where((event) {
-            return event.status?.isBooked == true;
-          }).toList();
+          final bookedEvents =
+              events.where((event) {
+                return event.status?.isBooked == true;
+              }).toList();
           return bookedEvents;
         },
         failure: (error) => throw Exception(error.userMessage),
@@ -153,7 +152,6 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
     }, 'refresh events');
   }
 
-
   @override
   Future<Result<String>> getEventTicket(int eventId) async {
     return executeOperation(() async {
@@ -165,19 +163,25 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
   Future<Result<List<EventAttendee>>> getEventAttendees(int eventId) async {
     return executeOperation(() async {
       // Fetch attendees from remote
-      final attendeeSchemas = await _remoteDataSource.getEventAttendees(eventId);
+      final attendeeSchemas = await _remoteDataSource.getEventAttendees(
+        eventId,
+      );
 
       // Convert to domain entities
-      final attendees = attendeeSchemas
-          .map((schema) => _attendeeMapper.fromApiSchema(schema))
-          .toList();
+      final attendees =
+          attendeeSchemas
+              .map((schema) => _attendeeMapper.fromApiSchema(schema))
+              .toList();
 
       return attendees;
     }, 'get event attendees');
   }
 
   @override
-  Future<Result<TicketVerificationResult>> useTicket(String token, int eventId) async {
+  Future<Result<TicketVerificationResult>> useTicket(
+    String token,
+    int eventId,
+  ) async {
     return executeOperation(() async {
       try {
         final ticketSchema = await _remoteDataSource.useTicket(token, eventId);

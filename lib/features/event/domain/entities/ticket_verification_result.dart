@@ -24,7 +24,8 @@ class TicketVerificationResult {
   });
 
   @override
-  String toString() => 'TicketVerificationResult(status: $status, uuid: $uuid, eventId: $eventId)';
+  String toString() =>
+      'TicketVerificationResult(status: $status, uuid: $uuid, eventId: $eventId)';
 
   @override
   bool operator ==(Object other) {

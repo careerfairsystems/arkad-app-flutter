@@ -305,7 +305,8 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
                       vertical: 16,
                     ),
                   ),
-                  value: _selectedProgramme, // Directly use Programme? type
+                  initialValue:
+                      _selectedProgramme, // Directly use Programme? type
                   hint: const Text('Select your programme'),
                   validator: (value) {
                     if (value == null) {
@@ -341,7 +342,7 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
                     labelText: 'Study Year *',
                     border: OutlineInputBorder(),
                   ),
-                  value: _studyYear, // Pre-filled by _loadUserData
+                  initialValue: _studyYear, // Pre-filled by _loadUserData
                   hint: const Text('Select your study year'),
                   validator: (value) {
                     if (value == null) {

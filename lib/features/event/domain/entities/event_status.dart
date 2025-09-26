@@ -17,7 +17,8 @@ enum EventStatus {
   }
 
   /// Check if user has booked this event (includes ticket used)
-  bool get isBooked => this == EventStatus.booked || this == EventStatus.ticketUsed;
+  bool get isBooked =>
+      this == EventStatus.booked || this == EventStatus.ticketUsed;
 
   /// Check if ticket has been used for this event
   bool get hasAttended => this == EventStatus.ticketUsed;

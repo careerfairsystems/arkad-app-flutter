@@ -1,5 +1,3 @@
-import 'package:arkad/shared/data/api_error_handler.dart';
-import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
@@ -123,7 +121,6 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                         ArkadButton(
                           text: 'Close',
                           onPressed: () => Navigator.of(context).pop(),
-                          variant: ArkadButtonVariant.primary,
                           fullWidth: true,
                         ),
                       ],
@@ -177,7 +174,6 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: ArkadColors.arkadTurkos.withValues(alpha: 0.5),
-                      width: 1,
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -407,7 +403,6 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
   }
 
   Widget _buildTicketResultCard(TicketVerificationResult ticket) {
-    final isConsumed = ticket.status == TicketVerificationStatus.consumed;
     final fullName = ticket.userInfo?.fullName ?? 'Unknown User';
 
     return Container(

@@ -361,8 +361,12 @@ void _setupEventFeature() {
 
   // Mappers
   serviceLocator.registerLazySingleton<EventMapper>(() => EventMapper());
-  serviceLocator.registerLazySingleton<EventAttendeeMapper>(() => EventAttendeeMapper());
-  serviceLocator.registerLazySingleton<TicketVerificationMapper>(() => TicketVerificationMapper());
+  serviceLocator.registerLazySingleton<EventAttendeeMapper>(
+    () => EventAttendeeMapper(),
+  );
+  serviceLocator.registerLazySingleton<TicketVerificationMapper>(
+    () => TicketVerificationMapper(),
+  );
 
   // Repository
   serviceLocator.registerLazySingleton<EventRepository>(

@@ -464,23 +464,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     }
   }
 
-  IconData _getEventTypeIcon(EventType type) {
-    switch (type) {
-      case EventType.presentation:
-        return Icons.slideshow;
-      case EventType.workshop:
-        return Icons.build;
-      case EventType.networking:
-        return Icons.people;
-      case EventType.panel:
-        return Icons.forum;
-      case EventType.careerFair:
-        return Icons.business;
-      case EventType.social:
-        return Icons.celebration;
-    }
-  }
-
   String _formatDuration(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);

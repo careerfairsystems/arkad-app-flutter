@@ -70,7 +70,7 @@ class ProfileFormComponents {
             border: OutlineInputBorder(),
             helperText: 'Optional',
           ),
-          value: selectedProgramme,
+          initialValue: selectedProgramme,
           hint: const Text('Select your programme'),
           items:
               availableProgrammes.map((program) {
@@ -94,7 +94,7 @@ class ProfileFormComponents {
             border: OutlineInputBorder(),
             helperText: 'Optional',
           ),
-          value: studyYear,
+          initialValue: studyYear,
           hint: const Text('Select your study year'),
           items:
               [1, 2, 3, 4, 5].map((year) {

@@ -9,9 +9,10 @@ class TicketVerificationMapper {
   /// This is used when the API call is successful and returns ticket data
   TicketVerificationResult fromSuccessfulTicketSchema(TicketSchema schema) {
     return TicketVerificationResult(
-      status: schema.used
-          ? TicketVerificationStatus.alreadyUsed
-          : TicketVerificationStatus.consumed,
+      status:
+          schema.used
+              ? TicketVerificationStatus.alreadyUsed
+              : TicketVerificationStatus.consumed,
       uuid: schema.uuid,
       eventId: schema.eventId,
       userInfo: _mapUserEventInfo(schema.user),
@@ -25,7 +26,6 @@ class TicketVerificationMapper {
       status: TicketVerificationStatus.alreadyUsed,
       uuid: uuid,
       eventId: eventId,
-      userInfo: null,
     );
   }
 

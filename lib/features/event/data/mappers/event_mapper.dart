@@ -95,6 +95,8 @@ class EventMapper {
         return EventStatus.booked;
       case EventUserStatus.ticketUsed:
         return EventStatus.ticketUsed;
+      default:
+        return EventStatus.notBooked;
     }
   }
 

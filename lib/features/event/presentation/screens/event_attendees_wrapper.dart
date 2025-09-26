@@ -9,10 +9,7 @@ import 'event_attendees_screen.dart';
 class EventAttendeesWrapper extends StatefulWidget {
   final int eventId;
 
-  const EventAttendeesWrapper({
-    super.key,
-    required this.eventId,
-  });
+  const EventAttendeesWrapper({super.key, required this.eventId});
 
   @override
   State<EventAttendeesWrapper> createState() => _EventAttendeesWrapperState();
@@ -90,17 +87,17 @@ class _EventAttendeesWrapperState extends State<EventAttendeesWrapper> {
               const SizedBox(height: 16),
               Text(
                 'Failed to load event',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 viewModel.error?.userMessage ?? 'Something went wrong',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -133,17 +130,17 @@ class _EventAttendeesWrapperState extends State<EventAttendeesWrapper> {
               const SizedBox(height: 16),
               Text(
                 'Event Not Found',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 'The event you\'re looking for doesn\'t exist or has been removed.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),

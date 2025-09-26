@@ -21,7 +21,6 @@ class EventTicketScreen extends StatefulWidget {
 class _EventTicketScreenState extends State<EventTicketScreen> {
   String? _ticketUuid;
   bool _isLoadingTicket = false;
-  double? _originalBrightness;
 
   @override
   void initState() {
@@ -58,7 +57,7 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
     try {
       await ScreenBrightness().setApplicationScreenBrightness(1.0);
     } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+      await Sentry.captureException(e, stackTrace: stackTrace);
     }
   }
 
@@ -66,7 +65,7 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
     try {
       await ScreenBrightness().resetApplicationScreenBrightness();
     } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+      await Sentry.captureException(e, stackTrace: stackTrace);
     }
   }
 
@@ -151,7 +150,6 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
             ArkadButton(
               text: 'Try Again',
               onPressed: () => _loadEventAndTicket(),
-              variant: ArkadButtonVariant.primary,
             ),
           ],
         ),
@@ -192,7 +190,6 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Ticket Header
           _buildTicketHeader(event),
@@ -326,7 +323,6 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
               Center(
                 child: QrImageView(
                   data: _ticketUuid!,
-                  version: QrVersions.auto,
                   size: qrSize,
                   backgroundColor: Colors.white,
                 ),

@@ -1,9 +1,6 @@
 /// Domain entity representing an event attendee
 class EventAttendee {
-  const EventAttendee({
-    required this.fullName,
-    this.foodPreferences,
-  });
+  const EventAttendee({required this.fullName, this.foodPreferences});
 
   final String fullName;
   final String? foodPreferences;

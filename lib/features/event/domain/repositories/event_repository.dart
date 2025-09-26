@@ -1,5 +1,3 @@
-import 'package:arkad_api/arkad_api.dart';
-
 import '../../../../shared/domain/result.dart';
 import '../entities/event.dart';
 import '../entities/event_attendee.dart';

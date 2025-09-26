@@ -1,4 +1,3 @@
-import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../shared/domain/result.dart';
@@ -83,18 +82,17 @@ class EventViewModel extends ChangeNotifier {
       success: (_) {
         // Update the selected event status to booked
         if (_selectedEvent?.id == eventId) {
-          _selectedEvent = _selectedEvent!.copyWith(
-            status: EventStatus.booked,
-          );
+          _selectedEvent = _selectedEvent!.copyWith(status: EventStatus.booked);
         }
 
         // Update the event in the events list
-        _events = _events.map((event) {
-          if (event.id == eventId) {
-            return event.copyWith(status: EventStatus.booked);
-          }
-          return event;
-        }).toList();
+        _events =
+            _events.map((event) {
+              if (event.id == eventId) {
+                return event.copyWith(status: EventStatus.booked);
+              }
+              return event;
+            }).toList();
 
         // Add the event to booked events list if not already there
         final eventToAdd = _events.firstWhere((event) => event.id == eventId);
@@ -130,15 +128,17 @@ class EventViewModel extends ChangeNotifier {
         }
 
         // Update the event in the events list
-        _events = _events.map((event) {
-          if (event.id == eventId) {
-            return event.copyWith(status: EventStatus.notBooked);
-          }
-          return event;
-        }).toList();
+        _events =
+            _events.map((event) {
+              if (event.id == eventId) {
+                return event.copyWith(status: EventStatus.notBooked);
+              }
+              return event;
+            }).toList();
 
         // Update the event in the booked events list (remove it)
-        _bookedEvents = _bookedEvents.where((event) => event.id != eventId).toList();
+        _bookedEvents =
+            _bookedEvents.where((event) => event.id != eventId).toList();
 
         _setLoading(false);
       },
@@ -150,7 +150,6 @@ class EventViewModel extends ChangeNotifier {
 
     return result.isSuccess;
   }
-
 
   /// Get event ticket for a specific event
   Future<String?> getEventTicket(int eventId) async {
@@ -212,7 +211,10 @@ class EventViewModel extends ChangeNotifier {
   }
 
   /// Use/verify a ticket (staff only)
-  Future<Result<TicketVerificationResult>> useTicket(String token, int eventId) async {
+  Future<Result<TicketVerificationResult>> useTicket(
+    String token,
+    int eventId,
+  ) async {
     _setLoading(true);
     _clearError();
 
