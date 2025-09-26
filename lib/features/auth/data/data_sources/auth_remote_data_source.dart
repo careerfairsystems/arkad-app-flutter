@@ -33,10 +33,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final response = await _api.getAuthenticationApi().userModelsApiSignin(
         signinSchema: SigninSchema(
-          (b) =>
-              b
-                ..email = email
-                ..password = password,
+          (b) => b
+            ..email = email
+            ..password = password,
         ),
       );
 
@@ -136,8 +135,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<ProfileSchema> getUserProfile() async {
     try {
-      final response =
-          await _api.getUserProfileApi().userModelsApiGetUserProfile();
+      final response = await _api
+          .getUserProfileApi()
+          .userModelsApiGetUserProfile();
 
       if (response.isSuccess && response.data != null) {
         return response.data!;

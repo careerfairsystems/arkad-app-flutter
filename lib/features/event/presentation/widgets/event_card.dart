@@ -44,18 +44,18 @@ class EventCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color:
-                          isPast
-                              ? Colors.grey.withValues(alpha: 0.1)
-                              : _getEventTypeColor(
-                                event.type,
-                              ).withValues(alpha: 0.1),
+                      color: isPast
+                          ? Colors.grey.withValues(alpha: 0.1)
+                          : _getEventTypeColor(
+                              event.type,
+                            ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       _getEventTypeIcon(event.type),
-                      color:
-                          isPast ? Colors.grey : _getEventTypeColor(event.type),
+                      color: isPast
+                          ? Colors.grey
+                          : _getEventTypeColor(event.type),
                       size: 24,
                     ),
                   ),
@@ -66,25 +66,22 @@ class EventCard extends StatelessWidget {
                       children: [
                         Text(
                           event.title,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isPast ? Colors.grey : null,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isPast ? Colors.grey : null,
+                              ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           event.type.displayName,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(
-                            color:
-                                isPast
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: isPast
                                     ? Colors.grey
                                     : _getEventTypeColor(event.type),
-                            fontWeight: FontWeight.w500,
-                          ),
+                                fontWeight: FontWeight.w500,
+                              ),
                         ),
                       ],
                     ),

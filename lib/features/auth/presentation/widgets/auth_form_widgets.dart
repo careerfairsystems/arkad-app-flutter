@@ -60,34 +60,32 @@ class AuthFormWidgets {
           ),
         ),
         suffixIconConstraints: const BoxConstraints(minWidth: 40),
-        suffixIcon:
-            controller.text.isNotEmpty && isValid != null
-                ? Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: Icon(
-                    isValid ? Icons.check_circle : Icons.error,
-                    color:
-                        isValid ? ArkadColors.arkadGreen : ArkadColors.lightRed,
-                    size: 24,
-                  ),
-                )
-                : null,
+        suffixIcon: controller.text.isNotEmpty && isValid != null
+            ? Padding(
+                padding: const EdgeInsets.only(right: 12.0),
+                child: Icon(
+                  isValid ? Icons.check_circle : Icons.error,
+                  color: isValid
+                      ? ArkadColors.arkadGreen
+                      : ArkadColors.lightRed,
+                  size: 24,
+                ),
+              )
+            : null,
         errorText: errorText,
         errorStyle: const TextStyle(color: ArkadColors.lightRed, fontSize: 12),
-        errorBorder:
-            errorText != null
-                ? const OutlineInputBorder(
-                  borderSide: BorderSide(color: ArkadColors.lightRed),
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                )
-                : null,
-        focusedErrorBorder:
-            errorText != null
-                ? const OutlineInputBorder(
-                  borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                )
-                : null,
+        errorBorder: errorText != null
+            ? const OutlineInputBorder(
+                borderSide: BorderSide(color: ArkadColors.lightRed),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              )
+            : null,
+        focusedErrorBorder: errorText != null
+            ? const OutlineInputBorder(
+                borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              )
+            : null,
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(8),
@@ -140,48 +138,46 @@ class AuthFormWidgets {
           ),
         ),
         suffixIconConstraints: const BoxConstraints(minWidth: 40),
-        suffixIcon:
-            controller.text.isNotEmpty && isValid != null
-                ? Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: Icon(
-                    isValid ? Icons.check_circle : Icons.error,
-                    color:
-                        isValid ? ArkadColors.arkadGreen : ArkadColors.lightRed,
+        suffixIcon: controller.text.isNotEmpty && isValid != null
+            ? Padding(
+                padding: const EdgeInsets.only(right: 12.0),
+                child: Icon(
+                  isValid ? Icons.check_circle : Icons.error,
+                  color: isValid
+                      ? ArkadColors.arkadGreen
+                      : ArkadColors.lightRed,
+                  size: 24,
+                ),
+              )
+            : onToggleVisibility != null
+            ? Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: IconButton(
+                  icon: Icon(
+                    obscureText ? Icons.visibility_off : Icons.visibility,
+                    color: ArkadColors.arkadTurkos,
                     size: 24,
                   ),
-                )
-                : onToggleVisibility != null
-                ? Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: IconButton(
-                    icon: Icon(
-                      obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: ArkadColors.arkadTurkos,
-                      size: 24,
-                    ),
-                    onPressed: onToggleVisibility,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                )
-                : null,
+                  onPressed: onToggleVisibility,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              )
+            : null,
         errorText: errorText,
         errorStyle: const TextStyle(color: ArkadColors.lightRed, fontSize: 12),
-        errorBorder:
-            errorText != null
-                ? const OutlineInputBorder(
-                  borderSide: BorderSide(color: ArkadColors.lightRed),
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                )
-                : null,
-        focusedErrorBorder:
-            errorText != null
-                ? const OutlineInputBorder(
-                  borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                )
-                : null,
+        errorBorder: errorText != null
+            ? const OutlineInputBorder(
+                borderSide: BorderSide(color: ArkadColors.lightRed),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              )
+            : null,
+        focusedErrorBorder: errorText != null
+            ? const OutlineInputBorder(
+                borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              )
+            : null,
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(8),
@@ -236,23 +232,19 @@ class AuthFormWidgets {
         minimumSize: const Size(double.infinity, 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      child:
-          isLoading
-              ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(ArkadColors.white),
-                ),
-              )
-              : Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+      child: isLoading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(ArkadColors.white),
               ),
+            )
+          : Text(
+              text,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
     );
   }
 

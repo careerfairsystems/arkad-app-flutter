@@ -29,24 +29,23 @@ class CompanyList extends StatelessWidget {
     return AsyncStateBuilder<List<Company>>(
       command: command,
       builder: (context, _) => _buildCompanyList(context),
-      loadingBuilder:
-          (context) => const CustomScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverFillRemaining(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Loading companies...'),
-                    ],
-                  ),
-                ),
+      loadingBuilder: (context) => const CustomScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading companies...'),
+                ],
               ),
-            ],
+            ),
           ),
+        ],
+      ),
       errorBuilder: (context, error) => _buildErrorState(context),
     );
   }

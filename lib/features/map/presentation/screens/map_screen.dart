@@ -101,13 +101,9 @@ class _MapScreenState extends State<MapScreen> {
               _selectedLocation = newValue!;
             });
           },
-          items:
-              _locations.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+          items: _locations.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(value: value, child: Text(value));
+          }).toList(),
         ),
       ),
     );
@@ -187,29 +183,28 @@ class _MapScreenState extends State<MapScreen> {
   void _showBuildingInfo() {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(_selectedLocation),
-            content: const Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Opening Hours: 9:00 AM - 5:00 PM'),
-                SizedBox(height: 8),
-                Text('Number of Companies: 42'),
-                SizedBox(height: 8),
-                Text('Facilities: Restrooms, Refreshments, Information Desk'),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  context.pop();
-                },
-                child: const Text('Close'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text(_selectedLocation),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Opening Hours: 9:00 AM - 5:00 PM'),
+            SizedBox(height: 8),
+            Text('Number of Companies: 42'),
+            SizedBox(height: 8),
+            Text('Facilities: Restrooms, Refreshments, Information Desk'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              context.pop();
+            },
+            child: const Text('Close'),
           ),
+        ],
+      ),
     );
   }
 }

@@ -134,10 +134,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             builder: (context, authViewModel, child) {
               return AuthFormWidgets.buildSubmitButton(
                 text: "Submit",
-                onPressed:
-                    authViewModel.isResettingPassword
-                        ? null
-                        : _submitEmailResetPassword,
+                onPressed: authViewModel.isResettingPassword
+                    ? null
+                    : _submitEmailResetPassword,
                 isLoading: authViewModel.isResettingPassword,
               );
             },

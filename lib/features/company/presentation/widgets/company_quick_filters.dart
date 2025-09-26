@@ -101,12 +101,11 @@ class CompanyQuickFilters extends StatelessWidget {
             Icon(
               Icons.people_rounded,
               size: 16,
-              color:
-                  hasStudentSessions
-                      ? Colors.white
-                      : Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: hasStudentSessions
+                  ? Colors.white
+                  : Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
             const SizedBox(width: 6),
             Text(ActiveFilter.studentSessions.label),
@@ -119,19 +118,15 @@ class CompanyQuickFilters extends StatelessWidget {
         selected: hasStudentSessions,
         onSelected: onStudentSessionsChanged,
         selectedColor: ArkadColors.arkadGreen,
-        backgroundColor:
-            hasStudentSessions
-                ? ArkadColors.arkadGreen
-                : Theme.of(context).colorScheme.surface,
+        backgroundColor: hasStudentSessions
+            ? ArkadColors.arkadGreen
+            : Theme.of(context).colorScheme.surface,
         checkmarkColor: Colors.white,
         side: BorderSide(
           width: hasStudentSessions ? 0 : 1.5,
-          color:
-              hasStudentSessions
-                  ? Colors.transparent
-                  : Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.4),
+          color: hasStudentSessions
+              ? Colors.transparent
+              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -157,19 +152,15 @@ class CompanyQuickFilters extends StatelessWidget {
         selected: isSelected,
         onSelected: (_) => onPositionToggled(position),
         selectedColor: ArkadColors.arkadTurkos,
-        backgroundColor:
-            isSelected
-                ? ArkadColors.arkadTurkos
-                : Theme.of(context).colorScheme.surface,
+        backgroundColor: isSelected
+            ? ArkadColors.arkadTurkos
+            : Theme.of(context).colorScheme.surface,
         checkmarkColor: Colors.white,
         side: BorderSide(
           width: isSelected ? 0 : 1.5,
-          color:
-              isSelected
-                  ? Colors.transparent
-                  : Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.4),
+          color: isSelected
+              ? Colors.transparent
+              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -198,8 +189,9 @@ class CompanyQuickFilters extends StatelessWidget {
             Text(
               'More Filters',
               style: TextStyle(
-                fontWeight:
-                    hasAdditionalFilters ? FontWeight.w600 : FontWeight.w500,
+                fontWeight: hasAdditionalFilters
+                    ? FontWeight.w600
+                    : FontWeight.w500,
                 color: hasAdditionalFilters ? Colors.white : null,
               ),
             ),
@@ -231,18 +223,14 @@ class CompanyQuickFilters extends StatelessWidget {
           ],
         ),
         onPressed: onAdvancedFiltersPressed,
-        backgroundColor:
-            hasAdditionalFilters
-                ? ArkadColors.arkadTurkos
-                : Theme.of(context).colorScheme.surface,
+        backgroundColor: hasAdditionalFilters
+            ? ArkadColors.arkadTurkos
+            : Theme.of(context).colorScheme.surface,
         side: BorderSide(
           width: hasAdditionalFilters ? 0 : 1.5,
-          color:
-              hasAdditionalFilters
-                  ? Colors.transparent
-                  : Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.4),
+          color: hasAdditionalFilters
+              ? Colors.transparent
+              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -325,65 +313,64 @@ class CompanyQuickFilters extends StatelessWidget {
           Wrap(
             spacing: 6,
             runSpacing: 6,
-            children:
-                activeFilters
-                    .map(
-                      (filter) => Container(
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.shadow.withValues(alpha: 0.1),
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
+            children: activeFilters
+                .map(
+                  (filter) => Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.shadow.withValues(alpha: 0.1),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
                         ),
-                        child: Chip(
-                          label: Text(
-                            filter == ActiveFilter.studentSessions.key
-                                ? ActiveFilter.studentSessions.label
-                                : filter,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(fontWeight: FontWeight.w500),
-                          ),
-                          deleteIcon: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.error.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.close_rounded,
-                              size: 14,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                          onDeleted: () {
-                            if (filter == ActiveFilter.studentSessions.key) {
-                              onStudentSessionsChanged(false);
-                            } else {
-                              onPositionToggled(filter);
-                            }
-                          },
-                          backgroundColor:
-                              Theme.of(context).colorScheme.surface,
-                          side: BorderSide(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.outline.withValues(alpha: 0.3),
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          visualDensity: VisualDensity.compact,
+                      ],
+                    ),
+                    child: Chip(
+                      label: Text(
+                        filter == ActiveFilter.studentSessions.key
+                            ? ActiveFilter.studentSessions.label
+                            : filter,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    )
-                    .toList(),
+                      deleteIcon: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.error.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 14,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      onDeleted: () {
+                        if (filter == ActiveFilter.studentSessions.key) {
+                          onStudentSessionsChanged(false);
+                        } else {
+                          onPositionToggled(filter);
+                        }
+                      },
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      side: BorderSide(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withValues(alpha: 0.3),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                )
+                .toList(),
           ),
         ],
       ),

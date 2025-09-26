@@ -86,13 +86,12 @@ class EventViewModel extends ChangeNotifier {
         }
 
         // Update the event in the events list
-        _events =
-            _events.map((event) {
-              if (event.id == eventId) {
-                return event.copyWith(status: EventStatus.booked);
-              }
-              return event;
-            }).toList();
+        _events = _events.map((event) {
+          if (event.id == eventId) {
+            return event.copyWith(status: EventStatus.booked);
+          }
+          return event;
+        }).toList();
 
         // Add the event to booked events list if not already there
         final eventToAdd = _events.firstWhere((event) => event.id == eventId);
@@ -128,17 +127,17 @@ class EventViewModel extends ChangeNotifier {
         }
 
         // Update the event in the events list
-        _events =
-            _events.map((event) {
-              if (event.id == eventId) {
-                return event.copyWith(status: EventStatus.notBooked);
-              }
-              return event;
-            }).toList();
+        _events = _events.map((event) {
+          if (event.id == eventId) {
+            return event.copyWith(status: EventStatus.notBooked);
+          }
+          return event;
+        }).toList();
 
         // Update the event in the booked events list (remove it)
-        _bookedEvents =
-            _bookedEvents.where((event) => event.id != eventId).toList();
+        _bookedEvents = _bookedEvents
+            .where((event) => event.id != eventId)
+            .toList();
 
         _setLoading(false);
       },

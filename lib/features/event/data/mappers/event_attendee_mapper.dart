@@ -15,10 +15,9 @@ class EventAttendeeMapper {
   /// Convert domain entity to API schema
   EventUserInformation toApiSchema(EventAttendee attendee) {
     return EventUserInformation(
-      (builder) =>
-          builder
-            ..fullName = attendee.fullName
-            ..foodPreferences = attendee.foodPreferences,
+      (builder) => builder
+        ..fullName = attendee.fullName
+        ..foodPreferences = attendee.foodPreferences,
     );
   }
 }

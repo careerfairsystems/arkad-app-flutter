@@ -72,17 +72,16 @@ class ProfileFormComponents {
           ),
           initialValue: selectedProgramme,
           hint: const Text('Select your programme'),
-          items:
-              availableProgrammes.map((program) {
-                return DropdownMenuItem<Programme>(
-                  value: program.value,
-                  child: Text(
-                    program.label,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                );
-              }).toList(),
+          items: availableProgrammes.map((program) {
+            return DropdownMenuItem<Programme>(
+              value: program.value,
+              child: Text(
+                program.label,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            );
+          }).toList(),
           onChanged: readOnlyMode ? null : onProgrammeChanged,
         ),
         const SizedBox(height: 16),
@@ -96,13 +95,12 @@ class ProfileFormComponents {
           ),
           initialValue: studyYear,
           hint: const Text('Select your study year'),
-          items:
-              [1, 2, 3, 4, 5].map((year) {
-                return DropdownMenuItem<int>(
-                  value: year,
-                  child: Text('Year $year'),
-                );
-              }).toList(),
+          items: [1, 2, 3, 4, 5].map((year) {
+            return DropdownMenuItem<int>(
+              value: year,
+              child: Text('Year $year'),
+            );
+          }).toList(),
           onChanged: readOnlyMode ? null : onStudyYearChanged,
         ),
         const SizedBox(height: 16),
@@ -169,22 +167,21 @@ class ProfileFormComponents {
           children: [
             CircleAvatar(
               radius: 60,
-              backgroundImage:
-                  selectedProfileImage != null
-                      ? FileImage(selectedProfileImage)
-                      : (!profilePictureDeleted &&
-                                  currentProfilePicture != null &&
-                                  currentProfilePicture.isNotEmpty
-                              ? NetworkImage(currentProfilePicture)
-                              : null)
-                          as ImageProvider<Object>?,
+              backgroundImage: selectedProfileImage != null
+                  ? FileImage(selectedProfileImage)
+                  : (!profilePictureDeleted &&
+                                currentProfilePicture != null &&
+                                currentProfilePicture.isNotEmpty
+                            ? NetworkImage(currentProfilePicture)
+                            : null)
+                        as ImageProvider<Object>?,
               child:
                   (selectedProfileImage == null &&
-                          (profilePictureDeleted ||
-                              currentProfilePicture == null ||
-                              currentProfilePicture.isEmpty))
-                      ? const Icon(Icons.person, size: 60)
-                      : null,
+                      (profilePictureDeleted ||
+                          currentProfilePicture == null ||
+                          currentProfilePicture.isEmpty))
+                  ? const Icon(Icons.person, size: 60)
+                  : null,
             ),
             Positioned(
               bottom: 0,
@@ -246,11 +243,11 @@ class ProfileFormComponents {
                     : Icons.upload_file,
                 color:
                     selectedCV != null ||
-                            (!cvDeleted &&
-                                currentCV != null &&
-                                currentCV.isNotEmpty)
-                        ? ArkadColors.arkadGreen
-                        : ArkadColors.gray,
+                        (!cvDeleted &&
+                            currentCV != null &&
+                            currentCV.isNotEmpty)
+                    ? ArkadColors.arkadGreen
+                    : ArkadColors.gray,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -258,10 +255,10 @@ class ProfileFormComponents {
                   selectedCV != null
                       ? 'Selected: ${selectedCV.path.split('/').last}'
                       : (cvDeleted
-                          ? 'No CV selected yet (PDF format)'
-                          : (currentCV != null && currentCV.isNotEmpty
-                              ? 'Current: ${currentCV.split('/').last}'
-                              : 'No CV selected yet (PDF format)')),
+                            ? 'No CV selected yet (PDF format)'
+                            : (currentCV != null && currentCV.isNotEmpty
+                                  ? 'Current: ${currentCV.split('/').last}'
+                                  : 'No CV selected yet (PDF format)')),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),

@@ -81,8 +81,9 @@ class EventRemoteDataSource {
   /// Get booked events for the current user
   Future<List<EventSchema>> getBookedEvents() async {
     try {
-      final response =
-          await _api.getEventsApi().eventBookingApiGetBookedEvents();
+      final response = await _api
+          .getEventsApi()
+          .eventBookingApiGetBookedEvents();
 
       if (response.isSuccess) {
         return response.data?.toList() ?? <EventSchema>[];
@@ -230,10 +231,9 @@ class EventRemoteDataSource {
   Future<TicketSchema> useTicket(String token, int eventId) async {
     try {
       final useTicketSchema = UseTicketSchema(
-        (b) =>
-            b
-              ..uuid = token
-              ..eventId = eventId,
+        (b) => b
+          ..uuid = token
+          ..eventId = eventId,
       );
 
       final response = await _api.getEventsApi().eventBookingApiVerifyTicket(

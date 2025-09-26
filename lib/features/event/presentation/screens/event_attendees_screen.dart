@@ -69,12 +69,10 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
 
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredAttendees =
-          _attendees!.where((attendee) {
-            return attendee.fullName.toLowerCase().contains(query) ||
-                (attendee.foodPreferences?.toLowerCase().contains(query) ??
-                    false);
-          }).toList();
+      _filteredAttendees = _attendees!.where((attendee) {
+        return attendee.fullName.toLowerCase().contains(query) ||
+            (attendee.foodPreferences?.toLowerCase().contains(query) ?? false);
+      }).toList();
     });
   }
 
@@ -87,7 +85,10 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
         foregroundColor: Colors.white,
       ),
       body: Column(
-        children: [_buildSearchBar(), Expanded(child: _buildBody())],
+        children: [
+          _buildSearchBar(),
+          Expanded(child: _buildBody()),
+        ],
       ),
     );
   }
@@ -364,31 +365,29 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
         ),
         subtitle:
             attendee.foodPreferences != null &&
-                    attendee.foodPreferences!.isNotEmpty
-                ? Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.restaurant,
-                        size: 16,
-                        color: ArkadColors.arkadNavy.withValues(alpha: 0.6),
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          attendee.foodPreferences!,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(
-                            color: ArkadColors.arkadNavy.withValues(alpha: 0.7),
-                          ),
+                attendee.foodPreferences!.isNotEmpty
+            ? Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.restaurant,
+                      size: 16,
+                      color: ArkadColors.arkadNavy.withValues(alpha: 0.6),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        attendee.foodPreferences!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: ArkadColors.arkadNavy.withValues(alpha: 0.7),
                         ),
                       ),
-                    ],
-                  ),
-                )
-                : null,
+                    ),
+                  ],
+                ),
+              )
+            : null,
       ),
     );
   }

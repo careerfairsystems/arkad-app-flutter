@@ -39,8 +39,9 @@ class _StudentSessionsScreen extends State<StudentSessionsScreen> {
     });
 
     try {
-      final response =
-          await _arkadApi.getCompaniesApi().companiesApiGetCompanies();
+      final response = await _arkadApi
+          .getCompaniesApi()
+          .companiesApiGetCompanies();
       final companies = response.data?.toList() ?? [];
       setState(() {
         _companies = companies;

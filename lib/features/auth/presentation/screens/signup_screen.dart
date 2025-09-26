@@ -223,12 +223,11 @@ class _SignupScreenState extends State<SignupScreen> {
       password: _passwordController.text,
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
-      foodPreferences:
-          _hasFoodPreferences
-              ? (_foodPreferencesController.text.trim().isNotEmpty
-                  ? _foodPreferencesController.text.trim()
-                  : null)
-              : null,
+      foodPreferences: _hasFoodPreferences
+          ? (_foodPreferencesController.text.trim().isNotEmpty
+                ? _foodPreferencesController.text.trim()
+                : null)
+          : null,
     );
 
     await authViewModel.startSignUp(signupData);
@@ -266,8 +265,9 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(height: 20),
         AuthFormWidgets.buildPasswordField(
           _passwordController,
-          isValid:
-              _passwordController.text.isNotEmpty ? _isPasswordValid : null,
+          isValid: _passwordController.text.isNotEmpty
+              ? _isPasswordValid
+              : null,
           onChanged: (value) {
             if (_passwordErrorText != null) {
               setState(() => _passwordErrorText = null);
@@ -319,10 +319,9 @@ class _SignupScreenState extends State<SignupScreen> {
           _confirmPasswordController,
           labelText: 'Confirm Password',
           hintText: 'Confirm your password',
-          isValid:
-              _confirmPasswordController.text.isNotEmpty
-                  ? _isConfirmPasswordValid
-                  : null,
+          isValid: _confirmPasswordController.text.isNotEmpty
+              ? _isConfirmPasswordValid
+              : null,
           textInputAction: TextInputAction.done,
           onFieldSubmitted: (_) => _handleSubmit(),
           onChanged: (value) {

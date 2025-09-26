@@ -7,13 +7,12 @@ class SignupMapper {
   /// Convert SignupData to SignupSchema DTO
   static SignupSchema toSignupDto(SignupData data) {
     return SignupSchema(
-      (b) =>
-          b
-            ..email = data.email
-            ..password = data.password
-            ..firstName = data.firstName
-            ..lastName = data.lastName
-            ..foodPreferences = data.foodPreferences,
+      (b) => b
+        ..email = data.email
+        ..password = data.password
+        ..firstName = data.firstName
+        ..lastName = data.lastName
+        ..foodPreferences = data.foodPreferences,
     );
   }
 
@@ -24,15 +23,14 @@ class SignupMapper {
     required SignupData data,
   }) {
     return CompleteSignupSchema(
-      (b) =>
-          b
-            ..token = token
-            ..code = code
-            ..email = data.email
-            ..password = data.password
-            ..firstName = data.firstName
-            ..lastName = data.lastName
-            ..foodPreferences = data.foodPreferences,
+      (b) => b
+        ..token = token
+        ..code = code
+        ..email = data.email
+        ..password = data.password
+        ..firstName = data.firstName
+        ..lastName = data.lastName
+        ..foodPreferences = data.foodPreferences,
     );
   }
 }

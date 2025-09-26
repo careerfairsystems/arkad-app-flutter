@@ -10,10 +10,9 @@ class StudentSessionRemoteDataSource {
   /// Get student sessions from the API
   Future<List<StudentSessionApplicationOutSchema>> getStudentSessions() async {
     try {
-      final _ =
-          await _api
-              .getStudentSessionsApi()
-              .studentSessionsApiGetStudentSessions();
+      final _ = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiGetStudentSessions();
       // For now, return empty list - will implement proper parsing when API structure is clear
       return <StudentSessionApplicationOutSchema>[];
     } catch (e) {
@@ -47,10 +46,9 @@ class StudentSessionRemoteDataSource {
           );
       // Create a minimal response for now
       return StudentSessionApplicationOutSchema(
-        (b) =>
-            b
-              ..companyId = application.companyId
-              ..motivationText = application.motivationText,
+        (b) => b
+          ..companyId = application.companyId
+          ..motivationText = application.motivationText,
       );
     } catch (e) {
       await Sentry.captureException(e);

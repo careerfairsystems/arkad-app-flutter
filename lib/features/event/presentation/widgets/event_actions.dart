@@ -119,10 +119,9 @@ class EventActions extends StatelessWidget {
             Expanded(
               child: ArkadButton(
                 text: 'Deregister',
-                onPressed:
-                    viewModel.isLoading
-                        ? null
-                        : () => _handleDeregister(context, viewModel),
+                onPressed: viewModel.isLoading
+                    ? null
+                    : () => _handleDeregister(context, viewModel),
                 isLoading: viewModel.isLoading,
                 icon: Icons.cancel_outlined,
                 variant: ArkadButtonVariant.danger,
@@ -286,26 +285,25 @@ class EventActions extends StatelessWidget {
   Future<bool> _showDeregisterConfirmationDialog(BuildContext context) async {
     return await showDialog<bool>(
           context: context,
-          builder:
-              (context) => AlertDialog(
-                title: const Text('Deregister from Event'),
-                content: Text(
-                  'Are you sure you want to deregister from "${event.title}"?',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    style: TextButton.styleFrom(
-                      foregroundColor: ArkadColors.lightRed,
-                    ),
-                    child: const Text('Deregister'),
-                  ),
-                ],
+          builder: (context) => AlertDialog(
+            title: const Text('Deregister from Event'),
+            content: Text(
+              'Are you sure you want to deregister from "${event.title}"?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
               ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: ArkadColors.lightRed,
+                ),
+                child: const Text('Deregister'),
+              ),
+            ],
+          ),
         ) ??
         false;
   }

@@ -27,8 +27,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<ProfileSchema> getUserProfile() async {
     try {
-      final response =
-          await _api.getUserProfileApi().userModelsApiGetUserProfile();
+      final response = await _api
+          .getUserProfileApi()
+          .userModelsApiGetUserProfile();
 
       if (response.isSuccess && response.data != null) {
         return response.data!;
@@ -152,8 +153,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<void> deleteProfilePicture() async {
     try {
-      final response =
-          await _api.getUserProfileApi().userModelsApiDeleteProfilePicture();
+      final response = await _api
+          .getUserProfileApi()
+          .userModelsApiDeleteProfilePicture();
 
       if (!response.isSuccess) {
         throw ApiException(

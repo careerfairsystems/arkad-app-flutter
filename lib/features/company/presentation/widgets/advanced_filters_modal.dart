@@ -369,30 +369,29 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
               ),
             ),
             prefixIconConstraints: const BoxConstraints(minWidth: 40),
-            suffixIcon:
-                controller.text.isNotEmpty
-                    ? Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      child: IconButton(
-                        icon: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: ArkadColors.lightRed.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.clear_rounded,
-                            size: 16,
-                            color: ArkadColors.lightRed,
-                          ),
+            suffixIcon: controller.text.isNotEmpty
+                ? Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    child: IconButton(
+                      icon: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: ArkadColors.lightRed.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        onPressed: () {
-                          controller.clear();
-                          onChanged('');
-                        },
+                        child: const Icon(
+                          Icons.clear_rounded,
+                          size: 16,
+                          color: ArkadColors.lightRed,
+                        ),
                       ),
-                    )
-                    : null,
+                      onPressed: () {
+                        controller.clear();
+                        onChanged('');
+                      },
+                    ),
+                  )
+                : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
@@ -462,28 +461,25 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
           curve: Curves.easeInOut,
           margin: const EdgeInsets.only(bottom: 6),
           decoration: BoxDecoration(
-            color:
-                isSelected
-                    ? ArkadColors.arkadTurkos.withValues(alpha: 0.12)
-                    : ArkadColors.white,
+            color: isSelected
+                ? ArkadColors.arkadTurkos.withValues(alpha: 0.12)
+                : ArkadColors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color:
-                  isSelected
-                      ? ArkadColors.arkadTurkos.withValues(alpha: 0.4)
-                      : ArkadColors.lightGray.withValues(alpha: 0.2),
+              color: isSelected
+                  ? ArkadColors.arkadTurkos.withValues(alpha: 0.4)
+                  : ArkadColors.lightGray.withValues(alpha: 0.2),
               width: isSelected ? 2 : 1,
             ),
-            boxShadow:
-                isSelected
-                    ? [
-                      BoxShadow(
-                        color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                    : null,
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Material(
             color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.0),
@@ -509,43 +505,38 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                       width: 20,
                       height: 20,
                       decoration: BoxDecoration(
-                        color:
-                            isSelected
-                                ? ArkadColors.arkadTurkos
-                                : Theme.of(
-                                  context,
-                                ).colorScheme.surface.withValues(alpha: 0.0),
+                        color: isSelected
+                            ? ArkadColors.arkadTurkos
+                            : Theme.of(
+                                context,
+                              ).colorScheme.surface.withValues(alpha: 0.0),
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
-                          color:
-                              isSelected
-                                  ? ArkadColors.arkadTurkos
-                                  : ArkadColors.lightGray.withValues(
-                                    alpha: 0.5,
-                                  ),
+                          color: isSelected
+                              ? ArkadColors.arkadTurkos
+                              : ArkadColors.lightGray.withValues(alpha: 0.5),
                           width: 2,
                         ),
                       ),
-                      child:
-                          isSelected
-                              ? const Icon(
-                                Icons.check_rounded,
-                                size: 14,
-                                color: Colors.white,
-                              )
-                              : null,
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check_rounded,
+                              size: 14,
+                              color: Colors.white,
+                            )
+                          : null,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         option,
                         style: TextStyle(
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color:
-                              isSelected
-                                  ? ArkadColors.arkadTurkos
-                                  : ArkadColors.gray,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? ArkadColors.arkadTurkos
+                              : ArkadColors.gray,
                         ),
                       ),
                     ),
@@ -635,10 +626,9 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                       ],
                     ),
                     child: ArkadButton(
-                      text:
-                          totalSelected > 0
-                              ? 'Apply ($totalSelected)'
-                              : 'Apply Filters',
+                      text: totalSelected > 0
+                          ? 'Apply ($totalSelected)'
+                          : 'Apply Filters',
                       onPressed: () {
                         widget.onFiltersApplied(_currentFilter);
                         context.pop();

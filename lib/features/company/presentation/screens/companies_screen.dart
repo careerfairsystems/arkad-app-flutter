@@ -111,20 +111,19 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Search companies...',
-              prefixIcon:
-                  viewModel.isSearching
-                      ? const Padding(
-                        padding: EdgeInsets.all(14),
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: ArkadColors.arkadTurkos,
-                          ),
+              prefixIcon: viewModel.isSearching
+                  ? const Padding(
+                      padding: EdgeInsets.all(14),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: ArkadColors.arkadTurkos,
                         ),
-                      )
-                      : const Icon(Icons.search_rounded),
+                      ),
+                    )
+                  : const Icon(Icons.search_rounded),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
@@ -152,13 +151,12 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               fillColor: Theme.of(
                 context,
               ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
-              suffixIcon:
-                  _searchController.text.isNotEmpty
-                      ? IconButton(
-                        icon: const Icon(Icons.clear_rounded),
-                        onPressed: _clearSearch,
-                      )
-                      : null,
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear_rounded),
+                      onPressed: _clearSearch,
+                    )
+                  : null,
             ),
             onChanged: _onSearchChanged,
           );
@@ -304,19 +302,18 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       backgroundColor: Theme.of(
         context,
       ).colorScheme.surface.withValues(alpha: 0.0),
-      builder:
-          (context) => SizedBox(
-            height: MediaQuery.of(context).size.height * 0.9,
-            child: AdvancedFiltersModal(
-              initialFilter: _currentFilter,
-              onFiltersApplied: (filter) {
-                setState(() {
-                  _currentFilter = filter;
-                });
-                _applyFilters();
-              },
-            ),
-          ),
+      builder: (context) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: AdvancedFiltersModal(
+          initialFilter: _currentFilter,
+          onFiltersApplied: (filter) {
+            setState(() {
+              _currentFilter = filter;
+            });
+            _applyFilters();
+          },
+        ),
+      ),
     );
   }
 

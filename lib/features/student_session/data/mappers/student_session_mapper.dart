@@ -25,14 +25,13 @@ class StudentSessionMapper {
     StudentSessionApplication application,
   ) {
     return StudentSessionApplicationSchema(
-      (b) =>
-          b
-            ..companyId = application.companyId
-            ..motivationText = application.motivationText
-            ..programme = application.programme
-            ..linkedin = application.linkedin
-            ..masterTitle = application.masterTitle
-            ..studyYear = application.studyYear,
+      (b) => b
+        ..companyId = application.companyId
+        ..motivationText = application.motivationText
+        ..programme = application.programme
+        ..linkedin = application.linkedin
+        ..masterTitle = application.masterTitle
+        ..studyYear = application.studyYear,
     );
   }
 

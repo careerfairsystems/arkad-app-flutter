@@ -34,10 +34,9 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
 
       // Convert to domain entities
       // Note: API doesn't provide IDs, so we'll use index as ID for now
-      final events =
-          eventSchemas.asMap().entries.map((entry) {
-            return _mapper.fromApiSchema(entry.value);
-          }).toList();
+      final events = eventSchemas.asMap().entries.map((entry) {
+        return _mapper.fromApiSchema(entry.value);
+      }).toList();
 
       return events;
     }, 'get events');
@@ -68,11 +67,10 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
       return allEventsResult.when(
         success: (events) {
           // Filter events by date range - include any overlapping events
-          final filteredEvents =
-              events.where((event) {
-                return event.endTime.isAfter(start) &&
-                    event.startTime.isBefore(end);
-              }).toList();
+          final filteredEvents = events.where((event) {
+            return event.endTime.isAfter(start) &&
+                event.startTime.isBefore(end);
+          }).toList();
           return filteredEvents;
         },
         failure: (error) => throw Exception(error.userMessage),
@@ -105,10 +103,9 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
       return allEventsResult.when(
         success: (events) {
           // Filter events that are booked or have tickets used
-          final bookedEvents =
-              events.where((event) {
-                return event.status?.isBooked == true;
-              }).toList();
+          final bookedEvents = events.where((event) {
+            return event.status?.isBooked == true;
+          }).toList();
           return bookedEvents;
         },
         failure: (error) => throw Exception(error.userMessage),
@@ -140,10 +137,9 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
       );
 
       // Convert to domain entities
-      final attendees =
-          attendeeSchemas
-              .map((schema) => _attendeeMapper.fromApiSchema(schema))
-              .toList();
+      final attendees = attendeeSchemas
+          .map((schema) => _attendeeMapper.fromApiSchema(schema))
+          .toList();
 
       return attendees;
     }, 'get event attendees');

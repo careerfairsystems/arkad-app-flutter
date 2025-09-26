@@ -137,8 +137,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   AuthFormWidgets.buildEmailField(
                     _emailController,
-                    isValid:
-                        _emailController.text.isNotEmpty ? _isEmailValid : null,
+                    isValid: _emailController.text.isNotEmpty
+                        ? _isEmailValid
+                        : null,
                     onChanged: (value) {
                       if (_emailErrorText != null) {
                         setState(() => _emailErrorText = null);
@@ -188,10 +189,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     builder: (context, authViewModel, child) {
                       return AuthFormWidgets.buildSubmitButton(
                         text: 'Sign In',
-                        onPressed:
-                            authViewModel.signInCommand.isExecuting
-                                ? null
-                                : _handleLogin,
+                        onPressed: authViewModel.signInCommand.isExecuting
+                            ? null
+                            : _handleLogin,
                         isLoading: authViewModel.signInCommand.isExecuting,
                       );
                     },
