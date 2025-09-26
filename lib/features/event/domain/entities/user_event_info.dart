@@ -32,5 +32,5 @@ class UserEventInfo {
   }
 
   @override
-  int get hashCode => Object.hash(id);
+  int get hashCode => id;
 }

@@ -106,7 +106,7 @@ jobs:
         run: flutter config --enable-web
 
       - name: Build web app
-        run: flutter build web --release --web-renderer html
+        run: flutter build web 
 
       - name: Upload web build artifact
         uses: actions/upload-artifact@v4
@@ -114,79 +114,7 @@ jobs:
           name: flutter-web-build
           path: build/web/
           retention-days: 7
-
-  deploy-preview:
-    name: Deploy Preview
-    needs: [generate-api, build-web]
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      contents: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download web build artifact
-        uses: actions/download-artifact@v4
+      - name: Deploy preview
+        uses: rossjrw/pr-preview-action@v1
         with:
-          name: flutter-web-build
-          path: build/web/
-
-      - name: Deploy to GitHub Pages (PR Preview)
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: build/web/
-          destination_dir: pr-${{ github.event.number }}
-          keep_files: false
-
-      - name: Comment PR with preview URL
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prNumber = context.payload.number;
-            const repoOwner = context.repo.owner;
-            const repoName = context.repo.repo;
-            const previewUrl = `https://${repoOwner}.github.io/${repoName}/pr-${prNumber}/`;
-
-            const comment = `## 🚀 Flutter Web Preview
-
-            Your PR has been built and deployed! You can preview the changes here:
-
-            **🔗 [Preview Link](${previewUrl})**
-
-            This preview will be updated automatically when you push new commits to this PR.
-
-            ---
-            *Preview deployed from commit: ${context.payload.pull_request.head.sha.substring(0, 7)}*`;
-
-            // Check if we already commented on this PR
-            const comments = await github.rest.issues.listComments({
-              owner: repoOwner,
-              repo: repoName,
-              issue_number: prNumber,
-            });
-
-            const existingComment = comments.data.find(comment =>
-              comment.user.login === 'github-actions[bot]' &&
-              comment.body.includes('Flutter Web Preview')
-            );
-
-            if (existingComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                owner: repoOwner,
-                repo: repoName,
-                comment_id: existingComment.id,
-                body: comment
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                owner: repoOwner,
-                repo: repoName,
-                issue_number: prNumber,
-                body: comment
-              });
-            }
+          source-dir: ./build/web

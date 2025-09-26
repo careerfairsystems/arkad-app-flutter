@@ -34,5 +34,5 @@ class TicketVerificationResult {
   }
 
   @override
-  int get hashCode => Object.hash(uuid);
+  int get hashCode => Object.hash(uuid, eventId);
 }
