@@ -95,7 +95,7 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
               viewModel.error?.userMessage ?? 'Something went wrong',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+              ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -142,7 +142,7 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
               'You haven\'t booked any events yet. Browse available events and register for the ones that interest you!',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+              ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
