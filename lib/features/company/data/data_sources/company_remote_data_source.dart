@@ -27,8 +27,8 @@ class CompanyRemoteDataSource {
         operationName: 'getCompanies',
       );
       throw exception;
-    } catch (e) {
-      await Sentry.captureException(e);
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
       throw CompanyLoadError(details: e.toString());
     }
   }
@@ -38,14 +38,7 @@ class CompanyRemoteDataSource {
       final companies = await getCompanies();
       return companies.firstWhere((company) => company.id == id);
     } catch (e) {
-      await Sentry.addBreadcrumb(
-        Breadcrumb(
-          message: 'Company not found: $id',
-          level: SentryLevel.info,
-          category: 'company',
-          data: {'companyId': id},
-        ),
-      );
+      await Sentry.captureException(e);
       return null;
     }
   }
