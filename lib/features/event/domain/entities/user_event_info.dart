@@ -28,13 +28,9 @@ class UserEventInfo {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is UserEventInfo &&
-        other.id == id &&
-        other.firstName == firstName &&
-        other.lastName == lastName &&
-        other.foodPreferences == foodPreferences;
+    return other is UserEventInfo && other.id == id;
   }
 
   @override
-  int get hashCode => Object.hash(id, firstName, lastName, foodPreferences);
+  int get hashCode => Object.hash(id);
 }
