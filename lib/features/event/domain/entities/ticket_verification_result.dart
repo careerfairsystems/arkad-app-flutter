@@ -30,13 +30,9 @@ class TicketVerificationResult {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is TicketVerificationResult &&
-        other.status == status &&
-        other.uuid == uuid &&
-        other.eventId == eventId &&
-        other.userInfo == userInfo;
+    return other is TicketVerificationResult && other.uuid == uuid;
   }
 
   @override
-  int get hashCode => Object.hash(status, uuid, eventId, userInfo);
+  int get hashCode => Object.hash(uuid);
 }
