@@ -74,10 +74,20 @@ class UploadCVUseCase extends UseCase<String, UploadCVParams> {
         filePath: params.filePath,
       );
     } catch (e, stackTrace) {
+      // Enhanced Sentry reporting with context
       await Sentry.captureException(e, stackTrace: stackTrace);
-      
+      Sentry.logger.error(
+        'CV upload failed',
+        attributes: {
+          'operation': SentryLogAttribute.string('uploadCV'),
+          'company_id': SentryLogAttribute.string(params.companyId.toString()),
+          'error_type': SentryLogAttribute.string(e.runtimeType.toString()),
+        },
+      );
+
       // Check if it's a file size error or other upload error
-      if (e.toString().contains('size') || e.toString().contains('413')) {
+      final errorString = e.toString();
+      if (errorString.contains('size') || errorString.contains('413')) {
         return Result.failure(
           StudentSessionFileUploadError(
             params.filePath.split('/').last,
@@ -89,7 +99,7 @@ class UploadCVUseCase extends UseCase<String, UploadCVParams> {
       return Result.failure(
         StudentSessionFileUploadError(
           params.filePath.split('/').last,
-          details: e.toString(),
+          details: 'Failed to upload CV. Please try again.',
         ),
       );
     }

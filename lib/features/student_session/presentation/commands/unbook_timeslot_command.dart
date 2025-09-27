@@ -8,44 +8,44 @@ class UnbookTimeslotCommand extends ParameterizedCommand<int, String> {
   UnbookTimeslotCommand(this._unbookTimeslotUseCase);
 
   final UnbookTimeslotUseCase _unbookTimeslotUseCase;
-  
+
   // Message state for this command
   bool _showSuccessMessage = false;
   String? _successMessage;
   bool _showErrorMessage = false;
   String? _errorMessage;
-  
+
   // Message getters
   bool get showSuccessMessage => _showSuccessMessage;
   String? get successMessage => _successMessage;
   bool get showErrorMessage => _showErrorMessage;
   String? get errorMessage => _errorMessage;
-  
+
   // Message management methods
   void _setSuccessMessage(String message) {
     _showSuccessMessage = true;
     _successMessage = message;
     notifyListeners();
   }
-  
+
   void _setErrorMessage(String message) {
     _showErrorMessage = true;
     _errorMessage = message;
     notifyListeners();
   }
-  
+
   void clearSuccessMessage() {
     _showSuccessMessage = false;
     _successMessage = null;
     notifyListeners();
   }
-  
+
   void clearErrorMessage() {
     _showErrorMessage = false;
     _errorMessage = null;
     notifyListeners();
   }
-  
+
   void clearAllMessages() {
     _showSuccessMessage = false;
     _successMessage = null;
@@ -104,7 +104,7 @@ class UnbookTimeslotCommand extends ParameterizedCommand<int, String> {
       // Convert unexpected exceptions to user-friendly errors
       final error = StudentSessionApplicationError(
         'Failed to unbook timeslot',
-        details: e.toString(),
+        details: 'Unable to cancel timeslot booking. Please try again.',
       );
       setError(error);
       _setErrorMessage(error.userMessage);

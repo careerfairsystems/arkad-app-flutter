@@ -120,7 +120,7 @@ class ApplyForSessionCommand
       setError(
         StudentSessionApplicationError(
           'Failed to submit application',
-          details: e.toString(),
+          details: 'An unexpected error occurred. Please try again.',
         ),
       );
     } finally {

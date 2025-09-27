@@ -83,19 +83,20 @@ class StudentSessionRepositoryImpl extends BaseRepository
     return executeOperation(
       () async {
         final response = await _remoteDataSource.getStudentSessions();
-        
+
         // Find the session for the specified company
-        final sessionDto = response.studentSessions
-            .where((session) => session.companyId == companyId)
-            .firstOrNull;
-            
+        final sessionDto =
+            response.studentSessions
+                .where((session) => session.companyId == companyId)
+                .firstOrNull;
+
         if (sessionDto == null) {
           return null; // Session not found for this company
         }
-        
+
         String? companyName;
         String? logoUrl;
-        
+
         // Fetch company data using the cached company service
         final companyResult = await _getCompanyByIdUseCase.call(companyId);
         companyResult.when(
@@ -108,7 +109,7 @@ class StudentSessionRepositoryImpl extends BaseRepository
             logoUrl = null;
           },
         );
-        
+
         return _mapper.fromApiStudentSession(
           sessionDto,
           companyName: companyName,
@@ -127,16 +128,16 @@ class StudentSessionRepositoryImpl extends BaseRepository
     );
   }
 
-
   /// Get applications with enhanced booking state determined from timeslots
   /// This method provides the real booking status by checking timeslots
-  @override 
-  Future<Result<List<StudentSessionApplicationWithBookingState>>> getMyApplicationsWithBookingState() async {
+  @override
+  Future<Result<List<StudentSessionApplicationWithBookingState>>>
+  getMyApplicationsWithBookingState() async {
     return executeOperation(() async {
       // Get user's applications directly from the API (replaces removed getMyApplications)
       final response = await _remoteDataSource.getStudentSessions();
 
-      // Filter and resolve company names for applications  
+      // Filter and resolve company names for applications
       final applications = <StudentSessionApplication>[];
       for (final sessionDto in response.studentSessions.where(
         (session) => session.userStatus != null,
@@ -160,8 +161,9 @@ class StudentSessionRepositoryImpl extends BaseRepository
         applications.add(application);
       }
 
-      final applicationsWithBookingState = <StudentSessionApplicationWithBookingState>[];
-      
+      final applicationsWithBookingState =
+          <StudentSessionApplicationWithBookingState>[];
+
       for (final application in applications) {
         // Only check timeslots for accepted applications
         if (application.status == ApplicationStatus.accepted) {
@@ -169,30 +171,43 @@ class StudentSessionRepositoryImpl extends BaseRepository
             final timslotsResult = await getTimeslots(application.companyId);
             final timeslots = timslotsResult.when(
               success: (slots) => slots,
-              failure: (_) => <Timeslot>[], // Fallback to empty list if timeslots fail
+              failure:
+                  (_) =>
+                      <Timeslot>[], // Fallback to empty list if timeslots fail
             );
 
-            final hasBooking = timeslots.any((slot) => slot.status.isBookedByCurrentUser);
-            final bookedTimeslot = timeslots.where((slot) => slot.status.isBookedByCurrentUser).firstOrNull;
+            final hasBooking = timeslots.any(
+              (slot) => slot.status.isBookedByCurrentUser,
+            );
+            final bookedTimeslot =
+                timeslots
+                    .where((slot) => slot.status.isBookedByCurrentUser)
+                    .firstOrNull;
 
-            applicationsWithBookingState.add(StudentSessionApplicationWithBookingState(
-              application: application,
-              hasBooking: hasBooking,
-              bookedTimeslot: bookedTimeslot,
-            ));
+            applicationsWithBookingState.add(
+              StudentSessionApplicationWithBookingState(
+                application: application,
+                hasBooking: hasBooking,
+                bookedTimeslot: bookedTimeslot,
+              ),
+            );
           } catch (e) {
             // If timeslots fail to load, add application without booking info
-            applicationsWithBookingState.add(StudentSessionApplicationWithBookingState(
-              application: application,
-              hasBooking: false,
-            ));
+            applicationsWithBookingState.add(
+              StudentSessionApplicationWithBookingState(
+                application: application,
+                hasBooking: false,
+              ),
+            );
           }
         } else {
           // For non-accepted applications, no booking state needed
-          applicationsWithBookingState.add(StudentSessionApplicationWithBookingState(
-            application: application,
-            hasBooking: false,
-          ));
+          applicationsWithBookingState.add(
+            StudentSessionApplicationWithBookingState(
+              application: application,
+              hasBooking: false,
+            ),
+          );
         }
       }
 
@@ -205,7 +220,10 @@ class StudentSessionRepositoryImpl extends BaseRepository
     return executeOperation(() async {
       final timeslots = await _remoteDataSource.getTimeslots(companyId);
       return timeslots
-          .map((timeslotDto) => _mapper.fromApiTimeslotUser(timeslotDto, companyId))
+          .map(
+            (timeslotDto) =>
+                _mapper.fromApiTimeslotUser(timeslotDto, companyId),
+          )
           .toList();
     }, 'load timeslots for company $companyId');
   }
@@ -214,16 +232,13 @@ class StudentSessionRepositoryImpl extends BaseRepository
   Future<Result<String>> applyForSession(
     StudentSessionApplicationParams params,
   ) async {
-    return executeOperation(
-      () async {
-        final apiSchema = _mapper.toApiApplicationSchema(params);
-        final response = await _remoteDataSource.applyForSession(apiSchema);
+    return executeOperation(() async {
+      final apiSchema = _mapper.toApiApplicationSchema(params);
+      final response = await _remoteDataSource.applyForSession(apiSchema);
 
-        // API returns a string response for successful applications
-        return response.data ?? 'Application submitted successfully';
-      },
-      'student_session_apply',
-    );
+      // API returns a string response for successful applications
+      return response.data ?? 'Application submitted successfully';
+    }, 'student_session_apply');
   }
 
   @override
@@ -249,7 +264,10 @@ class StudentSessionRepositoryImpl extends BaseRepository
           filename: filePath.split('/').last,
         );
 
-        final response = await _remoteDataSource.uploadCV(companyId, multipartFile);
+        final response = await _remoteDataSource.uploadCV(
+          companyId,
+          multipartFile,
+        );
         return response.data ?? 'CV uploaded successfully';
       },
       'upload CV for company $companyId',
@@ -295,22 +313,26 @@ class StudentSessionRepositoryImpl extends BaseRepository
       if (e is DioException) {
         // Check HTTP status code for conflict
         if (e.response?.statusCode == 409) {
-          return Result.failure(StudentSessionBookingConflictError(
-            'Timeslot was just booked by someone else',
-          ));
+          return Result.failure(
+            StudentSessionBookingConflictError(
+              'Timeslot was just booked by someone else',
+            ),
+          );
         }
         // Check error message for other conflict indicators
         final errorMessage = e.response?.data?.toString() ?? e.message ?? '';
-        if (errorMessage.contains('conflict') || 
+        if (errorMessage.contains('conflict') ||
             errorMessage.contains('already booked') ||
             errorMessage.contains('taken') ||
             errorMessage.contains('unavailable')) {
-          return Result.failure(StudentSessionBookingConflictError(
-            'Timeslot was just booked by someone else',
-          ));
+          return Result.failure(
+            StudentSessionBookingConflictError(
+              'Timeslot was just booked by someone else',
+            ),
+          );
         }
       }
-      
+
       // For all other errors, use the base repository error handling
       return executeOperation(
         () => throw e, // Re-throw to trigger base error handling

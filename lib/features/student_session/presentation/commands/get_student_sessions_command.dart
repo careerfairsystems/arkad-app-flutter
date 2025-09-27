@@ -38,7 +38,7 @@ class GetStudentSessionsCommand extends Command<List<StudentSession>> {
       setError(
         StudentSessionApplicationError(
           'Failed to load student sessions',
-          details: e.toString(),
+          details: 'Unable to load student sessions. Please try again.',
         ),
       );
     } finally {

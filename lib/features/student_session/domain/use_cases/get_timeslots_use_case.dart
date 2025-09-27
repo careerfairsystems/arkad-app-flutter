@@ -35,7 +35,7 @@ class GetTimeslotsUseCase extends UseCase<List<Timeslot>, int> {
       return Result.failure(
         StudentSessionApplicationError(
           'Failed to load timeslots',
-          details: e.toString(),
+          details: 'Unable to retrieve timeslots',
         ),
       );
     }

@@ -7,12 +7,17 @@ import '../../domain/use_cases/get_my_applications_with_booking_state_use_case.d
 /// This command provides accurate booking information by checking timeslot status
 class GetMyApplicationsWithBookingStateCommand
     extends Command<List<StudentSessionApplicationWithBookingState>> {
-  GetMyApplicationsWithBookingStateCommand(this._getMyApplicationsWithBookingStateUseCase);
+  GetMyApplicationsWithBookingStateCommand(
+    this._getMyApplicationsWithBookingStateUseCase,
+  );
 
-  final GetMyApplicationsWithBookingStateUseCase _getMyApplicationsWithBookingStateUseCase;
+  final GetMyApplicationsWithBookingStateUseCase
+  _getMyApplicationsWithBookingStateUseCase;
 
   /// Load user's applications with booking state
-  Future<void> loadMyApplicationsWithBookingState({bool forceRefresh = false}) async {
+  Future<void> loadMyApplicationsWithBookingState({
+    bool forceRefresh = false,
+  }) async {
     return execute();
   }
 
@@ -36,7 +41,7 @@ class GetMyApplicationsWithBookingStateCommand
       setError(
         StudentSessionApplicationError(
           'Failed to load your applications with booking state',
-          details: e.toString(),
+          details: 'Unable to load your applications. Please try again.',
         ),
       );
     } finally {
@@ -54,18 +59,23 @@ class GetMyApplicationsWithBookingStateCommand
   List<StudentSessionApplicationWithBookingState> getApplicationsByStatus(
     ApplicationStatus status,
   ) {
-    return result?.where((app) => app.application.status == status).toList() ?? [];
+    return result?.where((app) => app.application.status == status).toList() ??
+        [];
   }
-
 
   /// Get a user-friendly description of the current state
   String get statusDescription {
     if (isExecuting) return 'Loading your applications...';
     if (isCompleted && result != null) {
       final totalApps = result!.length;
-      final bookedCount = result!
-          .where((app) => app.application.status == ApplicationStatus.accepted && app.hasBooking)
-          .length;
+      final bookedCount =
+          result!
+              .where(
+                (app) =>
+                    app.application.status == ApplicationStatus.accepted &&
+                    app.hasBooking,
+              )
+              .length;
       return 'Loaded $totalApps applications ($bookedCount with bookings)';
     }
     if (hasError) {

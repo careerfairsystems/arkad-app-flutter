@@ -1,5 +1,6 @@
 import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/services/timeline_validation_service.dart';
+import 'field_configuration.dart';
 
 /// Domain entity representing a student session for a company
 /// Maps from StudentSessionNormalUserSchema in API
@@ -13,6 +14,8 @@ class StudentSession {
     this.userStatus,
     this.logoUrl,
     this.description,
+    this.disclaimer,
+    this.fieldConfigurations = const [],
   });
 
   /// Unique identifier for this student session
@@ -38,6 +41,12 @@ class StudentSession {
 
   /// Session description (optional)
   final String? description;
+
+  /// Session disclaimer text (optional)
+  final String? disclaimer;
+
+  /// Field configurations for dynamic form rendering
+  final List<FieldConfiguration> fieldConfigurations;
 
   /// Check if user has applied to this session
   bool get hasApplied => userStatus != null;
@@ -87,6 +96,45 @@ class StudentSession {
     }
   }
 
+  /// Get field configuration for a specific field
+  FieldConfiguration? getFieldConfiguration(String fieldName) {
+    for (final config in fieldConfigurations) {
+      if (config.fieldName == fieldName) return config;
+    }
+    return null;
+  }
+
+  /// Check if a field should be displayed (not hidden)
+  bool isFieldVisible(String fieldName) {
+    final config = getFieldConfiguration(fieldName);
+    return config?.isVisible ?? true; // Default to visible if no config found
+  }
+
+  /// Check if a field is required for form submission
+  bool isFieldRequired(String fieldName) {
+    final config = getFieldConfiguration(fieldName);
+    return config?.isRequired ?? true; // Default to required if no config found
+  }
+
+  /// Check if a field is optional (visible but not required)
+  bool isFieldOptional(String fieldName) {
+    final config = getFieldConfiguration(fieldName);
+    return config?.isOptional ?? false;
+  }
+
+  /// Check if a field should be hidden from the form
+  bool isFieldHidden(String fieldName) {
+    final config = getFieldConfiguration(fieldName);
+    return config?.isHidden ?? false;
+  }
+
+  /// Get the field level for a specific field
+  FieldLevel getFieldLevel(String fieldName) {
+    final config = getFieldConfiguration(fieldName);
+    return config?.level ??
+        FieldLevel.required; // Default to required if no config found
+  }
+
   /// Create a copy with updated values
   StudentSession copyWith({
     int? id,
@@ -97,6 +145,8 @@ class StudentSession {
     StudentSessionStatus? userStatus,
     String? logoUrl,
     String? description,
+    String? disclaimer,
+    List<FieldConfiguration>? fieldConfigurations,
   }) {
     return StudentSession(
       id: id ?? this.id,
@@ -107,6 +157,8 @@ class StudentSession {
       userStatus: userStatus ?? this.userStatus,
       logoUrl: logoUrl ?? this.logoUrl,
       description: description ?? this.description,
+      disclaimer: disclaimer ?? this.disclaimer,
+      fieldConfigurations: fieldConfigurations ?? this.fieldConfigurations,
     );
   }
 
@@ -119,7 +171,11 @@ class StudentSession {
         other.companyName == companyName &&
         other.isAvailable == isAvailable &&
         other.bookingCloseTime == bookingCloseTime &&
-        other.userStatus == userStatus;
+        other.userStatus == userStatus &&
+        other.logoUrl == logoUrl &&
+        other.description == description &&
+        other.disclaimer == disclaimer &&
+        other.fieldConfigurations == fieldConfigurations;
   }
 
   @override
@@ -131,6 +187,10 @@ class StudentSession {
       isAvailable,
       bookingCloseTime,
       userStatus,
+      logoUrl,
+      description,
+      disclaimer,
+      fieldConfigurations,
     );
   }
 

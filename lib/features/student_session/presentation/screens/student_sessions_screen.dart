@@ -47,7 +47,7 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
     _logoutSubscription = AppEvents.on<UserLoggedOutEvent>().listen((_) {
       _clearUIState();
     });
-    
+
     // Listen for login events to refresh data
     _authSubscription = AppEvents.on<AuthSessionChangedEvent>().listen((_) {
       _refreshDataAfterAuth();
@@ -60,11 +60,8 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
         context,
         listen: false,
       );
-      final authViewModel = Provider.of<AuthViewModel>(
-        context,
-        listen: false,
-      );
-      
+      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+
       // Only load applications if user is authenticated
       // For public users, only load student sessions
       if (authViewModel.isAuthenticated) {
@@ -88,11 +85,8 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
   }
 
   Future<void> _loadInitialData(StudentSessionViewModel viewModel) async {
-    final authViewModel = Provider.of<AuthViewModel>(
-      context,
-      listen: false,
-    );
-    
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+
     if (authViewModel.isAuthenticated) {
       // Authenticated users: load sessions and applications
       await Future.wait([
@@ -264,7 +258,8 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
     }
 
     final sessions = viewModel.filteredStudentSessions;
-    final applicationsWithBookingState = viewModel.myApplicationsWithBookingState;
+    final applicationsWithBookingState =
+        viewModel.myApplicationsWithBookingState;
 
     if (sessions.isEmpty) {
       return Center(
@@ -306,7 +301,10 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
           final session = sessions[index];
           final applicationWithBookingState =
               applicationsWithBookingState
-                  .where((appWithState) => appWithState.application.companyId == session.companyId)
+                  .where(
+                    (appWithState) =>
+                        appWithState.application.companyId == session.companyId,
+                  )
                   .firstOrNull;
 
           return StudentSessionCard(
@@ -320,7 +318,6 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
       ),
     );
   }
-
 
   void _onApplyForSession(StudentSession session) {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
@@ -380,7 +377,6 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
           ),
     );
   }
-
 
   void _showTimelineInfo(TimelineStatus timelineStatus) {
     showDialog(

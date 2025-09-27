@@ -30,11 +30,14 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
   }
 
   void _initializeData() {
-    final viewModel = Provider.of<StudentSessionViewModel>(context, listen: false);
+    final viewModel = Provider.of<StudentSessionViewModel>(
+      context,
+      listen: false,
+    );
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    
+
     // Only load if authenticated and not already executing
-    if (authViewModel.isAuthenticated && 
+    if (authViewModel.isAuthenticated &&
         !authViewModel.isInitializing &&
         !viewModel.getMyApplicationsWithBookingStateCommand.isExecuting) {
       viewModel.getMyApplicationsWithBookingStateCommand.reset();
@@ -46,8 +49,11 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
   Widget build(BuildContext context) {
     return Consumer2<StudentSessionViewModel, AuthViewModel>(
       builder: (context, viewModel, authViewModel, child) {
-        final applicationsWithBookingState = viewModel.myApplicationsWithBookingState;
-        final groupedApplications = _groupApplicationsWithBookingStateByStatus(applicationsWithBookingState);
+        final applicationsWithBookingState =
+            viewModel.myApplicationsWithBookingState;
+        final groupedApplications = _groupApplicationsWithBookingStateByStatus(
+          applicationsWithBookingState,
+        );
 
         return _buildConsolidatedView(context, viewModel, groupedApplications);
       },
@@ -56,12 +62,15 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
 
   /// Group applications with booking state by status and sort within each group
   Map<ApplicationStatus, List<StudentSessionApplicationWithBookingState>>
-  _groupApplicationsWithBookingStateByStatus(List<StudentSessionApplicationWithBookingState> applications) {
-    final groups = <ApplicationStatus, List<StudentSessionApplicationWithBookingState>>{
-      ApplicationStatus.accepted: [],
-      ApplicationStatus.pending: [],
-      ApplicationStatus.rejected: [],
-    };
+  _groupApplicationsWithBookingStateByStatus(
+    List<StudentSessionApplicationWithBookingState> applications,
+  ) {
+    final groups =
+        <ApplicationStatus, List<StudentSessionApplicationWithBookingState>>{
+          ApplicationStatus.accepted: [],
+          ApplicationStatus.pending: [],
+          ApplicationStatus.rejected: [],
+        };
 
     for (final app in applications) {
       groups[app.application.status]?.add(app);
@@ -83,7 +92,8 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
   Widget _buildConsolidatedView(
     BuildContext context,
     StudentSessionViewModel viewModel,
-    Map<ApplicationStatus, List<StudentSessionApplicationWithBookingState>> groupedApplications,
+    Map<ApplicationStatus, List<StudentSessionApplicationWithBookingState>>
+    groupedApplications,
   ) {
     final command = viewModel.getMyApplicationsWithBookingStateCommand;
 
@@ -211,25 +221,29 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
-            border: Border.all(
-              color: color.withValues(alpha: 0.2),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(8),
             ),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
           ),
-          child: applications.isEmpty
-              ? _buildEmptySection(context, title.split(' ')[0])
-              : Column(
-                  children: applications.map(
-                    (app) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildUnifiedApplicationCard(
-                        context,
-                        app,
-                        showActions: showActions,
-                      ),
-                    ),
-                  ).toList(),
-                ),
+          child:
+              applications.isEmpty
+                  ? _buildEmptySection(context, title.split(' ')[0])
+                  : Column(
+                    children:
+                        applications
+                            .map(
+                              (app) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _buildUnifiedApplicationCard(
+                                  context,
+                                  app,
+                                  showActions: showActions,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                  ),
         ),
       ],
     );
@@ -256,7 +270,9 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
         child: Text(
           message,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.6),
             fontStyle: FontStyle.italic,
           ),
           textAlign: TextAlign.center,
@@ -270,7 +286,9 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
@@ -280,16 +298,18 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
         children: [
           Text(
             'Get Started',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
             'Apply to companies in the Student Sessions tab to see your applications here',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
@@ -358,9 +378,7 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
                       const SizedBox(height: 4),
                       Text(
                         statusText,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: statusColor,
                           fontWeight: FontWeight.w600,
                         ),
@@ -499,7 +517,7 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     // This method needs access to the booking state, but since we only have the application
     // we'll use the status service with a dummy booking state for now
     // In a real implementation, this would need to be passed from the parent
-    
+
     // Get current timeline status to show appropriate message
     final status = TimelineValidationService.checkBookingPeriod();
 
@@ -566,7 +584,7 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
   ) {
     final application = applicationWithBookingState.application;
     final hasBooking = applicationWithBookingState.hasBooking;
-    
+
     final status = TimelineValidationService.checkBookingPeriod();
     final isBookingOpen = status.phase == StudentSessionPhase.bookingOpen;
 
@@ -604,7 +622,8 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
 
     // Booking is open - show single manage booking button
     String buttonText = hasBooking ? 'Manage Booking' : 'Book Timeslot';
-    IconData buttonIcon = hasBooking ? Icons.edit_calendar_rounded : Icons.schedule_rounded;
+    IconData buttonIcon =
+        hasBooking ? Icons.edit_calendar_rounded : Icons.schedule_rounded;
 
     return Row(
       children: [

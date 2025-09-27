@@ -49,7 +49,16 @@ class StudentSessionRemoteDataSource {
         throw Exception('Failed to get timeslots');
       }
     } catch (e, stackTrace) {
+      // Enhanced Sentry reporting with context
       await Sentry.captureException(e, stackTrace: stackTrace);
+      Sentry.logger.error(
+        'Failed to fetch timeslots from API',
+        attributes: {
+          'operation': SentryLogAttribute.string('getTimeslots'),
+          'company_id': SentryLogAttribute.string(companyId.toString()),
+          'error_type': SentryLogAttribute.string(e.runtimeType.toString()),
+        },
+      );
       throw Exception('Failed to get timeslots');
     }
   }
@@ -66,8 +75,17 @@ class StudentSessionRemoteDataSource {
           );
       return response;
     } catch (e, stackTrace) {
+      // Enhanced Sentry reporting with context
       await Sentry.captureException(e, stackTrace: stackTrace);
-      throw Exception('Failed to apply for student session: $e');
+      Sentry.logger.error(
+        'Failed to apply for student session',
+        attributes: {
+          'operation': SentryLogAttribute.string('applyForSession'),
+          'company_id': SentryLogAttribute.string(application.companyId.toString()),
+          'error_type': SentryLogAttribute.string(e.runtimeType.toString()),
+        },
+      );
+      throw Exception('Failed to apply for student session');
     }
   }
 

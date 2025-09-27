@@ -67,7 +67,6 @@ class StudentSessionViewModel extends ChangeNotifier {
   bool _showConflictOverlay = false;
   String? _conflictMessage;
 
-
   // Command getters for UI access
   GetStudentSessionsCommand get getStudentSessionsCommand =>
       _getStudentSessionsCommand;
@@ -104,12 +103,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     return sessions;
   }
 
-  List<StudentSessionApplication> get myApplications {
-    // Convert from enhanced applications for backward compatibility
-    return myApplicationsWithBookingState
-        .map((appWithBooking) => appWithBooking.application)
-        .toList();
-  }
+
   List<StudentSessionApplicationWithBookingState>
   get myApplicationsWithBookingState =>
       _getMyApplicationsWithBookingStateCommand.result ?? [];
@@ -121,7 +115,6 @@ class StudentSessionViewModel extends ChangeNotifier {
 
   // CV upload error getter
   StudentSessionApplicationError? get cvUploadError => _cvUploadError;
-
 
   // Conflict resolution getters
   bool get isHandlingConflict => _isHandlingConflict;
@@ -135,17 +128,17 @@ class StudentSessionViewModel extends ChangeNotifier {
       (_applyForSessionCommand.isExecuting) ||
       (_bookTimeslotCommand.isExecuting) ||
       (_unbookTimeslotCommand.isExecuting) ||
-      (_getMyApplicationsWithBookingStateCommand.isExecuting && myApplicationsWithBookingState.isEmpty) ||
+      (_getMyApplicationsWithBookingStateCommand.isExecuting &&
+          myApplicationsWithBookingState.isEmpty) ||
       (_getTimeslotsCommand.isExecuting && timeslots.isEmpty);
 
   /// Background refresh state - indicates data refresh without blocking UI
   bool get isBackgroundRefreshing =>
       (_getStudentSessionsCommand.isExecuting && studentSessions.isNotEmpty) ||
-      (_getMyApplicationsWithBookingStateCommand.isExecuting && myApplicationsWithBookingState.isNotEmpty) ||
+      (_getMyApplicationsWithBookingStateCommand.isExecuting &&
+          myApplicationsWithBookingState.isNotEmpty) ||
       (_getTimeslotsCommand.isExecuting && timeslots.isNotEmpty);
 
-  /// Legacy loading getter for backward compatibility
-  bool get isLoading => isInitialLoading;
 
   bool get hasError =>
       _getStudentSessionsCommand.hasError ||
@@ -166,7 +159,6 @@ class StudentSessionViewModel extends ChangeNotifier {
       );
     }).toList();
   }
-
 
   /// Load student sessions with comprehensive error handling
   Future<void> loadStudentSessions() async {
@@ -195,9 +187,8 @@ class StudentSessionViewModel extends ChangeNotifier {
       return; // Don't load applications if user is not authenticated or timeout occurred
     }
 
-    await _getMyApplicationsWithBookingStateCommand.loadMyApplicationsWithBookingState(
-      forceRefresh: forceRefresh,
-    );
+    await _getMyApplicationsWithBookingStateCommand
+        .loadMyApplicationsWithBookingState(forceRefresh: forceRefresh);
   }
 
   /// Load my applications with real booking state from timeslots
@@ -336,7 +327,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-
   /// Retry CV upload for a previously failed application
   /// This allows users to retry CV upload without re-submitting the entire application
   Future<bool> retryCVUpload({
@@ -397,12 +387,13 @@ class StudentSessionViewModel extends ChangeNotifier {
       }
       return; // CRITICAL: Exit early to prevent success flow after error
     }
-    
+
     // Success flow - only execute if NO errors exist
-    if (_bookTimeslotCommand.isCompleted && _bookTimeslotCommand.result != null) {
+    if (_bookTimeslotCommand.isCompleted &&
+        _bookTimeslotCommand.result != null) {
       // Refresh profile data to immediately reflect new booking state
       await loadMyApplicationsWithBookingState(forceRefresh: true);
-      
+
       notifyListeners(); // Ensure success state is reflected
     }
   }
@@ -417,7 +408,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-
   /// Handle booking conflict with simple refresh
   Future<void> _handleBookingConflict() async {
     if (_isHandlingConflict) return; // Prevent concurrent conflict handling
@@ -427,7 +417,8 @@ class StudentSessionViewModel extends ChangeNotifier {
     try {
       // Show single clear conflict message
       _showConflictOverlay = true;
-      _conflictMessage = 'This timeslot was just taken by someone else.\nPlease select another slot.';
+      _conflictMessage =
+          'This timeslot was just taken by someone else.\nPlease select another slot.';
       notifyListeners(); // Show overlay immediately
 
       // Refresh timeslots data in background
@@ -440,12 +431,11 @@ class StudentSessionViewModel extends ChangeNotifier {
       _showConflictOverlay = false;
       _conflictMessage = null;
       notifyListeners();
-      
     } catch (e) {
       // Handle refresh failure
       _conflictMessage = 'Failed to refresh timeslot data.\nPlease try again.';
       notifyListeners();
-      
+
       // Hide overlay after error display
       await Future.delayed(const Duration(seconds: 3));
       _showConflictOverlay = false;
@@ -462,8 +452,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     _conflictMessage = null;
     notifyListeners();
   }
-
-
 
   /// Subscribe to logout events for cleanup
   void _subscribeToLogoutEvents() {

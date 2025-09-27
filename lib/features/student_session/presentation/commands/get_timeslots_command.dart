@@ -44,7 +44,7 @@ class GetTimeslotsCommand extends ParameterizedCommand<int, List<Timeslot>> {
       setError(
         StudentSessionApplicationError(
           'Failed to load available timeslots',
-          details: e.toString(),
+          details: 'Unable to load timeslots. Please try again.',
         ),
       );
     } finally {

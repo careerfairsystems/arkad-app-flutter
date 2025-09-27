@@ -18,7 +18,8 @@ class StudentSessionDataService {
 
   /// Get all student sessions with their current application states
   /// This is the single source of truth for student session data
-  Future<Result<List<StudentSessionWithApplicationState>>> getStudentSessionsWithApplicationState() async {
+  Future<Result<List<StudentSessionWithApplicationState>>>
+  getStudentSessionsWithApplicationState() async {
     try {
       // Get base student sessions
       final sessionsResult = await _repository.getStudentSessions();
@@ -28,10 +29,15 @@ class StudentSessionDataService {
       );
 
       // Get applications with booking state for authenticated users
-      final applicationsResult = await _repository.getMyApplicationsWithBookingState();
+      final applicationsResult =
+          await _repository.getMyApplicationsWithBookingState();
       final applications = applicationsResult.when(
         success: (data) => data,
-        failure: (_) => <StudentSessionApplicationWithBookingState>[], // Graceful fallback for unauthenticated users
+        failure:
+            (_) =>
+                <
+                  StudentSessionApplicationWithBookingState
+                >[], // Graceful fallback for unauthenticated users
       );
 
       // Create unified data structure
@@ -39,26 +45,38 @@ class StudentSessionDataService {
 
       for (final session in sessions) {
         // Find matching application for this session
-        final matchingApplication = applications
-            .where((app) => app.application.companyId == session.companyId)
-            .firstOrNull;
+        final matchingApplication =
+            applications
+                .where((app) => app.application.companyId == session.companyId)
+                .firstOrNull;
 
-        unifiedData.add(StudentSessionWithApplicationState(
-          session: session,
-          applicationWithBookingState: matchingApplication,
-        ));
+        unifiedData.add(
+          StudentSessionWithApplicationState(
+            session: session,
+            applicationWithBookingState: matchingApplication,
+          ),
+        );
       }
 
       return Result.success(unifiedData);
     } catch (e, stackTrace) {
+      // Enhanced Sentry reporting with context
       await Sentry.captureException(e, stackTrace: stackTrace);
-      return Result.failure(e is AppError ? e : UnknownError(e.toString()));
+      Sentry.logger.error(
+        'Failed to combine student session data',
+        attributes: {
+          'operation': SentryLogAttribute.string('combineSessionsWithApplications'),
+          'error_type': SentryLogAttribute.string(e.runtimeType.toString()),
+        },
+      );
+      return Result.failure(e is AppError ? e : UnknownError('Unable to load student session data'));
     }
   }
 
   /// Get applications with booking state only (for profile view)
   /// This delegates to the repository but ensures consistent error handling
-  Future<Result<List<StudentSessionApplicationWithBookingState>>> getMyApplicationsWithBookingState() async {
+  Future<Result<List<StudentSessionApplicationWithBookingState>>>
+  getMyApplicationsWithBookingState() async {
     return await _repository.getMyApplicationsWithBookingState();
   }
 

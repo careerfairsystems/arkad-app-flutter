@@ -108,7 +108,7 @@ class StudentSessionApplication {
   bool get canBook => status == ApplicationStatus.accepted;
 
   /// Check if this application can cancel booking (accepted and booked)
-  /// Note: The actual booking state is determined by repository logic checking timeslots  
+  /// Note: The actual booking state is determined by repository logic checking timeslots
   bool get canCancelBooking => status == ApplicationStatus.accepted;
 
   @override
@@ -168,13 +168,16 @@ class StudentSessionApplicationWithBookingState {
   final Timeslot? bookedTimeslot;
 
   /// Check if this application can be booked (accepted but not yet booked)
-  bool get canBook => application.status == ApplicationStatus.accepted && !hasBooking;
+  bool get canBook =>
+      application.status == ApplicationStatus.accepted && !hasBooking;
 
   /// Check if this application can cancel booking (accepted and booked)
-  bool get canCancelBooking => application.status == ApplicationStatus.accepted && hasBooking;
+  bool get canCancelBooking =>
+      application.status == ApplicationStatus.accepted && hasBooking;
 
   /// Check if this application can rebook (accepted and currently booked)
-  bool get canRebook => application.status == ApplicationStatus.accepted && hasBooking;
+  bool get canRebook =>
+      application.status == ApplicationStatus.accepted && hasBooking;
 
   @override
   String toString() {
@@ -224,4 +227,3 @@ enum ApplicationStatus {
   bool get allowsActions =>
       this == ApplicationStatus.pending || this == ApplicationStatus.accepted;
 }
-

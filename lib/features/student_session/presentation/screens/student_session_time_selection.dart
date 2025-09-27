@@ -7,13 +7,12 @@ import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/timeslot.dart';
 import '../view_models/student_session_view_model.dart';
 
-
 class StudentSessionTimeSelectionScreen extends StatefulWidget {
   final String id;
   final bool isBookingMode;
 
   const StudentSessionTimeSelectionScreen({
-    required this.id, 
+    required this.id,
     this.isBookingMode = false,
     super.key,
   });
@@ -27,7 +26,7 @@ class _StudentSessionTimeSelection
     extends State<StudentSessionTimeSelectionScreen> {
   int? _selectedTimeslotId;
   bool _hasLoadedData = false;
-  
+
   // Message handling state to prevent duplicates and setState during build
   bool _hasHandledBookingSuccess = false;
   bool _hasHandledBookingError = false;
@@ -37,22 +36,23 @@ class _StudentSessionTimeSelection
   /// Get selected timeslot from current timeslots list using ID
   Timeslot? _getSelectedTimeslot(List<Timeslot> timeslots) {
     if (_selectedTimeslotId == null) return null;
-    return timeslots.where((slot) => slot.id == _selectedTimeslotId).firstOrNull;
+    return timeslots
+        .where((slot) => slot.id == _selectedTimeslotId)
+        .firstOrNull;
   }
 
   /// Check if current selection is valid (exists and is available)
   bool _isSelectionValid(List<Timeslot> timeslots) {
     final selectedSlot = _getSelectedTimeslot(timeslots);
-    return selectedSlot != null && (selectedSlot.status.isAvailable || selectedSlot.status.isBookedByCurrentUser);
+    return selectedSlot != null &&
+        (selectedSlot.status.isAvailable ||
+            selectedSlot.status.isBookedByCurrentUser);
   }
-
-
-
 
   @override
   void initState() {
     super.initState();
-    
+
     // Set company context on next frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -77,7 +77,7 @@ class _StudentSessionTimeSelection
       // Clear company selection
       viewModel.setSelectedCompany(null);
     }
-    
+
     super.dispose();
   }
 
@@ -85,7 +85,7 @@ class _StudentSessionTimeSelection
   void _handleCommandMessages(StudentSessionViewModel viewModel) {
     final bookCommand = viewModel.bookTimeslotCommand;
     final unbookCommand = viewModel.unbookTimeslotCommand;
-    
+
     // Handle booking success messages
     if (bookCommand.showSuccessMessage && !_hasHandledBookingSuccess) {
       _hasHandledBookingSuccess = true;
@@ -93,17 +93,22 @@ class _StudentSessionTimeSelection
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(bookCommand.successMessage ?? 'Timeslot booked successfully!'),
+              content: Text(
+                bookCommand.successMessage ?? 'Timeslot booked successfully!',
+              ),
               backgroundColor: ArkadColors.arkadGreen,
             ),
           );
-          
+
           bookCommand.clearSuccessMessage();
-          
+
           // Navigate back after success
           Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted && context.mounted && context.canPop() && 
-                bookCommand.isCompleted && !bookCommand.hasError) {
+            if (mounted &&
+                context.mounted &&
+                context.canPop() &&
+                bookCommand.isCompleted &&
+                !bookCommand.hasError) {
               context.pop();
             }
           });
@@ -112,26 +117,29 @@ class _StudentSessionTimeSelection
     } else if (!bookCommand.showSuccessMessage) {
       _hasHandledBookingSuccess = false; // Reset when message is cleared
     }
-    
-    // Handle booking error messages  
+
+    // Handle booking error messages
     if (bookCommand.showErrorMessage && !_hasHandledBookingError) {
       _hasHandledBookingError = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(bookCommand.errorMessage ?? 'Failed to book timeslot. Please try again.'),
+              content: Text(
+                bookCommand.errorMessage ??
+                    'Failed to book timeslot. Please try again.',
+              ),
               backgroundColor: ArkadColors.lightRed,
             ),
           );
-          
+
           bookCommand.clearErrorMessage();
         }
       });
     } else if (!bookCommand.showErrorMessage) {
       _hasHandledBookingError = false; // Reset when message is cleared
     }
-    
+
     // Handle unbooking success messages
     if (unbookCommand.showSuccessMessage && !_hasHandledUnbookingSuccess) {
       _hasHandledUnbookingSuccess = true;
@@ -139,17 +147,23 @@ class _StudentSessionTimeSelection
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(unbookCommand.successMessage ?? 'Booking cancelled successfully!'),
+              content: Text(
+                unbookCommand.successMessage ??
+                    'Booking cancelled successfully!',
+              ),
               backgroundColor: ArkadColors.arkadGreen,
             ),
           );
-          
+
           unbookCommand.clearSuccessMessage();
-          
+
           // Navigate back after success (same as booking)
           Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted && context.mounted && context.canPop() && 
-                unbookCommand.isCompleted && !unbookCommand.hasError) {
+            if (mounted &&
+                context.mounted &&
+                context.canPop() &&
+                unbookCommand.isCompleted &&
+                !unbookCommand.hasError) {
               context.pop();
             }
           });
@@ -158,7 +172,7 @@ class _StudentSessionTimeSelection
     } else if (!unbookCommand.showSuccessMessage) {
       _hasHandledUnbookingSuccess = false; // Reset when message is cleared
     }
-    
+
     // Handle unbooking error messages
     if (unbookCommand.showErrorMessage && !_hasHandledUnbookingError) {
       _hasHandledUnbookingError = true;
@@ -166,11 +180,14 @@ class _StudentSessionTimeSelection
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(unbookCommand.errorMessage ?? 'Failed to cancel booking. Please try again.'),
+              content: Text(
+                unbookCommand.errorMessage ??
+                    'Failed to cancel booking. Please try again.',
+              ),
               backgroundColor: ArkadColors.lightRed,
             ),
           );
-          
+
           unbookCommand.clearErrorMessage();
         }
       });
@@ -195,15 +212,16 @@ class _StudentSessionTimeSelection
         listen: false,
       );
       final companyId = int.parse(widget.id);
-      
+
       await provider.loadTimeslots(companyId);
       final slots = provider.timeslots;
 
       setState(() {
         // Auto-select booked timeslot if user has one
-        final bookedSlot = slots
-            .where((slot) => slot.status.isBookedByCurrentUser)
-            .firstOrNull;
+        final bookedSlot =
+            slots
+                .where((slot) => slot.status.isBookedByCurrentUser)
+                .firstOrNull;
         if (bookedSlot != null) {
           _selectedTimeslotId = bookedSlot.id;
         }
@@ -242,7 +260,9 @@ class _StudentSessionTimeSelection
             Text(
               command.error?.userMessage ?? 'Please try again',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -257,16 +277,10 @@ class _StudentSessionTimeSelection
       );
     } else {
       return const Center(
-        child: Text(
-          'No time slots available',
-          style: TextStyle(fontSize: 16),
-        ),
+        child: Text('No time slots available', style: TextStyle(fontSize: 16)),
       );
     }
   }
-
-
-
 
   void _confirmSelection() async {
     if (widget.isBookingMode) {
@@ -274,20 +288,24 @@ class _StudentSessionTimeSelection
         context,
         listen: false,
       );
-      
+
       final companyId = int.parse(widget.id);
-      
+
       // Check if user already has a booking for this company
-      final currentBookedSlot = viewModel.timeslots
-          .where((slot) => slot.status.isBookedByCurrentUser)
-          .firstOrNull;
-      
+      final currentBookedSlot =
+          viewModel.timeslots
+              .where((slot) => slot.status.isBookedByCurrentUser)
+              .firstOrNull;
+
       final selectedSlot = _getSelectedTimeslot(viewModel.timeslots);
-      
-      if (currentBookedSlot != null && (selectedSlot == null || selectedSlot.id == currentBookedSlot.id)) {
+
+      if (currentBookedSlot != null &&
+          (selectedSlot == null || selectedSlot.id == currentBookedSlot.id)) {
         // User wants to cancel their existing booking
         await viewModel.unbookTimeslot(companyId);
-      } else if (currentBookedSlot != null && selectedSlot != null && selectedSlot.id != currentBookedSlot.id) {
+      } else if (currentBookedSlot != null &&
+          selectedSlot != null &&
+          selectedSlot.id != currentBookedSlot.id) {
         // User wants to change to a different timeslot
         await _changeBooking(viewModel, companyId, selectedSlot.id);
       } else if (currentBookedSlot == null && selectedSlot != null) {
@@ -297,7 +315,7 @@ class _StudentSessionTimeSelection
           timeslotId: selectedSlot.id,
         );
       }
-      
+
       // Navigation will be handled by success/error message system
     } else {
       // Handle application flow - just navigate back for now
@@ -305,12 +323,16 @@ class _StudentSessionTimeSelection
     }
   }
 
-  Future<void> _changeBooking(StudentSessionViewModel viewModel, int companyId, int newTimeslotId) async {
+  Future<void> _changeBooking(
+    StudentSessionViewModel viewModel,
+    int companyId,
+    int newTimeslotId,
+  ) async {
     // IMPROVED: Handle booking change flow with proper session management
-    
+
     // First unbook the current slot (this will stop any active session)
     await viewModel.unbookTimeslot(companyId);
-    
+
     // Only proceed with new booking if unbook was successful
     if (!viewModel.unbookTimeslotCommand.hasError) {
       // Start new booking (this will create a new active session)
@@ -322,27 +344,26 @@ class _StudentSessionTimeSelection
     // If unbooking failed, the active session is already stopped by the unbook handler
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isBookingMode ? 'Book Time Slot' : 'Select Time Slot'),
+        title: Text(
+          widget.isBookingMode ? 'Book Time Slot' : 'Select Time Slot',
+        ),
       ),
       body: Consumer<StudentSessionViewModel>(
         builder: (context, viewModel, child) {
           // Smart message handling with guards to prevent setState during build
           _handleCommandMessages(viewModel);
-          
+
           return Stack(
             children: [
               // Main content
               Column(
                 children: [
                   // Timeslot list
-                  Expanded(
-                    child: _buildTimeslotList(viewModel),
-                  ),
+                  Expanded(child: _buildTimeslotList(viewModel)),
                   // Action button for booking mode
                   if (widget.isBookingMode)
                     Padding(
@@ -354,7 +375,7 @@ class _StudentSessionTimeSelection
                     ),
                 ],
               ),
-              
+
               // Conflict overlay
               if (viewModel.showConflictOverlay)
                 _buildConflictOverlay(viewModel.conflictMessage),
@@ -371,16 +392,16 @@ class _StudentSessionTimeSelection
     if (viewModel.isInitialLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     // Show empty state if no timeslots
     if (viewModel.timeslots.isEmpty) {
       return _buildEmptyState();
     }
-    
+
     // Group timeslots by weekday
     final groupedSlots = _groupSlotsByWeekday(viewModel.timeslots);
     final sortedWeekdays = _getSortedWeekdays(groupedSlots);
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: sortedWeekdays.length,
@@ -392,10 +413,7 @@ class _StudentSessionTimeSelection
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 12,
-                horizontal: 8,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               child: Text(
                 weekday,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -413,7 +431,7 @@ class _StudentSessionTimeSelection
       },
     );
   }
-  
+
   /// Group timeslots by weekday
   Map<String, List<Timeslot>> _groupSlotsByWeekday(List<Timeslot> slots) {
     final Map<String, List<Timeslot>> groupedSlots = {};
@@ -444,7 +462,7 @@ class _StudentSessionTimeSelection
       return dateA.compareTo(dateB);
     });
   }
-  
+
   /// Build simple timeslot card
   Widget _buildTimeslotCard(Timeslot slot) {
     final isSelected = _selectedTimeslotId == slot.id;
@@ -470,11 +488,7 @@ class _StudentSessionTimeSelection
 
     return Card(
       key: ValueKey('timeslot_${slot.id}'),
-      margin: const EdgeInsets.only(
-        bottom: 8,
-        left: 8,
-        right: 8,
-      ),
+      margin: const EdgeInsets.only(bottom: 8, left: 8, right: 8),
       color: cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -510,36 +524,37 @@ class _StudentSessionTimeSelection
             ],
           ],
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         leading: Radio<int>(
           value: slot.id,
           groupValue: _selectedTimeslotId,
           activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
-          onChanged: (isAvailable || isBookedByUser) ? (int? value) {
-            if (value != null) {
-              setState(() {
-                _selectedTimeslotId = value;
-              });
-            }
-          } : null,
+          onChanged:
+              (isAvailable || isBookedByUser)
+                  ? (int? value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedTimeslotId = value;
+                      });
+                    }
+                  }
+                  : null,
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 6,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         visualDensity: VisualDensity.compact,
-        onTap: (isAvailable || isBookedByUser) ? () {
-          setState(() {
-            _selectedTimeslotId = slot.id;
-          });
-        } : null,
+        onTap:
+            (isAvailable || isBookedByUser)
+                ? () {
+                  setState(() {
+                    _selectedTimeslotId = slot.id;
+                  });
+                }
+                : null,
         enabled: (isAvailable || isBookedByUser),
       ),
     );
   }
-  
+
   /// Format time range for display
   String _formatTimeRange(Timeslot slot) {
     final startTime = DateFormat('HH:mm').format(slot.startTime);
@@ -547,21 +562,22 @@ class _StudentSessionTimeSelection
     return '$startTime - $endTime';
   }
 
-
   /// Build simple action button
   Widget _buildActionButton(StudentSessionViewModel viewModel) {
     final timeslots = viewModel.timeslots;
     final selectedSlot = _getSelectedTimeslot(timeslots);
-    final currentBookedSlot = timeslots
-        .where((slot) => slot.status.isBookedByCurrentUser)
-        .firstOrNull;
-    
+    final currentBookedSlot =
+        timeslots
+            .where((slot) => slot.status.isBookedByCurrentUser)
+            .firstOrNull;
+
     // Determine button text
     String buttonText;
     if (!widget.isBookingMode) {
       buttonText = 'Confirm Selection';
     } else if (currentBookedSlot == null) {
-      buttonText = selectedSlot != null ? 'Book Selected Timeslot' : 'Select a Timeslot';
+      buttonText =
+          selectedSlot != null ? 'Book Selected Timeslot' : 'Select a Timeslot';
     } else {
       if (selectedSlot == null || selectedSlot.id == currentBookedSlot.id) {
         buttonText = 'Cancel Booking';
@@ -569,15 +585,16 @@ class _StudentSessionTimeSelection
         buttonText = 'Change to Selected Timeslot';
       }
     }
-    
+
     // Determine button color
     Color buttonColor;
-    if (currentBookedSlot != null && (selectedSlot == null || selectedSlot.id == currentBookedSlot.id)) {
+    if (currentBookedSlot != null &&
+        (selectedSlot == null || selectedSlot.id == currentBookedSlot.id)) {
       buttonColor = ArkadColors.lightRed; // Cancel action
     } else {
       buttonColor = ArkadColors.arkadTurkos; // Book or change action
     }
-    
+
     // Determine if button is enabled
     bool isEnabled = !viewModel.bookTimeslotCommand.isExecuting;
     if (widget.isBookingMode) {
@@ -585,9 +602,11 @@ class _StudentSessionTimeSelection
         isEnabled = isEnabled && _isSelectionValid(timeslots);
       } else {
         if (selectedSlot == null || selectedSlot.id == currentBookedSlot.id) {
-          isEnabled = isEnabled; // Cancel action - always enabled when not loading
+          isEnabled =
+              isEnabled; // Cancel action - always enabled when not loading
         } else {
-          isEnabled = isEnabled && _isSelectionValid(timeslots); // Change action
+          isEnabled =
+              isEnabled && _isSelectionValid(timeslots); // Change action
         }
       }
     } else {
@@ -600,19 +619,19 @@ class _StudentSessionTimeSelection
         backgroundColor: buttonColor,
         foregroundColor: Colors.white,
       ),
-      child: viewModel.bookTimeslotCommand.isExecuting 
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            )
-          : Text(buttonText),
+      child:
+          viewModel.bookTimeslotCommand.isExecuting
+              ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+              : Text(buttonText),
     );
   }
-
 
   /// Build conflict overlay (granular updates)
   Widget _buildConflictOverlay(String? message) {
@@ -648,14 +667,19 @@ class _StudentSessionTimeSelection
                   ),
                   const SizedBox(height: 16),
                   Selector<StudentSessionViewModel, bool>(
-                    selector: (context, viewModel) => viewModel.isHandlingConflict,
+                    selector:
+                        (context, viewModel) => viewModel.isHandlingConflict,
                     builder: (context, isHandling, child) {
                       if (isHandling) {
                         return const CircularProgressIndicator();
                       } else {
                         return TextButton(
                           onPressed: () {
-                            final viewModel = Provider.of<StudentSessionViewModel>(context, listen: false);
+                            final viewModel =
+                                Provider.of<StudentSessionViewModel>(
+                                  context,
+                                  listen: false,
+                                );
                             viewModel.clearConflictOverlay();
                           },
                           child: const Text('Got it'),
@@ -671,6 +695,4 @@ class _StudentSessionTimeSelection
       ),
     );
   }
-
-
 }

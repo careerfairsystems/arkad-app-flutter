@@ -34,8 +34,12 @@ class StudentSessionCard extends StatelessWidget {
     );
 
     // Get status information using the unified status service
-    final statusInfo = StudentSessionStatusService.instance.getStatusInfo(sessionWithApp);
-    final actionInfo = StudentSessionStatusService.instance.getActionButtonInfo(sessionWithApp);
+    final statusInfo = StudentSessionStatusService.instance.getStatusInfo(
+      sessionWithApp,
+    );
+    final actionInfo = StudentSessionStatusService.instance.getActionButtonInfo(
+      sessionWithApp,
+    );
 
     return Container(
       margin: margin,
@@ -66,7 +70,10 @@ class StudentSessionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, StudentSessionStatusInfo statusInfo) {
+  Widget _buildHeader(
+    BuildContext context,
+    StudentSessionStatusInfo statusInfo,
+  ) {
     return Row(
       children: [
         _buildLogo(context),
@@ -134,7 +141,10 @@ class StudentSessionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAvailabilityIndicator(BuildContext context, StudentSessionStatusInfo statusInfo) {
+  Widget _buildAvailabilityIndicator(
+    BuildContext context,
+    StudentSessionStatusInfo statusInfo,
+  ) {
     return Row(
       children: [
         Container(
@@ -174,7 +184,10 @@ class StudentSessionCard extends StatelessWidget {
     return const SizedBox.shrink();
   }
 
-  Widget _buildApplicationStatusBadge(BuildContext context, StudentSessionStatusInfo statusInfo) {
+  Widget _buildApplicationStatusBadge(
+    BuildContext context,
+    StudentSessionStatusInfo statusInfo,
+  ) {
     if (statusInfo.badgeText == null) return const SizedBox.shrink();
 
     return Container(
@@ -195,7 +208,7 @@ class StudentSessionCard extends StatelessWidget {
 
   Widget _buildActions(BuildContext context, ActionButtonInfo actionInfo) {
     VoidCallback? buttonCallback;
-    
+
     switch (actionInfo.action) {
       case ActionType.apply:
         buttonCallback = onApply;
@@ -214,7 +227,10 @@ class StudentSessionCard extends StatelessWidget {
             icon: Icon(actionInfo.icon, size: 18),
             label: Text(actionInfo.text),
             style: FilledButton.styleFrom(
-              backgroundColor: actionInfo.isEnabled ? actionInfo.color : ArkadColors.lightGray,
+              backgroundColor:
+                  actionInfo.isEnabled
+                      ? actionInfo.color
+                      : ArkadColors.lightGray,
               foregroundColor: ArkadColors.white,
             ),
           ),
@@ -222,5 +238,4 @@ class StudentSessionCard extends StatelessWidget {
       ],
     );
   }
-
 }
