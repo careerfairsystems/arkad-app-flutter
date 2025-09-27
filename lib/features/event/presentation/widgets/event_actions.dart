@@ -292,11 +292,11 @@ class EventActions extends StatelessWidget {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
+                onPressed: () => context.pop(false),
                 child: const Text('Cancel'),
               ),
               TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
+                onPressed: () => context.pop(true),
                 style: TextButton.styleFrom(
                   foregroundColor: ArkadColors.lightRed,
                 ),

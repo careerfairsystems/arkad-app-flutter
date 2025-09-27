@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 
@@ -120,7 +121,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                         const SizedBox(height: 12),
                         ArkadButton(
                           text: 'Close',
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () => context.pop(),
                           fullWidth: true,
                         ),
                       ],

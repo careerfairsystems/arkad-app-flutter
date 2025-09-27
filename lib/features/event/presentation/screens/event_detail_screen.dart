@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -163,7 +164,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               const SizedBox(height: 24),
               ArkadButton(
                 text: 'Back to Events',
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
                 icon: Icons.arrow_back,
                 variant: ArkadButtonVariant.secondary,
               ),

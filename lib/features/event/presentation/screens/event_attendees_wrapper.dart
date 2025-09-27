@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
@@ -154,7 +155,7 @@ class _EventAttendeesWrapperState extends State<EventAttendeesWrapper> {
               const SizedBox(height: 24),
               ArkadButton(
                 text: 'Back',
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
                 icon: Icons.arrow_back,
                 variant: ArkadButtonVariant.secondary,
               ),
