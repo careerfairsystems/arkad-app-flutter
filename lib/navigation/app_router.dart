@@ -319,10 +319,19 @@ class _AppBottomNavShell extends StatelessWidget {
       bottomNavigationBar: AppBottomNavigation(
         currentIndex: safeTabIndex,
         items: items,
-        onTap: (i) => navigationShell.goBranch(
-          items[i].branchIndex,
-          initialLocation: true,
-        ),
+        onTap: (i) {
+          final targetBranchIndex = items[i].branchIndex;
+          if (targetBranchIndex == navigationShell.currentIndex) {
+            // Reselecting current tab - reset to initial location
+            navigationShell.goBranch(
+              targetBranchIndex,
+              initialLocation: true,
+            );
+          } else {
+            // Switching to different tab - preserve state
+            navigationShell.goBranch(targetBranchIndex);
+          }
+        },
       ),
     );
   }
