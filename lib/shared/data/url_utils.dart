@@ -10,8 +10,9 @@ class UrlUtils {
     if (relativePath == null || relativePath.isEmpty) return null;
 
     // Remove leading slash if present
-    final cleanPath =
-        relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+    final cleanPath = relativePath.startsWith('/')
+        ? relativePath.substring(1)
+        : relativePath;
 
     // Convert API paths to media paths
     if (cleanPath.startsWith('user/profile-picture/') ||

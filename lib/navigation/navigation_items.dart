@@ -64,8 +64,7 @@ class NavigationItems {
     branchIndex: 5,
   );
 
-  static List<NavigationItem> forAuth(bool authenticated) =>
-      authenticated
-          ? const [_companies, _map, _sessions, _events, _profile]
-          : const [_companies, _map, _sessions, _events, _login];
+  static List<NavigationItem> forAuth(bool authenticated) => authenticated
+      ? const [_companies, _map, _sessions, _events, _profile]
+      : const [_companies, _map, _sessions, _events, _login];
 }

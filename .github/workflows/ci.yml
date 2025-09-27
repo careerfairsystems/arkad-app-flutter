@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  FLUTTER_VERSION: "3.29.0"
+  FLUTTER_VERSION: "3.35.4"
   OPENAPI_GENERATOR_VERSION: "7.10.0"
 
 jobs:
@@ -36,12 +36,16 @@ jobs:
           path: api/arkad_api/
           key: api-client-${{ steps.api-hash.outputs.hash }}
 
-      - name: Setup Java
+      - name: Install pnpm
         if: steps.api-cache.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v4
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.api-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          node-version: '24'
+          cache: 'pnpm'
 
       - name: Set up Flutter
         if: steps.api-cache.outputs.cache-hit != 'true'
@@ -51,32 +55,23 @@ jobs:
           channel: "stable"
           cache: true
 
-      - name: Cache OpenAPI Generator
+      - name: Install OpenAPI Generator
         if: steps.api-cache.outputs.cache-hit != 'true'
-        uses: actions/cache@v4
-        with:
-          path: openapi-generator-cli.jar
-          key: openapi-generator-cli-${{ env.OPENAPI_GENERATOR_VERSION }}
+        run: pnpm install -g @openapitools/openapi-generator-cli
 
       - name: Generate API Client
         if: steps.api-cache.outputs.cache-hit != 'true'
         run: |
-          # Download OpenAPI Generator if not cached
-          if [[ ! -f "openapi-generator-cli.jar" ]]; then
-            curl -L "https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${{ env.OPENAPI_GENERATOR_VERSION }}/openapi-generator-cli-${{ env.OPENAPI_GENERATOR_VERSION }}.jar" \
-              -o openapi-generator-cli.jar
-          fi
-          
           # Clean and generate
           rm -rf api/arkad_api
           mkdir -p api
-          
-          java -jar openapi-generator-cli.jar generate \
+
+          openapi-generator-cli generate \
             -i "https://staging.backend.arkadtlth.se/api/openapi.json" \
             -g dart-dio \
             -o api/arkad_api \
-            --additional-properties=pubName=arkad_api,pubVersion=1.0.0,pubDescription="Generated API client",nullSafe=true
-          
+            --additional-properties=pubName=arkad_api,nullSafe=true
+
           # Complete generation
           cd api/arkad_api
           flutter pub get

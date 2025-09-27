@@ -6,7 +6,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.7.0 <4.0.0"
+  sdk: ">=3.9.0 <4.0.0"
 
 dependencies:
   sentry_flutter: ^9.6.0
@@ -30,6 +30,9 @@ dependencies:
   cached_network_image: ^3.4.1
   shimmer: ^3.0.0
   openapi_generator_annotations: ^6.1.0
+  qr_flutter: ^4.1.0
+  screen_brightness: ^2.1.7
+  mobile_scanner: ^6.0.2
   arkad_api:
     path: ./api/arkad_api/
 dev_dependencies:

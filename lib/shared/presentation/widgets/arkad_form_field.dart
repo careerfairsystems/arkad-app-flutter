@@ -122,17 +122,16 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
       alignLabelWithHint: true,
 
       // Prefix icon styling
-      prefixIcon:
-          widget.prefixIcon != null
-              ? Padding(
-                padding: const EdgeInsets.only(left: 12.0, right: 8.0),
-                child: Icon(
-                  widget.prefixIcon,
-                  color: hasError ? colorScheme.error : ArkadColors.arkadTurkos,
-                  size: 24,
-                ),
-              )
-              : null,
+      prefixIcon: widget.prefixIcon != null
+          ? Padding(
+              padding: const EdgeInsets.only(left: 12.0, right: 8.0),
+              child: Icon(
+                widget.prefixIcon,
+                color: hasError ? colorScheme.error : ArkadColors.arkadTurkos,
+                size: 24,
+              ),
+            )
+          : null,
       prefixIconConstraints: const BoxConstraints(minWidth: 50),
 
       // Suffix icon handling

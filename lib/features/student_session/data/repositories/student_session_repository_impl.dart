@@ -30,10 +30,9 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       final applications = await _remoteDataSource.getStudentSessions();
 
       // Convert to domain entities (minimal for now)
-      final domainApplications =
-          applications
-              .map((app) => _mapper.fromApiApplication(app, 'Unknown Company'))
-              .toList();
+      final domainApplications = applications
+          .map((app) => _mapper.fromApiApplication(app, 'Unknown Company'))
+          .toList();
 
       return Result.success(domainApplications);
     } catch (e, stackTrace) {
@@ -50,14 +49,13 @@ class StudentSessionRepositoryImpl implements StudentSessionRepository {
       final timeslots = await _remoteDataSource.getTimeslots(companyId);
 
       // Convert to domain entities
-      final domainTimeslots =
-          timeslots
-              .map(
-                (timeslot) => _mapper
-                    .fromApiTimeslot(timeslot)
-                    .copyWith(companyId: companyId),
-              )
-              .toList();
+      final domainTimeslots = timeslots
+          .map(
+            (timeslot) => _mapper
+                .fromApiTimeslot(timeslot)
+                .copyWith(companyId: companyId),
+          )
+          .toList();
 
       return Result.success(domainTimeslots);
     } catch (e, stackTrace) {

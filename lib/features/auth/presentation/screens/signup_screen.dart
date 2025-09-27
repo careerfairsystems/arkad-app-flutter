@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -222,17 +223,20 @@ class _SignupScreenState extends State<SignupScreen> {
       password: _passwordController.text,
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
-      foodPreferences:
-          _hasFoodPreferences
-              ? (_foodPreferencesController.text.trim().isNotEmpty
-                  ? _foodPreferencesController.text.trim()
-                  : null)
-              : null,
+      foodPreferences: _hasFoodPreferences
+          ? (_foodPreferencesController.text.trim().isNotEmpty
+                ? _foodPreferencesController.text.trim()
+                : null)
+          : null,
     );
 
     await authViewModel.startSignUp(signupData);
 
-    if (mounted && authViewModel.signUpCommand.isCompleted) {
+    if (mounted &&
+        authViewModel.signUpCommand.isCompleted &&
+        !authViewModel.signUpCommand.hasError) {
+      // Complete autofill context to help password managers save credentials
+      TextInput.finishAutofillContext();
       await context.push('/auth/verification');
     }
   }
@@ -256,18 +260,21 @@ class _SignupScreenState extends State<SignupScreen> {
             }
           },
           errorText: _emailErrorText,
+          autofillHints: const [AutofillHints.email],
         ),
         const SizedBox(height: 20),
         AuthFormWidgets.buildPasswordField(
           _passwordController,
-          isValid:
-              _passwordController.text.isNotEmpty ? _isPasswordValid : null,
+          isValid: _passwordController.text.isNotEmpty
+              ? _isPasswordValid
+              : null,
           onChanged: (value) {
             if (_passwordErrorText != null) {
               setState(() => _passwordErrorText = null);
             }
           },
           errorText: _passwordErrorText,
+          autofillHints: const [AutofillHints.newPassword],
         ),
         if (_passwordController.text.isNotEmpty)
           Padding(
@@ -275,7 +282,7 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Password must:',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -312,10 +319,9 @@ class _SignupScreenState extends State<SignupScreen> {
           _confirmPasswordController,
           labelText: 'Confirm Password',
           hintText: 'Confirm your password',
-          isValid:
-              _confirmPasswordController.text.isNotEmpty
-                  ? _isConfirmPasswordValid
-                  : null,
+          isValid: _confirmPasswordController.text.isNotEmpty
+              ? _isConfirmPasswordValid
+              : null,
           textInputAction: TextInputAction.done,
           onFieldSubmitted: (_) => _handleSubmit(),
           onChanged: (value) {
@@ -324,6 +330,7 @@ class _SignupScreenState extends State<SignupScreen> {
             }
           },
           errorText: _confirmPasswordErrorText,
+          autofillHints: const [AutofillHints.newPassword],
         ),
         const SizedBox(height: 20),
         AuthFormWidgets.buildCheckboxWithError(
@@ -350,7 +357,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     await launchUrl(url, mode: LaunchMode.externalApplication);
                   }
                 },
-                child: Text(
+                child: const Text(
                   'privacy policy',
                   style: TextStyle(
                     color: ArkadColors.arkadTurkos,
@@ -420,6 +427,7 @@ class _SignupScreenState extends State<SignupScreen> {
               child: TextFormField(
                 controller: _firstNameController,
                 textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.givenName],
                 decoration: InputDecoration(
                   labelText: 'First name *',
                   hintText: 'Enter your first name',
@@ -440,6 +448,7 @@ class _SignupScreenState extends State<SignupScreen> {
               child: TextFormField(
                 controller: _lastNameController,
                 textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.familyName],
                 decoration: InputDecoration(
                   labelText: 'Last name *',
                   hintText: 'Enter your last name',
@@ -552,11 +561,13 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: _currentStep == 1 ? _buildStep1() : _buildStep2(),
+        child: AutofillGroup(
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: _currentStep == 1 ? _buildStep1() : _buildStep2(),
+            ),
           ),
         ),
       ),

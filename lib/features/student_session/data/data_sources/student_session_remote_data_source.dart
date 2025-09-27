@@ -10,10 +10,9 @@ class StudentSessionRemoteDataSource {
   /// Get student sessions from the API
   Future<List<StudentSessionApplicationOutSchema>> getStudentSessions() async {
     try {
-      final _ =
-          await _api
-              .getStudentSessionsApi()
-              .studentSessionsApiGetStudentSessions();
+      final _ = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiGetStudentSessions();
       // For now, return empty list - will implement proper parsing when API structure is clear
       return <StudentSessionApplicationOutSchema>[];
     } catch (e) {
@@ -23,12 +22,12 @@ class StudentSessionRemoteDataSource {
   }
 
   /// Get available timeslots for a company
-  Future<List<TimeslotSchema>> getTimeslots(int companyId) async {
+  Future<List<TimeslotSchemaUser>> getTimeslots(int companyId) async {
     try {
       final response = await _api
           .getStudentSessionsApi()
           .studentSessionsApiGetStudentSessionTimeslots(companyId: companyId);
-      return response.data?.toList() ?? <TimeslotSchema>[];
+      return response.data?.toList() ?? <TimeslotSchemaUser>[];
     } catch (e) {
       await Sentry.captureException(e);
       throw Exception('Failed to get timeslots for company $companyId: $e');
@@ -47,10 +46,9 @@ class StudentSessionRemoteDataSource {
           );
       // Create a minimal response for now
       return StudentSessionApplicationOutSchema(
-        (b) =>
-            b
-              ..companyId = application.companyId
-              ..motivationText = application.motivationText,
+        (b) => b
+          ..companyId = application.companyId
+          ..motivationText = application.motivationText,
       );
     } catch (e) {
       await Sentry.captureException(e);

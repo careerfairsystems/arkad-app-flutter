@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/event_attendee.dart';
+import '../../domain/entities/event_status.dart';
+import '../../domain/entities/ticket_verification_result.dart';
 import '../../domain/repositories/event_repository.dart';
 
 /// ViewModel for managing event state and operations
@@ -15,12 +19,14 @@ class EventViewModel extends ChangeNotifier {
   bool _isLoading = false;
   AppError? _error;
   List<Event> _events = [];
+  List<Event> _bookedEvents = [];
   Event? _selectedEvent;
 
   // Getters
   bool get isLoading => _isLoading;
   AppError? get error => _error;
   List<Event> get events => _events;
+  List<Event> get bookedEvents => _bookedEvents;
   Event? get selectedEvent => _selectedEvent;
 
   /// Load events
@@ -74,9 +80,110 @@ class EventViewModel extends ChangeNotifier {
 
     result.when(
       success: (_) {
+        // Update the selected event status to booked
+        if (_selectedEvent?.id == eventId) {
+          _selectedEvent = _selectedEvent!.copyWith(status: EventStatus.booked);
+        }
+
+        // Update the event in the events list
+        _events = _events.map((event) {
+          if (event.id == eventId) {
+            return event.copyWith(status: EventStatus.booked);
+          }
+          return event;
+        }).toList();
+
+        // Add the event to booked events list if not already there
+        final eventToAdd = _events.firstWhere((event) => event.id == eventId);
+        if (!_bookedEvents.any((event) => event.id == eventId)) {
+          _bookedEvents.add(eventToAdd.copyWith(status: EventStatus.booked));
+        }
+
         _setLoading(false);
-        // Optionally refresh events to get updated participant count
-        loadEvents();
+      },
+      failure: (error) {
+        _setError(error);
+        _setLoading(false);
+      },
+    );
+
+    return result.isSuccess;
+  }
+
+  /// Unregister from an event
+  Future<bool> unregisterFromEvent(int eventId) async {
+    _setLoading(true);
+    _clearError();
+
+    final result = await _eventRepository.unregisterFromEvent(eventId);
+
+    result.when(
+      success: (_) {
+        // Update the selected event status to not booked
+        if (_selectedEvent?.id == eventId) {
+          _selectedEvent = _selectedEvent!.copyWith(
+            status: EventStatus.notBooked,
+          );
+        }
+
+        // Update the event in the events list
+        _events = _events.map((event) {
+          if (event.id == eventId) {
+            return event.copyWith(status: EventStatus.notBooked);
+          }
+          return event;
+        }).toList();
+
+        // Update the event in the booked events list (remove it)
+        _bookedEvents = _bookedEvents
+            .where((event) => event.id != eventId)
+            .toList();
+
+        _setLoading(false);
+      },
+      failure: (error) {
+        _setError(error);
+        _setLoading(false);
+      },
+    );
+
+    return result.isSuccess;
+  }
+
+  /// Get event ticket for a specific event
+  Future<String?> getEventTicket(int eventId) async {
+    _setLoading(true);
+    _clearError();
+
+    final result = await _eventRepository.getEventTicket(eventId);
+
+    String? ticket;
+    result.when(
+      success: (ticketUuid) {
+        ticket = ticketUuid;
+        _setLoading(false);
+      },
+      failure: (error) {
+        _setError(error);
+        _setLoading(false);
+        ticket = null;
+      },
+    );
+
+    return ticket;
+  }
+
+  /// Load booked events for the current user
+  Future<bool> loadBookedEvents() async {
+    _setLoading(true);
+    _clearError();
+
+    final result = await _eventRepository.getBookedEvents();
+
+    result.when(
+      success: (events) {
+        _bookedEvents = events;
+        _setLoading(false);
       },
       failure: (error) {
         _setError(error);
@@ -90,6 +197,39 @@ class EventViewModel extends ChangeNotifier {
   /// Refresh events
   Future<void> refreshEvents() async {
     await loadEvents();
+  }
+
+  /// Refresh booked events
+  Future<void> refreshBookedEvents() async {
+    await loadBookedEvents();
+  }
+
+  /// Get attendees for an event (staff only)
+  Future<Result<List<EventAttendee>>> getEventAttendees(int eventId) async {
+    return await _eventRepository.getEventAttendees(eventId);
+  }
+
+  /// Use/verify a ticket (staff only)
+  Future<Result<TicketVerificationResult>> useTicket(
+    String token,
+    int eventId,
+  ) async {
+    _setLoading(true);
+    _clearError();
+
+    final result = await _eventRepository.useTicket(token, eventId);
+
+    result.when(
+      success: (_) {
+        _setLoading(false);
+      },
+      failure: (error) {
+        _setError(error);
+        _setLoading(false);
+      },
+    );
+
+    return result;
   }
 
   // State management helpers

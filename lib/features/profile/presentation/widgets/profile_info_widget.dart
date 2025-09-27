@@ -80,14 +80,14 @@ class ProfileInfoWidget extends StatelessWidget {
                   radius: 60,
                   backgroundImage:
                       profile.profilePictureUrl != null &&
-                              profile.profilePictureUrl!.isNotEmpty
-                          ? NetworkImage(profile.profilePictureUrl!)
-                          : null,
+                          profile.profilePictureUrl!.isNotEmpty
+                      ? NetworkImage(profile.profilePictureUrl!)
+                      : null,
                   child:
                       profile.profilePictureUrl == null ||
-                              profile.profilePictureUrl!.isEmpty
-                          ? const Icon(Icons.person, size: 60)
-                          : null,
+                          profile.profilePictureUrl!.isEmpty
+                      ? const Icon(Icons.person, size: 60)
+                      : null,
                 ),
               ),
               const SizedBox(height: 12),

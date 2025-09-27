@@ -24,12 +24,7 @@ class CompaniesScreen extends StatefulWidget {
 class _CompaniesScreenState extends State<CompaniesScreen> {
   late final TextEditingController _searchController;
 
-  CompanyFilter _currentFilter = CompanyFilter(
-    degrees: [],
-    competences: [],
-    positions: [],
-    industries: [],
-  );
+  CompanyFilter _currentFilter = const CompanyFilter();
 
   StreamSubscription? _logoutSubscription;
 
@@ -60,12 +55,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     if (mounted) {
       setState(() {
         _searchController.clear();
-        _currentFilter = CompanyFilter(
-          degrees: [],
-          competences: [],
-          positions: [],
-          industries: [],
-        );
+        _currentFilter = const CompanyFilter();
       });
     }
   }
@@ -121,20 +111,19 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Search companies...',
-              prefixIcon:
-                  viewModel.isSearching
-                      ? Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: ArkadColors.arkadTurkos,
-                          ),
+              prefixIcon: viewModel.isSearching
+                  ? const Padding(
+                      padding: EdgeInsets.all(14),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: ArkadColors.arkadTurkos,
                         ),
-                      )
-                      : const Icon(Icons.search_rounded),
+                      ),
+                    )
+                  : const Icon(Icons.search_rounded),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
@@ -153,7 +142,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: ArkadColors.arkadTurkos,
                   width: 2,
                 ),
@@ -162,13 +151,12 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               fillColor: Theme.of(
                 context,
               ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
-              suffixIcon:
-                  _searchController.text.isNotEmpty
-                      ? IconButton(
-                        icon: const Icon(Icons.clear_rounded),
-                        onPressed: _clearSearch,
-                      )
-                      : null,
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear_rounded),
+                      onPressed: _clearSearch,
+                    )
+                  : null,
             ),
             onChanged: _onSearchChanged,
           );
@@ -197,7 +185,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
+          const Icon(
             Icons.filter_list_rounded,
             size: 16,
             color: ArkadColors.arkadTurkos,
@@ -314,30 +302,24 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       backgroundColor: Theme.of(
         context,
       ).colorScheme.surface.withValues(alpha: 0.0),
-      builder:
-          (context) => SizedBox(
-            height: MediaQuery.of(context).size.height * 0.9,
-            child: AdvancedFiltersModal(
-              initialFilter: _currentFilter,
-              onFiltersApplied: (filter) {
-                setState(() {
-                  _currentFilter = filter;
-                });
-                _applyFilters();
-              },
-            ),
-          ),
+      builder: (context) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: AdvancedFiltersModal(
+          initialFilter: _currentFilter,
+          onFiltersApplied: (filter) {
+            setState(() {
+              _currentFilter = filter;
+            });
+            _applyFilters();
+          },
+        ),
+      ),
     );
   }
 
   void _clearAllFilters() {
     setState(() {
-      _currentFilter = CompanyFilter(
-        degrees: [],
-        competences: [],
-        positions: [],
-        industries: [],
-      );
+      _currentFilter = const CompanyFilter();
     });
     _applyFilters();
   }

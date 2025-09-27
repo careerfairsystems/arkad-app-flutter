@@ -158,7 +158,7 @@ class ArkadLoadingIndicator extends StatelessWidget {
         SizedBox(
           width: size,
           height: size,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: const CircularProgressIndicator(strokeWidth: 2),
         ),
         if (message != null) ...[
           const SizedBox(height: 16),

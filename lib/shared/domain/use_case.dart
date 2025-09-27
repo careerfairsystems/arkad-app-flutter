@@ -1,24 +1,24 @@
 import 'result.dart';
 
 /// Base class for all use cases
-abstract class UseCase<Type, Params> {
+abstract class UseCase<TResult, Params> {
   const UseCase();
 
-  Future<Result<Type>> call(Params params);
+  Future<Result<TResult>> call(Params params);
 }
 
 /// Base class for use cases that don't require parameters
-abstract class NoParamsUseCase<Type> {
+abstract class NoParamsUseCase<TResult> {
   const NoParamsUseCase();
 
-  Future<Result<Type>> call();
+  Future<Result<TResult>> call();
 }
 
 /// Base class for synchronous use cases
-abstract class SyncUseCase<Type, Params> {
+abstract class SyncUseCase<TResult, Params> {
   const SyncUseCase();
 
-  Result<Type> call(Params params);
+  Result<TResult> call(Params params);
 }
 
 /// No parameters marker for use cases

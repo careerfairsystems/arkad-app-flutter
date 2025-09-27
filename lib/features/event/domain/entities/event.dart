@@ -1,3 +1,5 @@
+import 'event_status.dart';
+
 /// Domain entity representing an event
 class Event {
   final int id;
@@ -11,6 +13,7 @@ class Event {
   final bool isRegistrationRequired;
   final int? maxParticipants;
   final int currentParticipants;
+  final EventStatus? status;
 
   const Event({
     required this.id,
@@ -24,6 +27,7 @@ class Event {
     this.isRegistrationRequired = false,
     this.maxParticipants,
     this.currentParticipants = 0,
+    this.status,
   });
 
   /// Create a copy with updated values
@@ -39,6 +43,7 @@ class Event {
     bool? isRegistrationRequired,
     int? maxParticipants,
     int? currentParticipants,
+    EventStatus? status,
   }) {
     return Event(
       id: id ?? this.id,
@@ -53,6 +58,7 @@ class Event {
           isRegistrationRequired ?? this.isRegistrationRequired,
       maxParticipants: maxParticipants ?? this.maxParticipants,
       currentParticipants: currentParticipants ?? this.currentParticipants,
+      status: status ?? this.status,
     );
   }
 
@@ -69,11 +75,18 @@ class Event {
   bool get canRegister {
     if (!isRegistrationRequired) return false;
     if (hasStarted) return false;
+    if (status?.isBooked == true) return false;
     if (maxParticipants != null && currentParticipants >= maxParticipants!) {
       return false;
     }
     return true;
   }
+
+  /// Check if user has booked this event
+  bool get isBooked => status?.isBooked == true;
+
+  /// Check if user has attended this event
+  bool get hasAttended => status?.hasAttended == true;
 
   /// Duration of the event
   Duration get duration => endTime.difference(startTime);
@@ -88,7 +101,8 @@ class Event {
         other.startTime == startTime &&
         other.endTime == endTime &&
         other.location == location &&
-        other.type == type;
+        other.type == type &&
+        other.status == status;
   }
 
   @override
@@ -101,12 +115,13 @@ class Event {
       endTime,
       location,
       type,
+      status,
     );
   }
 
   @override
   String toString() {
-    return 'Event(id: $id, title: $title, startTime: $startTime)';
+    return 'Event(id: $id, title: $title, startTime: $startTime, status: $status)';
   }
 }
 
