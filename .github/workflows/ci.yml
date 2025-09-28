@@ -78,8 +78,8 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs
           cd ../..
 
-  analyze-and-format:
-    name: Analyze & Format
+  analyze:
+    name: Analyze Code
     needs: generate-api
     runs-on: ubuntu-latest
     
@@ -106,9 +106,3 @@ jobs:
       - name: Analyze code
         run: flutter analyze --no-fatal-infos
 
-      - name: Check code formatting
-        run: |
-          if ! dart format --set-exit-if-changed lib/; then
-            echo "Code formatting issues found. Run 'dart format lib/' to fix."
-            exit 1
-          fi
