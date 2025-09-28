@@ -3,7 +3,6 @@ name: Deploy to Production
 on:
   push:
     branches: [main]
-  workflow_dispatch: # Allow manual deployment
 
 permissions:
   contents: write
@@ -129,5 +128,6 @@ jobs:
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           folder: build/web # The folder the action should deploy.
 
