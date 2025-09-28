@@ -125,5 +125,6 @@ jobs:
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4.6.1
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           folder: build/web # The folder the action should deploy.
 
