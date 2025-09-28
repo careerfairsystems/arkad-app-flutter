@@ -1,0 +1,130 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+env:
+  FLUTTER_VERSION: "3.35.4"
+  OPENAPI_GENERATOR_VERSION: "7.10.0"
+
+jobs:
+  generate-api:
+    name: Generate API Client
+    runs-on: ubuntu-latest
+    outputs:
+      api-hash: ${{ steps.api-hash.outputs.hash }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get API Spec Hash
+        id: api-hash
+        run: |
+          API_HASH=$(curl -sf --max-time 30 --retry 2 --retry-delay 5 \
+            "https://staging.backend.arkadtlth.se/api/openapi.json" | sha256sum | cut -d' ' -f1)
+          echo "hash=$API_HASH" >> $GITHUB_OUTPUT
+          echo "API spec hash: $API_HASH"
+
+      - name: Cache Generated API Client
+        id: api-cache
+        uses: actions/cache@v4
+        with:
+          path: api/arkad_api/
+          key: api-client-${{ steps.api-hash.outputs.hash }}
+
+      - name: Install pnpm
+        if: steps.api-cache.outputs.cache-hit != 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.api-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: Set up Flutter
+        if: steps.api-cache.outputs.cache-hit != 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+          cache: true
+
+      - name: Install OpenAPI Generator
+        if: steps.api-cache.outputs.cache-hit != 'true'
+        run: pnpm install -g @openapitools/openapi-generator-cli
+
+      - name: Generate API Client
+        if: steps.api-cache.outputs.cache-hit != 'true'
+        run: |
+          # Clean and generate
+          rm -rf api/arkad_api
+          mkdir -p api
+
+          openapi-generator-cli generate \
+            -i "https://staging.backend.arkadtlth.se/api/openapi.json" \
+            -g dart-dio \
+            -o api/arkad_api \
+            --additional-properties=pubName=arkad_api,nullSafe=true
+
+          # Complete generation
+          cd api/arkad_api
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+          cd ../..
+
+  build-and-deploy:
+    name: Build and Deploy to Production
+    needs: generate-api
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: production
+      url: https://app.arkadtlth.se
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+          cache: true
+
+      - name: Restore API Client Cache
+        uses: actions/cache@v4
+        with:
+          path: api/arkad_api/
+          key: api-client-${{ needs.generate-api.outputs.api-hash }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enable web support
+        run: flutter config --enable-web
+
+      - name: Build web app for production
+        run: |
+          flutter build web \
+            --base-href "/"
+
+      - name: Add CNAME file for custom domain
+        run: echo "app.arkadtlth.se" > build/web/CNAME
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        with:
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
+          folder: build/web # The folder the action should deploy.
+

@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  FLUTTER_VERSION: "3.29.0"
+  FLUTTER_VERSION: "3.35.4"
   OPENAPI_GENERATOR_VERSION: "7.10.0"
 
 jobs:
@@ -36,12 +36,16 @@ jobs:
           path: api/arkad_api/
           key: api-client-${{ steps.api-hash.outputs.hash }}
 
+      - name: Install pnpm
+        if: steps.api-cache.outputs.cache-hit != 'true'
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         if: steps.api-cache.outputs.cache-hit != 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: "24"
-          cache: "npm"
+          node-version: '24'
+          cache: 'pnpm'
 
       - name: Set up Flutter
         if: steps.api-cache.outputs.cache-hit != 'true'
@@ -53,7 +57,7 @@ jobs:
 
       - name: Install OpenAPI Generator
         if: steps.api-cache.outputs.cache-hit != 'true'
-        run: npm install -g @openapitools/openapi-generator-cli
+        run: pnpm install -g @openapitools/openapi-generator-cli
 
       - name: Generate API Client
         if: steps.api-cache.outputs.cache-hit != 'true'
@@ -66,7 +70,7 @@ jobs:
             -i "https://staging.backend.arkadtlth.se/api/openapi.json" \
             -g dart-dio \
             -o api/arkad_api \
-            --additional-properties=pubName=arkad_api,pubVersion=1.0.0,pubDescription="Generated API client",nullSafe=true
+            --additional-properties=pubName=arkad_api,nullSafe=true
 
           # Complete generation
           cd api/arkad_api
@@ -74,8 +78,8 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs
           cd ../..
 
-  analyze-and-format:
-    name: Analyze & Format
+  analyze:
+    name: Analyze Code
     needs: generate-api
     runs-on: ubuntu-latest
 
@@ -102,9 +106,3 @@ jobs:
       - name: Analyze code
         run: flutter analyze --no-fatal-infos
 
-      - name: Check code formatting
-        run: |
-          if ! dart format --set-exit-if-changed lib/; then
-            echo "Code formatting issues found. Run 'dart format lib/' to fix."
-            exit 1
-          fi

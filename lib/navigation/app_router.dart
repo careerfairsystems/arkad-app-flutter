@@ -7,7 +7,11 @@ import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/screens/verification_screen.dart';
 import '../features/company/presentation/screens/companies_screen.dart';
 import '../features/company/presentation/screens/company_detail_screen.dart';
+import '../features/event/presentation/screens/event_attendees_wrapper.dart';
+import '../features/event/presentation/screens/event_detail_screen.dart';
 import '../features/event/presentation/screens/event_screen.dart';
+import '../features/event/presentation/screens/event_ticket_screen.dart';
+import '../features/event/presentation/screens/scan_event_screen.dart';
 import '../features/map/presentation/screens/map_screen.dart';
 import '../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
@@ -60,11 +64,10 @@ class AppRouter {
     initialLocation: '/companies',
     routes: [
       StatefulShellRoute.indexedStack(
-        builder:
-            (context, state, shell) => _AppBottomNavShell(
-              navigationShell: shell,
-              isAuthenticated: _routerNotifier.isAuthenticated,
-            ),
+        builder: (context, state, shell) => _AppBottomNavShell(
+          navigationShell: shell,
+          isAuthenticated: _routerNotifier.isAuthenticated,
+        ),
         branches: [
           // Companies
           StatefulShellBranch(
@@ -111,11 +114,18 @@ class AppRouter {
                 pageBuilder: _noAnim((_) => const StudentSessionsScreen()),
               ),
               GoRoute(
+                path: '/sessions/form/:companyId',
+                builder: (context, state) {
+                  final companyId = state
+                      .pathParameters["companyId"]!; // Get "id" param from URL
+                  return StudentSessionFormScreen(id: companyId);
+                },
+              ),
+              GoRoute(
                 path: '/sessions/apply/:companyId',
                 builder: (context, state) {
-                  final companyId =
-                      state
-                          .pathParameters["companyId"]!; // Get "id" param from URL
+                  final companyId = state
+                      .pathParameters["companyId"]!; // Get "id" param from URL
                   return StudentSessionTimeSelectionScreen(id: companyId);
                 },
               ),
@@ -149,6 +159,68 @@ class AppRouter {
               GoRoute(
                 path: '/events',
                 pageBuilder: _noAnim((_) => const EventScreen()),
+                routes: [
+                  GoRoute(
+                    path: 'scan/:eventId',
+                    pageBuilder: _slide((context, s) {
+                      final eventIdStr = s.pathParameters['eventId'];
+                      final eventId = int.tryParse(eventIdStr ?? '');
+                      if (eventId == null) {
+                        return const Scaffold(
+                          body: Center(child: Text('Error: Invalid event ID')),
+                        );
+                      }
+                      return ScanEventScreen(eventId: eventId);
+                    }),
+                  ),
+                  GoRoute(
+                    path: 'detail/:id',
+                    pageBuilder: _slide((context, s) {
+                      final idStr = s.pathParameters['id'];
+                      final eventId = int.tryParse(idStr ?? '');
+                      if (eventId == null) {
+                        return const Scaffold(
+                          body: Center(child: Text('Error: Invalid event ID')),
+                        );
+                      }
+                      return EventDetailScreen(eventId: eventId);
+                    }),
+                    routes: [
+                      GoRoute(
+                        path: 'ticket',
+                        pageBuilder: _slide((context, s) {
+                          final idStr = s.pathParameters['id'];
+                          final eventId = int.tryParse(idStr ?? '');
+                          if (eventId == null) {
+                            return const Scaffold(
+                              body: Center(
+                                child: Text('Error: Invalid event ID'),
+                              ),
+                            );
+                          }
+                          return EventTicketScreen(eventId: eventId);
+                        }),
+                      ),
+                      GoRoute(
+                        path: 'attendees',
+                        pageBuilder: _slide((context, s) {
+                          final idStr = s.pathParameters['id'];
+                          final eventId = int.tryParse(idStr ?? '');
+                          if (eventId == null) {
+                            return const Scaffold(
+                              body: Center(
+                                child: Text('Error: Invalid event ID'),
+                              ),
+                            );
+                          }
+                          // We need to get the event object somehow
+                          // For now, we'll need to fetch it in the screen
+                          return EventAttendeesWrapper(eventId: eventId);
+                        }),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
@@ -202,9 +274,8 @@ class AppRouter {
       ),
       GoRoute(
         path: '/:_(.*)',
-        builder:
-            (ctx, state) =>
-                const Scaffold(body: Center(child: Text('Page not found'))),
+        builder: (ctx, state) =>
+            const Scaffold(body: Center(child: Text('Page not found'))),
       ),
     ],
   );
@@ -215,15 +286,16 @@ class AppRouter {
 // ──────────────────────────────────────────────────────────────
 Page<dynamic> Function(BuildContext, GoRouterState) _noAnim(
   Widget Function(BuildContext) builder,
-) => (context, state) => NoTransitionPage(child: builder(context));
+) =>
+    (context, state) => NoTransitionPage(child: builder(context));
 
 Page<dynamic> Function(BuildContext, GoRouterState) _fade(
   Widget Function(BuildContext) builder,
 ) =>
     (context, state) => CustomTransitionPage(
       child: builder(context),
-      transitionsBuilder:
-          (_, anim, __, child) => FadeTransition(opacity: anim, child: child),
+      transitionsBuilder: (_, anim, __, child) =>
+          FadeTransition(opacity: anim, child: child),
     );
 
 Page<dynamic> Function(BuildContext, GoRouterState) _slide(
@@ -231,14 +303,13 @@ Page<dynamic> Function(BuildContext, GoRouterState) _slide(
 ) =>
     (context, state) => CustomTransitionPage(
       child: builder(context, state),
-      transitionsBuilder:
-          (_, anim, __, child) => SlideTransition(
-            position: Tween(
-              begin: const Offset(1, 0),
-              end: Offset.zero,
-            ).animate(anim),
-            child: child,
-          ),
+      transitionsBuilder: (_, anim, __, child) => SlideTransition(
+        position: Tween(
+          begin: const Offset(1, 0),
+          end: Offset.zero,
+        ).animate(anim),
+        child: child,
+      ),
     );
 
 // ──────────────────────────────────────────────────────────────
@@ -270,11 +341,16 @@ class _AppBottomNavShell extends StatelessWidget {
       bottomNavigationBar: AppBottomNavigation(
         currentIndex: safeTabIndex,
         items: items,
-        onTap:
-            (i) => navigationShell.goBranch(
-              items[i].branchIndex,
-              initialLocation: true,
-            ),
+        onTap: (i) {
+          final targetBranchIndex = items[i].branchIndex;
+          if (targetBranchIndex == navigationShell.currentIndex) {
+            // Reselecting current tab - reset to initial location
+            navigationShell.goBranch(targetBranchIndex, initialLocation: true);
+          } else {
+            // Switching to different tab - preserve state
+            navigationShell.goBranch(targetBranchIndex);
+          }
+        },
       ),
     );
   }

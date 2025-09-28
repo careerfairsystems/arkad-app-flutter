@@ -1,0 +1,58 @@
+name: Auto Format Code
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/**/*.dart'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'lib/**/*.dart'
+
+env:
+  FLUTTER_VERSION: "3.35.4"
+
+jobs:
+  auto-format:
+    name: Auto Format
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+          cache: true
+
+      - name: Format code and commit if needed
+        run: |
+          # Configure Git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Format the code
+          dart format lib/
+
+          # Check if there are any changes
+          if ! git diff --quiet; then
+            echo "Code formatting changes detected. Committing changes..."
+            git add lib/
+            git commit -m "fix: auto-format code
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+            git push
+            echo "Code has been formatted and committed."
+          else
+            echo "Code is already properly formatted."
+          fi

@@ -104,17 +104,15 @@ class CompanyRepositoryImpl extends BaseRepository
           var filteredCompanies = companies;
 
           if (query.isNotEmpty) {
-            filteredCompanies =
-                filteredCompanies
-                    .where((company) => company.matchesSearchQuery(query))
-                    .toList();
+            filteredCompanies = filteredCompanies
+                .where((company) => company.matchesSearchQuery(query))
+                .toList();
           }
 
           if (filter.hasActiveFilters) {
-            filteredCompanies =
-                filteredCompanies
-                    .where((company) => company.matchesFilter(filter))
-                    .toList();
+            filteredCompanies = filteredCompanies
+                .where((company) => company.matchesFilter(filter))
+                .toList();
           }
 
           return filteredCompanies;

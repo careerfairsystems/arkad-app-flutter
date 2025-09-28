@@ -65,38 +65,35 @@ class ErrorDisplay extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children:
-                    error.recoveryActions.map((action) {
-                      return action.isPrimary
-                          ? ElevatedButton.icon(
-                            onPressed: action.action,
-                            icon:
-                                action.icon != null
-                                    ? Icon(action.icon, size: 16)
-                                    : null,
-                            label: Text(action.label),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
+                children: error.recoveryActions.map((action) {
+                  return action.isPrimary
+                      ? ElevatedButton.icon(
+                          onPressed: action.action,
+                          icon: action.icon != null
+                              ? Icon(action.icon, size: 16)
+                              : null,
+                          label: Text(action.label),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
                             ),
-                          )
-                          : TextButton.icon(
-                            onPressed: action.action,
-                            icon:
-                                action.icon != null
-                                    ? Icon(action.icon, size: 16)
-                                    : null,
-                            label: Text(action.label),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
+                          ),
+                        )
+                      : TextButton.icon(
+                          onPressed: action.action,
+                          icon: action.icon != null
+                              ? Icon(action.icon, size: 16)
+                              : null,
+                          label: Text(action.label),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
                             ),
-                          );
-                    }).toList(),
+                          ),
+                        );
+                }).toList(),
               ),
             ],
           ],

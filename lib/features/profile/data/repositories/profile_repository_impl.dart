@@ -119,7 +119,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(RateLimitError(const Duration(minutes: 2)));
+        return Result.failure(const RateLimitError(Duration(minutes: 2)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
@@ -182,7 +182,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
         );
       } else if (e.message.contains('429')) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(RateLimitError(const Duration(minutes: 2)));
+        return Result.failure(const RateLimitError(Duration(minutes: 2)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
@@ -243,7 +243,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
         return Result.failure(const ValidationError("Unsupported file format"));
       } else if (e.message.contains('429')) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(RateLimitError(const Duration(minutes: 2)));
+        return Result.failure(const RateLimitError(Duration(minutes: 2)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
@@ -277,7 +277,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(RateLimitError(const Duration(minutes: 2)));
+        return Result.failure(const RateLimitError(Duration(minutes: 2)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
@@ -311,7 +311,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     } on ApiException catch (e, stackTrace) {
       if (e.message.contains('429')) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(RateLimitError(const Duration(minutes: 2)));
+        return Result.failure(const RateLimitError(Duration(minutes: 2)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));

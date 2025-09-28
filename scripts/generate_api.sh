@@ -88,11 +88,10 @@ generate_api() {
   mkdir -p "$OUTPUT_DIR"
 
   # Generate base API client
-  if ! openapi-generator generate \
+  if ! openapi-generator-cli generate \
     -i "$OPENAPI_URL" \
-    -g dart-dio \
-    -o "$OUTPUT_DIR" \
-    --additional-properties=pubName=arkad_api; then
+    -g dart-dio -o "$OUTPUT_DIR" \
+    --additional-properties=pubName=arkad_api,nullSafe=true; then
     log_error "API generation failed"
     exit 1
   fi

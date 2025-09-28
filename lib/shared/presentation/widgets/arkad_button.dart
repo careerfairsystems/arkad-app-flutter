@@ -146,14 +146,25 @@ class ArkadButton extends StatelessWidget {
 
   TextStyle _getTextStyle(ThemeData theme) {
     final fontSize = _getButtonSize().fontSize;
+
+    // Get the appropriate text color based on variant
+    final textColor = switch (variant) {
+      ArkadButtonVariant.primary ||
+      ArkadButtonVariant.danger => ArkadColors.white,
+      ArkadButtonVariant.secondary ||
+      ArkadButtonVariant.ghost => ArkadColors.arkadTurkos,
+    };
+
     return theme.textTheme.labelLarge?.copyWith(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
+          color: textColor, // Explicitly set the text color
         ) ??
         TextStyle(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
           fontFamily: 'MyriadProCondensed',
+          color: textColor, // Explicitly set the text color
         );
   }
 

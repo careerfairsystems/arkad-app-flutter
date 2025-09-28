@@ -40,8 +40,9 @@ class ValidationService {
         }
       }
       // Not a LinkedIn host → treat as username
-      final asUser =
-          uri?.pathSegments.isNotEmpty == true ? uri!.pathSegments.last : https;
+      final asUser = uri?.pathSegments.isNotEmpty == true
+          ? uri!.pathSegments.last
+          : https;
       return 'https://www.linkedin.com/in/${Uri.encodeComponent(asUser)}';
     }
 
