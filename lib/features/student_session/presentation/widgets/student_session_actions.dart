@@ -114,7 +114,7 @@ class StudentSessionActions extends StatelessWidget {
   }
 
   void _navigateToSignIn(BuildContext context) {
-    context.push('/auth/login');
+    StatefulNavigationShell.of(context).goBranch(5);
   }
 }
 

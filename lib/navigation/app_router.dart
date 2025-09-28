@@ -33,7 +33,11 @@ class AppRouter {
   // ────────────────────────────────────────────────────────────
   String? _redirect(BuildContext context, GoRouterState state) {
     final loggedIn = _routerNotifier.isAuthenticated;
+    final isInitializing = _routerNotifier.isInitializing;
     final path = state.uri.path;
+
+    // Wait for auth initialization to complete
+    if (isInitializing) return null;
 
     const publicPrefixes = [
       '/companies',
@@ -245,7 +249,7 @@ class AppRouter {
             ],
           ),
 
-          // AUTH FLOW
+          // AUTH FLOW (as bottom navigation tab)
           StatefulShellBranch(
             routes: [
               GoRoute(

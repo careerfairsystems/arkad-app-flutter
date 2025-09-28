@@ -380,24 +380,27 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
   }
 
   void _showSignInPrompt(StudentSession session) {
+    // Capture the original context before showing dialog
+    final originalContext = context;
+    
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
+          (dialogContext) => AlertDialog(
             title: const Text('Sign In Required'),
             content: Text(
               'You need to sign in to apply for ${session.companyName}\'s student session.',
             ),
             actions: [
               TextButton(
-                onPressed: () => context.pop(),
+                onPressed: () => dialogContext.pop(),
                 child: const Text('Cancel'),
               ),
               FilledButton(
                 onPressed: () {
-                  context.pop();
-                  // Navigate to login with return path
-                  context.push('/auth/login');
+                  dialogContext.pop();
+                  // Navigate to login tab (branch index 5) using original context
+                  StatefulNavigationShell.of(originalContext).goBranch(5);
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: ArkadColors.arkadTurkos,

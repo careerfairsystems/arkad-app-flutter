@@ -78,22 +78,26 @@ class CompanyDetailViewModel extends ChangeNotifier {
 
   /// Show authentication prompt for unauthenticated users
   void _showSignInPrompt(BuildContext context) {
+    // Capture the original context before showing dialog
+    final originalContext = context;
+    
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Sign In Required'),
         content: Text(
           'You need to sign in to apply for ${company?.name ?? 'this company'}\'s student session.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              context.push('/auth/login');
+              Navigator.of(dialogContext).pop();
+              // Navigate to login tab (branch index 5) using original context
+              StatefulNavigationShell.of(originalContext).goBranch(5);
             },
             child: const Text('Sign In'),
           ),
