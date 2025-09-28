@@ -42,7 +42,7 @@ class GetTimeslotsCommand extends ParameterizedCommand<int, List<Timeslot>> {
     } catch (e) {
       // Convert unexpected exceptions to user-friendly errors
       setError(
-        StudentSessionApplicationError(
+        const StudentSessionApplicationError(
           'Failed to load available timeslots',
           details: 'Unable to load timeslots. Please try again.',
         ),

@@ -42,7 +42,7 @@ class ApplyForSessionUseCase
       return Result.failure(e);
     } catch (e) {
       return Result.failure(
-        StudentSessionApplicationError(
+        const StudentSessionApplicationError(
           'Failed to submit application',
           details: 'An unexpected error occurred',
         ),

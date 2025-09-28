@@ -314,7 +314,7 @@ class StudentSessionRepositoryImpl extends BaseRepository
         // Check HTTP status code for conflict
         if (e.response?.statusCode == 409) {
           return Result.failure(
-            StudentSessionBookingConflictError(
+            const StudentSessionBookingConflictError(
               'Timeslot was just booked by someone else',
             ),
           );
@@ -326,7 +326,7 @@ class StudentSessionRepositoryImpl extends BaseRepository
             errorMessage.contains('taken') ||
             errorMessage.contains('unavailable')) {
           return Result.failure(
-            StudentSessionBookingConflictError(
+            const StudentSessionBookingConflictError(
               'Timeslot was just booked by someone else',
             ),
           );

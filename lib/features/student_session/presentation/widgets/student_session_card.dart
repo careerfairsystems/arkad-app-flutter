@@ -133,7 +133,7 @@ class StudentSessionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
       ),
-      child: Icon(
+      child: const Icon(
         Icons.business_rounded,
         size: 24,
         color: ArkadColors.arkadTurkos,

@@ -151,7 +151,7 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: ArkadColors.arkadTurkos, width: 2),
+            borderSide: const BorderSide(color: ArkadColors.arkadTurkos, width: 2),
           ),
           filled: true,
           fillColor: Theme.of(
@@ -230,7 +230,7 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+            const Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
             const SizedBox(height: 16),
             Text(
               'Failed to load student sessions',

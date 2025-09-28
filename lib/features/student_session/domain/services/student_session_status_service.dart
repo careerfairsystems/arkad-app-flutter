@@ -52,7 +52,7 @@ class StudentSessionStatusService {
     // Has application - show application status
     switch (applicationStatus) {
       case ApplicationStatus.pending:
-        return StudentSessionStatusInfo(
+        return const StudentSessionStatusInfo(
           displayText: 'Under Review',
           displayColor: ArkadColors.arkadOrange,
           badgeText: 'Pending',
@@ -77,7 +77,7 @@ class StudentSessionStatusService {
         );
 
       case ApplicationStatus.rejected:
-        return StudentSessionStatusInfo(
+        return const StudentSessionStatusInfo(
           displayText: 'Not Selected',
           displayColor: ArkadColors.lightRed,
           badgeText: 'Rejected',
@@ -96,7 +96,7 @@ class StudentSessionStatusService {
     final statusInfo = getStatusInfo(sessionWithApp);
 
     if (statusInfo.canApply) {
-      return ActionButtonInfo(
+      return const ActionButtonInfo(
         text: 'Apply',
         icon: Icons.send_rounded,
         color: ArkadColors.arkadTurkos,
@@ -106,7 +106,7 @@ class StudentSessionStatusService {
     }
 
     if (statusInfo.canBook) {
-      return ActionButtonInfo(
+      return const ActionButtonInfo(
         text: 'Book Timeslot',
         icon: Icons.schedule_rounded,
         color: ArkadColors.arkadTurkos,
@@ -116,7 +116,7 @@ class StudentSessionStatusService {
     }
 
     if (statusInfo.hasBooking) {
-      return ActionButtonInfo(
+      return const ActionButtonInfo(
         text: 'Manage Booking',
         icon: Icons.edit_calendar_rounded,
         color: ArkadColors.arkadTurkos,
@@ -143,7 +143,7 @@ class StudentSessionStatusService {
 
     switch (status) {
       case ApplicationStatus.pending:
-        return StudentSessionStatusInfo(
+        return const StudentSessionStatusInfo(
           displayText: 'Under Review',
           displayColor: ArkadColors.arkadOrange,
           badgeText: 'Under Review',
@@ -169,7 +169,7 @@ class StudentSessionStatusService {
         );
 
       case ApplicationStatus.rejected:
-        return StudentSessionStatusInfo(
+        return const StudentSessionStatusInfo(
           displayText: 'Not Selected',
           displayColor: ArkadColors.lightRed,
           badgeText: 'Not Selected',

@@ -232,7 +232,7 @@ class _StudentSessionTimeSelection
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error loading time slots')));
+        ).showSnackBar(const SnackBar(content: Text('Error loading time slots')));
       }
     }
   }
@@ -250,7 +250,7 @@ class _StudentSessionTimeSelection
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+            const Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
             const SizedBox(height: 16),
             Text(
               'Failed to load timeslots',

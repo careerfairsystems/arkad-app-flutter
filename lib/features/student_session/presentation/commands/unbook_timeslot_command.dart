@@ -102,7 +102,7 @@ class UnbookTimeslotCommand extends ParameterizedCommand<int, String> {
       );
     } catch (e) {
       // Convert unexpected exceptions to user-friendly errors
-      final error = StudentSessionApplicationError(
+      const error = StudentSessionApplicationError(
         'Failed to unbook timeslot',
         details: 'Unable to cancel timeslot booking. Please try again.',
       );

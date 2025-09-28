@@ -118,7 +118,7 @@ class ApplyForSessionCommand
     } catch (e) {
       // Convert unexpected exceptions to user-friendly errors
       setError(
-        StudentSessionApplicationError(
+        const StudentSessionApplicationError(
           'Failed to submit application',
           details: 'An unexpected error occurred. Please try again.',
         ),

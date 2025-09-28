@@ -31,7 +31,7 @@ class UnbookTimeslotUseCase extends UseCase<String, int> {
       return Result.failure(e);
     } catch (e) {
       return Result.failure(
-        StudentSessionApplicationError(
+        const StudentSessionApplicationError(
           'Failed to unbook timeslot',
           details: 'An unexpected error occurred',
         ),

@@ -33,7 +33,7 @@ class GetTimeslotsUseCase extends UseCase<List<Timeslot>, int> {
       return Result.failure(e);
     } catch (e) {
       return Result.failure(
-        StudentSessionApplicationError(
+        const StudentSessionApplicationError(
           'Failed to load timeslots',
           details: 'Unable to retrieve timeslots',
         ),

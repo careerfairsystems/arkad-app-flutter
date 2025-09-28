@@ -106,7 +106,7 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+            const Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
             const SizedBox(height: 16),
             Text(
               'Failed to load applications',

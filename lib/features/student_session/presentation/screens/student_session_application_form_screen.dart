@@ -186,8 +186,8 @@ class _StudentSessionApplicationFormScreenState
       TimelineValidationService.validateApplicationAllowed();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Unable to validate application timeline. Please try again.'),
+        const SnackBar(
+          content: Text('Unable to validate application timeline. Please try again.'),
           backgroundColor: ArkadColors.lightRed,
         ),
       );
@@ -549,7 +549,7 @@ class _StudentSessionApplicationFormScreenState
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.info_outline,
                   color: ArkadColors.arkadTurkos,
                   size: 20,
@@ -586,7 +586,7 @@ class _StudentSessionApplicationFormScreenState
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [ArkadColors.arkadNavy, ArkadColors.arkadTurkos],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -617,7 +617,7 @@ class _StudentSessionApplicationFormScreenState
                       color: Colors.white.withValues(alpha: 0.3),
                     ),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.business_rounded,
                     color: Colors.white,
                     size: 28,
@@ -971,7 +971,7 @@ class _StudentSessionApplicationFormScreenState
           vertical: 16,
         ),
       ),
-      value: _selectedProgramme,
+      initialValue: _selectedProgramme,
       hint: const Text('Select your programme'),
       validator:
           isOptional ? null : _formConfig!.getDropdownValidator('programme'),
@@ -1003,7 +1003,7 @@ class _StudentSessionApplicationFormScreenState
           vertical: 16,
         ),
       ),
-      value: _studyYear,
+      initialValue: _studyYear,
       hint: const Text('Select your study year'),
       validator:
           isOptional ? null : _formConfig!.getDropdownValidator('studyYear'),
@@ -1266,7 +1266,7 @@ class _StudentSessionApplicationFormScreenState
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.warning_rounded,
                   color: ArkadColors.lightRed,
                   size: 20,

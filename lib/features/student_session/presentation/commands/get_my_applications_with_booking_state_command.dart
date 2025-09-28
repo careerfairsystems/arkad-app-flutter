@@ -39,7 +39,7 @@ class GetMyApplicationsWithBookingStateCommand
     } catch (e) {
       // Convert unexpected exceptions to user-friendly errors
       setError(
-        StudentSessionApplicationError(
+        const StudentSessionApplicationError(
           'Failed to load your applications with booking state',
           details: 'Unable to load your applications. Please try again.',
         ),

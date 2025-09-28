@@ -36,7 +36,7 @@ class GetStudentSessionsCommand extends Command<List<StudentSession>> {
     } catch (e) {
       // Convert unexpected exceptions to user-friendly errors
       setError(
-        StudentSessionApplicationError(
+        const StudentSessionApplicationError(
           'Failed to load student sessions',
           details: 'Unable to load student sessions. Please try again.',
         ),

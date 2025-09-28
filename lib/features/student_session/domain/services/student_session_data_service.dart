@@ -69,7 +69,7 @@ class StudentSessionDataService {
           'error_type': SentryLogAttribute.string(e.runtimeType.toString()),
         },
       );
-      return Result.failure(e is AppError ? e : UnknownError('Unable to load student session data'));
+      return Result.failure(e is AppError ? e : const UnknownError('Unable to load student session data'));
     }
   }
 

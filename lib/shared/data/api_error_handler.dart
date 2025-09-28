@@ -82,7 +82,7 @@ class ApiErrorHandler {
           responseBody ?? 'You don\'t have permission to perform this action',
         );
       case 404:
-        return ApiException('The requested item could not be found');
+        return const ApiException('The requested item could not be found');
       case 409:
         return ValidationException(responseBody ?? 'This item already exists');
       case 415:
@@ -97,7 +97,7 @@ class ApiErrorHandler {
       case 502:
       case 503:
       case 504:
-        return NetworkException('Something went wrong. Please try again later');
+        return const NetworkException('Something went wrong. Please try again later');
       default:
         if (statusCode != null && statusCode >= 400) {
           return ApiException(
@@ -105,7 +105,7 @@ class ApiErrorHandler {
           );
         }
         // Network-level errors (no response)
-        return NetworkException('Please check your internet connection');
+        return const NetworkException('Please check your internet connection');
     }
   }
 

@@ -64,7 +64,7 @@ class BookTimeslotUseCase extends UseCase<String, BookTimeslotParams> {
           e.toString().contains('already booked') ||
           e.toString().contains('409')) {
         return Result.failure(
-          StudentSessionBookingConflictError(
+          const StudentSessionBookingConflictError(
             'This timeslot was just booked by someone else. Please select another time.',
           ),
         );

@@ -109,7 +109,7 @@ class BookTimeslotCommand
       );
     } catch (e) {
       // Convert unexpected exceptions to user-friendly errors
-      final error = StudentSessionApplicationError(
+      const error = StudentSessionApplicationError(
         'Failed to book timeslot',
         details: 'Unable to book timeslot. Please try again.',
       );
