@@ -1,8 +1,8 @@
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
+import '../../../../shared/data/api_error_handler.dart';
 
 /// Remote data source for student session operations
 class StudentSessionRemoteDataSource {
@@ -12,20 +12,28 @@ class StudentSessionRemoteDataSource {
 
   /// Get student sessions from the API
   Future<StudentSessionNormalUserListSchema> getStudentSessions() async {
-    final response = await _api
-        .getStudentSessionsApi()
-        .studentSessionsApiGetStudentSessions(
-          extra: {
-            'secure': [
-              {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
-            ],
-          },
-        );
+    try {
+      final response = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiGetStudentSessions(
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
+          );
 
-    if (response.isSuccess && response.data != null) {
-      return response.data!;
-    } else {
-      throw Exception('Failed to get student sessions');
+      if (response.isSuccess && response.data != null) {
+        return response.data!;
+      } else {
+        throw Exception('Failed to get student sessions');
+      }
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'getStudentSessions',
+      );
+      throw exception;
     }
   }
 
@@ -48,17 +56,14 @@ class StudentSessionRemoteDataSource {
       } else {
         throw Exception('Failed to get timeslots');
       }
-    } catch (e, stackTrace) {
-      // Enhanced Sentry reporting with context
-      await Sentry.captureException(e, stackTrace: stackTrace);
-      Sentry.logger.error(
-        'Failed to fetch timeslots from API',
-        attributes: {
-          'operation': SentryLogAttribute.string('getTimeslots'),
-          'company_id': SentryLogAttribute.string(companyId.toString()),
-          'error_type': SentryLogAttribute.string(e.runtimeType.toString()),
-        },
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'getTimeslots',
+        additionalContext: {'company_id': companyId},
       );
+      throw exception;
+    } catch (e) {
       throw Exception('Failed to get timeslots');
     }
   }
@@ -74,17 +79,14 @@ class StudentSessionRemoteDataSource {
             studentSessionApplicationSchema: application,
           );
       return response;
-    } catch (e, stackTrace) {
-      // Enhanced Sentry reporting with context
-      await Sentry.captureException(e, stackTrace: stackTrace);
-      Sentry.logger.error(
-        'Failed to apply for student session',
-        attributes: {
-          'operation': SentryLogAttribute.string('applyForSession'),
-          'company_id': SentryLogAttribute.string(application.companyId.toString()),
-          'error_type': SentryLogAttribute.string(e.runtimeType.toString()),
-        },
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'applyForSession',
+        additionalContext: {'company_id': application.companyId},
       );
+      throw exception;
+    } catch (e) {
       throw Exception('Failed to apply for student session');
     }
   }
@@ -104,8 +106,14 @@ class StudentSessionRemoteDataSource {
             },
           );
       return response;
-    } catch (e, stackTrace) {
-      await Sentry.captureException(e, stackTrace: stackTrace);
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'uploadCV',
+        additionalContext: {'company_id': companyId},
+      );
+      throw exception;
+    } catch (e) {
       throw Exception('Failed to upload CV: $e');
     }
   }
@@ -128,12 +136,19 @@ class StudentSessionRemoteDataSource {
             },
           );
       return response;
-    } catch (e, stackTrace) {
+    } on DioException catch (e) {
       // CRITICAL: Preserve original DioException with HTTP status codes for proper conflict detection
-      if (e is DioException) {
-        rethrow; // Let repository handle HTTP status codes
-      }
-      await Sentry.captureException(e, stackTrace: stackTrace);
+      // Let the repository handle the DioException for conflict detection
+      await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'confirmTimeslot',
+        additionalContext: {
+          'company_id': companyId,
+          'timeslot_id': timeslotId,
+        },
+      );
+      rethrow; // Let repository handle HTTP status codes
+    } catch (e) {
       throw Exception('Failed to confirm timeslot: ${e.toString()}');
     }
   }
@@ -152,8 +167,14 @@ class StudentSessionRemoteDataSource {
             },
           );
       return response;
-    } catch (e, stackTrace) {
-      await Sentry.captureException(e, stackTrace: stackTrace);
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'unbookTimeslot',
+        additionalContext: {'company_id': companyId},
+      );
+      throw exception;
+    } catch (e) {
       throw Exception('Failed to unbook timeslot: $e');
     }
   }
@@ -173,8 +194,14 @@ class StudentSessionRemoteDataSource {
             },
           );
       return response;
-    } catch (e, stackTrace) {
-      await Sentry.captureException(e, stackTrace: stackTrace);
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'getApplicationForCompany',
+        additionalContext: {'company_id': companyId},
+      );
+      throw exception;
+    } catch (e) {
       throw Exception('Failed to get application');
     }
   }

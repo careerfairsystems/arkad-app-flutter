@@ -515,7 +515,7 @@ class _StudentSessionTimeSelection
                 child: Text(
                   'Booked by you',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white,
+                    color: ArkadColors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 11,
                   ),
@@ -617,7 +617,7 @@ class _StudentSessionTimeSelection
       onPressed: isEnabled ? _confirmSelection : null,
       style: ElevatedButton.styleFrom(
         backgroundColor: buttonColor,
-        foregroundColor: Colors.white,
+        foregroundColor: ArkadColors.white,
       ),
       child:
           viewModel.bookTimeslotCommand.isExecuting
@@ -626,7 +626,7 @@ class _StudentSessionTimeSelection
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: ArkadColors.white,
                 ),
               )
               : Text(buttonText),
@@ -637,7 +637,7 @@ class _StudentSessionTimeSelection
   Widget _buildConflictOverlay(String? message) {
     return Positioned.fill(
       child: Container(
-        color: Colors.black54,
+        color: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.54),
         child: Center(
           child: Card(
             margin: const EdgeInsets.all(32),

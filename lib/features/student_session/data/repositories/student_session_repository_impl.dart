@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
@@ -31,6 +32,13 @@ class StudentSessionRepositoryImpl extends BaseRepository
 
   @override
   Future<Result<List<StudentSession>>> getStudentSessions() async {
+    Sentry.logger.info(
+      'Starting student sessions loading',
+      attributes: {
+        'operation': SentryLogAttribute.string('getStudentSessions'),
+      },
+    );
+
     return executeOperation(
       () async {
         final response = await _remoteDataSource.getStudentSessions();
@@ -63,6 +71,14 @@ class StudentSessionRepositoryImpl extends BaseRepository
           );
           studentSessions.add(studentSession);
         }
+
+        Sentry.logger.info(
+          'Successfully loaded student sessions',
+          attributes: {
+            'operation': SentryLogAttribute.string('getStudentSessions'),
+            'sessions_count': SentryLogAttribute.string(studentSessions.length.toString()),
+          },
+        );
 
         return studentSessions;
       },
@@ -232,9 +248,26 @@ class StudentSessionRepositoryImpl extends BaseRepository
   Future<Result<String>> applyForSession(
     StudentSessionApplicationParams params,
   ) async {
+    Sentry.logger.info(
+      'Starting student session application',
+      attributes: {
+        'operation': SentryLogAttribute.string('applyForSession'),
+        'company_id': SentryLogAttribute.string(params.companyId.toString()),
+        'motivation_length': SentryLogAttribute.string(params.motivationText.length.toString()),
+      },
+    );
+
     return executeOperation(() async {
       final apiSchema = _mapper.toApiApplicationSchema(params);
       final response = await _remoteDataSource.applyForSession(apiSchema);
+
+      Sentry.logger.info(
+        'Successfully submitted student session application',
+        attributes: {
+          'operation': SentryLogAttribute.string('applyForSession'),
+          'company_id': SentryLogAttribute.string(params.companyId.toString()),
+        },
+      );
 
       // API returns a string response for successful applications
       return response.data ?? 'Application submitted successfully';
@@ -302,17 +335,46 @@ class StudentSessionRepositoryImpl extends BaseRepository
     required int companyId,
     required int timeslotId,
   }) async {
+    Sentry.logger.info(
+      'Attempting to book timeslot',
+      attributes: {
+        'operation': SentryLogAttribute.string('bookTimeslot'),
+        'company_id': SentryLogAttribute.string(companyId.toString()),
+        'timeslot_id': SentryLogAttribute.string(timeslotId.toString()),
+      },
+    );
+
     try {
       final response = await _remoteDataSource.confirmTimeslot(
         companyId,
         timeslotId,
       );
+
+      Sentry.logger.info(
+        'Successfully booked timeslot',
+        attributes: {
+          'operation': SentryLogAttribute.string('bookTimeslot'),
+          'company_id': SentryLogAttribute.string(companyId.toString()),
+          'timeslot_id': SentryLogAttribute.string(timeslotId.toString()),
+        },
+      );
+
       return Result.success(response.data ?? 'Timeslot booked successfully');
     } catch (e) {
       // ENHANCED: Handle booking conflicts directly from original exception
       if (e is DioException) {
         // Check HTTP status code for conflict
         if (e.response?.statusCode == 409) {
+          Sentry.logger.error(
+            'Booking conflict detected - timeslot already booked',
+            attributes: {
+              'operation': SentryLogAttribute.string('bookTimeslot'),
+              'company_id': SentryLogAttribute.string(companyId.toString()),
+              'timeslot_id': SentryLogAttribute.string(timeslotId.toString()),
+              'conflict_reason': SentryLogAttribute.string('http_409'),
+            },
+          );
+
           return Result.failure(
             const StudentSessionBookingConflictError(
               'Timeslot was just booked by someone else',

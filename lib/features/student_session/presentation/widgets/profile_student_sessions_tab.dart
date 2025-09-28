@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../../../../shared/presentation/widgets/async_state_builder.dart';
 import '../../../../shared/services/timeline_validation_service.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../domain/entities/student_session_application.dart';
@@ -97,48 +98,82 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
   ) {
     final command = viewModel.getMyApplicationsWithBookingStateCommand;
 
-    if (command.isExecuting) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (command.hasError) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
-            const SizedBox(height: 16),
-            Text(
-              'Failed to load applications',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              command.error?.userMessage ?? 'Please try again',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.7),
+    return AsyncStateBuilder<List<StudentSessionApplicationWithBookingState>>(
+      command: command,
+      builder: (context, applications) => _buildApplicationsList(
+        context, 
+        viewModel, 
+        groupedApplications,
+      ),
+      loadingBuilder: (context) => const CustomScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading your applications...'),
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () => viewModel.loadMyApplicationsWithBookingState(),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+          ),
+        ],
+      ),
+      errorBuilder: (context, error) => CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Failed to load applications',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error.userMessage,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () => command.execute(),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      );
-    }
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildApplicationsList(
+    BuildContext context,
+    StudentSessionViewModel viewModel,
+    Map<ApplicationStatus, List<StudentSessionApplicationWithBookingState>>
+    groupedApplications,
+  ) {
     final totalApplications =
         groupedApplications.values.expand((apps) => apps).length;
 
     return RefreshIndicator(
       onRefresh: () => viewModel.loadMyApplicationsWithBookingState(),
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         children: [
           // Always show all sections for consistent structure

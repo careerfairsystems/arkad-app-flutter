@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../../../../shared/presentation/widgets/optimized_image.dart';
 import '../../domain/entities/student_session.dart';
 import '../../domain/entities/student_session_application.dart';
 import '../../domain/services/student_session_data_service.dart';
@@ -41,12 +42,23 @@ class StudentSessionCard extends StatelessWidget {
       sessionWithApp,
     );
 
-    return Container(
+    return Card(
       margin: margin,
-      child: Card(
-        elevation: 2,
-        surfaceTintColor: Theme.of(context).colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: actionInfo.action != ActionType.none ? () {
+          switch (actionInfo.action) {
+            case ActionType.apply:
+              onApply?.call();
+            case ActionType.bookTimeslot:
+            case ActionType.manageBooking:
+              onViewTimeslots?.call();
+            case ActionType.none:
+              break;
+          }
+        } : null,
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -101,29 +113,13 @@ class StudentSessionCard extends StatelessWidget {
   }
 
   Widget _buildLogo(BuildContext context) {
-    return Container(
+    return OptimizedImage(
+      imageUrl: session.logoUrl,
       width: 48,
       height: 48,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Theme.of(context).colorScheme.surface,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
-        ),
-      ),
-      child:
-          session.logoUrl != null
-              ? ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  session.logoUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) =>
-                          _buildDefaultLogo(context),
-                ),
-              )
-              : _buildDefaultLogo(context),
+      fit: BoxFit.cover,
+      borderRadius: BorderRadius.circular(12),
+      fallbackWidget: _buildDefaultLogo(context),
     );
   }
 
