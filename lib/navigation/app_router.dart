@@ -118,7 +118,7 @@ class AppRouter {
                 builder: (context, state) {
                   final companyId = state
                       .pathParameters["companyId"]!; // Get "id" param from URL
-                  return StudentSessionFormScreen(id: companyId);
+                  return StudentSessionApplicationFormScreen(companyId: companyId);
                 },
               ),
               GoRoute(
