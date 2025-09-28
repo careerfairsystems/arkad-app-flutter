@@ -323,10 +323,7 @@ class _AppBottomNavShell extends StatelessWidget {
           final targetBranchIndex = items[i].branchIndex;
           if (targetBranchIndex == navigationShell.currentIndex) {
             // Reselecting current tab - reset to initial location
-            navigationShell.goBranch(
-              targetBranchIndex,
-              initialLocation: true,
-            );
+            navigationShell.goBranch(targetBranchIndex, initialLocation: true);
           } else {
             // Switching to different tab - preserve state
             navigationShell.goBranch(targetBranchIndex);
