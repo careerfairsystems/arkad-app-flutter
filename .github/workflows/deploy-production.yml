@@ -122,12 +122,8 @@ jobs:
       - name: Add CNAME file for custom domain
         run: echo "app.arkadtlth.se" > build/web/CNAME
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@v4.6.1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           folder: build/web # The folder the action should deploy.
 
