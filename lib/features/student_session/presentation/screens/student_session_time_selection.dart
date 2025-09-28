@@ -525,21 +525,25 @@ class _StudentSessionTimeSelection
           ],
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        leading: Radio<int>(
-          value: slot.id,
-          groupValue: _selectedTimeslotId,
-          activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
-          onChanged:
-              (isAvailable || isBookedByUser)
-                  ? (int? value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedTimeslotId = value;
-                      });
-                    }
+        leading: (isAvailable || isBookedByUser)
+            ? RadioGroup<int>(
+                groupValue: _selectedTimeslotId,
+                onChanged: (int? value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedTimeslotId = value;
+                    });
                   }
-                  : null,
-        ),
+                },
+                child: Radio<int>(
+                  value: slot.id,
+                  activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
+                ),
+              )
+            : Radio<int>(
+                value: slot.id,
+                activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
+              ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         visualDensity: VisualDensity.compact,
         onTap:
