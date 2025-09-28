@@ -133,7 +133,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Future<Result<FileUploadResult>> uploadProfilePicture(File imageFile) async {
     try {
       // Proactive file validation before sending to server
-      final validation = await FileValidationService.validateProfilePicture(imageFile);
+      final validation = await FileValidationService.validateProfilePicture(
+        imageFile,
+      );
       if (validation.isFailure) {
         return Result.failure(validation.errorOrNull!);
       }
@@ -173,7 +175,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
       if (e.message.contains('413')) {
         await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(
-          const ValidationError("Image file is too large (server limit exceeded)"),
+          const ValidationError(
+            "Image file is too large (server limit exceeded)",
+          ),
         );
       } else if (e.message.contains('415')) {
         await Sentry.captureException(e, stackTrace: stackTrace);

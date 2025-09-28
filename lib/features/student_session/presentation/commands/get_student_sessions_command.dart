@@ -51,20 +51,19 @@ class GetStudentSessionsCommand extends Command<List<StudentSession>> {
     List<StudentSession> sessions,
   ) {
     // Filter out any sessions with invalid data
-    final validSessions =
-        sessions.where((session) {
-          // Basic validation: must have valid ID and company ID
-          if (session.id <= 0 || session.companyId <= 0) {
-            return false;
-          }
+    final validSessions = sessions.where((session) {
+      // Basic validation: must have valid ID and company ID
+      if (session.id <= 0 || session.companyId <= 0) {
+        return false;
+      }
 
-          // Must have a booking close time if user has applied/been accepted
-          if (session.userStatus != null && session.bookingCloseTime == null) {
-            return false;
-          }
+      // Must have a booking close time if user has applied/been accepted
+      if (session.userStatus != null && session.bookingCloseTime == null) {
+        return false;
+      }
 
-          return true;
-        }).toList();
+      return true;
+    }).toList();
 
     // Sort sessions: available first, then by company name
     validSessions.sort((a, b) {

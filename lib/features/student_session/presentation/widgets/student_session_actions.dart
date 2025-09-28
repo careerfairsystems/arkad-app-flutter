@@ -42,9 +42,7 @@ class StudentSessionActions extends StatelessWidget {
 
   Widget _buildAuthenticatedActions(BuildContext context) {
     // Create a session with application state for status checking
-    final sessionWithApp = StudentSessionWithApplicationState(
-      session: session,
-    );
+    final sessionWithApp = StudentSessionWithApplicationState(session: session);
 
     final actionInfo = StudentSessionStatusService.instance.getActionButtonInfo(
       sessionWithApp,
@@ -56,17 +54,19 @@ class StudentSessionActions extends StatelessWidget {
 
     return ArkadButton(
       text: actionInfo.text,
-      onPressed: actionInfo.isEnabled ? () {
-        switch (actionInfo.action) {
-          case ActionType.apply:
-            onApply();
-          case ActionType.bookTimeslot:
-          case ActionType.manageBooking:
-            onViewTimeslots();
-          case ActionType.none:
-            break;
-        }
-      } : null,
+      onPressed: actionInfo.isEnabled
+          ? () {
+              switch (actionInfo.action) {
+                case ActionType.apply:
+                  onApply();
+                case ActionType.bookTimeslot:
+                case ActionType.manageBooking:
+                  onViewTimeslots();
+                case ActionType.none:
+                  break;
+              }
+            }
+          : null,
       fullWidth: true,
     );
   }
@@ -161,21 +161,28 @@ class TimelineAwareStudentSessionActions extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineInfo(BuildContext context, TimelineStatus timelineStatus) {
+  Widget _buildTimelineInfo(
+    BuildContext context,
+    TimelineStatus timelineStatus,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.12),
         ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.schedule_rounded,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.7),
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -183,7 +190,9 @@ class TimelineAwareStudentSessionActions extends StatelessWidget {
             child: Text(
               timelineStatus.reason,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
           ),

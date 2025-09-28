@@ -97,7 +97,9 @@ class ApiErrorHandler {
       case 502:
       case 503:
       case 504:
-        return const NetworkException('Something went wrong. Please try again later');
+        return const NetworkException(
+          'Something went wrong. Please try again later',
+        );
       default:
         if (statusCode != null && statusCode >= 400) {
           return ApiException(

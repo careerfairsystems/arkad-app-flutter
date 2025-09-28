@@ -452,8 +452,8 @@ class ErrorMapper {
   }
 
   static void _contactSupport(BuildContext context) {
-    // 
-    
+    //
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Contact support at support@arkadtlth.se')),
     );

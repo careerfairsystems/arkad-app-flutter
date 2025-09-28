@@ -68,14 +68,13 @@ class GetMyApplicationsWithBookingStateCommand
     if (isExecuting) return 'Loading your applications...';
     if (isCompleted && result != null) {
       final totalApps = result!.length;
-      final bookedCount =
-          result!
-              .where(
-                (app) =>
-                    app.application.status == ApplicationStatus.accepted &&
-                    app.hasBooking,
-              )
-              .length;
+      final bookedCount = result!
+          .where(
+            (app) =>
+                app.application.status == ApplicationStatus.accepted &&
+                app.hasBooking,
+          )
+          .length;
       return 'Loaded $totalApps applications ($bookedCount with bookings)';
     }
     if (hasError) {

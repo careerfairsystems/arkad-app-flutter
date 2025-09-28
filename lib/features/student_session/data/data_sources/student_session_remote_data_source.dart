@@ -142,10 +142,7 @@ class StudentSessionRemoteDataSource {
       await ApiErrorHandler.handleDioException(
         e,
         operationName: 'confirmTimeslot',
-        additionalContext: {
-          'company_id': companyId,
-          'timeslot_id': timeslotId,
-        },
+        additionalContext: {'company_id': companyId, 'timeslot_id': timeslotId},
       );
       rethrow; // Let repository handle HTTP status codes
     } catch (e) {

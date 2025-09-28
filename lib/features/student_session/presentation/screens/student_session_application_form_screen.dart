@@ -148,10 +148,9 @@ class _StudentSessionApplicationFormScreenState
     // Check if all required fields have values
     if (!_formConfig!.validateRequiredFields(fieldValues)) {
       final missingFields = _formConfig!.getMissingRequiredFields(fieldValues);
-      final message =
-          missingFields.length == 1
-              ? '${missingFields.first} is required'
-              : 'Please complete all required fields: ${missingFields.join(', ')}';
+      final message = missingFields.length == 1
+          ? '${missingFields.first} is required'
+          : 'Please complete all required fields: ${missingFields.join(', ')}';
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: ArkadColors.lightRed),
@@ -187,7 +186,9 @@ class _StudentSessionApplicationFormScreenState
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Unable to validate application timeline. Please try again.'),
+          content: Text(
+            'Unable to validate application timeline. Please try again.',
+          ),
           backgroundColor: ArkadColors.lightRed,
         ),
       );
@@ -204,10 +205,9 @@ class _StudentSessionApplicationFormScreenState
       companyId: int.parse(widget.companyId),
       motivationText: _motivationController.text.trim(),
       programme: ProgrammeUtils.programmeToLabel(_selectedProgramme),
-      linkedin:
-          _linkedinController.text.trim().isEmpty
-              ? null
-              : _linkedinController.text.trim(),
+      linkedin: _linkedinController.text.trim().isEmpty
+          ? null
+          : _linkedinController.text.trim(),
       masterTitle: _masterTitleController.text.trim(),
       studyYear: _studyYear,
       cvFilePath: _selectedCV?.path,
@@ -301,18 +301,16 @@ class _StudentSessionApplicationFormScreenState
                   SnackBar(
                     content: Text(errorMessage),
                     backgroundColor: ArkadColors.lightRed,
-                    duration:
-                        showRetryOption
-                            ? const Duration(seconds: 6)
-                            : const Duration(seconds: 4),
-                    action:
-                        showRetryOption
-                            ? SnackBarAction(
-                              label: 'Retry CV',
-                              textColor: Colors.white,
-                              onPressed: () => _retryCVUpload(viewModel),
-                            )
-                            : null,
+                    duration: showRetryOption
+                        ? const Duration(seconds: 6)
+                        : const Duration(seconds: 4),
+                    action: showRetryOption
+                        ? SnackBarAction(
+                            label: 'Retry CV',
+                            textColor: Colors.white,
+                            onPressed: () => _retryCVUpload(viewModel),
+                          )
+                        : null,
                   ),
                 );
               }
@@ -380,14 +378,14 @@ class _StudentSessionApplicationFormScreenState
 
     // Required Fields Section
     if (_formConfig?.hasRequiredFields ?? false) {
-      final hasOtherRequiredFields =
-          _formConfig!.getRequiredVisibleFields().isNotEmpty;
+      final hasOtherRequiredFields = _formConfig!
+          .getRequiredVisibleFields()
+          .isNotEmpty;
       sections.addAll([
         _buildFormSection(
-          title:
-              hasOtherRequiredFields
-                  ? 'Required Information'
-                  : 'Document Upload',
+          title: hasOtherRequiredFields
+              ? 'Required Information'
+              : 'Document Upload',
           icon: Icons.assignment_outlined,
           child: _buildRequiredFields(),
           isEssential: true,
@@ -446,23 +444,21 @@ class _StudentSessionApplicationFormScreenState
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          gradient:
-              isEssential
-                  ? LinearGradient(
-                    colors: [
-                      Colors.white,
-                      ArkadColors.arkadTurkos.withValues(alpha: 0.02),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                  : null,
-          border:
-              isEssential
-                  ? Border.all(
-                    color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-                  )
-                  : null,
+          gradient: isEssential
+              ? LinearGradient(
+                  colors: [
+                    Colors.white,
+                    ArkadColors.arkadTurkos.withValues(alpha: 0.02),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          border: isEssential
+              ? Border.all(
+                  color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+                )
+              : null,
         ),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -474,18 +470,18 @@ class _StudentSessionApplicationFormScreenState
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: (isEssential
-                              ? ArkadColors.arkadTurkos
-                              : ArkadColors.arkadNavy)
-                          .withValues(alpha: 0.1),
+                      color:
+                          (isEssential
+                                  ? ArkadColors.arkadTurkos
+                                  : ArkadColors.arkadNavy)
+                              .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       icon,
-                      color:
-                          isEssential
-                              ? ArkadColors.arkadTurkos
-                              : ArkadColors.arkadNavy,
+                      color: isEssential
+                          ? ArkadColors.arkadTurkos
+                          : ArkadColors.arkadNavy,
                       size: 20,
                     ),
                   ),
@@ -496,24 +492,23 @@ class _StudentSessionApplicationFormScreenState
                       children: [
                         Text(
                           title,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: isEssential ? ArkadColors.arkadTurkos : null,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: isEssential
+                                    ? ArkadColors.arkadTurkos
+                                    : null,
+                              ),
                         ),
                         if (subtitle != null) ...[
                           const SizedBox(height: 4),
                           Text(
                             subtitle,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: 0.7),
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
+                                ),
                           ),
                         ],
                       ],
@@ -630,12 +625,11 @@ class _StudentSessionApplicationFormScreenState
                     children: [
                       Text(
                         _session!.companyName,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
                       ),
                       const SizedBox(height: 6),
                       Container(
@@ -649,12 +643,11 @@ class _StudentSessionApplicationFormScreenState
                         ),
                         child: Text(
                           'Student Session Application',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
                         ),
                       ),
                     ],
@@ -671,16 +664,15 @@ class _StudentSessionApplicationFormScreenState
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
               ),
-              child:
-                  _session!.description != null
-                      ? Text(
-                        _session!.description!,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          height: 1.5,
-                        ),
-                      )
-                      : _buildDefaultSessionInfo(),
+              child: _session!.description != null
+                  ? Text(
+                      _session!.description!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        height: 1.5,
+                      ),
+                    )
+                  : _buildDefaultSessionInfo(),
             ),
           ],
         ),
@@ -878,16 +870,16 @@ class _StudentSessionApplicationFormScreenState
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: (_motivationWordCount > 300
-                          ? ArkadColors.lightRed
-                          : Colors.orange)
-                      .withValues(alpha: 0.1),
+                  color:
+                      (_motivationWordCount > 300
+                              ? ArkadColors.lightRed
+                              : Colors.orange)
+                          .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color:
-                        _motivationWordCount > 300
-                            ? ArkadColors.lightRed
-                            : Colors.orange,
+                    color: _motivationWordCount > 300
+                        ? ArkadColors.lightRed
+                        : Colors.orange,
                   ),
                 ),
                 child: Text(
@@ -895,10 +887,9 @@ class _StudentSessionApplicationFormScreenState
                       ? 'Too many words'
                       : 'Approaching limit',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color:
-                        _motivationWordCount > 300
-                            ? ArkadColors.lightRed
-                            : Colors.orange,
+                    color: _motivationWordCount > 300
+                        ? ArkadColors.lightRed
+                        : Colors.orange,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -908,12 +899,11 @@ class _StudentSessionApplicationFormScreenState
             Text(
               '$_motivationWordCount / 300 words',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color:
-                    _motivationWordCount > 300
-                        ? ArkadColors.lightRed
-                        : Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.6),
+                color: _motivationWordCount > 300
+                    ? ArkadColors.lightRed
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                 fontWeight: _motivationWordCount > 300 ? FontWeight.w600 : null,
               ),
             ),
@@ -973,18 +963,18 @@ class _StudentSessionApplicationFormScreenState
       ),
       initialValue: _selectedProgramme,
       hint: const Text('Select your programme'),
-      validator:
-          isOptional ? null : _formConfig!.getDropdownValidator('programme'),
+      validator: isOptional
+          ? null
+          : _formConfig!.getDropdownValidator('programme'),
       isExpanded: true,
       icon: const Icon(Icons.arrow_drop_down),
       menuMaxHeight: 350,
-      items:
-          availableProgrammes.map((program) {
-            return DropdownMenuItem<Programme>(
-              value: program.value,
-              child: Text(program.label, overflow: TextOverflow.ellipsis),
-            );
-          }).toList(),
+      items: availableProgrammes.map((program) {
+        return DropdownMenuItem<Programme>(
+          value: program.value,
+          child: Text(program.label, overflow: TextOverflow.ellipsis),
+        );
+      }).toList(),
       onChanged: (Programme? newValue) {
         setState(() {
           _selectedProgramme = newValue;
@@ -1005,15 +995,12 @@ class _StudentSessionApplicationFormScreenState
       ),
       initialValue: _studyYear,
       hint: const Text('Select your study year'),
-      validator:
-          isOptional ? null : _formConfig!.getDropdownValidator('studyYear'),
-      items:
-          [1, 2, 3, 4, 5].map((year) {
-            return DropdownMenuItem<int>(
-              value: year,
-              child: Text('Year $year'),
-            );
-          }).toList(),
+      validator: isOptional
+          ? null
+          : _formConfig!.getDropdownValidator('studyYear'),
+      items: [1, 2, 3, 4, 5].map((year) {
+        return DropdownMenuItem<int>(value: year, child: Text('Year $year'));
+      }).toList(),
       onChanged: (int? newValue) {
         setState(() {
           _studyYear = newValue;
@@ -1027,8 +1014,9 @@ class _StudentSessionApplicationFormScreenState
       controller: _masterTitleController,
       labelText: _formConfig!.getFieldLabel('Master\'s Title', 'masterTitle'),
       hintText: 'Your master\'s programme title',
-      validator:
-          isOptional ? null : _formConfig!.getTextFieldValidator('masterTitle'),
+      validator: isOptional
+          ? null
+          : _formConfig!.getTextFieldValidator('masterTitle'),
     );
   }
 
@@ -1037,8 +1025,9 @@ class _StudentSessionApplicationFormScreenState
       controller: _linkedinController,
       labelText: _formConfig!.getFieldLabel('LinkedIn Profile', 'linkedin'),
       hintText: 'https://linkedin.com/in/yourprofile or just your username',
-      validator:
-          isOptional ? null : _formConfig!.getTextFieldValidator('linkedin'),
+      validator: isOptional
+          ? null
+          : _formConfig!.getTextFieldValidator('linkedin'),
     );
   }
 
@@ -1098,17 +1087,15 @@ class _StudentSessionApplicationFormScreenState
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             border: Border.all(
-              color:
-                  _selectedCV == null
-                      ? ArkadColors.lightRed
-                      : ArkadColors.arkadGreen,
+              color: _selectedCV == null
+                  ? ArkadColors.lightRed
+                  : ArkadColors.arkadGreen,
               width: 1.5,
             ),
             borderRadius: BorderRadius.circular(8),
-            color:
-                _selectedCV == null
-                    ? ArkadColors.lightRed.withValues(alpha: 0.05)
-                    : ArkadColors.arkadGreen.withValues(alpha: 0.05),
+            color: _selectedCV == null
+                ? ArkadColors.lightRed.withValues(alpha: 0.05)
+                : ArkadColors.arkadGreen.withValues(alpha: 0.05),
           ),
           child: Column(
             children: [
@@ -1118,10 +1105,9 @@ class _StudentSessionApplicationFormScreenState
                     _selectedCV != null
                         ? Icons.check_circle
                         : Icons.upload_file,
-                    color:
-                        _selectedCV != null
-                            ? ArkadColors.arkadGreen
-                            : ArkadColors.lightRed,
+                    color: _selectedCV != null
+                        ? ArkadColors.arkadGreen
+                        : ArkadColors.lightRed,
                     size: 24,
                   ),
                   const SizedBox(width: 16),
@@ -1133,26 +1119,23 @@ class _StudentSessionApplicationFormScreenState
                           _selectedCV != null
                               ? 'CV Selected: ${_selectedCV!.path.split('/').last}'
                               : 'CV Required - No file selected',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(
-                            color:
-                                _selectedCV != null
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: _selectedCV != null
                                     ? ArkadColors.arkadGreen
                                     : ArkadColors.lightRed,
-                            fontWeight: FontWeight.w500,
-                          ),
+                                fontWeight: FontWeight.w500,
+                              ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'PDF format only, max 10MB',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.6),
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
+                              ),
                         ),
                       ],
                     ),
@@ -1292,30 +1275,30 @@ class _StudentSessionApplicationFormScreenState
           child: FilledButton(
             onPressed: canSubmit ? _submitApplication : null,
             style: FilledButton.styleFrom(
-              backgroundColor:
-                  canSubmit ? ArkadColors.arkadTurkos : ArkadColors.gray,
+              backgroundColor: canSubmit
+                  ? ArkadColors.arkadTurkos
+                  : ArkadColors.gray,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
-            child:
-                isSubmitting
-                    ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                    : Text(
-                      _selectedCV != null
-                          ? 'Submit Application with CV'
-                          : 'Submit Application',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+            child: isSubmitting
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
                     ),
+                  )
+                : Text(
+                    _selectedCV != null
+                        ? 'Submit Application with CV'
+                        : 'Submit Application',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
           ),
         ),
       ],

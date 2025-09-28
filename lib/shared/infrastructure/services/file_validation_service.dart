@@ -9,7 +9,7 @@ class FileValidationService {
   // File size limits from CLAUDE.md security guidelines
   static const maxCVSize = 10 * 1024 * 1024; // 10MB
   static const maxProfilePictureSize = 5 * 1024 * 1024; // 5MB
-  
+
   // Allowed file types from CLAUDE.md security guidelines
   static const allowedDocumentTypes = ['pdf', 'doc', 'docx'];
   static const allowedImageTypes = ['jpg', 'jpeg', 'png', 'webp'];
@@ -20,7 +20,9 @@ class FileValidationService {
       // Check if file exists
       if (!await file.exists()) {
         return Result.failure(
-          const ValidationError('Selected file no longer exists. Please select again.'),
+          const ValidationError(
+            'Selected file no longer exists. Please select again.',
+          ),
         );
       }
 
@@ -39,7 +41,9 @@ class FileValidationService {
       if (fileSize > maxCVSize) {
         final maxSizeMB = (maxCVSize / (1024 * 1024)).toInt();
         return Result.failure(
-          ValidationError('CV file is too large. Maximum size is ${maxSizeMB}MB.'),
+          ValidationError(
+            'CV file is too large. Maximum size is ${maxSizeMB}MB.',
+          ),
         );
       }
 
@@ -57,7 +61,9 @@ class FileValidationService {
       // Check if file exists
       if (!await file.exists()) {
         return Result.failure(
-          const ValidationError('Selected image no longer exists. Please select again.'),
+          const ValidationError(
+            'Selected image no longer exists. Please select again.',
+          ),
         );
       }
 
@@ -76,7 +82,9 @@ class FileValidationService {
       if (fileSize > maxProfilePictureSize) {
         final maxSizeMB = (maxProfilePictureSize / (1024 * 1024)).toInt();
         return Result.failure(
-          ValidationError('Image file is too large. Maximum size is ${maxSizeMB}MB.'),
+          ValidationError(
+            'Image file is too large. Maximum size is ${maxSizeMB}MB.',
+          ),
         );
       }
 
@@ -108,7 +116,7 @@ class FileValidationService {
   static String getFileSizeString(int bytes) {
     const int kb = 1024;
     const int mb = kb * 1024;
-    
+
     if (bytes >= mb) {
       return '${(bytes / mb).toStringAsFixed(1)} MB';
     } else if (bytes >= kb) {

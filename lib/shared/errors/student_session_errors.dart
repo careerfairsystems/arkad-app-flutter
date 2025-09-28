@@ -275,7 +275,7 @@ class StudentSessionRecoveryActions {
   // Helper methods for navigation and actions
 
   static void _navigateToCompanies(BuildContext context) {
-    Navigator.of( 
+    Navigator.of(
       context,
     ).pushNamedAndRemoveUntil('/companies', (route) => false);
   }
@@ -299,27 +299,24 @@ class StudentSessionRecoveryActions {
   ) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Student Session Timeline'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(error.userMessage),
-                const SizedBox(height: 12),
-                if (error.timelineInfo.isNotEmpty) Text(error.timelineInfo),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Student Session Timeline'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(error.userMessage),
+            const SizedBox(height: 12),
+            if (error.timelineInfo.isNotEmpty) Text(error.timelineInfo),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
           ),
+        ],
+      ),
     );
   }
-
-
 }

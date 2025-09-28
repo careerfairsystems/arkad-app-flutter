@@ -71,7 +71,7 @@ class AuthViewModel extends ChangeNotifier {
   AuthSession? _currentSession;
   bool _isInitializing = true;
   AppError? _globalError;
-  
+
   // Initialization completer for Future-based waiting
   final Completer<void> _initCompleter = Completer<void>();
 
@@ -85,7 +85,7 @@ class AuthViewModel extends ChangeNotifier {
   bool get isAuthenticated => _currentSession?.isActive ?? false;
   bool get isInitializing => _isInitializing;
   AppError? get globalError => _globalError;
-  
+
   /// Future that completes when authentication initialization is finished
   /// This allows other components to wait for auth state without polling
   Future<void> get waitForInitialization => _initCompleter.future;
@@ -141,12 +141,12 @@ class AuthViewModel extends ChangeNotifier {
     }
 
     _isInitializing = false;
-    
+
     // Complete the initialization future to notify waiting components
     if (!_initCompleter.isCompleted) {
       _initCompleter.complete();
     }
-    
+
     notifyListeners();
   }
 

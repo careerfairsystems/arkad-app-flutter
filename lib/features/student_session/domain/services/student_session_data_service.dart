@@ -29,15 +29,14 @@ class StudentSessionDataService {
       );
 
       // Get applications with booking state for authenticated users
-      final applicationsResult =
-          await _repository.getMyApplicationsWithBookingState();
+      final applicationsResult = await _repository
+          .getMyApplicationsWithBookingState();
       final applications = applicationsResult.when(
         success: (data) => data,
-        failure:
-            (_) =>
-                <
-                  StudentSessionApplicationWithBookingState
-                >[], // Graceful fallback for unauthenticated users
+        failure: (_) =>
+            <
+              StudentSessionApplicationWithBookingState
+            >[], // Graceful fallback for unauthenticated users
       );
 
       // Create unified data structure
@@ -45,10 +44,9 @@ class StudentSessionDataService {
 
       for (final session in sessions) {
         // Find matching application for this session
-        final matchingApplication =
-            applications
-                .where((app) => app.application.companyId == session.companyId)
-                .firstOrNull;
+        final matchingApplication = applications
+            .where((app) => app.application.companyId == session.companyId)
+            .firstOrNull;
 
         unifiedData.add(
           StudentSessionWithApplicationState(
@@ -65,11 +63,17 @@ class StudentSessionDataService {
       Sentry.logger.error(
         'Failed to combine student session data',
         attributes: {
-          'operation': SentryLogAttribute.string('combineSessionsWithApplications'),
+          'operation': SentryLogAttribute.string(
+            'combineSessionsWithApplications',
+          ),
           'error_type': SentryLogAttribute.string(e.runtimeType.toString()),
         },
       );
-      return Result.failure(e is AppError ? e : const UnknownError('Unable to load student session data'));
+      return Result.failure(
+        e is AppError
+            ? e
+            : const UnknownError('Unable to load student session data'),
+      );
     }
   }
 

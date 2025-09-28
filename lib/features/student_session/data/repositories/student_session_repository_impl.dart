@@ -76,7 +76,9 @@ class StudentSessionRepositoryImpl extends BaseRepository
           'Successfully loaded student sessions',
           attributes: {
             'operation': SentryLogAttribute.string('getStudentSessions'),
-            'sessions_count': SentryLogAttribute.string(studentSessions.length.toString()),
+            'sessions_count': SentryLogAttribute.string(
+              studentSessions.length.toString(),
+            ),
           },
         );
 
@@ -101,10 +103,9 @@ class StudentSessionRepositoryImpl extends BaseRepository
         final response = await _remoteDataSource.getStudentSessions();
 
         // Find the session for the specified company
-        final sessionDto =
-            response.studentSessions
-                .where((session) => session.companyId == companyId)
-                .firstOrNull;
+        final sessionDto = response.studentSessions
+            .where((session) => session.companyId == companyId)
+            .firstOrNull;
 
         if (sessionDto == null) {
           return null; // Session not found for this company
@@ -166,8 +167,8 @@ class StudentSessionRepositoryImpl extends BaseRepository
         );
         companyResult.when(
           success: (company) => companyName = company.name,
-          failure:
-              (_) => companyName = null, // Company not found, will use fallback
+          failure: (_) =>
+              companyName = null, // Company not found, will use fallback
         );
 
         final application = _mapper.fromApiStudentSessionToApplication(
@@ -187,18 +188,16 @@ class StudentSessionRepositoryImpl extends BaseRepository
             final timslotsResult = await getTimeslots(application.companyId);
             final timeslots = timslotsResult.when(
               success: (slots) => slots,
-              failure:
-                  (_) =>
-                      <Timeslot>[], // Fallback to empty list if timeslots fail
+              failure: (_) =>
+                  <Timeslot>[], // Fallback to empty list if timeslots fail
             );
 
             final hasBooking = timeslots.any(
               (slot) => slot.status.isBookedByCurrentUser,
             );
-            final bookedTimeslot =
-                timeslots
-                    .where((slot) => slot.status.isBookedByCurrentUser)
-                    .firstOrNull;
+            final bookedTimeslot = timeslots
+                .where((slot) => slot.status.isBookedByCurrentUser)
+                .firstOrNull;
 
             applicationsWithBookingState.add(
               StudentSessionApplicationWithBookingState(
@@ -253,7 +252,9 @@ class StudentSessionRepositoryImpl extends BaseRepository
       attributes: {
         'operation': SentryLogAttribute.string('applyForSession'),
         'company_id': SentryLogAttribute.string(params.companyId.toString()),
-        'motivation_length': SentryLogAttribute.string(params.motivationText.length.toString()),
+        'motivation_length': SentryLogAttribute.string(
+          params.motivationText.length.toString(),
+        ),
       },
     );
 
@@ -426,8 +427,8 @@ class StudentSessionRepositoryImpl extends BaseRepository
       final companyResult = await _getCompanyByIdUseCase.call(companyId);
       companyResult.when(
         success: (company) => companyName = company.name,
-        failure:
-            (_) => companyName = null, // Company not found, will use fallback
+        failure: (_) =>
+            companyName = null, // Company not found, will use fallback
       );
 
       return _mapper.fromApiApplicationOut(

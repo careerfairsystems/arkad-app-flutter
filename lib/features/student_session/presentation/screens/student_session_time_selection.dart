@@ -218,10 +218,9 @@ class _StudentSessionTimeSelection
 
       setState(() {
         // Auto-select booked timeslot if user has one
-        final bookedSlot =
-            slots
-                .where((slot) => slot.status.isBookedByCurrentUser)
-                .firstOrNull;
+        final bookedSlot = slots
+            .where((slot) => slot.status.isBookedByCurrentUser)
+            .firstOrNull;
         if (bookedSlot != null) {
           _selectedTimeslotId = bookedSlot.id;
         }
@@ -230,9 +229,9 @@ class _StudentSessionTimeSelection
       // No need to set loading state - handled by ViewModel
       // Handle error if needed - but don't use print in production
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Error loading time slots')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error loading time slots')),
+        );
       }
     }
   }
@@ -250,7 +249,11 @@ class _StudentSessionTimeSelection
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: ArkadColors.lightRed,
+            ),
             const SizedBox(height: 16),
             Text(
               'Failed to load timeslots',
@@ -292,10 +295,9 @@ class _StudentSessionTimeSelection
       final companyId = int.parse(widget.id);
 
       // Check if user already has a booking for this company
-      final currentBookedSlot =
-          viewModel.timeslots
-              .where((slot) => slot.status.isBookedByCurrentUser)
-              .firstOrNull;
+      final currentBookedSlot = viewModel.timeslots
+          .where((slot) => slot.status.isBookedByCurrentUser)
+          .firstOrNull;
 
       final selectedSlot = _getSelectedTimeslot(viewModel.timeslots);
 
@@ -546,14 +548,13 @@ class _StudentSessionTimeSelection
               ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         visualDensity: VisualDensity.compact,
-        onTap:
-            (isAvailable || isBookedByUser)
-                ? () {
-                  setState(() {
-                    _selectedTimeslotId = slot.id;
-                  });
-                }
-                : null,
+        onTap: (isAvailable || isBookedByUser)
+            ? () {
+                setState(() {
+                  _selectedTimeslotId = slot.id;
+                });
+              }
+            : null,
         enabled: (isAvailable || isBookedByUser),
       ),
     );
@@ -570,18 +571,18 @@ class _StudentSessionTimeSelection
   Widget _buildActionButton(StudentSessionViewModel viewModel) {
     final timeslots = viewModel.timeslots;
     final selectedSlot = _getSelectedTimeslot(timeslots);
-    final currentBookedSlot =
-        timeslots
-            .where((slot) => slot.status.isBookedByCurrentUser)
-            .firstOrNull;
+    final currentBookedSlot = timeslots
+        .where((slot) => slot.status.isBookedByCurrentUser)
+        .firstOrNull;
 
     // Determine button text
     String buttonText;
     if (!widget.isBookingMode) {
       buttonText = 'Confirm Selection';
     } else if (currentBookedSlot == null) {
-      buttonText =
-          selectedSlot != null ? 'Book Selected Timeslot' : 'Select a Timeslot';
+      buttonText = selectedSlot != null
+          ? 'Book Selected Timeslot'
+          : 'Select a Timeslot';
     } else {
       if (selectedSlot == null || selectedSlot.id == currentBookedSlot.id) {
         buttonText = 'Cancel Booking';
@@ -623,17 +624,16 @@ class _StudentSessionTimeSelection
         backgroundColor: buttonColor,
         foregroundColor: ArkadColors.white,
       ),
-      child:
-          viewModel.bookTimeslotCommand.isExecuting
-              ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: ArkadColors.white,
-                ),
-              )
-              : Text(buttonText),
+      child: viewModel.bookTimeslotCommand.isExecuting
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: ArkadColors.white,
+              ),
+            )
+          : Text(buttonText),
     );
   }
 
@@ -671,8 +671,8 @@ class _StudentSessionTimeSelection
                   ),
                   const SizedBox(height: 16),
                   Selector<StudentSessionViewModel, bool>(
-                    selector:
-                        (context, viewModel) => viewModel.isHandlingConflict,
+                    selector: (context, viewModel) =>
+                        viewModel.isHandlingConflict,
                     builder: (context, isHandling, child) {
                       if (isHandling) {
                         return const CircularProgressIndicator();

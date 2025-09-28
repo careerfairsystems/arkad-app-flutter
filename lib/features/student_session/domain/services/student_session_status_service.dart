@@ -158,8 +158,9 @@ class StudentSessionStatusService {
         final hasBooking = appWithBooking.hasBooking;
 
         return StudentSessionStatusInfo(
-          displayText:
-              hasBooking ? 'Booking confirmed' : 'Ready to book timeslot',
+          displayText: hasBooking
+              ? 'Booking confirmed'
+              : 'Ready to book timeslot',
           displayColor: ArkadColors.arkadGreen,
           badgeText: 'You were accepted!',
           badgeColor: ArkadColors.arkadGreen,

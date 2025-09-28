@@ -1,23 +1,23 @@
 /// Domain entity representing field configuration for Student Session applications.
-/// 
+///
 /// This entity encapsulates the configuration for individual form fields in the
 /// Student Session application form, controlling their visibility, requirement level,
 /// and validation behavior based on company-specific settings from the backend API.
-/// 
+///
 /// The field configuration determines:
 /// - Whether a field should be displayed (visible/hidden)
 /// - Whether a field is required for form submission
 /// - How validation should be applied to the field
-/// 
+///
 /// This supports dynamic form rendering based on `FieldModification` data from the API,
 /// allowing companies to customize which fields are shown to applicants.
 class FieldConfiguration {
   /// Creates a field configuration with validation.
-  /// 
+  ///
   /// Throws [ArgumentError] if [fieldName] is empty, as this would indicate
   /// invalid API data that could cause form rendering issues.
   const FieldConfiguration({required this.fieldName, required this.level})
-      : assert(fieldName.length > 0, 'Field name cannot be empty');
+    : assert(fieldName.length > 0, 'Field name cannot be empty');
 
   /// Name of the field (e.g., 'programme', 'linkedin', 'masterTitle')
   final String fieldName;

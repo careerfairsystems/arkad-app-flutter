@@ -48,8 +48,11 @@ class CompanyDetailViewModel extends ChangeNotifier {
   /// Handle session application request with authentication and timeline validation
   void handleSessionApplication(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    final studentSessionViewModel = Provider.of<StudentSessionViewModel>(context, listen: false);
-    
+    final studentSessionViewModel = Provider.of<StudentSessionViewModel>(
+      context,
+      listen: false,
+    );
+
     // Check authentication status
     if (!authViewModel.isAuthenticated) {
       _showSignInPrompt(context);
@@ -58,7 +61,7 @@ class CompanyDetailViewModel extends ChangeNotifier {
 
     // Check timeline status
     final timelineStatus = TimelineValidationService.getCurrentStatus();
-    
+
     if (!timelineStatus.canApply) {
       _showTimelineInfo(context, timelineStatus);
       return;
@@ -73,14 +76,18 @@ class CompanyDetailViewModel extends ChangeNotifier {
     }
 
     // Load student session data for this company and navigate
-    _loadStudentSessionAndNavigate(context, currentCompany.id, studentSessionViewModel);
+    _loadStudentSessionAndNavigate(
+      context,
+      currentCompany.id,
+      studentSessionViewModel,
+    );
   }
 
   /// Show authentication prompt for unauthenticated users
   void _showSignInPrompt(BuildContext context) {
     // Capture the original context before showing dialog
     final originalContext = context;
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -150,12 +157,12 @@ class CompanyDetailViewModel extends ChangeNotifier {
     try {
       // Load student sessions to get the specific session for this company
       await studentSessionViewModel.loadStudentSessions();
-      
+
       // Find the session for this company
       final session = studentSessionViewModel.studentSessions
           .where((s) => s.companyId == companyId)
           .firstOrNull;
-      
+
       if (session == null) {
         _message = 'No student session found for this company.';
         notifyListeners();
@@ -170,7 +177,8 @@ class CompanyDetailViewModel extends ChangeNotifier {
         );
       }
     } catch (e) {
-      _message = 'Failed to load student session information. Please try again.';
+      _message =
+          'Failed to load student session information. Please try again.';
       notifyListeners();
     }
   }

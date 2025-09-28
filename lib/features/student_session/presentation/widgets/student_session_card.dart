@@ -48,17 +48,19 @@ class StudentSessionCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: actionInfo.action != ActionType.none ? () {
-          switch (actionInfo.action) {
-            case ActionType.apply:
-              onApply?.call();
-            case ActionType.bookTimeslot:
-            case ActionType.manageBooking:
-              onViewTimeslots?.call();
-            case ActionType.none:
-              break;
-          }
-        } : null,
+        onTap: actionInfo.action != ActionType.none
+            ? () {
+                switch (actionInfo.action) {
+                  case ActionType.apply:
+                    onApply?.call();
+                  case ActionType.bookTimeslot:
+                  case ActionType.manageBooking:
+                    onViewTimeslots?.call();
+                  case ActionType.none:
+                    break;
+                }
+              }
+            : null,
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -223,10 +225,9 @@ class StudentSessionCard extends StatelessWidget {
             icon: Icon(actionInfo.icon, size: 18),
             label: Text(actionInfo.text),
             style: FilledButton.styleFrom(
-              backgroundColor:
-                  actionInfo.isEnabled
-                      ? actionInfo.color
-                      : ArkadColors.lightGray,
+              backgroundColor: actionInfo.isEnabled
+                  ? actionInfo.color
+                  : ArkadColors.lightGray,
               foregroundColor: ArkadColors.white,
             ),
           ),

@@ -1,26 +1,26 @@
 import '../entities/field_configuration.dart';
 
 /// Service for managing dynamic form configuration in Student Session applications.
-/// 
+///
 /// This service handles the business logic for determining how form fields should
 /// behave based on `FieldConfiguration` data received from the backend API. It provides
 /// methods to:
-/// 
+///
 /// - Determine field visibility (shown/hidden)
 /// - Check field requirement levels (required/optional)
 /// - Generate appropriate validators for form fields
 /// - Organize fields into required and optional sections
 /// - Validate complete form submission
-/// 
+///
 /// The service supports dynamic form rendering where companies can customize
 /// which fields are shown to Student Session applicants through backend configuration.
-/// 
+///
 /// Example usage:
 /// ```dart
 /// final formConfig = StudentSessionFormConfigService(
 ///   fieldConfigurations: session.fieldConfigurations,
 /// );
-/// 
+///
 /// if (formConfig.shouldShowField('programme')) {
 ///   // Show programme field
 ///   final validator = formConfig.getDropdownValidator('programme');
@@ -28,23 +28,23 @@ import '../entities/field_configuration.dart';
 /// ```
 class StudentSessionFormConfigService {
   /// Creates a form configuration service with the provided field configurations.
-  /// 
+  ///
   /// Optimizes field lookup by creating an internal map for O(1) access.
-  /// 
+  ///
   /// Throws [ArgumentError] if [fieldConfigurations] contains duplicate field names,
   /// as this would indicate malformed API data that could cause unpredictable behavior.
   StudentSessionFormConfigService({required this.fieldConfigurations})
-      : _fieldConfigMap = _createFieldMap(fieldConfigurations);
+    : _fieldConfigMap = _createFieldMap(fieldConfigurations);
 
   /// Creates and validates the field configuration map.
-  /// 
+  ///
   /// Ensures no duplicate field names exist in the configuration,
   /// which could cause unpredictable form behavior.
   static Map<String, FieldConfiguration> _createFieldMap(
     List<FieldConfiguration> configs,
   ) {
     final map = <String, FieldConfiguration>{};
-    
+
     for (final config in configs) {
       if (map.containsKey(config.fieldName)) {
         throw ArgumentError(
@@ -54,18 +54,18 @@ class StudentSessionFormConfigService {
       }
       map[config.fieldName] = config;
     }
-    
+
     return map;
   }
 
   /// List of field configurations from the API
   final List<FieldConfiguration> fieldConfigurations;
-  
+
   /// Internal map for O(1) field configuration lookup
   final Map<String, FieldConfiguration> _fieldConfigMap;
 
   /// Get field configuration for a specific field name.
-  /// 
+  ///
   /// Uses optimized O(1) map lookup instead of linear search.
   /// Returns null if no configuration exists for the given field name.
   FieldConfiguration? getFieldConfiguration(String fieldName) {

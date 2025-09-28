@@ -151,22 +151,24 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: ArkadColors.arkadTurkos, width: 2),
+            borderSide: const BorderSide(
+              color: ArkadColors.arkadTurkos,
+              width: 2,
+            ),
           ),
           filled: true,
           fillColor: Theme.of(
             context,
           ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
-          suffixIcon:
-              _searchController.text.isNotEmpty
-                  ? IconButton(
-                    icon: const Icon(Icons.clear_rounded),
-                    onPressed: () {
-                      _searchController.clear();
-                      viewModel.clearSearch();
-                    },
-                  )
-                  : null,
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded),
+                  onPressed: () {
+                    _searchController.clear();
+                    viewModel.clearSearch();
+                  },
+                )
+              : null,
         ),
         onChanged: viewModel.searchStudentSessions,
       ),
@@ -250,7 +252,11 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: ArkadColors.lightRed,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Failed to load student sessions',
@@ -330,13 +336,12 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
         itemCount: sessions.length,
         itemBuilder: (context, index) {
           final session = sessions[index];
-          final applicationWithBookingState =
-              applicationsWithBookingState
-                  .where(
-                    (appWithState) =>
-                        appWithState.application.companyId == session.companyId,
-                  )
-                  .firstOrNull;
+          final applicationWithBookingState = applicationsWithBookingState
+              .where(
+                (appWithState) =>
+                    appWithState.application.companyId == session.companyId,
+              )
+              .firstOrNull;
 
           return StudentSessionCard(
             session: session,
@@ -382,68 +387,63 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
   void _showSignInPrompt(StudentSession session) {
     // Capture the original context before showing dialog
     final originalContext = context;
-    
+
     showDialog(
       context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('Sign In Required'),
-            content: Text(
-              'You need to sign in to apply for ${session.companyName}\'s student session.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => dialogContext.pop(),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  dialogContext.pop();
-                  // Navigate to login tab (branch index 5) using original context
-                  StatefulNavigationShell.of(originalContext).goBranch(5);
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: ArkadColors.arkadTurkos,
-                ),
-                child: const Text('Sign In'),
-              ),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sign In Required'),
+        content: Text(
+          'You need to sign in to apply for ${session.companyName}\'s student session.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => dialogContext.pop(),
+            child: const Text('Cancel'),
           ),
+          FilledButton(
+            onPressed: () {
+              dialogContext.pop();
+              // Navigate to login tab (branch index 5) using original context
+              StatefulNavigationShell.of(originalContext).goBranch(5);
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: ArkadColors.arkadTurkos,
+            ),
+            child: const Text('Sign In'),
+          ),
+        ],
+      ),
     );
   }
 
   void _showTimelineInfo(TimelineStatus timelineStatus) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Student Session Information'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(timelineStatus.reason),
-                const SizedBox(height: 16),
-                if (timelineStatus.timelineInfo.isNotEmpty) ...[
-                  const Text(
-                    'Timeline:',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    timelineStatus.timelineInfo,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => context.pop(),
-                child: const Text('OK'),
+      builder: (context) => AlertDialog(
+        title: const Text('Student Session Information'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(timelineStatus.reason),
+            const SizedBox(height: 16),
+            if (timelineStatus.timelineInfo.isNotEmpty) ...[
+              const Text(
+                'Timeline:',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                timelineStatus.timelineInfo,
+                style: const TextStyle(fontSize: 14),
               ),
             ],
-          ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => context.pop(), child: const Text('OK')),
+        ],
+      ),
     );
   }
 }

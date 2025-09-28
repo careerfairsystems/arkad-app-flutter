@@ -601,7 +601,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
 
                   return ArkadButton(
                     text: 'Apply for Session',
-                    onPressed: () => viewModel.handleSessionApplication(context),
+                    onPressed: () =>
+                        viewModel.handleSessionApplication(context),
                     icon: Icons.schedule_rounded,
                   );
                 },

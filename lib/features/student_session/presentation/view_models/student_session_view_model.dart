@@ -103,7 +103,6 @@ class StudentSessionViewModel extends ChangeNotifier {
     return sessions;
   }
 
-
   List<StudentSessionApplicationWithBookingState>
   get myApplicationsWithBookingState =>
       _getMyApplicationsWithBookingStateCommand.result ?? [];
@@ -138,7 +137,6 @@ class StudentSessionViewModel extends ChangeNotifier {
       (_getMyApplicationsWithBookingStateCommand.isExecuting &&
           myApplicationsWithBookingState.isNotEmpty) ||
       (_getTimeslotsCommand.isExecuting && timeslots.isNotEmpty);
-
 
   bool get hasError =>
       _getStudentSessionsCommand.hasError ||

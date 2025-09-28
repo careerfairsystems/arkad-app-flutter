@@ -100,11 +100,8 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
 
     return AsyncStateBuilder<List<StudentSessionApplicationWithBookingState>>(
       command: command,
-      builder: (context, applications) => _buildApplicationsList(
-        context, 
-        viewModel, 
-        groupedApplications,
-      ),
+      builder: (context, applications) =>
+          _buildApplicationsList(context, viewModel, groupedApplications),
       loadingBuilder: (context) => const CustomScrollView(
         physics: AlwaysScrollableScrollPhysics(),
         slivers: [
@@ -130,7 +127,11 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 64, color: ArkadColors.lightRed),
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: ArkadColors.lightRed,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Failed to load applications',
@@ -167,8 +168,9 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     Map<ApplicationStatus, List<StudentSessionApplicationWithBookingState>>
     groupedApplications,
   ) {
-    final totalApplications =
-        groupedApplications.values.expand((apps) => apps).length;
+    final totalApplications = groupedApplications.values
+        .expand((apps) => apps)
+        .length;
 
     return RefreshIndicator(
       onRefresh: () => viewModel.loadMyApplicationsWithBookingState(),
@@ -261,24 +263,22 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
             ),
             border: Border.all(color: color.withValues(alpha: 0.2)),
           ),
-          child:
-              applications.isEmpty
-                  ? _buildEmptySection(context, title.split(' ')[0])
-                  : Column(
-                    children:
-                        applications
-                            .map(
-                              (app) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: _buildUnifiedApplicationCard(
-                                  context,
-                                  app,
-                                  showActions: showActions,
-                                ),
-                              ),
-                            )
-                            .toList(),
-                  ),
+          child: applications.isEmpty
+              ? _buildEmptySection(context, title.split(' ')[0])
+              : Column(
+                  children: applications
+                      .map(
+                        (app) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildUnifiedApplicationCard(
+                            context,
+                            app,
+                            showActions: showActions,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
         ),
       ],
     );
@@ -657,8 +657,9 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
 
     // Booking is open - show single manage booking button
     String buttonText = hasBooking ? 'Manage Booking' : 'Book Timeslot';
-    IconData buttonIcon =
-        hasBooking ? Icons.edit_calendar_rounded : Icons.schedule_rounded;
+    IconData buttonIcon = hasBooking
+        ? Icons.edit_calendar_rounded
+        : Icons.schedule_rounded;
 
     return Row(
       children: [

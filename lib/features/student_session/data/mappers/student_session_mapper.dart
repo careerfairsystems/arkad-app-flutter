@@ -66,14 +66,13 @@ class StudentSessionMapper {
   /// Convert StudentSessionApplicationParams to API StudentSessionApplicationSchema
   api.StudentSessionApplicationSchema toApiApplicationSchema(dynamic params) {
     return api.StudentSessionApplicationSchema(
-      (b) =>
-          b
-            ..companyId = params.companyId
-            ..motivationText = params.motivationText
-            ..programme = params.programme
-            ..linkedin = params.linkedin
-            ..masterTitle = params.masterTitle
-            ..studyYear = params.studyYear,
+      (b) => b
+        ..companyId = params.companyId
+        ..motivationText = params.motivationText
+        ..programme = params.programme
+        ..linkedin = params.linkedin
+        ..masterTitle = params.masterTitle
+        ..studyYear = params.studyYear,
     );
   }
 
@@ -92,7 +91,6 @@ class StudentSessionMapper {
       status: mappedStatus,
     );
   }
-
 
   /// Helper method to map API user status to domain StudentSessionStatus
   StudentSessionStatus? _mapUserStatusToStudentSessionStatus(

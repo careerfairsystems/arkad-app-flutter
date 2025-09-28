@@ -122,7 +122,9 @@ class AppRouter {
                 builder: (context, state) {
                   final companyId = state
                       .pathParameters["companyId"]!; // Get "id" param from URL
-                  return StudentSessionApplicationFormScreen(companyId: companyId);
+                  return StudentSessionApplicationFormScreen(
+                    companyId: companyId,
+                  );
                 },
               ),
               GoRoute(
@@ -139,7 +141,8 @@ class AppRouter {
                   final companyId = state.pathParameters["companyId"]!;
                   return StudentSessionTimeSelectionScreen(
                     id: companyId,
-                    isBookingMode: true, // Flag to indicate this is for booking, not applying
+                    isBookingMode:
+                        true, // Flag to indicate this is for booking, not applying
                   );
                 },
               ),
