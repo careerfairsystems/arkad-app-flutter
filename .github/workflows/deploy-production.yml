@@ -118,8 +118,6 @@ jobs:
       - name: Build web app for production
         run: |
           flutter build web \
-            --release \
-            --web-renderer html \
             --base-href "/"
 
       - name: Add CNAME file for custom domain
