@@ -47,6 +47,8 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
     final eventViewModel = Provider.of<EventViewModel>(context, listen: false);
     final ticket = await eventViewModel.getEventTicket(widget.eventId);
 
+    if (!mounted) return;
+
     setState(() {
       _ticketUuid = ticket;
       _isLoadingTicket = false;
