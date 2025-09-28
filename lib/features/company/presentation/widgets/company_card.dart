@@ -99,7 +99,7 @@ class CompanyCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
       ),
-      child: Icon(
+      child: const Icon(
         Icons.business_rounded,
         size: 28,
         color: ArkadColors.arkadTurkos,
@@ -155,7 +155,11 @@ class CompanyCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.people_rounded, size: 16, color: ArkadColors.arkadGreen),
+          const Icon(
+            Icons.people_rounded,
+            size: 16,
+            color: ArkadColors.arkadGreen,
+          ),
           const SizedBox(width: 4),
           Text(
             'Student sessions available',

@@ -1,5 +1,7 @@
 import '../../../../shared/domain/result.dart';
 import '../entities/event.dart';
+import '../entities/event_attendee.dart';
+import '../entities/ticket_verification_result.dart';
 
 /// Repository interface for event operations
 abstract class EventRepository {
@@ -21,6 +23,18 @@ abstract class EventRepository {
   /// Unregister from an event
   Future<Result<void>> unregisterFromEvent(int eventId);
 
+  /// Get booked events for the current user (filters events with booked or ticketUsed status)
+  Future<Result<List<Event>>> getBookedEvents();
+
+  /// Get event ticket (Should be rendered as QR code)
+  Future<Result<String>> getEventTicket(int eventId);
+
   /// Refresh cached event data
   Future<Result<void>> refreshEvents();
+
+  /// Get attendees for an event (staff only)
+  Future<Result<List<EventAttendee>>> getEventAttendees(int eventId);
+
+  /// Use/verify a ticket (staff only)
+  Future<Result<TicketVerificationResult>> useTicket(String token, int eventId);
 }

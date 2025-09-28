@@ -115,15 +115,14 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
     if (_searchQuery.isEmpty) {
       _filteredOptions = List.from(widget.options);
     } else {
-      _filteredOptions =
-          widget.options
-              .where(
-                (option) => widget
-                    .displayStringForOption(option)
-                    .toLowerCase()
-                    .contains(_searchQuery),
-              )
-              .toList();
+      _filteredOptions = widget.options
+          .where(
+            (option) => widget
+                .displayStringForOption(option)
+                .toLowerCase()
+                .contains(_searchQuery),
+          )
+          .toList();
     }
   }
 
@@ -208,8 +207,9 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
     return AnimatedCrossFade(
       firstChild: _buildDropdownContent(),
       secondChild: const SizedBox.shrink(),
-      crossFadeState:
-          _isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+      crossFadeState: _isExpanded
+          ? CrossFadeState.showFirst
+          : CrossFadeState.showSecond,
       duration: const Duration(milliseconds: 200),
       sizeCurve: Curves.easeInOut,
     );
@@ -240,16 +240,15 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
           contentPadding: const EdgeInsets.symmetric(),
           isDense: true,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          suffixIcon:
-              _searchQuery.isNotEmpty
-                  ? IconButton(
-                    icon: const Icon(Icons.clear, size: 20),
-                    onPressed: () {
-                      _searchController.clear();
-                      _updateSearch('');
-                    },
-                  )
-                  : null,
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear, size: 20),
+                  onPressed: () {
+                    _searchController.clear();
+                    _updateSearch('');
+                  },
+                )
+              : null,
         ),
         onChanged: _updateSearch,
       ),
@@ -328,12 +327,11 @@ class _FilterDropdownState<T> extends State<FilterDropdown<T>> {
           contentPadding: const EdgeInsets.symmetric(),
           controlAffinity: ListTileControlAffinity.leading,
           activeColor: Theme.of(context).colorScheme.primary,
-          tileColor:
-              isSelected
-                  ? Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer.withValues(alpha: .2)
-                  : null,
+          tileColor: isSelected
+              ? Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withValues(alpha: .2)
+              : null,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4.0),
           ),

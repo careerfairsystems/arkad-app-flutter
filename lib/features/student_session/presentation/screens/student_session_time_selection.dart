@@ -49,17 +49,16 @@ class _StudentSessionTimeSelection
       final slots = provider.availableTimeslots;
 
       // Convert Timeslot domain entities to TimeslotSchema for compatibility
-      final schemSlots =
-          slots
-              .map(
-                (slot) => TimeslotSchema(
-                  (b) =>
-                      b
-                        ..id = slot.id
-                        ..startTime = slot.startTime,
-                ),
-              )
-              .toList();
+      final schemSlots = slots
+          .map(
+            (slot) => TimeslotSchema(
+              (b) => b
+                ..id = slot.id
+                ..startTime = slot.startTime
+                ..duration = slot.endTime.difference(slot.startTime).inMinutes,
+            ),
+          )
+          .toList();
 
       setState(() {
         _availableSlots = schemSlots;
@@ -135,98 +134,98 @@ class _StudentSessionTimeSelection
 
     return Scaffold(
       appBar: AppBar(title: const Text('Select Time Slot')),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _availableSlots.isEmpty
-              ? const Center(
-                child: Text(
-                  'No available time slots',
-                  style: TextStyle(fontSize: 16),
-                ),
-              )
-              : Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: sortedWeekdays.length,
-                      itemBuilder: (context, dayIndex) {
-                        final weekday = sortedWeekdays[dayIndex];
-                        final daySlots = groupedSlots[weekday]!;
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                                horizontal: 8,
-                              ),
-                              child: Text(
-                                weekday,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                              ),
-                            ),
-                            ...daySlots.map((slot) {
-                              final isSelected = _selectedSlot == slot;
-
-                              return Card(
-                                margin: const EdgeInsets.only(
-                                  bottom: 8,
-                                  left: 8,
-                                  right: 8,
-                                ),
-                                color:
-                                    isSelected ? ArkadColors.lightGray : null,
-                                child: ListTile(
-                                  title: Text(_formatTimeRange(slot)),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  leading: Radio<TimeslotSchema>(
-                                    value: slot,
-                                    groupValue: _selectedSlot,
-                                    onChanged: (TimeslotSchema? value) {
-                                      if (value != null) {
-                                        _selectTimeSlot(value);
-                                      }
-                                    },
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 6,
-                                  ),
-                                  visualDensity: VisualDensity.compact,
-                                  onTap: () => _selectTimeSlot(slot),
-                                ),
-                              );
-                            }),
-                            const SizedBox(height: 8),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed:
-                            _selectedSlot != null ? _confirmSelection : null,
-                        child: const Text('Confirm Selection'),
-                      ),
-                    ),
-                  ),
-                ],
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _availableSlots.isEmpty
+          ? const Center(
+              child: Text(
+                'No available time slots',
+                style: TextStyle(fontSize: 16),
               ),
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: sortedWeekdays.length,
+                    itemBuilder: (context, dayIndex) {
+                      final weekday = sortedWeekdays[dayIndex];
+                      final daySlots = groupedSlots[weekday]!;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 8,
+                            ),
+                            child: Text(
+                              weekday,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                            ),
+                          ),
+                          ...daySlots.map((slot) {
+                            final isSelected = _selectedSlot == slot;
+
+                            return Card(
+                              margin: const EdgeInsets.only(
+                                bottom: 8,
+                                left: 8,
+                                right: 8,
+                              ),
+                              color: isSelected ? ArkadColors.lightGray : null,
+                              child: ListTile(
+                                title: Text(_formatTimeRange(slot)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                leading: Radio<TimeslotSchema>(
+                                  value: slot,
+                                  // ignore: deprecated_member_use
+                                  groupValue: _selectedSlot,
+                                  // ignore: deprecated_member_use
+                                  onChanged: (TimeslotSchema? value) {
+                                    if (value != null) {
+                                      _selectTimeSlot(value);
+                                    }
+                                  },
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 6,
+                                ),
+                                visualDensity: VisualDensity.compact,
+                                onTap: () => _selectTimeSlot(slot),
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 8),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _selectedSlot != null
+                          ? _confirmSelection
+                          : null,
+                      child: const Text('Confirm Selection'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

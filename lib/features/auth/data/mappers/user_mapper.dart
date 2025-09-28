@@ -12,7 +12,6 @@ class UserMapper {
       firstName: dto.firstName,
       lastName: dto.lastName,
       isStudent: dto.isStudent,
-      isActive: dto.isActive,
       isStaff: dto.isStaff,
       foodPreferences: dto.foodPreferences,
       programme: dto.programme,
@@ -27,22 +26,20 @@ class UserMapper {
   /// Convert User domain entity to ProfileSchema DTO
   static ProfileSchema toDto(User user) {
     return ProfileSchema(
-      (b) =>
-          b
-            ..id = user.id
-            ..email = user.email
-            ..firstName = user.firstName
-            ..lastName = user.lastName
-            ..isStudent = user.isStudent
-            ..isActive = user.isActive
-            ..isStaff = user.isStaff
-            ..foodPreferences = user.foodPreferences
-            ..programme = user.programme
-            ..studyYear = user.studyYear
-            ..masterTitle = user.masterTitle
-            ..linkedin = user.linkedin
-            ..profilePicture = user.profilePictureUrl
-            ..cv = user.cvUrl,
+      (b) => b
+        ..id = user.id
+        ..email = user.email
+        ..firstName = user.firstName
+        ..lastName = user.lastName
+        ..isStudent = user.isStudent
+        ..isStaff = user.isStaff
+        ..foodPreferences = user.foodPreferences
+        ..programme = user.programme
+        ..studyYear = user.studyYear
+        ..masterTitle = user.masterTitle
+        ..linkedin = user.linkedin
+        ..profilePicture = user.profilePictureUrl
+        ..cv = user.cvUrl,
     );
   }
 }

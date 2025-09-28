@@ -305,7 +305,8 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
                       vertical: 16,
                     ),
                   ),
-                  value: _selectedProgramme, // Directly use Programme? type
+                  initialValue:
+                      _selectedProgramme, // Directly use Programme? type
                   hint: const Text('Select your programme'),
                   validator: (value) {
                     if (value == null) {
@@ -316,16 +317,15 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
                   isExpanded: true,
                   icon: const Icon(Icons.arrow_drop_down),
                   menuMaxHeight: 350,
-                  items:
-                      availableProgrammes.map((program) {
-                        return DropdownMenuItem<Programme>(
-                          value: program.value,
-                          child: Text(
-                            program.label,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        );
-                      }).toList(),
+                  items: availableProgrammes.map((program) {
+                    return DropdownMenuItem<Programme>(
+                      value: program.value,
+                      child: Text(
+                        program.label,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
                   onChanged: (Programme? newValue) {
                     // Changed to Programme?
                     setState(() {
@@ -341,7 +341,7 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
                     labelText: 'Study Year *',
                     border: OutlineInputBorder(),
                   ),
-                  value: _studyYear, // Pre-filled by _loadUserData
+                  initialValue: _studyYear, // Pre-filled by _loadUserData
                   hint: const Text('Select your study year'),
                   validator: (value) {
                     if (value == null) {
@@ -349,13 +349,12 @@ class _StudentSessionFormScreenState extends State<StudentSessionFormScreen> {
                     }
                     return null;
                   },
-                  items:
-                      [1, 2, 3, 4, 5].map((year) {
-                        return DropdownMenuItem<int>(
-                          value: year,
-                          child: Text('Year $year'),
-                        );
-                      }).toList(),
+                  items: [1, 2, 3, 4, 5].map((year) {
+                    return DropdownMenuItem<int>(
+                      value: year,
+                      child: Text('Year $year'),
+                    );
+                  }).toList(),
                   onChanged: (int? newValue) {
                     setState(() {
                       _studyYear = newValue;

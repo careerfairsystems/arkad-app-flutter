@@ -33,10 +33,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final response = await _api.getAuthenticationApi().userModelsApiSignin(
         signinSchema: SigninSchema(
-          (b) =>
-              b
-                ..email = email
-                ..password = password,
+          (b) => b
+            ..email = email
+            ..password = password,
         ),
       );
 
@@ -51,9 +50,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
-          throw AuthException('Incorrect email or password');
+          throw const AuthException('Incorrect email or password');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException(
+          throw const ApiException(
             'Too many attempts. Please wait before trying again.',
           );
         }
@@ -81,11 +80,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 415) {
-          throw ValidationException(
+          throw const ValidationException(
             'An account with this email already exists',
           );
         } else if (e.response?.statusCode == 429) {
-          throw ApiException(
+          throw const ApiException(
             'Too many attempts. Please wait before trying again.',
           );
         }
@@ -121,9 +120,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 400) {
-          throw ValidationException('Invalid verification code');
+          throw const ValidationException('Invalid verification code');
         } else if (e.response?.statusCode == 429) {
-          throw ApiException(
+          throw const ApiException(
             'Too many attempts. Please wait before trying again.',
           );
         }
@@ -136,8 +135,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<ProfileSchema> getUserProfile() async {
     try {
-      final response =
-          await _api.getUserProfileApi().userModelsApiGetUserProfile();
+      final response = await _api
+          .getUserProfileApi()
+          .userModelsApiGetUserProfile();
 
       if (response.isSuccess && response.data != null) {
         return response.data!;
@@ -148,7 +148,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 401) {
-          throw AuthException('Authentication required');
+          throw const AuthException('Authentication required');
         }
         throw NetworkException('Network error: ${e.message}');
       }
@@ -172,9 +172,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await Sentry.captureException(e);
       if (e is DioException) {
         if (e.response?.statusCode == 404) {
-          throw ValidationException('No account found with this email address');
+          throw const ValidationException(
+            'No account found with this email address',
+          );
         } else if (e.response?.statusCode == 429) {
-          throw ApiException(
+          throw const ApiException(
             'Too many attempts. Please wait before trying again.',
           );
         }

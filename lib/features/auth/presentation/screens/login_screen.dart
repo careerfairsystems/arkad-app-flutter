@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -111,6 +112,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (mounted && authViewModel.signInCommand.isCompleted) {
+      // Complete autofill context to help password managers save credentials
+      TextInput.finishAutofillContext();
       context.go('/profile');
     }
   }
@@ -119,86 +122,90 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                AuthFormWidgets.buildLogoHeader(),
-                AuthFormWidgets.buildHeading(
-                  'Welcome Back',
-                  'Sign in to continue',
-                ),
-                AuthFormWidgets.buildEmailField(
-                  _emailController,
-                  isValid:
-                      _emailController.text.isNotEmpty ? _isEmailValid : null,
-                  onChanged: (value) {
-                    if (_emailErrorText != null) {
-                      setState(() => _emailErrorText = null);
-                    }
-                  },
-                  errorText: _emailErrorText,
-                  validator: ValidationService.validateEmail,
-                ),
-                const SizedBox(height: 20),
-
-                AuthFormWidgets.buildPasswordField(
-                  _passwordController,
-                  obscureText: _obscurePassword,
-                  onToggleVisibility: _togglePasswordVisibility,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _handleLogin(),
-                  onChanged: (value) {
-                    if (_passwordErrorText != null) {
-                      setState(() => _passwordErrorText = null);
-                    }
-                  },
-                  errorText: _passwordErrorText,
-                  validator: ValidationService.validateLoginPassword,
-                ),
-
-                Consumer<AuthViewModel>(
-                  builder: (context, authViewModel, child) {
-                    return AuthFormWidgets.buildErrorMessage(
-                      authViewModel.signInCommand.error?.userMessage,
-                    );
-                  },
-                ),
-
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => context.push('/auth/reset-password'),
-                    child: const Text("Forgot password?"),
+        child: AutofillGroup(
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AuthFormWidgets.buildLogoHeader(),
+                  AuthFormWidgets.buildHeading(
+                    'Welcome Back',
+                    'Sign in to continue',
                   ),
-                ),
+                  AuthFormWidgets.buildEmailField(
+                    _emailController,
+                    isValid: _emailController.text.isNotEmpty
+                        ? _isEmailValid
+                        : null,
+                    onChanged: (value) {
+                      if (_emailErrorText != null) {
+                        setState(() => _emailErrorText = null);
+                      }
+                    },
+                    errorText: _emailErrorText,
+                    validator: ValidationService.validateEmail,
+                    autofillHints: const [AutofillHints.email],
+                  ),
+                  const SizedBox(height: 20),
 
-                const SizedBox(height: 30),
+                  AuthFormWidgets.buildPasswordField(
+                    _passwordController,
+                    obscureText: _obscurePassword,
+                    onToggleVisibility: _togglePasswordVisibility,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _handleLogin(),
+                    onChanged: (value) {
+                      if (_passwordErrorText != null) {
+                        setState(() => _passwordErrorText = null);
+                      }
+                    },
+                    errorText: _passwordErrorText,
+                    validator: ValidationService.validateLoginPassword,
+                    autofillHints: const [AutofillHints.password],
+                  ),
 
-                Consumer<AuthViewModel>(
-                  builder: (context, authViewModel, child) {
-                    return AuthFormWidgets.buildSubmitButton(
-                      text: 'Sign In',
-                      onPressed:
-                          authViewModel.signInCommand.isExecuting
-                              ? null
-                              : _handleLogin,
-                      isLoading: authViewModel.signInCommand.isExecuting,
-                    );
-                  },
-                ),
+                  Consumer<AuthViewModel>(
+                    builder: (context, authViewModel, child) {
+                      return AuthFormWidgets.buildErrorMessage(
+                        authViewModel.signInCommand.error?.userMessage,
+                      );
+                    },
+                  ),
 
-                const SizedBox(height: 24),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => context.push('/auth/reset-password'),
+                      child: const Text("Forgot password?"),
+                    ),
+                  ),
 
-                AuthFormWidgets.buildAuthLinkRow(
-                  question: "Don't have an account?",
-                  linkText: "Sign up",
-                  onPressed: () => context.push('/auth/signup'),
-                ),
-              ],
+                  const SizedBox(height: 30),
+
+                  Consumer<AuthViewModel>(
+                    builder: (context, authViewModel, child) {
+                      return AuthFormWidgets.buildSubmitButton(
+                        text: 'Sign In',
+                        onPressed: authViewModel.signInCommand.isExecuting
+                            ? null
+                            : _handleLogin,
+                        isLoading: authViewModel.signInCommand.isExecuting,
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  AuthFormWidgets.buildAuthLinkRow(
+                    question: "Don't have an account?",
+                    linkText: "Sign up",
+                    onPressed: () => context.push('/auth/signup'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

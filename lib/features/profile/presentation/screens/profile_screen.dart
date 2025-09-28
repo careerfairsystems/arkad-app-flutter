@@ -1,3 +1,4 @@
+import 'package:arkad/features/event/presentation/screens/booked_events_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -61,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error, color: ArkadColors.lightRed, size: 48),
+            const Icon(Icons.error, color: ArkadColors.lightRed, size: 48),
             const SizedBox(height: 16),
             Text(error.userMessage, textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -109,10 +110,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ProfileViewModel>(
-      builder: (context, profileViewModel, _) {
+    return Consumer2<ProfileViewModel, AuthViewModel>(
+      builder: (context, profileViewModel, authViewModel, _) {
+        const tabCount = 3;
+
         return DefaultTabController(
-          length: 3,
+          length: tabCount,
           child: Scaffold(
             appBar: AppBar(
               title: const Text("Profile"),
@@ -146,16 +149,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: _buildProfileContent(profileViewModel),
                   ),
                 ),
-                // Events Tab (Placeholder)
-                Center(
-                  child: Text(
-                    'Coming Soon',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: ArkadColors.arkadNavy,
-                    ),
-                  ),
-                ),
-                // Student Sessions Tab (Placeholder)
+                // Events Tab
+                const Center(child: BookedEventsScreen()),
+                // Student Sessions Tab
                 Center(
                   child: Text(
                     'Coming Soon',

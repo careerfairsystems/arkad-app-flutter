@@ -132,8 +132,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4.0, bottom: 8.0),
                       child: Text(
                         'Verification Code',
                         style: TextStyle(
@@ -168,8 +168,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 18,
-                          letterSpacing:
-                              _codeController.text.isEmpty ? 0.5 : 10,
+                          letterSpacing: _codeController.text.isEmpty
+                              ? 0.5
+                              : 10,
                           fontWeight: FontWeight.bold,
                         ),
                         onChanged: (_) => setState(() {}),
@@ -198,8 +199,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     return ElevatedButton(
                       onPressed:
                           authViewModel.isCompletingSignup || !_isCodeComplete
-                              ? null
-                              : _verifyCode,
+                          ? null
+                          : _verifyCode,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ArkadColors.arkadTurkos,
                         foregroundColor: Colors.white,
@@ -210,25 +211,24 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         elevation: 0,
                         disabledBackgroundColor: Colors.grey.shade300,
                       ),
-                      child:
-                          authViewModel.isCompletingSignup
-                              ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                              : const Text(
-                                'Verify',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                      child: authViewModel.isCompletingSignup
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
                                 ),
                               ),
+                            )
+                          : const Text(
+                              'Verify',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     );
                   },
                 ),
@@ -249,19 +249,15 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
                     return TextButton(
-                      onPressed:
-                          authViewModel.isResendingVerification
-                              ? null
-                              : _resendCode,
+                      onPressed: authViewModel.isResendingVerification
+                          ? null
+                          : _resendCode,
                       style: TextButton.styleFrom(
                         foregroundColor: ArkadColors.arkadTurkos,
                       ),
-                      child:
-                          authViewModel.isResendingVerification
-                              ? const Text('Sending...')
-                              : const Text(
-                                "Didn't receive the code? Send again",
-                              ),
+                      child: authViewModel.isResendingVerification
+                          ? const Text('Sending...')
+                          : const Text("Didn't receive the code? Send again"),
                     );
                   },
                 ),

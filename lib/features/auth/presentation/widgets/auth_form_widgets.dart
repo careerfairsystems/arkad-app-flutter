@@ -37,6 +37,7 @@ class AuthFormWidgets {
     void Function(String)? onChanged,
     String? errorText,
     String? Function(String?)? validator,
+    Iterable<String>? autofillHints,
   }) {
     return TextFormField(
       controller: controller,
@@ -50,54 +51,53 @@ class AuthFormWidgets {
         isDense: true,
         alignLabelWithHint: true,
         prefixIconConstraints: const BoxConstraints(minWidth: 50),
-        prefixIcon: Align(
+        prefixIcon: const Align(
           widthFactor: 1.0,
           heightFactor: 1.0,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12.0),
+            padding: EdgeInsets.only(left: 12.0),
             child: Icon(Icons.email, color: ArkadColors.arkadTurkos, size: 24),
           ),
         ),
         suffixIconConstraints: const BoxConstraints(minWidth: 40),
-        suffixIcon:
-            controller.text.isNotEmpty && isValid != null
-                ? Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: Icon(
-                    isValid ? Icons.check_circle : Icons.error,
-                    color:
-                        isValid ? ArkadColors.arkadGreen : ArkadColors.lightRed,
-                    size: 24,
-                  ),
-                )
-                : null,
+        suffixIcon: controller.text.isNotEmpty && isValid != null
+            ? Padding(
+                padding: const EdgeInsets.only(right: 12.0),
+                child: Icon(
+                  isValid ? Icons.check_circle : Icons.error,
+                  color: isValid
+                      ? ArkadColors.arkadGreen
+                      : ArkadColors.lightRed,
+                  size: 24,
+                ),
+              )
+            : null,
         errorText: errorText,
-        errorStyle: TextStyle(color: ArkadColors.lightRed, fontSize: 12),
-        errorBorder:
-            errorText != null
-                ? OutlineInputBorder(
-                  borderSide: BorderSide(color: ArkadColors.lightRed),
-                  borderRadius: BorderRadius.circular(8),
-                )
-                : null,
-        focusedErrorBorder:
-            errorText != null
-                ? OutlineInputBorder(
-                  borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
-                  borderRadius: BorderRadius.circular(8),
-                )
-                : null,
+        errorStyle: const TextStyle(color: ArkadColors.lightRed, fontSize: 12),
+        errorBorder: errorText != null
+            ? const OutlineInputBorder(
+                borderSide: BorderSide(color: ArkadColors.lightRed),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              )
+            : null,
+        focusedErrorBorder: errorText != null
+            ? const OutlineInputBorder(
+                borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              )
+            : null,
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(8),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: ArkadColors.arkadTurkos),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.all(Radius.circular(8)),
         ),
       ),
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
+      autofillHints: autofillHints,
       onChanged: onChanged,
       validator: validator,
     );
@@ -115,6 +115,7 @@ class AuthFormWidgets {
     void Function(String)? onFieldSubmitted,
     String? errorText,
     String? Function(String?)? validator,
+    Iterable<String>? autofillHints,
   }) {
     return TextFormField(
       controller: controller,
@@ -128,68 +129,67 @@ class AuthFormWidgets {
         isDense: true,
         alignLabelWithHint: true,
         prefixIconConstraints: const BoxConstraints(minWidth: 50),
-        prefixIcon: Align(
+        prefixIcon: const Align(
           widthFactor: 1.0,
           heightFactor: 1.0,
           child: Padding(
-            padding: const EdgeInsets.only(left: 12.0),
+            padding: EdgeInsets.only(left: 12.0),
             child: Icon(Icons.lock, color: ArkadColors.arkadTurkos, size: 24),
           ),
         ),
         suffixIconConstraints: const BoxConstraints(minWidth: 40),
-        suffixIcon:
-            controller.text.isNotEmpty && isValid != null
-                ? Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: Icon(
-                    isValid ? Icons.check_circle : Icons.error,
-                    color:
-                        isValid ? ArkadColors.arkadGreen : ArkadColors.lightRed,
+        suffixIcon: controller.text.isNotEmpty && isValid != null
+            ? Padding(
+                padding: const EdgeInsets.only(right: 12.0),
+                child: Icon(
+                  isValid ? Icons.check_circle : Icons.error,
+                  color: isValid
+                      ? ArkadColors.arkadGreen
+                      : ArkadColors.lightRed,
+                  size: 24,
+                ),
+              )
+            : onToggleVisibility != null
+            ? Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: IconButton(
+                  icon: Icon(
+                    obscureText ? Icons.visibility_off : Icons.visibility,
+                    color: ArkadColors.arkadTurkos,
                     size: 24,
                   ),
-                )
-                : onToggleVisibility != null
-                ? Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: IconButton(
-                    icon: Icon(
-                      obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: ArkadColors.arkadTurkos,
-                      size: 24,
-                    ),
-                    onPressed: onToggleVisibility,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                )
-                : null,
+                  onPressed: onToggleVisibility,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              )
+            : null,
         errorText: errorText,
-        errorStyle: TextStyle(color: ArkadColors.lightRed, fontSize: 12),
-        errorBorder:
-            errorText != null
-                ? OutlineInputBorder(
-                  borderSide: BorderSide(color: ArkadColors.lightRed),
-                  borderRadius: BorderRadius.circular(8),
-                )
-                : null,
-        focusedErrorBorder:
-            errorText != null
-                ? OutlineInputBorder(
-                  borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
-                  borderRadius: BorderRadius.circular(8),
-                )
-                : null,
+        errorStyle: const TextStyle(color: ArkadColors.lightRed, fontSize: 12),
+        errorBorder: errorText != null
+            ? const OutlineInputBorder(
+                borderSide: BorderSide(color: ArkadColors.lightRed),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              )
+            : null,
+        focusedErrorBorder: errorText != null
+            ? const OutlineInputBorder(
+                borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              )
+            : null,
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(8),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: ArkadColors.arkadTurkos),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.all(Radius.circular(8)),
         ),
       ),
       obscureText: obscureText,
       textInputAction: textInputAction,
+      autofillHints: autofillHints,
       onChanged: onChanged,
       onFieldSubmitted: onFieldSubmitted,
       validator: validator,
@@ -232,23 +232,19 @@ class AuthFormWidgets {
         minimumSize: const Size(double.infinity, 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      child:
-          isLoading
-              ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(ArkadColors.white),
-                ),
-              )
-              : Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+      child: isLoading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(ArkadColors.white),
               ),
+            )
+          : Text(
+              text,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
     );
   }
 
@@ -279,7 +275,7 @@ class AuthFormWidgets {
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Text(
         errorMessage,
-        style: TextStyle(color: ArkadColors.lightRed),
+        style: const TextStyle(color: ArkadColors.lightRed),
         textAlign: TextAlign.center,
       ),
     );
@@ -292,7 +288,7 @@ class AuthFormWidgets {
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Text(
         errorMessage,
-        style: TextStyle(color: ArkadColors.arkadGreen, fontSize: 18),
+        style: const TextStyle(color: ArkadColors.arkadGreen, fontSize: 18),
         textAlign: TextAlign.center,
       ),
     );
@@ -331,7 +327,7 @@ class AuthFormWidgets {
             padding: const EdgeInsets.only(left: 36.0),
             child: Text(
               errorText,
-              style: TextStyle(color: ArkadColors.lightRed, fontSize: 12),
+              style: const TextStyle(color: ArkadColors.lightRed, fontSize: 12),
             ),
           ),
       ],
