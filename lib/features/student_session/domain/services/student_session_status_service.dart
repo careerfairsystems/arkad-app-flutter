@@ -17,7 +17,6 @@ class StudentSessionStatusService {
     // Check if session is available first
     if (!sessionWithApp.session.isAvailable) {
       return const StudentSessionStatusInfo(
-        displayText: 'Not available',
         badgeText: null,
         canApply: false,
         canBook: false,
@@ -30,7 +29,6 @@ class StudentSessionStatusService {
 
     if (applicationStatus == null) {
       return const StudentSessionStatusInfo(
-        displayText: 'Available',
         badgeText: null,
         canApply: true,
         canBook: false,
@@ -42,7 +40,6 @@ class StudentSessionStatusService {
     switch (applicationStatus) {
       case ApplicationStatus.pending:
         return const StudentSessionStatusInfo(
-          displayText: 'Under Review',
           badgeText: 'Pending',
           canApply: false,
           canBook: false,
@@ -53,7 +50,6 @@ class StudentSessionStatusService {
         final hasBooking = sessionWithApp.hasBooking;
 
         return StudentSessionStatusInfo(
-          displayText: 'You were accepted!',
           badgeText: 'Accepted!',
           canApply: false,
           canBook: !hasBooking, // Can book if no existing booking
@@ -62,7 +58,6 @@ class StudentSessionStatusService {
 
       case ApplicationStatus.rejected:
         return const StudentSessionStatusInfo(
-          displayText: 'Not Selected',
           badgeText: 'Rejected',
           canApply: false,
           canBook: false,
@@ -118,7 +113,6 @@ class StudentSessionStatusService {
     switch (status) {
       case ApplicationStatus.pending:
         return const StudentSessionStatusInfo(
-          displayText: 'Under Review',
           badgeText: 'Under Review',
           canApply: false,
           canBook: false,
@@ -129,9 +123,6 @@ class StudentSessionStatusService {
         final hasBooking = appWithBooking.hasBooking;
 
         return StudentSessionStatusInfo(
-          displayText: hasBooking
-              ? 'Booking confirmed'
-              : 'Ready to book timeslot',
           badgeText: 'You were accepted!',
           canApply: false,
           canBook: !hasBooking, 
@@ -140,7 +131,6 @@ class StudentSessionStatusService {
 
       case ApplicationStatus.rejected:
         return const StudentSessionStatusInfo(
-          displayText: 'Not Selected',
           badgeText: 'Not Selected',
           canApply: false,
           canBook: false,
@@ -161,7 +151,7 @@ class StudentSessionStatusService {
     }
 
     if (applicationStatus == ApplicationStatus.pending) {
-      return 'Application Pending';
+      return '';
     }
 
     if (applicationStatus == ApplicationStatus.accepted) {
@@ -175,15 +165,11 @@ class StudentSessionStatusService {
 /// Domain status information for a student session (no UI concerns)
 class StudentSessionStatusInfo {
   const StudentSessionStatusInfo({
-    required this.displayText,
     required this.badgeText,
     required this.canApply,
     required this.canBook,
     required this.hasBooking,
   });
-
-  /// Text to display for the status (e.g., "Available", "Pending", "Accepted")
-  final String displayText;
 
   /// Text for status badge (null if no badge should be shown)
   final String? badgeText;

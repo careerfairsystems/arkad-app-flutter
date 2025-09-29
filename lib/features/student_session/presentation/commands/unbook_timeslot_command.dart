@@ -105,18 +105,7 @@ class UnbookTimeslotCommand extends ParameterizedCommand<int, String> {
     }
   }
 
-  // Timeline error check removed - booking status controlled by server data
 
-  /// Get a user-friendly description of the current state
-  String get statusDescription {
-    if (isExecuting) return 'Unbooking timeslot...';
-    if (isCompleted && result != null) return 'Timeslot unbooked successfully';
-    if (hasError) {
-      // Simplified error handling - booking restrictions enforced by server data
-      return error?.userMessage ?? 'Failed to unbook timeslot';
-    }
-    return 'Ready to unbook';
-  }
 
   /// Reset command state and clear any errors and messages
   @override

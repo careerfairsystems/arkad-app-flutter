@@ -466,11 +466,6 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
               ),
             ],
 
-            // Status-specific content for accepted applications
-            if (application.status == ApplicationStatus.accepted) ...[
-              const SizedBox(height: 16),
-              _buildApplicationBookingStatus(context, application),
-            ],
 
             // Action buttons (only for accepted applications when showActions is true)
             if (showActions &&
@@ -545,58 +540,6 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     );
   }
 
-  Widget _buildApplicationBookingStatus(
-    BuildContext context,
-    StudentSessionApplication application,
-  ) {
-    // Show status based on application data - backend controls availability
-    String statusText;
-    Color statusColor;
-    IconData statusIcon;
-
-    switch (application.status) {
-      case ApplicationStatus.pending:
-        statusText = 'Application pending review';
-        statusColor = Theme.of(
-          context,
-        ).colorScheme.onSurface.withValues(alpha: 0.7);
-        statusIcon = Icons.schedule_rounded;
-      case ApplicationStatus.accepted:
-        statusText = 'Ready to book timeslot';
-        statusColor = ArkadColors.arkadGreen;
-        statusIcon = Icons.event_available_rounded;
-      case ApplicationStatus.rejected:
-        statusText = 'Application not accepted';
-        statusColor = Theme.of(
-          context,
-        ).colorScheme.onSurface.withValues(alpha: 0.7);
-        statusIcon = Icons.info_outline_rounded;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(statusIcon, color: statusColor, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              statusText,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: statusColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildBookingActionButtons(
     BuildContext context,

@@ -70,21 +70,6 @@ class StudentSession {
     return DateTime.now().isBefore(bookingCloseTime!);
   }
 
-  /// Get user-friendly status message
-  String get statusMessage {
-    if (!isAvailable) return 'Session not available';
-
-    switch (userStatus) {
-      case StudentSessionStatus.pending:
-        return 'Application pending review';
-      case StudentSessionStatus.accepted:
-        return canBook ? 'Ready to book timeslot' : 'Booking period closed';
-      case StudentSessionStatus.rejected:
-        return 'Application not accepted';
-      case null:
-        return 'Available to apply';
-    }
-  }
 
   /// Get field configuration for a specific field
   FieldConfiguration? getFieldConfiguration(String fieldName) {

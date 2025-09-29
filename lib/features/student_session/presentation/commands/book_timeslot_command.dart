@@ -141,20 +141,6 @@ class BookTimeslotCommand
 
   // Timeline error check removed - booking controlled by userStatus and server data
 
-  /// Get a user-friendly description of the current state
-  String get statusDescription {
-    if (isExecuting) return 'Booking timeslot...';
-    if (isCompleted && result != null) return 'Timeslot booked successfully';
-    if (hasError) {
-      if (isBookingConflict) {
-        return 'This timeslot was just taken by someone else';
-      }
-      if (isCapacityFull) return 'This session is now full';
-      // Simplified error handling - booking restrictions enforced by server data
-      return error?.userMessage ?? 'Failed to book timeslot';
-    }
-    return 'Ready to book';
-  }
 
   /// Reset command state and clear any errors and messages
   @override

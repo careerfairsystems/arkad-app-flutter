@@ -112,8 +112,6 @@ class StudentSessionCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
-              _buildAvailabilityIndicator(context, statusInfo),
             ],
           ),
         ),
@@ -144,32 +142,6 @@ class StudentSessionCard extends StatelessWidget {
         size: 24,
         color: ArkadColors.arkadTurkos,
       ),
-    );
-  }
-
-  Widget _buildAvailabilityIndicator(
-    BuildContext context,
-    StudentSessionUIStatusInfo statusInfo,
-  ) {
-    return Row(
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: statusInfo.displayColor,
-          ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          statusInfo.displayText,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: statusInfo.displayColor,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
     );
   }
 

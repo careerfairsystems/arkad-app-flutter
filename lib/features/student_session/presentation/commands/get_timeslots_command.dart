@@ -91,19 +91,7 @@ class GetTimeslotsCommand extends ParameterizedCommand<int, List<Timeslot>> {
     return grouped;
   }
 
-  /// Get a user-friendly description of the current state
-  String get statusDescription {
-    if (isExecuting) return 'Loading available timeslots...';
-    if (isCompleted && result != null) {
-      final available = availableTimeslots.length;
-      final total = result!.length;
-      return 'Loaded $available available timeslots (of $total total)';
-    }
-    if (hasError) {
-      return error?.userMessage ?? 'Failed to load timeslots';
-    }
-    return 'Ready to load timeslots';
-  }
+  // Status description removed - command state accessible via isExecuting, hasError, result
 
   /// Reset command state and clear any errors
   @override

@@ -16,8 +16,6 @@ class StudentSessionStatusMapper {
     StudentSessionStatusInfo domainInfo,
   ) {
     return StudentSessionUIStatusInfo(
-      displayText: domainInfo.displayText,
-      displayColor: _mapStatusColor(domainInfo.displayText),
       badgeText: domainInfo.badgeText,
       badgeColor: domainInfo.badgeText != null
           ? _mapBadgeColor(domainInfo.badgeText!)
@@ -41,22 +39,6 @@ class StudentSessionStatusMapper {
 
   // Private mapping methods
 
-  Color _mapStatusColor(String statusText) {
-    switch (statusText.toLowerCase()) {
-      case 'available':
-        return ArkadColors.arkadGreen;
-      case 'under review':
-        return ArkadColors.arkadOrange;
-      case 'you were accepted!':
-      case 'booking confirmed':
-        return ArkadColors.arkadGreen;
-      case 'not selected':
-        return ArkadColors.lightRed;
-      case 'not available':
-      default:
-        return Colors.grey;
-    }
-  }
 
   Color _mapBadgeColor(String badgeText) {
     switch (badgeText.toLowerCase()) {
@@ -106,20 +88,12 @@ class StudentSessionStatusMapper {
 /// UI-specific status information with Flutter types
 class StudentSessionUIStatusInfo {
   const StudentSessionUIStatusInfo({
-    required this.displayText,
-    required this.displayColor,
-    required this.badgeText,
-    required this.badgeColor,
+    this.badgeText,
+    this.badgeColor,
     required this.canApply,
     required this.canBook,
     required this.hasBooking,
   });
-
-  /// Text to display for the status
-  final String displayText;
-
-  /// Color to use for the status display
-  final Color displayColor;
 
   /// Text for status badge (null if no badge should be shown)
   final String? badgeText;

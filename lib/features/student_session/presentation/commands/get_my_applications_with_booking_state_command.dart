@@ -68,25 +68,7 @@ class GetMyApplicationsWithBookingStateCommand
         [];
   }
 
-  /// Get a user-friendly description of the current state
-  String get statusDescription {
-    if (isExecuting) return 'Loading your applications...';
-    if (isCompleted && result != null) {
-      final totalApps = result!.length;
-      final bookedCount = result!
-          .where(
-            (app) =>
-                app.application.status == ApplicationStatus.accepted &&
-                app.hasBooking,
-          )
-          .length;
-      return 'Loaded $totalApps applications ($bookedCount with bookings)';
-    }
-    if (hasError) {
-      return error?.userMessage ?? 'Failed to load applications';
-    }
-    return 'Ready to load applications';
-  }
+  // Status description removed - command state accessible via isExecuting, hasError, result
 
   /// Reset command state and clear any errors
   @override
