@@ -175,7 +175,17 @@ class StudentSession {
         other.logoUrl == logoUrl &&
         other.description == description &&
         other.disclaimer == disclaimer &&
-        other.fieldConfigurations == fieldConfigurations;
+        _listEquals(other.fieldConfigurations, fieldConfigurations);
+  }
+
+  /// Helper method for deep list equality comparison
+  bool _listEquals<T>(List<T>? a, List<T>? b) {
+    if (a == null) return b == null;
+    if (b == null || a.length != b.length) return false;
+    for (int index = 0; index < a.length; index++) {
+      if (a[index] != b[index]) return false;
+    }
+    return true;
   }
 
   @override
@@ -190,8 +200,18 @@ class StudentSession {
       logoUrl,
       description,
       disclaimer,
-      fieldConfigurations,
+      _listHashCode(fieldConfigurations),
     );
+  }
+
+  /// Helper method for deep list hash code computation
+  int _listHashCode<T>(List<T>? list) {
+    if (list == null) return 0;
+    int hash = 0;
+    for (int i = 0; i < list.length; i++) {
+      hash = hash ^ list[i].hashCode;
+    }
+    return hash;
   }
 
   @override

@@ -26,7 +26,6 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     super.didChangeDependencies();
     if (!_hasInitialized) {
       _initializeData();
-      _hasInitialized = true;
     }
   }
 
@@ -43,6 +42,9 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
         !viewModel.getMyApplicationsWithBookingStateCommand.isExecuting) {
       viewModel.getMyApplicationsWithBookingStateCommand.reset();
       viewModel.loadMyApplicationsWithBookingState();
+
+      // Only set hasInitialized to true after actually starting the load
+      _hasInitialized = true;
     }
   }
 

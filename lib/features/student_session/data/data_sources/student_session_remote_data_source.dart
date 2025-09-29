@@ -146,7 +146,7 @@ class StudentSessionRemoteDataSource {
       );
       rethrow; // Let repository handle HTTP status codes
     } catch (e) {
-      throw Exception('Failed to confirm timeslot: ${e.toString()}');
+      throw Exception('Failed to confirm timeslot');
     }
   }
 
@@ -172,7 +172,7 @@ class StudentSessionRemoteDataSource {
       );
       throw exception;
     } catch (e) {
-      throw Exception('Failed to unbook timeslot: $e');
+      throw Exception('Failed to unbook timeslot');
     }
   }
 

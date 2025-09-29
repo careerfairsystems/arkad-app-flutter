@@ -27,6 +27,9 @@ class _StudentSessionTimeSelection
   int? _selectedTimeslotId;
   bool _hasLoadedData = false;
 
+  // Store ViewModel reference to prevent unsafe ancestor lookups during disposal
+  StudentSessionViewModel? _viewModel;
+
   // Message handling state to prevent duplicates and setState during build
   bool _hasHandledBookingSuccess = false;
   bool _hasHandledBookingError = false;
@@ -69,14 +72,8 @@ class _StudentSessionTimeSelection
   @override
   void dispose() {
     // Essential cleanup to prevent memory leaks
-    if (mounted) {
-      final viewModel = Provider.of<StudentSessionViewModel>(
-        context,
-        listen: false,
-      );
-      // Clear company selection
-      viewModel.setSelectedCompany(null);
-    }
+    // Use cached reference to avoid unsafe ancestor lookup during disposal
+    _viewModel?.setSelectedCompany(null);
 
     super.dispose();
   }
@@ -199,6 +196,10 @@ class _StudentSessionTimeSelection
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    // Cache ViewModel reference safely during didChangeDependencies
+    _viewModel = Provider.of<StudentSessionViewModel>(context, listen: false);
+
     if (!_hasLoadedData) {
       _loadAvailableSlots();
       _hasLoadedData = true;
@@ -542,9 +543,15 @@ class _StudentSessionTimeSelection
                   activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
                 ),
               )
-            : Radio<int>(
-                value: slot.id,
-                activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
+            : RadioGroup<int>(
+                groupValue: _selectedTimeslotId,
+                onChanged: (int? value) {
+                  // Disabled state - do nothing
+                },
+                child: Radio<int>(
+                  value: slot.id,
+                  activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
+                ),
               ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         visualDensity: VisualDensity.compact,

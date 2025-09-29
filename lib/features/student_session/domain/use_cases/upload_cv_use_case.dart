@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/use_case.dart';
 import '../../../../shared/errors/student_session_errors.dart';
+import '../../../../shared/infrastructure/services/file_validation_service.dart';
 import '../repositories/student_session_repository.dart';
 
 /// Parameters for uploading CV
@@ -54,24 +57,24 @@ class UploadCVUseCase extends UseCase<String, UploadCVParams> {
         );
       }
 
-      // Check file extension (basic validation)
-      final validExtensions = ['.pdf', '.doc', '.docx'];
-      final hasValidExtension = validExtensions.any(
-        (ext) => params.filePath.toLowerCase().endsWith(ext),
-      );
+      // Comprehensive file validation using FileValidationService
+      final file = File(params.filePath);
+      final validationResult = await FileValidationService.validateCVFile(file);
 
-      if (!hasValidExtension) {
-        return Result.failure(
-          const StudentSessionApplicationError(
-            'Invalid file type. Please upload a PDF, DOC, or DOCX file.',
-          ),
-        );
-      }
-
-      // Upload CV through repository
-      return await _repository.uploadCVForSession(
-        companyId: params.companyId,
-        filePath: params.filePath,
+      return await validationResult.when(
+        success: (_) async {
+          // File is valid, proceed with upload
+          return await _repository.uploadCVForSession(
+            companyId: params.companyId,
+            filePath: params.filePath,
+          );
+        },
+        failure: (validationError) async {
+          // Convert ValidationError to StudentSessionApplicationError for consistency
+          return Result.failure(
+            StudentSessionApplicationError(validationError.userMessage),
+          );
+        },
       );
     } catch (e, stackTrace) {
       // Enhanced Sentry reporting with context

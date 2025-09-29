@@ -49,9 +49,7 @@ class FileValidationService {
 
       return Result.success(null);
     } catch (e) {
-      return Result.failure(
-        ValidationError('Unable to validate file: ${e.toString()}'),
-      );
+      return Result.failure(const ValidationError('Unable to validate file'));
     }
   }
 
@@ -91,7 +89,7 @@ class FileValidationService {
       return Result.success(null);
     } catch (e) {
       return Result.failure(
-        ValidationError('Unable to validate image: ${e.toString()}'),
+        const ValidationError('Unable to validate profile picture'),
       );
     }
   }

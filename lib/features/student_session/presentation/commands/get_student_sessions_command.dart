@@ -57,8 +57,9 @@ class GetStudentSessionsCommand extends Command<List<StudentSession>> {
         return false;
       }
 
-      // Must have a booking close time if user has applied/been accepted
-      if (session.userStatus != null && session.bookingCloseTime == null) {
+      // Must have a booking close time only if user has been accepted
+      if (session.userStatus == StudentSessionStatus.accepted &&
+          session.bookingCloseTime == null) {
         return false;
       }
 

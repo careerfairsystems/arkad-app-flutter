@@ -1,6 +1,8 @@
 import 'package:arkad_api/arkad_api.dart' as api;
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../../../../shared/data/url_utils.dart';
+
 import '../../domain/entities/field_configuration.dart';
 import '../../domain/entities/student_session.dart';
 import '../../domain/entities/student_session_application.dart';
@@ -45,7 +47,7 @@ class StudentSessionMapper {
       motivationText: apiApplication.motivationText ?? '',
       status:
           ApplicationStatus.pending, // Default status for ApplicationOut schema
-      cvUrl: apiApplication.cv,
+      cvUrl: UrlUtils.buildFullUrl(apiApplication.cv),
     );
   }
 

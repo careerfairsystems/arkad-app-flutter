@@ -226,13 +226,24 @@ class StudentSessionViewModel extends ChangeNotifier {
         success: (_) {
           // Clear any previous CV upload errors on success
           _cvUploadError = null;
+          notifyListeners();
           return true;
         },
         failure: (error) {
+          // Persist upload error and notify listeners
+          _cvUploadError = error as StudentSessionApplicationError?;
+          notifyListeners();
           return false;
         },
       );
     } catch (e) {
+      // Set error and notify listeners for catch block
+      _cvUploadError = const StudentSessionApplicationError(
+        'CV upload failed',
+        details:
+            'An unexpected error occurred while uploading your CV. Please try again.',
+      );
+      notifyListeners();
       return false;
     }
   }

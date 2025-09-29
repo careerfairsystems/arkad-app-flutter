@@ -1,13 +1,10 @@
-import 'package:flutter/material.dart';
-
 import '../../../../shared/errors/student_session_errors.dart';
-import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/services/timeline_validation_service.dart';
 import '../entities/student_session_application.dart';
 import 'student_session_data_service.dart';
 
-/// Service for consistent status determination and display across all student session screens
-/// Centralizes all status logic to prevent inconsistencies between different parts of the app
+/// Domain service for consistent status determination across all student session screens
+/// Centralizes all status logic without presentation concerns (colors, icons)
 class StudentSessionStatusService {
   const StudentSessionStatusService._();
 
@@ -21,11 +18,9 @@ class StudentSessionStatusService {
   ) {
     // Check if session is available first
     if (!sessionWithApp.session.isAvailable) {
-      return StudentSessionStatusInfo(
+      return const StudentSessionStatusInfo(
         displayText: 'Not available',
-        displayColor: _getUnavailableColor(),
         badgeText: null,
-        badgeColor: null,
         canApply: false,
         canBook: false,
         hasBooking: false,
@@ -40,9 +35,7 @@ class StudentSessionStatusService {
       final timelineStatus = TimelineValidationService.checkApplicationPeriod();
       return StudentSessionStatusInfo(
         displayText: 'Available',
-        displayColor: ArkadColors.arkadGreen,
         badgeText: null,
-        badgeColor: null,
         canApply: timelineStatus.canApply,
         canBook: false,
         hasBooking: false,
@@ -54,9 +47,7 @@ class StudentSessionStatusService {
       case ApplicationStatus.pending:
         return const StudentSessionStatusInfo(
           displayText: 'Under Review',
-          displayColor: ArkadColors.arkadOrange,
           badgeText: 'Pending',
-          badgeColor: ArkadColors.arkadOrange,
           canApply: false,
           canBook: false,
           hasBooking: false,
@@ -68,9 +59,7 @@ class StudentSessionStatusService {
 
         return StudentSessionStatusInfo(
           displayText: 'You were accepted!',
-          displayColor: ArkadColors.arkadGreen,
           badgeText: 'Accepted!',
-          badgeColor: ArkadColors.arkadGreen,
           canApply: false,
           canBook: timelineStatus.canBook && !hasBooking,
           hasBooking: hasBooking,
@@ -79,9 +68,7 @@ class StudentSessionStatusService {
       case ApplicationStatus.rejected:
         return const StudentSessionStatusInfo(
           displayText: 'Not Selected',
-          displayColor: ArkadColors.lightRed,
           badgeText: 'Rejected',
-          badgeColor: ArkadColors.lightRed,
           canApply: false,
           canBook: false,
           hasBooking: false,
@@ -98,8 +85,6 @@ class StudentSessionStatusService {
     if (statusInfo.canApply) {
       return const ActionButtonInfo(
         text: 'Apply',
-        icon: Icons.send_rounded,
-        color: ArkadColors.arkadTurkos,
         action: ActionType.apply,
         isEnabled: true,
       );
@@ -108,8 +93,6 @@ class StudentSessionStatusService {
     if (statusInfo.canBook) {
       return const ActionButtonInfo(
         text: 'Book Timeslot',
-        icon: Icons.schedule_rounded,
-        color: ArkadColors.arkadTurkos,
         action: ActionType.bookTimeslot,
         isEnabled: true,
       );
@@ -118,8 +101,6 @@ class StudentSessionStatusService {
     if (statusInfo.hasBooking) {
       return const ActionButtonInfo(
         text: 'Manage Booking',
-        icon: Icons.edit_calendar_rounded,
-        color: ArkadColors.arkadTurkos,
         action: ActionType.manageBooking,
         isEnabled: true,
       );
@@ -128,8 +109,6 @@ class StudentSessionStatusService {
     // No actions available
     return ActionButtonInfo(
       text: _getDisabledButtonText(sessionWithApp),
-      icon: _getDisabledButtonIcon(sessionWithApp),
-      color: _getDisabledButtonColor(),
       action: ActionType.none,
       isEnabled: false,
     );
@@ -145,9 +124,7 @@ class StudentSessionStatusService {
       case ApplicationStatus.pending:
         return const StudentSessionStatusInfo(
           displayText: 'Under Review',
-          displayColor: ArkadColors.arkadOrange,
           badgeText: 'Under Review',
-          badgeColor: ArkadColors.arkadOrange,
           canApply: false,
           canBook: false,
           hasBooking: false,
@@ -161,9 +138,7 @@ class StudentSessionStatusService {
           displayText: hasBooking
               ? 'Booking confirmed'
               : 'Ready to book timeslot',
-          displayColor: ArkadColors.arkadGreen,
           badgeText: 'You were accepted!',
-          badgeColor: ArkadColors.arkadGreen,
           canApply: false,
           canBook: timelineStatus.canBook && !hasBooking,
           hasBooking: hasBooking,
@@ -172,9 +147,7 @@ class StudentSessionStatusService {
       case ApplicationStatus.rejected:
         return const StudentSessionStatusInfo(
           displayText: 'Not Selected',
-          displayColor: ArkadColors.lightRed,
           badgeText: 'Not Selected',
-          badgeColor: ArkadColors.lightRed,
           canApply: false,
           canBook: false,
           hasBooking: false,
@@ -183,15 +156,6 @@ class StudentSessionStatusService {
   }
 
   // Private helper methods
-
-  Color _getUnavailableColor() {
-    // Use a neutral color for unavailable sessions
-    return Colors.grey;
-  }
-
-  Color _getDisabledButtonColor() {
-    return Colors.grey;
-  }
 
   String _getDisabledButtonText(
     StudentSessionWithApplicationState sessionWithApp,
@@ -225,31 +189,13 @@ class StudentSessionStatusService {
 
     return 'Not Available';
   }
-
-  IconData _getDisabledButtonIcon(
-    StudentSessionWithApplicationState sessionWithApp,
-  ) {
-    final applicationStatus = sessionWithApp.effectiveApplicationStatus;
-
-    if (applicationStatus == ApplicationStatus.accepted) {
-      return Icons.schedule_rounded;
-    }
-
-    if (applicationStatus != null) {
-      return Icons.info_outline_rounded;
-    }
-
-    return Icons.send_rounded;
-  }
 }
 
-/// Comprehensive status information for a student session
+/// Domain status information for a student session (no UI concerns)
 class StudentSessionStatusInfo {
   const StudentSessionStatusInfo({
     required this.displayText,
-    required this.displayColor,
     required this.badgeText,
-    required this.badgeColor,
     required this.canApply,
     required this.canBook,
     required this.hasBooking,
@@ -258,14 +204,8 @@ class StudentSessionStatusInfo {
   /// Text to display for the status (e.g., "Available", "Pending", "Accepted")
   final String displayText;
 
-  /// Color to use for the status display
-  final Color displayColor;
-
   /// Text for status badge (null if no badge should be shown)
   final String? badgeText;
-
-  /// Color for status badge (null if no badge should be shown)
-  final Color? badgeColor;
 
   /// Whether the user can apply to this session
   final bool canApply;
@@ -277,24 +217,16 @@ class StudentSessionStatusInfo {
   final bool hasBooking;
 }
 
-/// Information about the action button for a session
+/// Domain information about an action button for a session (no UI concerns)
 class ActionButtonInfo {
   const ActionButtonInfo({
     required this.text,
-    required this.icon,
-    required this.color,
     required this.action,
     required this.isEnabled,
   });
 
   /// Text to display on the button
   final String text;
-
-  /// Icon to display on the button
-  final IconData icon;
-
-  /// Color of the button
-  final Color color;
 
   /// Type of action this button performs
   final ActionType action;

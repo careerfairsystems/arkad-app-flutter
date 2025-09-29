@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/domain/result.dart';
@@ -33,10 +34,17 @@ class StudentSessionDataService {
           .getMyApplicationsWithBookingState();
       final applications = applicationsResult.when(
         success: (data) => data,
-        failure: (_) =>
-            <
+        failure: (error) {
+          // Only return empty list for authentication errors
+          // Propagate other errors (network, server, etc.) to caller
+          if (error is AuthenticationError || error is SignInError) {
+            return <
               StudentSessionApplicationWithBookingState
-            >[], // Graceful fallback for unauthenticated users
+            >[]; // Graceful fallback for unauthenticated users
+          }
+          // For other errors, propagate them up to the caller
+          throw error;
+        },
       );
 
       // Create unified data structure

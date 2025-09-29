@@ -18,6 +18,11 @@ class GetMyApplicationsWithBookingStateCommand
   Future<void> loadMyApplicationsWithBookingState({
     bool forceRefresh = false,
   }) async {
+    if (forceRefresh) {
+      reset(
+        notify: false,
+      ); // Clear cached state without triggering UI updates yet
+    }
     return execute();
   }
 

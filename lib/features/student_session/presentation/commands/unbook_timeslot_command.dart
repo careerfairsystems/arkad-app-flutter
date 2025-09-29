@@ -46,12 +46,14 @@ class UnbookTimeslotCommand extends ParameterizedCommand<int, String> {
     notifyListeners();
   }
 
-  void clearAllMessages() {
+  void clearAllMessages({bool notify = true}) {
     _showSuccessMessage = false;
     _successMessage = null;
     _showErrorMessage = false;
     _errorMessage = null;
-    notifyListeners();
+    if (notify) {
+      notifyListeners();
+    }
   }
 
   /// Unbook a timeslot with comprehensive validation
@@ -130,7 +132,7 @@ class UnbookTimeslotCommand extends ParameterizedCommand<int, String> {
   /// Reset command state and clear any errors and messages
   @override
   void reset({bool notify = true}) {
-    clearAllMessages();
+    clearAllMessages(notify: notify);
     super.reset(notify: notify);
   }
 }

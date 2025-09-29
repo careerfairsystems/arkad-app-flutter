@@ -63,6 +63,7 @@ class StudentSessionActions extends StatelessWidget {
                 case ActionType.manageBooking:
                   onViewTimeslots();
                 case ActionType.none:
+                  // No action needed
                   break;
               }
             }

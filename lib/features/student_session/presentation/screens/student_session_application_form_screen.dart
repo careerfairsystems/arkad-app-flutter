@@ -307,7 +307,7 @@ class _StudentSessionApplicationFormScreenState
                     action: showRetryOption
                         ? SnackBarAction(
                             label: 'Retry CV',
-                            textColor: Colors.white,
+                            textColor: ArkadColors.white,
                             onPressed: () => _retryCVUpload(viewModel),
                           )
                         : null,
@@ -447,7 +447,7 @@ class _StudentSessionApplicationFormScreenState
           gradient: isEssential
               ? LinearGradient(
                   colors: [
-                    Colors.white,
+                    ArkadColors.white,
                     ArkadColors.arkadTurkos.withValues(alpha: 0.02),
                   ],
                   begin: Alignment.topLeft,
@@ -607,14 +607,14 @@ class _StudentSessionApplicationFormScreenState
                   height: 56,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: ArkadColors.white.withValues(alpha: 0.2),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
+                      color: ArkadColors.white.withValues(alpha: 0.3),
                     ),
                   ),
                   child: const Icon(
                     Icons.business_rounded,
-                    color: Colors.white,
+                    color: ArkadColors.white,
                     size: 28,
                   ),
                 ),
@@ -628,7 +628,7 @@ class _StudentSessionApplicationFormScreenState
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: ArkadColors.white,
                             ),
                       ),
                       const SizedBox(height: 6),
@@ -638,14 +638,14 @@ class _StudentSessionApplicationFormScreenState
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: ArkadColors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           'Student Session Application',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: Colors.white,
+                                color: ArkadColors.white,
                                 fontWeight: FontWeight.w500,
                               ),
                         ),
@@ -660,15 +660,17 @@ class _StudentSessionApplicationFormScreenState
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: ArkadColors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                border: Border.all(
+                  color: ArkadColors.white.withValues(alpha: 0.2),
+                ),
               ),
               child: _session!.description != null
                   ? Text(
                       _session!.description!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: ArkadColors.white.withValues(alpha: 0.9),
                         height: 1.5,
                       ),
                     )
@@ -690,12 +692,12 @@ class _StudentSessionApplicationFormScreenState
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: ArkadColors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 Icons.groups_outlined,
-                color: Colors.white.withValues(alpha: 0.9),
+                color: ArkadColors.white.withValues(alpha: 0.9),
                 size: 16,
               ),
             ),
@@ -703,7 +705,7 @@ class _StudentSessionApplicationFormScreenState
             Text(
               'Exclusive Student Session',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.white.withValues(alpha: 0.95),
+                color: ArkadColors.white.withValues(alpha: 0.95),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -713,7 +715,7 @@ class _StudentSessionApplicationFormScreenState
         Text(
           'Connect with industry professionals, gain insights into company culture, and explore potential career opportunities.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white.withValues(alpha: 0.8),
+            color: ArkadColors.white.withValues(alpha: 0.8),
             height: 1.4,
           ),
         ),
@@ -734,19 +736,19 @@ class _StudentSessionApplicationFormScreenState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        color: ArkadColors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        border: Border.all(color: ArkadColors.white.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white.withValues(alpha: 0.8), size: 12),
+          Icon(icon, color: ArkadColors.white.withValues(alpha: 0.8), size: 12),
           const SizedBox(width: 4),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: ArkadColors.white.withValues(alpha: 0.8),
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
@@ -873,13 +875,13 @@ class _StudentSessionApplicationFormScreenState
                   color:
                       (_motivationWordCount > 300
                               ? ArkadColors.lightRed
-                              : Colors.orange)
+                              : ArkadColors.arkadOrange)
                           .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: _motivationWordCount > 300
                         ? ArkadColors.lightRed
-                        : Colors.orange,
+                        : ArkadColors.arkadOrange,
                   ),
                 ),
                 child: Text(
@@ -889,7 +891,7 @@ class _StudentSessionApplicationFormScreenState
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: _motivationWordCount > 300
                         ? ArkadColors.lightRed
-                        : Colors.orange,
+                        : ArkadColors.arkadOrange,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -1157,7 +1159,7 @@ class _StudentSessionApplicationFormScreenState
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ArkadColors.arkadTurkos,
-                        foregroundColor: Colors.white,
+                        foregroundColor: ArkadColors.white,
                       ),
                     ),
                   ),
@@ -1278,7 +1280,7 @@ class _StudentSessionApplicationFormScreenState
               backgroundColor: canSubmit
                   ? ArkadColors.arkadTurkos
                   : ArkadColors.gray,
-              foregroundColor: Colors.white,
+              foregroundColor: ArkadColors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
             child: isSubmitting
@@ -1287,7 +1289,7 @@ class _StudentSessionApplicationFormScreenState
                     width: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: ArkadColors.white,
                     ),
                   )
                 : Text(

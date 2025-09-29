@@ -6,6 +6,7 @@ import '../../domain/entities/student_session.dart';
 import '../../domain/entities/student_session_application.dart';
 import '../../domain/services/student_session_data_service.dart';
 import '../../domain/services/student_session_status_service.dart';
+import '../mappers/student_session_status_mapper.dart';
 
 /// Modern student session card with status indicators and actions
 class StudentSessionCard extends StatelessWidget {
@@ -34,12 +35,19 @@ class StudentSessionCard extends StatelessWidget {
       applicationWithBookingState: applicationWithBookingState,
     );
 
-    // Get status information using the unified status service
-    final statusInfo = StudentSessionStatusService.instance.getStatusInfo(
+    // Get domain status information using the unified status service
+    final domainStatusInfo = StudentSessionStatusService.instance.getStatusInfo(
       sessionWithApp,
     );
-    final actionInfo = StudentSessionStatusService.instance.getActionButtonInfo(
-      sessionWithApp,
+    final domainActionInfo = StudentSessionStatusService.instance
+        .getActionButtonInfo(sessionWithApp);
+
+    // Convert domain info to UI info using the presentation mapper
+    final statusInfo = StudentSessionStatusMapper.instance.mapStatusInfo(
+      domainStatusInfo,
+    );
+    final actionInfo = StudentSessionStatusMapper.instance.mapActionInfo(
+      domainActionInfo,
     );
 
     return Card(
@@ -48,7 +56,7 @@ class StudentSessionCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: actionInfo.action != ActionType.none
+        onTap: actionInfo.action != ActionType.none && actionInfo.isEnabled
             ? () {
                 switch (actionInfo.action) {
                   case ActionType.apply:
@@ -86,7 +94,7 @@ class StudentSessionCard extends StatelessWidget {
 
   Widget _buildHeader(
     BuildContext context,
-    StudentSessionStatusInfo statusInfo,
+    StudentSessionUIStatusInfo statusInfo,
   ) {
     return Row(
       children: [
@@ -141,7 +149,7 @@ class StudentSessionCard extends StatelessWidget {
 
   Widget _buildAvailabilityIndicator(
     BuildContext context,
-    StudentSessionStatusInfo statusInfo,
+    StudentSessionUIStatusInfo statusInfo,
   ) {
     return Row(
       children: [
@@ -184,7 +192,7 @@ class StudentSessionCard extends StatelessWidget {
 
   Widget _buildApplicationStatusBadge(
     BuildContext context,
-    StudentSessionStatusInfo statusInfo,
+    StudentSessionUIStatusInfo statusInfo,
   ) {
     if (statusInfo.badgeText == null) return const SizedBox.shrink();
 
@@ -204,7 +212,10 @@ class StudentSessionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActions(BuildContext context, ActionButtonInfo actionInfo) {
+  Widget _buildActions(
+    BuildContext context,
+    StudentSessionUIActionInfo actionInfo,
+  ) {
     VoidCallback? buttonCallback;
 
     switch (actionInfo.action) {

@@ -97,12 +97,12 @@ class CompanyDetailViewModel extends ChangeNotifier {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
+            onPressed: () => dialogContext.pop(),
             child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () {
-              Navigator.of(dialogContext).pop();
+              dialogContext.pop();
               // Navigate to login tab (branch index 5) using original context
               StatefulNavigationShell.of(originalContext).goBranch(5);
             },
@@ -139,10 +139,7 @@ class CompanyDetailViewModel extends ChangeNotifier {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
+          TextButton(onPressed: () => context.pop(), child: const Text('OK')),
         ],
       ),
     );
