@@ -204,11 +204,8 @@ class StudentSessionViewModel extends ChangeNotifier {
   }
 
   /// Load timeslots for a company
-  Future<void> loadTimeslots(int companyId, {bool forceRefresh = false}) async {
-    await _getTimeslotsCommand.loadTimeslots(
-      companyId,
-      forceRefresh: forceRefresh,
-    );
+  Future<void> loadTimeslots(int companyId) async {
+    await _getTimeslotsCommand.loadTimeslots(companyId);
   }
 
   /// Upload CV for a student session
@@ -432,7 +429,7 @@ class StudentSessionViewModel extends ChangeNotifier {
 
       // Refresh timeslots data in background
       if (_selectedCompanyId != null) {
-        await loadTimeslots(_selectedCompanyId!, forceRefresh: true);
+        await loadTimeslots(_selectedCompanyId!);
       }
 
       // Auto-hide overlay after allowing user to read message

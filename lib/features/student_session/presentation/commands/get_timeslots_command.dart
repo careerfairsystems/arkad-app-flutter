@@ -9,8 +9,8 @@ class GetTimeslotsCommand extends ParameterizedCommand<int, List<Timeslot>> {
 
   final GetTimeslotsUseCase _getTimeslotsUseCase;
 
-  /// Load timeslots for a specific company with optional force refresh
-  Future<void> loadTimeslots(int companyId, {bool forceRefresh = false}) async {
+  /// Load timeslots for a specific company
+  Future<void> loadTimeslots(int companyId) async {
     return executeWithParams(companyId);
   }
 

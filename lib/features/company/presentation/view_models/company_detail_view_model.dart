@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -115,9 +116,9 @@ class CompanyDetailViewModel extends ChangeNotifier {
       await studentSessionViewModel.loadStudentSessions();
 
       // Find the session for this company
-      final session = studentSessionViewModel.studentSessions
-          .where((s) => s.companyId == companyId)
-          .firstOrNull;
+      final session = studentSessionViewModel.studentSessions.firstWhereOrNull(
+        (s) => s.companyId == companyId,
+      );
 
       if (session == null) {
         _message = 'No student session found for this company.';

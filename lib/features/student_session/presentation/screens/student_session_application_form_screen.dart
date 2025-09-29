@@ -375,23 +375,20 @@ class _StudentSessionApplicationFormScreenState
       ]);
     }
 
-    // Required Fields Section
-    if (_formConfig?.hasRequiredFields ?? false) {
-      final hasOtherRequiredFields = _formConfig!
-          .getRequiredVisibleFields()
-          .isNotEmpty;
-      sections.addAll([
-        _buildFormSection(
-          title: hasOtherRequiredFields
-              ? 'Required Information'
-              : 'Document Upload',
-          icon: Icons.assignment_outlined,
-          child: _buildRequiredFields(),
-          isEssential: true,
-        ),
-        const SizedBox(height: 20),
-      ]);
-    }
+    // Required Fields Section - always shown to include CV upload
+    final hasOtherRequiredFields =
+        _formConfig?.getRequiredVisibleFields().isNotEmpty ?? false;
+    sections.addAll([
+      _buildFormSection(
+        title: hasOtherRequiredFields
+            ? 'Required Information'
+            : 'Document Upload',
+        icon: Icons.assignment_outlined,
+        child: _buildRequiredFields(),
+        isEssential: true,
+      ),
+      const SizedBox(height: 20),
+    ]);
 
     // Optional Fields Section
     if (_formConfig?.hasOptionalFields ?? false) {

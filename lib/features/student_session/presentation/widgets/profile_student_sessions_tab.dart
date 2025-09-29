@@ -50,13 +50,7 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
   Widget build(BuildContext context) {
     return Consumer2<StudentSessionViewModel, AuthViewModel>(
       builder: (context, viewModel, authViewModel, child) {
-        final applicationsWithBookingState =
-            viewModel.myApplicationsWithBookingState;
-        final groupedApplications = _groupApplicationsWithBookingStateByStatus(
-          applicationsWithBookingState,
-        );
-
-        return _buildConsolidatedView(context, viewModel, groupedApplications);
+        return _buildConsolidatedView(context, viewModel);
       },
     );
   }
@@ -93,15 +87,17 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
   Widget _buildConsolidatedView(
     BuildContext context,
     StudentSessionViewModel viewModel,
-    Map<ApplicationStatus, List<StudentSessionApplicationWithBookingState>>
-    groupedApplications,
   ) {
     final command = viewModel.getMyApplicationsWithBookingStateCommand;
 
     return AsyncStateBuilder<List<StudentSessionApplicationWithBookingState>>(
       command: command,
-      builder: (context, applications) =>
-          _buildApplicationsList(context, viewModel, groupedApplications),
+      builder: (context, applications) {
+        final groupedApplications = _groupApplicationsWithBookingStateByStatus(
+          applications,
+        );
+        return _buildApplicationsList(context, viewModel, groupedApplications);
+      },
       loadingBuilder: (context) => const CustomScrollView(
         physics: AlwaysScrollableScrollPhysics(),
         slivers: [
@@ -361,20 +357,15 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
   }) {
     final application = applicationWithBookingState.application;
     final status = application.status;
-    Color statusColor;
-    String statusText;
 
-    switch (status) {
-      case ApplicationStatus.pending:
-        statusColor = ArkadColors.arkadOrange;
-        statusText = 'Under Review';
-      case ApplicationStatus.accepted:
-        statusColor = ArkadColors.arkadGreen;
-        statusText = 'You were accepted!';
-      case ApplicationStatus.rejected:
-        statusColor = ArkadColors.lightRed;
-        statusText = 'Not Selected';
-    }
+    final (statusColor, statusText) = switch (status) {
+      ApplicationStatus.pending => (ArkadColors.arkadOrange, 'Under Review'),
+      ApplicationStatus.accepted => (
+        ArkadColors.arkadGreen,
+        'You were accepted!',
+      ),
+      ApplicationStatus.rejected => (ArkadColors.lightRed, 'Not Selected'),
+    };
 
     return Card(
       elevation: 2,
@@ -549,15 +540,11 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     // Show booking actions based on application status - backend controls availability
     if (application.status != ApplicationStatus.accepted) {
       // Show disabled button for non-accepted applications
-      String buttonText;
-      switch (application.status) {
-        case ApplicationStatus.pending:
-          buttonText = 'Awaiting Acceptance';
-        case ApplicationStatus.rejected:
-          buttonText = 'Not Accepted';
-        case ApplicationStatus.accepted:
-          buttonText = 'Ready to Book'; // Won't reach here
-      }
+      final buttonText = switch (application.status) {
+        ApplicationStatus.pending => 'Awaiting Acceptance',
+        ApplicationStatus.rejected => 'Not Accepted',
+        ApplicationStatus.accepted => 'Ready to Book', // Won't reach here
+      };
 
       return Row(
         children: [

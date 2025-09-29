@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -67,8 +68,15 @@ class _StudentSessionTimeSelection
         viewModel.bookTimeslotCommand.reset();
         viewModel.unbookTimeslotCommand.reset();
 
-        final companyId = int.parse(widget.id);
-        viewModel.setSelectedCompany(companyId);
+        final companyId = int.tryParse(widget.id);
+        if (companyId != null) {
+          viewModel.setSelectedCompany(companyId);
+        } else {
+          // Handle invalid company ID in route
+          if (mounted && context.mounted) {
+            context.pop();
+          }
+        }
       }
     });
   }
@@ -216,7 +224,11 @@ class _StudentSessionTimeSelection
         context,
         listen: false,
       );
-      final companyId = int.parse(widget.id);
+      final companyId = int.tryParse(widget.id);
+      if (companyId == null) {
+        // Handle invalid company ID
+        return;
+      }
 
       await provider.loadTimeslots(companyId);
       final slots = provider.timeslots;
@@ -297,7 +309,11 @@ class _StudentSessionTimeSelection
         listen: false,
       );
 
-      final companyId = int.parse(widget.id);
+      final companyId = int.tryParse(widget.id);
+      if (companyId == null) {
+        // Handle invalid company ID
+        return;
+      }
 
       // Check if user already has a booking for this company
       final currentBookedSlot = viewModel.timeslots
@@ -611,8 +627,13 @@ class _StudentSessionTimeSelection
       buttonColor = ArkadColors.arkadTurkos; // Book or change action
     }
 
+    // Determine if any command is executing
+    final isAnyExecuting =
+        viewModel.bookTimeslotCommand.isExecuting ||
+        viewModel.unbookTimeslotCommand.isExecuting;
+
     // Determine if button is enabled
-    bool isEnabled = !viewModel.bookTimeslotCommand.isExecuting;
+    bool isEnabled = !isAnyExecuting;
     if (widget.isBookingMode) {
       if (currentBookedSlot == null) {
         isEnabled = isEnabled && _isSelectionValid(timeslots);
@@ -635,7 +656,7 @@ class _StudentSessionTimeSelection
         backgroundColor: buttonColor,
         foregroundColor: ArkadColors.white,
       ),
-      child: viewModel.bookTimeslotCommand.isExecuting
+      child: isAnyExecuting
           ? const SizedBox(
               height: 20,
               width: 20,

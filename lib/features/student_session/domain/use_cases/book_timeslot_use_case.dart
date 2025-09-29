@@ -46,24 +46,13 @@ class BookTimeslotUseCase extends UseCase<String, BookTimeslotParams> {
       }
 
       // Attempt to book the timeslot - booking controlled by userStatus and bookingCloseTime
-      final result = await _repository.bookTimeslot(
+      // Repository handles conflict detection and typed error responses
+      return await _repository.bookTimeslot(
         companyId: params.companyId,
         timeslotId: params.timeslotId,
       );
-
-      return result;
     } catch (e) {
-      // Check if it's a conflict error (slot taken)
-      if (e.toString().contains('conflict') ||
-          e.toString().contains('already booked') ||
-          e.toString().contains('409')) {
-        return Result.failure(
-          const StudentSessionBookingConflictError(
-            'This timeslot was just booked by someone else. Please select another time.',
-          ),
-        );
-      }
-
+      // Handle unexpected exceptions not caught by repository
       return Result.failure(
         StudentSessionApplicationError(
           'Failed to book timeslot',

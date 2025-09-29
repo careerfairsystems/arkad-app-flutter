@@ -70,7 +70,7 @@ class StudentSessionStatusMapper {
 
   Color _mapActionColor(ActionType actionType, bool isEnabled) {
     if (!isEnabled) {
-      return Colors.grey;
+      return ArkadColors.gray;
     }
 
     switch (actionType) {
@@ -79,7 +79,7 @@ class StudentSessionStatusMapper {
       case ActionType.manageBooking:
         return ArkadColors.arkadTurkos;
       case ActionType.none:
-        return Colors.grey;
+        return ArkadColors.gray;
     }
   }
 }

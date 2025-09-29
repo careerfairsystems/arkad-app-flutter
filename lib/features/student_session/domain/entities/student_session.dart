@@ -62,12 +62,13 @@ class StudentSession {
   bool get canApply => isAvailable && !hasApplied;
 
   /// Check if user can book timeslots (must be accepted)
-  bool get canBook => isAccepted && _isBookingPeriodActive;
+  bool get canBook => isAccepted && _isBookingPeriodActive();
 
   /// Check if booking period is currently active
-  bool get _isBookingPeriodActive {
+  bool _isBookingPeriodActive({DateTime? now}) {
     if (bookingCloseTime == null) return false;
-    return DateTime.now().isBefore(bookingCloseTime!);
+    final currentTime = now ?? DateTime.now();
+    return !currentTime.isAfter(bookingCloseTime!);
   }
 
   /// Get field configuration for a specific field
