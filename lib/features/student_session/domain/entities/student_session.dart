@@ -1,5 +1,3 @@
-import '../../../../shared/errors/student_session_errors.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import 'field_configuration.dart';
 
 /// Domain entity representing a student session for a company
@@ -72,12 +70,6 @@ class StudentSession {
     return DateTime.now().isBefore(bookingCloseTime!);
   }
 
-  /// Get timeline phase for this session
-  StudentSessionPhase get currentPhase {
-    final status = TimelineValidationService.getCurrentStatus();
-    return status.phase;
-  }
-
   /// Get user-friendly status message
   String get statusMessage {
     if (!isAvailable) return 'Session not available';
@@ -90,9 +82,7 @@ class StudentSession {
       case StudentSessionStatus.rejected:
         return 'Application not accepted';
       case null:
-        return currentPhase.canApply
-            ? 'Ready to apply'
-            : 'Application period closed';
+        return 'Available to apply';
     }
   }
 

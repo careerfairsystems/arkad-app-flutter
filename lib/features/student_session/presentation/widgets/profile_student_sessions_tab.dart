@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/async_state_builder.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../domain/entities/student_session_application.dart';
 import '../view_models/student_session_view_model.dart';
@@ -551,39 +549,24 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     BuildContext context,
     StudentSessionApplication application,
   ) {
-    // This method needs access to the booking state, but since we only have the application
-    // we'll use the status service with a dummy booking state for now
-    // In a real implementation, this would need to be passed from the parent
-
-    // Get current timeline status to show appropriate message
-    final status = TimelineValidationService.checkBookingPeriod();
-
+    // Show status based on application data - backend controls availability
     String statusText;
     Color statusColor;
     IconData statusIcon;
 
-    // Since BookingInfo isn't available from API yet, show timeline-based status
-    switch (status.phase) {
-      case StudentSessionPhase.bookingOpen:
-        statusText = 'Ready to book timeslot';
-        statusColor = ArkadColors.arkadGreen;
-        statusIcon = Icons.event_available_rounded;
-      case StudentSessionPhase.beforeBooking:
-      case StudentSessionPhase.applicationClosed:
-        statusText =
-            status.reason; // Use the timeline service's formatted message
+    switch (application.status) {
+      case ApplicationStatus.pending:
+        statusText = 'Application pending review';
         statusColor = Theme.of(
           context,
         ).colorScheme.onSurface.withValues(alpha: 0.7);
         statusIcon = Icons.schedule_rounded;
-      case StudentSessionPhase.bookingClosed:
-        statusText = 'Booking period ended';
-        statusColor = Theme.of(
-          context,
-        ).colorScheme.onSurface.withValues(alpha: 0.7);
-        statusIcon = Icons.event_busy_rounded;
-      default:
-        statusText = 'Booking not available';
+      case ApplicationStatus.accepted:
+        statusText = 'Ready to book timeslot';
+        statusColor = ArkadColors.arkadGreen;
+        statusIcon = Icons.event_available_rounded;
+      case ApplicationStatus.rejected:
+        statusText = 'Application not accepted';
         statusColor = Theme.of(
           context,
         ).colorScheme.onSurface.withValues(alpha: 0.7);
@@ -622,21 +605,17 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     final application = applicationWithBookingState.application;
     final hasBooking = applicationWithBookingState.hasBooking;
 
-    final status = TimelineValidationService.checkBookingPeriod();
-    final isBookingOpen = status.phase == StudentSessionPhase.bookingOpen;
-
-    // Show booking status and actions based on real API data
-    if (!isBookingOpen) {
-      // Show disabled button with timeline-appropriate message
+    // Show booking actions based on application status - backend controls availability
+    if (application.status != ApplicationStatus.accepted) {
+      // Show disabled button for non-accepted applications
       String buttonText;
-      switch (status.phase) {
-        case StudentSessionPhase.beforeBooking:
-        case StudentSessionPhase.applicationClosed:
-          buttonText = 'Booking Opens Later';
-        case StudentSessionPhase.bookingClosed:
-          buttonText = 'Booking Ended';
-        default:
-          buttonText = 'Booking Not Available';
+      switch (application.status) {
+        case ApplicationStatus.pending:
+          buttonText = 'Awaiting Acceptance';
+        case ApplicationStatus.rejected:
+          buttonText = 'Not Accepted';
+        case ApplicationStatus.accepted:
+          buttonText = 'Ready to Book'; // Won't reach here
       }
 
       return Row(

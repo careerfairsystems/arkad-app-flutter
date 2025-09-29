@@ -11,60 +11,7 @@ class StudentSessionApplicationError extends AppError {
       );
 }
 
-/// Timeline validation error for student session operations
-class StudentSessionTimelineError extends AppError {
-  const StudentSessionTimelineError({
-    required String message,
-    this.applicationStart,
-    this.applicationEnd,
-    this.bookingStart,
-    this.bookingEnd,
-    this.currentPhase,
-  }) : super(userMessage: message, severity: ErrorSeverity.warning);
-
-  final DateTime? applicationStart;
-  final DateTime? applicationEnd;
-  final DateTime? bookingStart;
-  final DateTime? bookingEnd;
-  final StudentSessionPhase? currentPhase;
-
-  /// Get formatted timeline information for display
-  String get timelineInfo {
-    if (applicationStart != null && applicationEnd != null) {
-      return 'Application period: ${_formatDate(applicationStart!)} - ${_formatDate(applicationEnd!)}';
-    }
-    if (bookingStart != null && bookingEnd != null) {
-      return 'Booking period: ${_formatDateTime(bookingStart!)} - ${_formatDateTime(bookingEnd!)}';
-    }
-    return '';
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day} ${_getMonthName(date.month)} ${date.year}';
-  }
-
-  String _formatDateTime(DateTime date) {
-    return '${_formatDate(date)} at ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  }
-
-  String _getMonthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return months[month - 1];
-  }
-}
+// Timeline validation error removed - session availability controlled by server data
 
 /// Timeslot booking conflict error (race condition)
 class StudentSessionBookingConflictError extends AppError {
@@ -140,89 +87,11 @@ class StudentSessionCapacityError extends AppError {
   final String companyName;
 }
 
-/// Timeline phases for student session operations
-enum StudentSessionPhase {
-  beforeApplication('Before Application Period'),
-  applicationOpen('Application Period'),
-  applicationClosed('Application Closed'),
-  beforeBooking('Before Booking Period'),
-  bookingOpen('Booking Period'),
-  bookingClosed('Booking Closed'),
-  sessionComplete('Session Complete');
-
-  const StudentSessionPhase(this.displayName);
-
-  final String displayName;
-
-  /// Check if applications are allowed in this phase
-  bool get canApply => this == StudentSessionPhase.applicationOpen;
-
-  /// Check if bookings are allowed in this phase
-  bool get canBook => this == StudentSessionPhase.bookingOpen;
-
-  /// Check if the phase is active (can perform operations)
-  bool get isActive => canApply || canBook;
-}
+// Timeline phases enum removed - status flow controlled by server data (userStatus, available fields)
 
 /// Recovery actions for student session errors
 class StudentSessionRecoveryActions {
-  /// Create recovery actions for timeline errors
-  static List<RecoveryAction> forTimelineError(
-    StudentSessionTimelineError error,
-    BuildContext? context,
-  ) {
-    if (context == null) return [];
-
-    final actions = <RecoveryAction>[];
-
-    switch (error.currentPhase) {
-      case StudentSessionPhase.beforeApplication:
-        // Reminder functionality not implemented yet
-        break;
-
-      case StudentSessionPhase.applicationClosed:
-        actions.add(
-          RecoveryAction(
-            label: 'Browse Other Companies',
-            action: () => _navigateToCompanies(context),
-            icon: Icons.business,
-            isPrimary: true,
-          ),
-        );
-
-      case StudentSessionPhase.beforeBooking:
-        actions.add(
-          RecoveryAction(
-            label: 'View My Applications',
-            action: () => _navigateToProfile(context),
-            icon: Icons.assignment,
-            isPrimary: true,
-          ),
-        );
-
-      case StudentSessionPhase.bookingClosed:
-        actions.add(
-          RecoveryAction(
-            label: 'Contact Support',
-            action: () => _contactSupport(context),
-            icon: Icons.help_outline,
-          ),
-        );
-
-      default:
-    }
-
-    // Always add a "Learn More" action
-    actions.add(
-      RecoveryAction(
-        label: 'Learn More',
-        action: () => _showTimelineInfo(context, error),
-        icon: Icons.info_outline,
-      ),
-    );
-
-    return actions;
-  }
+  // Timeline error recovery removed - backend prevents invalid operations
 
   /// Create recovery actions for booking conflicts
   static List<RecoveryAction> forBookingConflict(
@@ -272,17 +141,7 @@ class StudentSessionRecoveryActions {
     ];
   }
 
-  // Helper methods for navigation and actions
-
-  static void _navigateToCompanies(BuildContext context) {
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil('/companies', (route) => false);
-  }
-
-  static void _navigateToProfile(BuildContext context) {
-    Navigator.of(context).pushNamed('/profile');
-  }
+  // Helper methods for navigation and actions - simplified for data-driven approach
 
   static void _contactSupport(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -293,30 +152,5 @@ class StudentSessionRecoveryActions {
     );
   }
 
-  static void _showTimelineInfo(
-    BuildContext context,
-    StudentSessionTimelineError error,
-  ) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Student Session Timeline'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(error.userMessage),
-            const SizedBox(height: 12),
-            if (error.timelineInfo.isNotEmpty) Text(error.timelineInfo),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
+  // Timeline info dialog removed - not needed in data-driven approach
 }

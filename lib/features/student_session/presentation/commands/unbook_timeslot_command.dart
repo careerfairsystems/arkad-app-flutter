@@ -1,6 +1,5 @@
 import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../../domain/use_cases/unbook_timeslot_use_case.dart';
 
 /// Command for unbooking a timeslot with defensive pattern implementation
@@ -70,15 +69,6 @@ class UnbookTimeslotCommand extends ParameterizedCommand<int, String> {
     setExecuting(true);
 
     try {
-      // Pre-execution validation: Check booking timeline constraints
-      try {
-        TimelineValidationService.validateBookingAllowed();
-      } on StudentSessionTimelineError catch (e) {
-        setError(e);
-        _setErrorMessage(e.userMessage);
-        return;
-      }
-
       // Validate company ID
       if (companyId <= 0) {
         const error = StudentSessionApplicationError(
@@ -115,15 +105,14 @@ class UnbookTimeslotCommand extends ParameterizedCommand<int, String> {
     }
   }
 
-  /// Check if the last error was a timeline error
-  bool get isTimelineError => error is StudentSessionTimelineError;
+  // Timeline error check removed - booking status controlled by server data
 
   /// Get a user-friendly description of the current state
   String get statusDescription {
     if (isExecuting) return 'Unbooking timeslot...';
     if (isCompleted && result != null) return 'Timeslot unbooked successfully';
     if (hasError) {
-      if (isTimelineError) return 'Unbooking is not currently available';
+      // Simplified error handling - booking restrictions enforced by server data
       return error?.userMessage ?? 'Failed to unbook timeslot';
     }
     return 'Ready to unbook';

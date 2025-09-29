@@ -1,6 +1,5 @@
 import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../../domain/entities/student_session.dart';
 import '../../domain/use_cases/apply_for_session_use_case.dart';
 
@@ -84,14 +83,6 @@ class ApplyForSessionCommand
     setExecuting(true);
 
     try {
-      // Pre-execution validation: Check timeline constraints
-      try {
-        TimelineValidationService.validateApplicationAllowed();
-      } on StudentSessionTimelineError catch (e) {
-        setError(e);
-        return;
-      }
-
       // Validate application parameters
       final validationError = _validateApplicationParams(params);
       if (validationError != null) {

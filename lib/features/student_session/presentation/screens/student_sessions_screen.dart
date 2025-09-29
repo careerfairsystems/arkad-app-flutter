@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import '../../../../shared/events/app_events.dart';
 import '../../../../shared/events/auth_events.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../domain/entities/student_session.dart';
 import '../view_models/student_session_view_model.dart';
@@ -116,7 +115,6 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
           body: Column(
             children: [
               _buildSearchBar(viewModel),
-              _buildTimelineInfo(context),
               Expanded(child: _buildSessionsList(viewModel)),
             ],
           ),
@@ -171,51 +169,6 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
               : null,
         ),
         onChanged: viewModel.searchStudentSessions,
-      ),
-    );
-  }
-
-  Widget _buildTimelineInfo(BuildContext context) {
-    final status = TimelineValidationService.getCurrentStatus();
-
-    Color statusColor;
-    IconData statusIcon;
-
-    if (status.canApply) {
-      statusColor = ArkadColors.arkadGreen;
-      statusIcon = Icons.check_circle_rounded;
-    } else if (status.canBook) {
-      statusColor = ArkadColors.arkadTurkos;
-      statusIcon = Icons.event_available_rounded;
-    } else {
-      statusColor = Theme.of(
-        context,
-      ).colorScheme.onSurface.withValues(alpha: 0.7);
-      statusIcon = Icons.schedule_rounded;
-    }
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(statusIcon, color: statusColor, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              status.reason,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: statusColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -364,19 +317,11 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
       return;
     }
 
-    // Check timeline status
-    final timelineStatus = TimelineValidationService.getCurrentStatus();
-
-    if (timelineStatus.canApply) {
-      // Can apply - navigate to application form
-      context.push(
-        '/sessions/application-form/${session.companyId}',
-        extra: session,
-      );
-    } else {
-      // Outside application period - show timeline info
-      _showTimelineInfo(timelineStatus);
-    }
+    // Navigate to application form - session availability controlled by server data
+    context.push(
+      '/sessions/application-form/${session.companyId}',
+      extra: session,
+    );
   }
 
   void _onViewTimeslots(StudentSession session) {
@@ -411,37 +356,6 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
             ),
             child: const Text('Sign In'),
           ),
-        ],
-      ),
-    );
-  }
-
-  void _showTimelineInfo(TimelineStatus timelineStatus) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Student Session Information'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(timelineStatus.reason),
-            const SizedBox(height: 16),
-            if (timelineStatus.timelineInfo.isNotEmpty) ...[
-              const Text(
-                'Timeline:',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                timelineStatus.timelineInfo,
-                style: const TextStyle(fontSize: 14),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => context.pop(), child: const Text('OK')),
         ],
       ),
     );

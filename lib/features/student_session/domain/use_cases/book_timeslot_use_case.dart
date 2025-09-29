@@ -1,7 +1,6 @@
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/use_case.dart';
 import '../../../../shared/errors/student_session_errors.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../repositories/student_session_repository.dart';
 
 /// Parameters for booking a timeslot
@@ -28,7 +27,7 @@ class BookTimeslotParams {
 }
 
 /// Use case for booking a specific timeslot
-/// Includes timeline validation and conflict handling
+/// Includes conflict handling
 class BookTimeslotUseCase extends UseCase<String, BookTimeslotParams> {
   const BookTimeslotUseCase(this._repository);
 
@@ -37,9 +36,6 @@ class BookTimeslotUseCase extends UseCase<String, BookTimeslotParams> {
   @override
   Future<Result<String>> call(BookTimeslotParams params) async {
     try {
-      // Validate booking timeline
-      TimelineValidationService.validateBookingAllowed();
-
       // Validate parameters
       if (params.companyId <= 0 || params.timeslotId <= 0) {
         return Result.failure(
@@ -49,15 +45,13 @@ class BookTimeslotUseCase extends UseCase<String, BookTimeslotParams> {
         );
       }
 
-      // Attempt to book the timeslot
+      // Attempt to book the timeslot - booking controlled by userStatus and bookingCloseTime
       final result = await _repository.bookTimeslot(
         companyId: params.companyId,
         timeslotId: params.timeslotId,
       );
 
       return result;
-    } on StudentSessionTimelineError catch (e) {
-      return Result.failure(e);
     } catch (e) {
       // Check if it's a conflict error (slot taken)
       if (e.toString().contains('conflict') ||

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../shared/errors/app_error.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../../student_session/presentation/view_models/student_session_view_model.dart';
 import '../../domain/entities/company.dart';
@@ -45,7 +44,7 @@ class CompanyDetailViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Handle session application request with authentication and timeline validation
+  /// Handle session application request with authentication check
   void handleSessionApplication(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     final studentSessionViewModel = Provider.of<StudentSessionViewModel>(
@@ -56,14 +55,6 @@ class CompanyDetailViewModel extends ChangeNotifier {
     // Check authentication status
     if (!authViewModel.isAuthenticated) {
       _showSignInPrompt(context);
-      return;
-    }
-
-    // Check timeline status
-    final timelineStatus = TimelineValidationService.getCurrentStatus();
-
-    if (!timelineStatus.canApply) {
-      _showTimelineInfo(context, timelineStatus);
       return;
     }
 
@@ -108,38 +99,6 @@ class CompanyDetailViewModel extends ChangeNotifier {
             },
             child: const Text('Sign In'),
           ),
-        ],
-      ),
-    );
-  }
-
-  /// Show timeline information when applications are not open
-  void _showTimelineInfo(BuildContext context, TimelineStatus timelineStatus) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Student Session Information'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(timelineStatus.reason),
-            const SizedBox(height: 16),
-            if (timelineStatus.timelineInfo.isNotEmpty) ...[
-              const Text(
-                'Timeline:',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                timelineStatus.timelineInfo,
-                style: const TextStyle(fontSize: 14),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => context.pop(), child: const Text('OK')),
         ],
       ),
     );

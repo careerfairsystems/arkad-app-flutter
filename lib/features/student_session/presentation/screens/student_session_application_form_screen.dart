@@ -5,11 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../services/service_locator.dart';
-import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_form_field.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../../../auth/domain/entities/user.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../../profile/domain/entities/programme.dart';
@@ -180,20 +178,7 @@ class _StudentSessionApplicationFormScreenState
     // Validate dynamic fields based on configuration
     if (!_validateDynamicFields()) return;
 
-    // Validate timeline before submission
-    try {
-      TimelineValidationService.validateApplicationAllowed();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unable to validate application timeline. Please try again.',
-          ),
-          backgroundColor: ArkadColors.lightRed,
-        ),
-      );
-      return;
-    }
+    // Session availability controlled by server data (available field, userStatus)
 
     final viewModel = Provider.of<StudentSessionViewModel>(
       context,
@@ -758,54 +743,8 @@ class _StudentSessionApplicationFormScreenState
     );
   }
 
+  // Timeline warnings removed - session availability controlled by server data
   Widget _buildTimelineWarning() {
-    final status = TimelineValidationService.getCurrentStatus();
-
-    if (!status.canApply) {
-      Color statusColor;
-      IconData statusIcon;
-
-      switch (status.phase) {
-        case StudentSessionPhase.beforeApplication:
-          statusColor = Theme.of(
-            context,
-          ).colorScheme.onSurface.withValues(alpha: 0.7);
-          statusIcon = Icons.schedule_rounded;
-        case StudentSessionPhase.applicationClosed:
-        case StudentSessionPhase.beforeBooking:
-        case StudentSessionPhase.bookingClosed:
-        case StudentSessionPhase.sessionComplete:
-          statusColor = ArkadColors.lightRed;
-          statusIcon = Icons.warning_rounded;
-        default:
-          return const SizedBox.shrink();
-      }
-
-      return Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: statusColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          children: [
-            Icon(statusIcon, color: statusColor, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                status.reason,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: statusColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     return const SizedBox.shrink();
   }
 
@@ -1198,8 +1137,6 @@ class _StudentSessionApplicationFormScreenState
   }
 
   Widget _buildSubmitButton(bool isSubmitting) {
-    final status = TimelineValidationService.getCurrentStatus();
-
     // Use dynamic field validation
     bool hasAllRequiredFields = true;
     List<String> missingFields = [];
@@ -1233,7 +1170,8 @@ class _StudentSessionApplicationFormScreenState
           _motivationWordCount <= 300;
     }
 
-    final canSubmit = status.canApply && !isSubmitting && hasAllRequiredFields;
+    // Data availability controls user flow - only check form validity
+    final canSubmit = !isSubmitting && hasAllRequiredFields;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,6 +1,5 @@
 import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../../domain/use_cases/book_timeslot_use_case.dart';
 
 /// Command for booking a timeslot with defensive pattern implementation and conflict resolution
@@ -79,15 +78,6 @@ class BookTimeslotCommand
     setExecuting(true);
 
     try {
-      // Pre-execution validation: Check booking timeline constraints
-      try {
-        TimelineValidationService.validateBookingAllowed();
-      } on StudentSessionTimelineError catch (e) {
-        setError(e);
-        _setErrorMessage(e.userMessage);
-        return;
-      }
-
       // Validate booking parameters
       final validationError = _validateBookingParams(params);
       if (validationError != null) {
@@ -149,8 +139,7 @@ class BookTimeslotCommand
   /// Check if the last error was due to capacity being full
   bool get isCapacityFull => error is StudentSessionCapacityError;
 
-  /// Check if the last error was a timeline error
-  bool get isTimelineError => error is StudentSessionTimelineError;
+  // Timeline error check removed - booking controlled by userStatus and server data
 
   /// Get a user-friendly description of the current state
   String get statusDescription {
@@ -161,7 +150,7 @@ class BookTimeslotCommand
         return 'This timeslot was just taken by someone else';
       }
       if (isCapacityFull) return 'This session is now full';
-      if (isTimelineError) return 'Booking is not currently available';
+      // Simplified error handling - booking restrictions enforced by server data
       return error?.userMessage ?? 'Failed to book timeslot';
     }
     return 'Ready to book';

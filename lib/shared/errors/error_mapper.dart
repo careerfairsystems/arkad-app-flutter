@@ -22,11 +22,12 @@ class ErrorMapper {
         // Student session specific 400 errors
         if (operationContext?.contains('student_session') == true) {
           final errorMessage = _extractErrorMessage(responseData);
+          // Timeline errors now handled as generic application errors
+          // Session availability controlled by server data (available field, userStatus)
           if (errorMessage?.contains('timeline') == true ||
               errorMessage?.contains('application period') == true) {
-            return const StudentSessionTimelineError(
-              message:
-                  'You can only apply during the application period (Oct 13-26, 2025).',
+            return StudentSessionApplicationError(
+              errorMessage ?? 'Application not available at this time.',
             );
           }
           if (errorMessage?.contains('invalid') == true ||
@@ -284,20 +285,7 @@ class ErrorMapper {
           ),
         ];
 
-      case StudentSessionTimelineError _:
-        return [
-          RecoveryAction(
-            label: "Check Timeline",
-            action: () => _showTimelineInfo(context),
-            isPrimary: true,
-            icon: Icons.schedule,
-          ),
-          RecoveryAction(
-            label: "View Companies",
-            action: () => context.go('/companies'),
-            icon: Icons.business,
-          ),
-        ];
+      // Timeline error recovery removed - backend prevents invalid operations
 
       case StudentSessionApplicationError _:
         return [
@@ -465,16 +453,7 @@ class ErrorMapper {
     );
   }
 
-  static void _showTimelineInfo(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Application period: Oct 13-26, 2025, Booking period: Nov 2 17:00 - Nov 5 23:59, 2025',
-        ),
-        duration: Duration(seconds: 5),
-      ),
-    );
-  }
+  // Timeline info method removed - not needed in data-driven approach
 
   static void _showFileCompressionHelp(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(

@@ -1,7 +1,6 @@
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/use_case.dart';
 import '../../../../shared/errors/student_session_errors.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../entities/timeslot.dart';
 import '../repositories/student_session_repository.dart';
 
@@ -15,10 +14,7 @@ class GetTimeslotsUseCase extends UseCase<List<Timeslot>, int> {
   @override
   Future<Result<List<Timeslot>>> call(int companyId) async {
     try {
-      // Validate booking timeline - timeslots should only be visible during booking period
-      TimelineValidationService.validateBookingAllowed();
-
-      // Get timeslots from repository
+      // Get timeslots from repository - availability controlled by server data population
       final result = await _repository.getTimeslots(companyId);
 
       return result.when(
@@ -29,8 +25,6 @@ class GetTimeslotsUseCase extends UseCase<List<Timeslot>, int> {
         },
         failure: (error) => Result.failure(error),
       );
-    } on StudentSessionTimelineError catch (e) {
-      return Result.failure(e);
     } catch (e) {
       return Result.failure(
         const StudentSessionApplicationError(

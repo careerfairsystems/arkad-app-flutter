@@ -1,5 +1,3 @@
-import '../../../../shared/errors/student_session_errors.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../entities/student_session_application.dart';
 import 'student_session_data_service.dart';
 
@@ -31,12 +29,10 @@ class StudentSessionStatusService {
     final applicationStatus = sessionWithApp.effectiveApplicationStatus;
 
     if (applicationStatus == null) {
-      // No application - check if can apply
-      final timelineStatus = TimelineValidationService.checkApplicationPeriod();
-      return StudentSessionStatusInfo(
+      return const StudentSessionStatusInfo(
         displayText: 'Available',
         badgeText: null,
-        canApply: timelineStatus.canApply,
+        canApply: true,
         canBook: false,
         hasBooking: false,
       );
@@ -54,14 +50,13 @@ class StudentSessionStatusService {
         );
 
       case ApplicationStatus.accepted:
-        final timelineStatus = TimelineValidationService.checkBookingPeriod();
         final hasBooking = sessionWithApp.hasBooking;
 
         return StudentSessionStatusInfo(
           displayText: 'You were accepted!',
           badgeText: 'Accepted!',
           canApply: false,
-          canBook: timelineStatus.canBook && !hasBooking,
+          canBook: !hasBooking, // Can book if no existing booking
           hasBooking: hasBooking,
         );
 
@@ -131,7 +126,6 @@ class StudentSessionStatusService {
         );
 
       case ApplicationStatus.accepted:
-        final timelineStatus = TimelineValidationService.checkBookingPeriod();
         final hasBooking = appWithBooking.hasBooking;
 
         return StudentSessionStatusInfo(
@@ -140,7 +134,7 @@ class StudentSessionStatusService {
               : 'Ready to book timeslot',
           badgeText: 'You were accepted!',
           canApply: false,
-          canBook: timelineStatus.canBook && !hasBooking,
+          canBook: !hasBooking, 
           hasBooking: hasBooking,
         );
 
@@ -162,15 +156,6 @@ class StudentSessionStatusService {
   ) {
     final applicationStatus = sessionWithApp.effectiveApplicationStatus;
 
-    if (applicationStatus == ApplicationStatus.accepted) {
-      final timelineStatus = TimelineValidationService.checkBookingPeriod();
-      if (!timelineStatus.canBook) {
-        return timelineStatus.phase == StudentSessionPhase.beforeBooking
-            ? 'Booking Opens Later'
-            : 'Booking Ended';
-      }
-    }
-
     if (applicationStatus == ApplicationStatus.rejected) {
       return 'Application Rejected';
     }
@@ -179,12 +164,8 @@ class StudentSessionStatusService {
       return 'Application Pending';
     }
 
-    // No application yet but can't apply
-    final timelineStatus = TimelineValidationService.checkApplicationPeriod();
-    if (!timelineStatus.canApply) {
-      return timelineStatus.phase == StudentSessionPhase.beforeApplication
-          ? 'Applications Open Later'
-          : 'Applications Closed';
+    if (applicationStatus == ApplicationStatus.accepted) {
+      return 'Accepted';
     }
 
     return 'Not Available';

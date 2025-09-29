@@ -4,13 +4,12 @@ import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
-import '../../../../shared/services/timeline_validation_service.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../domain/entities/student_session.dart';
 import '../../domain/services/student_session_data_service.dart';
 import '../../domain/services/student_session_status_service.dart';
 
-/// Widget that displays appropriate actions based on authentication status and timeline
+/// Widget that displays appropriate actions based on authentication status and session data
 class StudentSessionActions extends StatelessWidget {
   final StudentSession session;
   final VoidCallback onApply;
@@ -119,86 +118,5 @@ class StudentSessionActions extends StatelessWidget {
   }
 }
 
-/// Timeline-aware wrapper for student session actions
-class TimelineAwareStudentSessionActions extends StatelessWidget {
-  final StudentSession session;
-  final VoidCallback onApply;
-  final VoidCallback onViewTimeslots;
-
-  const TimelineAwareStudentSessionActions({
-    super.key,
-    required this.session,
-    required this.onApply,
-    required this.onViewTimeslots,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final timelineStatus = TimelineValidationService.getCurrentStatus();
-
-    return Consumer<AuthViewModel>(
-      builder: (context, authViewModel, child) {
-        final isAuthenticated = authViewModel.isAuthenticated;
-
-        if (!isAuthenticated) {
-          return StudentSessionActions(
-            session: session,
-            onApply: onApply,
-            onViewTimeslots: onViewTimeslots,
-          );
-        }
-
-        // For authenticated users, check timeline status
-        if (!timelineStatus.canApply && !timelineStatus.canBook) {
-          return _buildTimelineInfo(context, timelineStatus);
-        }
-
-        return StudentSessionActions(
-          session: session,
-          onApply: onApply,
-          onViewTimeslots: onViewTimeslots,
-        );
-      },
-    );
-  }
-
-  Widget _buildTimelineInfo(
-    BuildContext context,
-    TimelineStatus timelineStatus,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(
-            context,
-          ).colorScheme.onSurface.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.schedule_rounded,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.7),
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              timelineStatus.reason,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// Timeline-aware wrapper removed - now using pure data-driven approach
+// Use StudentSessionActions directly, which respects session.isAvailable and other backend-controlled fields
