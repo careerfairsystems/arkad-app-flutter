@@ -258,15 +258,17 @@ class StudentSessionApplicationParams {
 
   /// Validate motivation text length (requirement: ≤300 words)
   bool get isMotivationValid {
-    if (motivationText.isEmpty) return false;
-    final words = motivationText.trim().split(RegExp(r'\s+'));
+    final trimmed = motivationText.trim();
+    if (trimmed.isEmpty) return false;
+    final words = trimmed.split(RegExp(r'\s+'));
     return words.length <= 300;
   }
 
   /// Get word count for motivation text
   int get motivationWordCount {
-    if (motivationText.isEmpty) return 0;
-    final words = motivationText.trim().split(RegExp(r'\s+'));
+    final trimmed = motivationText.trim();
+    if (trimmed.isEmpty) return 0;
+    final words = trimmed.split(RegExp(r'\s+'));
     return words.length;
   }
 
