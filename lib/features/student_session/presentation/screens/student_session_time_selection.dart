@@ -63,6 +63,10 @@ class _StudentSessionTimeSelection
           context,
           listen: false,
         );
+        
+        viewModel.bookTimeslotCommand.reset();
+        viewModel.unbookTimeslotCommand.reset();
+        
         final companyId = int.parse(widget.id);
         viewModel.setSelectedCompany(companyId);
       }

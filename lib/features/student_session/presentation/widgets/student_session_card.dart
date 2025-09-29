@@ -61,11 +61,13 @@ class StudentSessionCard extends StatelessWidget {
                 switch (actionInfo.action) {
                   case ActionType.apply:
                     onApply?.call();
+                    return;
                   case ActionType.bookTimeslot:
                   case ActionType.manageBooking:
                     onViewTimeslots?.call();
+                    return;
                   case ActionType.none:
-                    break;
+                    return;
                 }
               }
             : null,
@@ -188,17 +190,11 @@ class StudentSessionCard extends StatelessWidget {
     BuildContext context,
     StudentSessionUIActionInfo actionInfo,
   ) {
-    VoidCallback? buttonCallback;
-
-    switch (actionInfo.action) {
-      case ActionType.apply:
-        buttonCallback = onApply;
-      case ActionType.bookTimeslot:
-      case ActionType.manageBooking:
-        buttonCallback = onViewTimeslots;
-      case ActionType.none:
-        buttonCallback = null;
-    }
+    final buttonCallback = switch (actionInfo.action) {
+      ActionType.apply => onApply,
+      ActionType.bookTimeslot || ActionType.manageBooking => onViewTimeslots,
+      ActionType.none => null,
+    };
 
     return Row(
       children: [

@@ -252,6 +252,12 @@ class _StudentSessionApplicationFormScreenState
                     context.pop();
                   }
                 });
+
+                final viewModelForReset = Provider.of<StudentSessionViewModel>(
+                  context,
+                  listen: false,
+                );
+                viewModelForReset.applyForSessionCommand.reset();
               }
             });
           }
@@ -298,6 +304,13 @@ class _StudentSessionApplicationFormScreenState
                         : null,
                   ),
                 );
+
+                // Clear command error state to prevent re-triggering on subsequent rebuilds
+                final viewModelForErrorClear = Provider.of<StudentSessionViewModel>(
+                  context,
+                  listen: false,
+                );
+                viewModelForErrorClear.applyForSessionCommand.clearError();
               }
             });
           }
