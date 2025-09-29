@@ -70,7 +70,6 @@ class StudentSession {
     return DateTime.now().isBefore(bookingCloseTime!);
   }
 
-
   /// Get field configuration for a specific field
   FieldConfiguration? getFieldConfiguration(String fieldName) {
     for (final config in fieldConfigurations) {

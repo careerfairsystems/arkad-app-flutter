@@ -141,7 +141,6 @@ class BookTimeslotCommand
 
   // Timeline error check removed - booking controlled by userStatus and server data
 
-
   /// Reset command state and clear any errors and messages
   @override
   void reset({bool notify = true}) {

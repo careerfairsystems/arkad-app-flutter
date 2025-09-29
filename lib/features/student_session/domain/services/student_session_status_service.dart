@@ -125,7 +125,7 @@ class StudentSessionStatusService {
         return StudentSessionStatusInfo(
           badgeText: 'You were accepted!',
           canApply: false,
-          canBook: !hasBooking, 
+          canBook: !hasBooking,
           hasBooking: hasBooking,
         );
 

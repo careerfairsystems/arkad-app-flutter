@@ -105,8 +105,6 @@ class UnbookTimeslotCommand extends ParameterizedCommand<int, String> {
     }
   }
 
-
-
   /// Reset command state and clear any errors and messages
   @override
   void reset({bool notify = true}) {

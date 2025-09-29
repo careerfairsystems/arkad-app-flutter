@@ -39,7 +39,6 @@ class StudentSessionStatusMapper {
 
   // Private mapping methods
 
-
   Color _mapBadgeColor(String badgeText) {
     switch (badgeText.toLowerCase()) {
       case 'pending':

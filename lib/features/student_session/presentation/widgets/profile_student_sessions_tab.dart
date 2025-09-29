@@ -466,7 +466,6 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
               ),
             ],
 
-
             // Action buttons (only for accepted applications when showActions is true)
             if (showActions &&
                 application.status == ApplicationStatus.accepted) ...[
@@ -539,7 +538,6 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
       ),
     );
   }
-
 
   Widget _buildBookingActionButtons(
     BuildContext context,
