@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/events/app_events.dart';
@@ -183,6 +183,9 @@ class StudentSessionViewModel extends ChangeNotifier {
   Future<void> loadMyApplications({bool forceRefresh = false}) async {
     // Wait for authentication completion with timeout protection
     if (!await _waitForAuthCompletion()) {
+      if (kDebugMode) {
+        print('StudentSessionViewModel: Auth completion failed - either timeout (>5s) or user not authenticated');
+      }
       return; // Don't load applications if user is not authenticated or timeout occurred
     }
 
@@ -197,6 +200,9 @@ class StudentSessionViewModel extends ChangeNotifier {
   }) async {
     // Wait for authentication completion with timeout protection
     if (!await _waitForAuthCompletion()) {
+      if (kDebugMode) {
+        print('StudentSessionViewModel: Auth completion failed - either timeout (>5s) or user not authenticated');
+      }
       return; // Don't load applications if user is not authenticated or timeout occurred
     }
 
@@ -393,6 +399,7 @@ class StudentSessionViewModel extends ChangeNotifier {
         // Handle booking conflict with immediate refresh and user guidance
         await _handleBookingConflict();
       }
+      notifyListeners(); // Ensure all error states propagate to UI
       return; // CRITICAL: Exit early to prevent success flow after error
     }
 
