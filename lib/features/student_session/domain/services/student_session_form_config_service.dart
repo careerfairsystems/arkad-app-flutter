@@ -214,10 +214,24 @@ class StudentSessionFormConfigService {
   bool validateRequiredFields(Map<String, dynamic> fieldValues) {
     for (final fieldName in getRequiredVisibleFields()) {
       final value = fieldValues[fieldName];
-      if (value == null || (value is String && value.trim().isEmpty)) {
+      if (!_isFieldValueValid(value)) {
         return false;
       }
     }
+    return true;
+  }
+
+  /// Check if a field value is valid (not null/empty/missing)
+  bool _isFieldValueValid(dynamic value) {
+    if (value == null) return false;
+
+    // Handle string fields (most common)
+    if (value is String) {
+      return value.trim().isNotEmpty;
+    }
+
+    // Handle file fields (PlatformFile objects)
+    // For files, just check if the object exists - validation happens elsewhere
     return true;
   }
 
@@ -226,7 +240,7 @@ class StudentSessionFormConfigService {
     final missingFields = <String>[];
     for (final fieldName in getRequiredVisibleFields()) {
       final value = fieldValues[fieldName];
-      if (value == null || (value is String && value.trim().isEmpty)) {
+      if (!_isFieldValueValid(value)) {
         missingFields.add(_getFieldDisplayName(fieldName));
       }
     }
@@ -246,6 +260,8 @@ class StudentSessionFormConfigService {
         return 'Study Year';
       case 'motivationText':
         return 'Motivation';
+      case 'cv':
+        return 'CV';
       default:
         // Capitalize first letter and replace camelCase with spaces
         return fieldName[0].toUpperCase() +

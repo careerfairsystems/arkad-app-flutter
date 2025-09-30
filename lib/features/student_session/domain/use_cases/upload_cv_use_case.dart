@@ -1,35 +1,37 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/use_case.dart';
 import '../../../../shared/errors/student_session_errors.dart';
+import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../../shared/infrastructure/services/file_validation_service.dart';
 import '../repositories/student_session_repository.dart';
 
 /// Parameters for uploading CV
 class UploadCVParams {
-  const UploadCVParams({required this.companyId, required this.filePath});
+  const UploadCVParams({required this.companyId, required this.file});
 
   final int companyId;
-  final String filePath;
+  final PlatformFile file;
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is UploadCVParams &&
         other.companyId == companyId &&
-        other.filePath == filePath;
+        other.file.name == file.name &&
+        other.file.size == file.size;
   }
 
   @override
-  int get hashCode => Object.hash(companyId, filePath);
+  int get hashCode => Object.hash(companyId, file.name, file.size);
 
   @override
   String toString() {
-    final fileName = filePath.split('/').last;
-    return 'UploadCVParams(companyId: $companyId, fileName: $fileName)';
+    return 'UploadCVParams(companyId: $companyId, fileName: ${file.name})';
   }
 }
 
@@ -49,7 +51,7 @@ class UploadCVUseCase extends UseCase<String, UploadCVParams> {
         );
       }
 
-      if (params.filePath.isEmpty) {
+      if (params.file.name.isEmpty) {
         return Result.failure(
           const StudentSessionApplicationError(
             'No file selected. Please select a CV file to upload.',
@@ -57,16 +59,24 @@ class UploadCVUseCase extends UseCase<String, UploadCVParams> {
         );
       }
 
-      // Comprehensive file validation using FileValidationService
-      final file = File(params.filePath);
-      final validationResult = await FileValidationService.validateCVFile(file);
+      // Comprehensive file validation using platform-appropriate method
+      final validationResult = kIsWeb
+          ? FileValidationService.validateCVFromBytes(
+              params.file.bytes,
+              params.file.name,
+            )
+          : await FileValidationService.validateCVFile(
+              params.file.path != null
+                  ? File(params.file.path!)
+                  : throw StateError('File path not available on mobile'),
+            );
 
       return await validationResult.when(
         success: (_) async {
           // File is valid, proceed with upload
           return await _repository.uploadCVForSession(
             companyId: params.companyId,
-            filePath: params.filePath,
+            file: params.file,
           );
         },
         failure: (validationError) async {
@@ -93,7 +103,7 @@ class UploadCVUseCase extends UseCase<String, UploadCVParams> {
       if (errorString.contains('size') || errorString.contains('413')) {
         return Result.failure(
           StudentSessionFileUploadError(
-            params.filePath.split('/').last,
+            params.file.name,
             details: 'File is too large. Maximum size is 10MB.',
           ),
         );
@@ -101,7 +111,7 @@ class UploadCVUseCase extends UseCase<String, UploadCVParams> {
 
       return Result.failure(
         StudentSessionFileUploadError(
-          params.filePath.split('/').last,
+          params.file.name,
           details: 'Failed to upload CV. Please try again.',
         ),
       );

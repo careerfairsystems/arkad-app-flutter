@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -42,9 +40,13 @@ class _StudentSessionApplicationFormScreenState
   int _motivationWordCount = 0;
 
   // Form fields - requirements now determined dynamically
-  File? _selectedCV;
+  PlatformFile? _selectedCV;
   Programme? _selectedProgramme;
   int? _studyYear;
+
+  // Message handling state to prevent duplicates and setState during build
+  bool _hasHandledApplicationSuccess = false;
+  bool _hasHandledApplicationError = false;
 
   @override
   void initState() {
@@ -134,13 +136,14 @@ class _StudentSessionApplicationFormScreenState
   bool _validateDynamicFields() {
     if (_formConfig == null) return false;
 
-    // Collect field values for validation
+    // Collect field values for validation including CV
     final fieldValues = <String, dynamic>{
       'programme': _selectedProgramme,
       'studyYear': _studyYear,
       'masterTitle': _masterTitleController.text.trim(),
       'linkedin': _linkedinController.text.trim(),
       'motivationText': _motivationController.text.trim(),
+      'cv': _selectedCV, // Include CV in validation
     };
 
     // Check if all required fields have values
@@ -152,19 +155,6 @@ class _StudentSessionApplicationFormScreenState
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: ArkadColors.lightRed),
-      );
-      return false;
-    }
-
-    // Validate CV upload - always required for Student Session applications
-    if (_selectedCV == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'CV upload is required for Student Session applications',
-          ),
-          backgroundColor: ArkadColors.lightRed,
-        ),
       );
       return false;
     }
@@ -195,7 +185,7 @@ class _StudentSessionApplicationFormScreenState
           : _linkedinController.text.trim(),
       masterTitle: _masterTitleController.text.trim(),
       studyYear: _studyYear,
-      cvFilePath: _selectedCV?.path,
+      cvFile: _selectedCV,
     );
   }
 
@@ -214,8 +204,90 @@ class _StudentSessionApplicationFormScreenState
     // Success and error messages are handled by the Consumer logic above
     await viewModel.retryCVUpload(
       companyId: int.parse(widget.companyId),
-      filePath: _selectedCV!.path,
+      file: _selectedCV!,
     );
+  }
+
+  /// Smart message handling with guards to prevent setState during build
+  void _handleCommandMessages(StudentSessionViewModel viewModel) {
+    final command = viewModel.applyForSessionCommand;
+
+    // Handle application success messages
+    if (command.showSuccessMessage && !_hasHandledApplicationSuccess) {
+      _hasHandledApplicationSuccess = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                command.successMessage ?? 'Application submitted successfully!',
+              ),
+              backgroundColor: ArkadColors.arkadGreen,
+            ),
+          );
+
+          command.clearSuccessMessage();
+
+          // Navigate back after a short delay to ensure data refresh completes
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted && context.mounted && context.canPop()) {
+              context.pop();
+            }
+            // Reset command state after navigation
+            viewModel.applyForSessionCommand.reset();
+          });
+        }
+      });
+    } else if (!command.showSuccessMessage) {
+      _hasHandledApplicationSuccess = false; // Reset when message is cleared
+    }
+
+    // Handle application error messages
+    if (command.showErrorMessage && !_hasHandledApplicationError) {
+      _hasHandledApplicationError = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final errorMessage =
+              command.errorMessage ?? 'An error occurred. Please try again.';
+          final showRetryOption =
+              errorMessage.contains('CV') && _selectedCV != null;
+
+          // Handle specific 401 authentication errors
+          if (errorMessage.contains('session has expired') ||
+              errorMessage.contains('Unauthorized')) {
+            final authViewModel = Provider.of<AuthViewModel>(
+              context,
+              listen: false,
+            );
+            authViewModel.signOut();
+
+            Future.delayed(const Duration(seconds: 2), () {
+              if (mounted && context.mounted) {
+                context.go('/auth/login');
+              }
+            });
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: ArkadColors.lightRed,
+              action: showRetryOption
+                  ? SnackBarAction(
+                      label: 'Retry CV Upload',
+                      textColor: ArkadColors.white,
+                      onPressed: () => _retryCVUpload(viewModel),
+                    )
+                  : null,
+            ),
+          );
+
+          command.clearErrorMessage();
+        }
+      });
+    } else if (!command.showErrorMessage) {
+      _hasHandledApplicationError = false; // Reset when message is cleared
+    }
   }
 
   @override
@@ -232,89 +304,8 @@ class _StudentSessionApplicationFormScreenState
       appBar: AppBar(title: const Text('Apply for Session'), elevation: 2),
       body: Consumer<StudentSessionViewModel>(
         builder: (context, viewModel, child) {
-          // Handle command completion states directly without centralized message system
-          final command = viewModel.applyForSessionCommand;
-
-          // Navigate back on successful application
-          if (command.isCompleted && !command.hasError) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Application submitted successfully!'),
-                    backgroundColor: ArkadColors.arkadGreen,
-                  ),
-                );
-
-                // Navigate back after a short delay
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (mounted && context.mounted && context.canPop()) {
-                    context.pop();
-                  }
-                });
-
-                final viewModelForReset = Provider.of<StudentSessionViewModel>(
-                  context,
-                  listen: false,
-                );
-                viewModelForReset.applyForSessionCommand.reset();
-              }
-            });
-          }
-
-          // Handle command errors
-          if (command.hasError) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                final errorMessage =
-                    command.error?.userMessage ??
-                    'An error occurred. Please try again.';
-                final showRetryOption =
-                    errorMessage.contains('CV') && _selectedCV != null;
-
-                // Handle specific 401 authentication errors
-                if (errorMessage.contains('session has expired') ||
-                    errorMessage.contains('Unauthorized')) {
-                  final authViewModel = Provider.of<AuthViewModel>(
-                    context,
-                    listen: false,
-                  );
-                  authViewModel.signOut();
-
-                  Future.delayed(const Duration(seconds: 2), () {
-                    if (mounted && context.mounted) {
-                      context.go('/auth/login');
-                    }
-                  });
-                }
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(errorMessage),
-                    backgroundColor: ArkadColors.lightRed,
-                    duration: showRetryOption
-                        ? const Duration(seconds: 6)
-                        : const Duration(seconds: 4),
-                    action: showRetryOption
-                        ? SnackBarAction(
-                            label: 'Retry CV',
-                            textColor: ArkadColors.white,
-                            onPressed: () => _retryCVUpload(viewModel),
-                          )
-                        : null,
-                  ),
-                );
-
-                // Clear command error state to prevent re-triggering on subsequent rebuilds
-                final viewModelForErrorClear =
-                    Provider.of<StudentSessionViewModel>(
-                      context,
-                      listen: false,
-                    );
-                viewModelForErrorClear.applyForSessionCommand.clearError();
-              }
-            });
-          }
+          // Handle command messages using the proper notification pipeline
+          _handleCommandMessages(viewModel);
 
           return _buildForm(viewModel);
         },
@@ -891,6 +882,12 @@ class _StudentSessionApplicationFormScreenState
     // LinkedIn field (if optional)
     if (_formConfig!.shouldShowInOptionalSection('linkedin')) {
       optionalFields.add(_buildLinkedInField(isOptional: true));
+      optionalFields.add(const SizedBox(height: 16));
+    }
+
+    // CV Upload Section (if optional)
+    if (_formConfig!.shouldShowInOptionalSection('cv')) {
+      optionalFields.add(_buildCVUploadSection(isOptional: true));
     }
 
     if (optionalFields.isEmpty) return const SizedBox.shrink();
@@ -1012,11 +1009,13 @@ class _StudentSessionApplicationFormScreenState
       requiredFields.add(const SizedBox(height: 16));
     }
 
-    // Add CV Upload Section - always shown as it's always required
-    requiredFields.addAll([
-      if (requiredFields.isNotEmpty) const SizedBox(height: 8),
-      _buildCVUploadSection(),
-    ]);
+    // CV Upload Section (if required and visible)
+    if (_formConfig!.shouldShowInRequiredSection('cv')) {
+      requiredFields.addAll([
+        if (requiredFields.isNotEmpty) const SizedBox(height: 8),
+        _buildCVUploadSection(),
+      ]);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1024,12 +1023,17 @@ class _StudentSessionApplicationFormScreenState
     );
   }
 
-  Widget _buildCVUploadSection() {
+  Widget _buildCVUploadSection({bool isOptional = false}) {
+    // Use dynamic label and required indicator based on form configuration
+    final cvLabel =
+        _formConfig?.getFieldLabel('CV / Resume', 'cv') ?? 'CV / Resume';
+    final isRequired = _formConfig?.isFieldRequired('cv') ?? true;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'CV / Resume *',
+          cvLabel,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -1039,15 +1043,17 @@ class _StudentSessionApplicationFormScreenState
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             border: Border.all(
-              color: _selectedCV == null
-                  ? ArkadColors.lightRed
-                  : ArkadColors.arkadGreen,
+              color: _selectedCV != null
+                  ? ArkadColors.arkadGreen
+                  : (isRequired ? ArkadColors.lightRed : ArkadColors.gray),
               width: 1.5,
             ),
             borderRadius: BorderRadius.circular(8),
-            color: _selectedCV == null
-                ? ArkadColors.lightRed.withValues(alpha: 0.05)
-                : ArkadColors.arkadGreen.withValues(alpha: 0.05),
+            color: _selectedCV != null
+                ? ArkadColors.arkadGreen.withValues(alpha: 0.05)
+                : (isRequired
+                      ? ArkadColors.lightRed.withValues(alpha: 0.05)
+                      : ArkadColors.gray.withValues(alpha: 0.05)),
           ),
           child: Column(
             children: [
@@ -1059,7 +1065,9 @@ class _StudentSessionApplicationFormScreenState
                         : Icons.upload_file,
                     color: _selectedCV != null
                         ? ArkadColors.arkadGreen
-                        : ArkadColors.lightRed,
+                        : (isRequired
+                              ? ArkadColors.lightRed
+                              : ArkadColors.gray),
                     size: 24,
                   ),
                   const SizedBox(width: 16),
@@ -1069,13 +1077,17 @@ class _StudentSessionApplicationFormScreenState
                       children: [
                         Text(
                           _selectedCV != null
-                              ? 'CV Selected: ${_selectedCV!.path.split('/').last}'
-                              : 'CV Required - No file selected',
+                              ? 'CV Selected: ${_selectedCV!.name}'
+                              : isRequired
+                              ? 'CV Required - No file selected'
+                              : 'CV - No file selected (Optional)',
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: _selectedCV != null
                                     ? ArkadColors.arkadGreen
-                                    : ArkadColors.lightRed,
+                                    : (isRequired
+                                          ? ArkadColors.lightRed
+                                          : ArkadColors.gray),
                                 fontWeight: FontWeight.w500,
                               ),
                         ),
@@ -1138,11 +1150,11 @@ class _StudentSessionApplicationFormScreenState
 
   Future<void> _pickCV() async {
     final fileService = serviceLocator<FileService>();
-    final File? cv = await fileService.pickCVFile(context: context);
+    final platformFile = await fileService.pickCVFile(context: context);
 
-    if (cv != null) {
+    if (platformFile != null) {
       setState(() {
-        _selectedCV = cv;
+        _selectedCV = platformFile;
       });
     }
   }
@@ -1152,33 +1164,30 @@ class _StudentSessionApplicationFormScreenState
     bool hasAllRequiredFields = true;
     List<String> missingFields = [];
 
-    if (_formConfig != null) {
+    // Form config should always be available when form is displayed
+    if (_formConfig == null) {
+      // This should not happen - form is only shown with valid session data
+      hasAllRequiredFields = false;
+    } else {
       final fieldValues = <String, dynamic>{
         'programme': _selectedProgramme,
         'studyYear': _studyYear,
         'masterTitle': _masterTitleController.text.trim(),
         'linkedin': _linkedinController.text.trim(),
         'motivationText': _motivationController.text.trim(),
+        'cv': _selectedCV, // Include CV in validation
       };
 
       hasAllRequiredFields =
           _formConfig!.validateRequiredFields(fieldValues) &&
-          _selectedCV != null &&
           _motivationWordCount <= 300;
 
       if (!hasAllRequiredFields) {
         missingFields = _formConfig!.getMissingRequiredFields(fieldValues);
-        if (_selectedCV == null) missingFields.add('CV upload');
         if (_motivationWordCount > 300) {
           missingFields.add('valid motivation (≤300 words)');
         }
       }
-    } else {
-      // Fallback for when form config is not available
-      hasAllRequiredFields =
-          _selectedCV != null &&
-          _motivationController.text.trim().isNotEmpty &&
-          _motivationWordCount <= 300;
     }
 
     // Data availability controls user flow - only check form validity

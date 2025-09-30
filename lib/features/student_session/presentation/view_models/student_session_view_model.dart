@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/events/app_events.dart';
 import '../../../../shared/events/auth_events.dart';
+import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../domain/entities/student_session.dart';
 import '../../domain/entities/student_session_application.dart';
@@ -213,11 +214,11 @@ class StudentSessionViewModel extends ChangeNotifier {
   /// Stores detailed error information for UI recovery options
   Future<bool> uploadCVForSession({
     required int companyId,
-    required String filePath,
+    required PlatformFile file,
   }) async {
     try {
       final result = await _uploadCVUseCase.call(
-        UploadCVParams(companyId: companyId, filePath: filePath),
+        UploadCVParams(companyId: companyId, file: file),
       );
       return result.when(
         success: (_) {
@@ -255,7 +256,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     String? linkedin,
     String? masterTitle,
     int? studyYear,
-    String? cvFilePath,
+    PlatformFile? cvFile,
   }) async {
     // Clear any previous CV upload errors
     _cvUploadError = null;
@@ -283,10 +284,10 @@ class StudentSessionViewModel extends ChangeNotifier {
 
       // If CV file is provided, upload it after successful application
       // CV upload failure is now BLOCKING - it will fail the entire application
-      if (cvFilePath != null && cvFilePath.isNotEmpty) {
+      if (cvFile != null) {
         final cvUploaded = await uploadCVForSession(
           companyId: companyId,
-          filePath: cvFilePath,
+          file: cvFile,
         );
 
         if (!cvUploaded) {
@@ -296,6 +297,10 @@ class StudentSessionViewModel extends ChangeNotifier {
           return;
         }
       }
+
+      // Refresh student session data to reflect the new application status
+      // This ensures the main screen shows updated state when user navigates back
+      await loadMyApplicationsWithBookingState(forceRefresh: true);
     }
   }
 
@@ -337,15 +342,12 @@ class StudentSessionViewModel extends ChangeNotifier {
   /// This allows users to retry CV upload without re-submitting the entire application
   Future<bool> retryCVUpload({
     required int companyId,
-    required String filePath,
+    required PlatformFile file,
   }) async {
     // Clear previous errors before retry
     _cvUploadError = null;
 
-    final success = await uploadCVForSession(
-      companyId: companyId,
-      filePath: filePath,
-    );
+    final success = await uploadCVForSession(companyId: companyId, file: file);
 
     return success;
   }

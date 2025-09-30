@@ -1,12 +1,38 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'file_validation_service.dart';
+
+/// Platform-aware file representation that works on both web and mobile
+class PlatformFile {
+  const PlatformFile({required this.name, required this.bytes, this.path});
+
+  final String name;
+  final Uint8List bytes;
+  final String? path; // null on web, actual path on mobile
+
+  /// Check if this file has a local path (mobile only)
+  bool get hasLocalPath => path != null;
+
+  /// Get File object for mobile platforms only
+  /// Throws StateError if called on web platform - use bytes instead
+  File asFile() {
+    if (path != null) {
+      return File(path!);
+    }
+    throw StateError(
+      'File path not available on web platform. Use bytes property instead.',
+    );
+  }
+
+  /// Get file size in bytes
+  int get size => bytes.length;
+}
 
 /// Service for handling file operations (image picking, CV selection)
 class FileService {
@@ -52,7 +78,8 @@ class FileService {
   }
 
   /// Pick CV file with immediate validation and support for multiple document types
-  Future<File?> pickCVFile({
+  /// Returns platform-aware file representation that works on both web and mobile
+  Future<PlatformFile?> pickCVFile({
     required BuildContext context,
     List<String>? allowedExtensions,
     String? dialogTitle,
@@ -66,39 +93,61 @@ class FileService {
         type: FileType.custom,
         allowedExtensions: extensions,
         dialogTitle: dialogTitle ?? 'Select CV (PDF, DOC, DOCX)',
-        withData: true,
+        withData: true, // Always request bytes for cross-platform compatibility
       );
 
       if (!context.mounted) return null;
 
-      File? cvFile;
+      if (result != null && result.files.isNotEmpty) {
+        final pickedFile = result.files.first;
 
-      if (result != null &&
-          result.files.isNotEmpty &&
-          result.files.first.path != null) {
-        cvFile = File(result.files.first.path!);
-      } else if (result != null &&
-          result.files.isNotEmpty &&
-          result.files.first.bytes != null) {
-        final tempDir = await getTemporaryDirectory();
-
-        if (!context.mounted) return null;
-
-        cvFile = File('${tempDir.path}/${result.files.first.name}');
-        await cvFile.writeAsBytes(result.files.first.bytes!);
-      }
-
-      if (cvFile != null) {
-        // Immediate validation for better UX
-        final validation = await FileValidationService.validateCVFile(cvFile);
-        if (validation.isFailure) {
+        // Ensure we have bytes (required for both platforms)
+        if (pickedFile.bytes == null) {
           if (context.mounted) {
-            _showErrorSnackbar(context, validation.errorOrNull!.userMessage);
+            _showErrorSnackbar(context, 'Failed to read file data');
           }
           return null;
         }
 
-        return cvFile;
+        // Create platform-aware file representation
+        final platformFile = PlatformFile(
+          name: pickedFile.name,
+          bytes: pickedFile.bytes!,
+          path: kIsWeb
+              ? null
+              : pickedFile.path, // Path only available on mobile
+        );
+
+        // Immediate validation for better UX using platform-appropriate method
+        if (kIsWeb) {
+          // On web, validate directly from bytes without temporary files
+          final validation = FileValidationService.validateCVFromBytes(
+            pickedFile.bytes!,
+            pickedFile.name,
+          );
+
+          if (validation.isFailure) {
+            if (context.mounted) {
+              _showErrorSnackbar(context, validation.errorOrNull!.userMessage);
+            }
+            return null;
+          }
+        } else {
+          // On mobile, use traditional file validation
+          final fileForValidation = File(pickedFile.path!);
+          final validation = await FileValidationService.validateCVFile(
+            fileForValidation,
+          );
+
+          if (validation.isFailure) {
+            if (context.mounted) {
+              _showErrorSnackbar(context, validation.errorOrNull!.userMessage);
+            }
+            return null;
+          }
+        }
+
+        return platformFile;
       }
 
       if (context.mounted) {

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import '../../domain/result.dart';
 import '../../errors/app_error.dart';
@@ -134,5 +135,68 @@ class FileValidationService {
   static bool isImageType(String filePath) {
     final extension = _getFileExtension(filePath);
     return allowedImageTypes.contains(extension);
+  }
+
+  /// Validate CV file using bytes and filename (web-compatible)
+  static Result<void> validateCVFromBytes(Uint8List bytes, String filename) {
+    try {
+      // Check file extension
+      final extension = _getFileExtension(filename);
+      if (!allowedDocumentTypes.contains(extension)) {
+        return Result.failure(
+          ValidationError(
+            'Invalid file type. CV must be: ${allowedDocumentTypes.join(', ').toUpperCase()}',
+          ),
+        );
+      }
+
+      // Check file size
+      if (bytes.length > maxCVSize) {
+        final maxSizeMB = (maxCVSize / (1024 * 1024)).toInt();
+        return Result.failure(
+          ValidationError(
+            'CV file is too large. Maximum size is ${maxSizeMB}MB.',
+          ),
+        );
+      }
+
+      return Result.success(null);
+    } catch (e) {
+      return Result.failure(const ValidationError('Unable to validate file'));
+    }
+  }
+
+  /// Validate profile picture using bytes and filename (web-compatible)
+  static Result<void> validateProfilePictureFromBytes(
+    Uint8List bytes,
+    String filename,
+  ) {
+    try {
+      // Check file extension
+      final extension = _getFileExtension(filename);
+      if (!allowedImageTypes.contains(extension)) {
+        return Result.failure(
+          ValidationError(
+            'Invalid image type. Profile picture must be: ${allowedImageTypes.join(', ').toUpperCase()}',
+          ),
+        );
+      }
+
+      // Check file size
+      if (bytes.length > maxProfilePictureSize) {
+        final maxSizeMB = (maxProfilePictureSize / (1024 * 1024)).toInt();
+        return Result.failure(
+          ValidationError(
+            'Image file is too large. Maximum size is ${maxSizeMB}MB.',
+          ),
+        );
+      }
+
+      return Result.success(null);
+    } catch (e) {
+      return Result.failure(
+        const ValidationError('Unable to validate profile picture'),
+      );
+    }
   }
 }

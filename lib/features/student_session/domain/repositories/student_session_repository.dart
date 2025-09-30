@@ -1,4 +1,5 @@
 import '../../../../shared/domain/result.dart';
+import '../../../../shared/infrastructure/services/file_service.dart';
 import '../entities/student_session.dart';
 import '../entities/student_session_application.dart';
 import '../entities/timeslot.dart';
@@ -32,7 +33,7 @@ abstract class StudentSessionRepository {
   /// Maps to POST /api/student-session/cv
   Future<Result<String>> uploadCVForSession({
     required int companyId,
-    required String filePath,
+    required PlatformFile file,
   });
 
   /// Book a specific timeslot (only if user is accepted)

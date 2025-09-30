@@ -54,6 +54,53 @@ class ApplyForSessionCommand
 
   final ApplyForSessionUseCase _applyForSessionUseCase;
 
+  // Message state for this command
+  bool _showSuccessMessage = false;
+  String? _successMessage;
+  bool _showErrorMessage = false;
+  String? _errorMessage;
+
+  // Message getters
+  bool get showSuccessMessage => _showSuccessMessage;
+  String? get successMessage => _successMessage;
+  bool get showErrorMessage => _showErrorMessage;
+  String? get errorMessage => _errorMessage;
+
+  // Message management methods
+  void _setSuccessMessage(String message) {
+    _showSuccessMessage = true;
+    _successMessage = message;
+    notifyListeners();
+  }
+
+  void _setErrorMessage(String message) {
+    _showErrorMessage = true;
+    _errorMessage = message;
+    notifyListeners();
+  }
+
+  void clearSuccessMessage() {
+    _showSuccessMessage = false;
+    _successMessage = null;
+    notifyListeners();
+  }
+
+  void clearErrorMessage() {
+    _showErrorMessage = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  void clearAllMessages({bool notify = true}) {
+    _showSuccessMessage = false;
+    _successMessage = null;
+    _showErrorMessage = false;
+    _errorMessage = null;
+    if (notify) {
+      notifyListeners();
+    }
+  }
+
   /// Apply for a student session with comprehensive validation and error handling
   Future<void> applyForSession({
     required int companyId,
@@ -103,17 +150,25 @@ class ApplyForSessionCommand
       );
 
       result.when(
-        success: (successMessage) => setResult(successMessage),
-        failure: (error) => setError(error),
+        success: (successMessage) {
+          setResult(successMessage);
+          _setSuccessMessage(successMessage);
+        },
+        failure: (error) {
+          setError(error);
+          _setErrorMessage(error.userMessage);
+        },
       );
     } catch (e) {
       // Convert unexpected exceptions to user-friendly errors
+      const errorMessage = 'Failed to submit application';
       setError(
         const StudentSessionApplicationError(
-          'Failed to submit application',
+          errorMessage,
           details: 'An unexpected error occurred. Please try again.',
         ),
       );
+      _setErrorMessage(errorMessage);
     } finally {
       setExecuting(false);
     }
@@ -182,9 +237,10 @@ class ApplyForSessionCommand
     );
   }
 
-  /// Reset command state and clear any errors
+  /// Reset command state and clear any errors and messages
   @override
   void reset({bool notify = true}) {
+    clearAllMessages(notify: false);
     super.reset(notify: notify);
   }
 }

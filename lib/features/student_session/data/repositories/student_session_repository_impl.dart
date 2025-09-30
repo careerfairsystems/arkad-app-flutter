@@ -1,12 +1,11 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/student_session_errors.dart';
-import '../../../../shared/infrastructure/services/file_validation_service.dart';
+import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../company/domain/use_cases/get_company_by_id_use_case.dart';
 import '../../domain/entities/student_session.dart';
 import '../../domain/entities/student_session_application.dart';
@@ -278,25 +277,26 @@ class StudentSessionRepositoryImpl extends BaseRepository
   @override
   Future<Result<String>> uploadCVForSession({
     required int companyId,
-    required String filePath,
+    required PlatformFile file,
   }) async {
     return executeOperation(
       () async {
-        // Proactive file validation before sending to server
-        final file = File(filePath);
-        final validation = await FileValidationService.validateCVFile(file);
-        if (validation.isFailure) {
-          throw StudentSessionFileUploadError(
-            filePath.split('/').last,
-            details: validation.errorOrNull!.userMessage,
+        // Note: File validation is handled at FileService and UseCase layers
+        // No additional validation needed here - proceed directly to upload
+
+        // Create multipart file using platform-appropriate method
+        final MultipartFile multipartFile;
+        if (kIsWeb) {
+          multipartFile = MultipartFile.fromBytes(
+            file.bytes,
+            filename: file.name,
+          );
+        } else {
+          multipartFile = await MultipartFile.fromFile(
+            file.path!,
+            filename: file.name,
           );
         }
-
-        // Create multipart file from path
-        final multipartFile = await MultipartFile.fromFile(
-          filePath,
-          filename: filePath.split('/').last,
-        );
 
         final response = await _remoteDataSource.uploadCV(
           companyId,
@@ -306,7 +306,7 @@ class StudentSessionRepositoryImpl extends BaseRepository
       },
       'upload CV for company $companyId',
       onError: (error) {
-        final fileName = filePath.split('/').last;
+        final fileName = file.name;
         // Handle remaining server-side errors (network, auth, etc.)
         if (error.toString().contains('413') ||
             error.toString().contains('size')) {
