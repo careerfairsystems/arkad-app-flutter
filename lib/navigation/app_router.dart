@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -33,6 +34,11 @@ class AppRouter {
   String? _redirect(BuildContext context, GoRouterState state) {
     final loggedIn = _routerNotifier.isAuthenticated;
     final path = state.uri.path;
+
+    // Redirect /map to /companies on web
+    if (kIsWeb && (path == '/map' || path.startsWith('/map/'))) {
+      return '/companies';
+    }
 
     const publicPrefixes = [
       '/companies',

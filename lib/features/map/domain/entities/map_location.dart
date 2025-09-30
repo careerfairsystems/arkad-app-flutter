@@ -1,23 +1,21 @@
+import 'package:arkad/features/map/domain/entities/map_building.dart';
+
 /// Domain entity representing a location on the map
 class MapLocation {
   final int id;
   final String name;
   final String description;
-  final double latitude;
-  final double longitude;
+  final Point position;
   final LocationType type;
   final String? imageUrl;
-  final Map<String, dynamic>? metadata;
 
   const MapLocation({
     required this.id,
     required this.name,
     required this.description,
-    required this.latitude,
-    required this.longitude,
     required this.type,
+    required this.position,
     this.imageUrl,
-    this.metadata,
   });
 
   /// Create a copy with updated values
@@ -25,21 +23,17 @@ class MapLocation {
     int? id,
     String? name,
     String? description,
-    double? latitude,
-    double? longitude,
+    Point? position,
     LocationType? type,
     String? imageUrl,
-    Map<String, dynamic>? metadata,
   }) {
     return MapLocation(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
+      position: position ?? this.position,
       type: type ?? this.type,
       imageUrl: imageUrl ?? this.imageUrl,
-      metadata: metadata ?? this.metadata,
     );
   }
 
@@ -49,14 +43,14 @@ class MapLocation {
     return other is MapLocation &&
         other.id == id &&
         other.name == name &&
-        other.latitude == latitude &&
-        other.longitude == longitude &&
+        other.position.latitude == position.latitude &&
+        other.position.longitude == position.longitude &&
         other.type == type;
   }
 
   @override
   int get hashCode {
-    return Object.hash(id, name, latitude, longitude, type);
+    return Object.hash(id, name, position.latitude, position.longitude, type);
   }
 
   @override

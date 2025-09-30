@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Adds `branchIndex` so the BottomNavigationBar knows which **Navigator branch**
@@ -64,7 +65,16 @@ class NavigationItems {
     branchIndex: 5,
   );
 
-  static List<NavigationItem> forAuth(bool authenticated) => authenticated
-      ? const [_companies, _map, _sessions, _events, _profile]
-      : const [_companies, _map, _sessions, _events, _login];
+  static List<NavigationItem> forAuth(bool authenticated) {
+    // Map is only available on mobile, not web
+    final baseItems = kIsWeb
+        ? (authenticated
+            ? [_companies, _sessions, _events, _profile]
+            : [_companies, _sessions, _events, _login])
+        : (authenticated
+            ? [_companies, _map, _sessions, _events, _profile]
+            : [_companies, _map, _sessions, _events, _login]);
+
+    return baseItems;
+  }
 }
