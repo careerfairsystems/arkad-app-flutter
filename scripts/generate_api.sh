@@ -94,6 +94,7 @@ generate_api() {
   # Generate base API client using Docker
   log_info "Running OpenAPI Generator (this may take a moment)..."
   if ! docker run --rm \
+    -u "$(id -u):$(id -g)" \
     -v "${PWD}:/local" \
     openapitools/openapi-generator-cli generate \
     -i "/local/$TEMP_SPEC_FILE" \
@@ -107,6 +108,11 @@ generate_api() {
 
   # Clean up temp spec file
   rm -f "$TEMP_SPEC_FILE"
+
+  # Fix permissions (in case Docker created files as root)
+  if [[ -d "$OUTPUT_DIR" ]]; then
+    chmod -R u+w "$OUTPUT_DIR" 2>/dev/null || true
+  fi
 
   # Install dependencies and run build_runner
   cd "$OUTPUT_DIR"
