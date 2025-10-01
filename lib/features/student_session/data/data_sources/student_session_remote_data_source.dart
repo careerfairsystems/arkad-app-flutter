@@ -1,5 +1,8 @@
 import 'package:arkad_api/arkad_api.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:dio/dio.dart';
+
+import '../../../../api/extensions.dart';
+import '../../../../shared/data/api_error_handler.dart';
 
 /// Remote data source for student session operations
 class StudentSessionRemoteDataSource {
@@ -8,63 +11,195 @@ class StudentSessionRemoteDataSource {
   StudentSessionRemoteDataSource(this._api);
 
   /// Get student sessions from the API
-  Future<List<StudentSessionApplicationOutSchema>> getStudentSessions() async {
+  Future<StudentSessionNormalUserListSchema> getStudentSessions() async {
     try {
-      final _ = await _api
+      final response = await _api
           .getStudentSessionsApi()
-          .studentSessionsApiGetStudentSessions();
-      // For now, return empty list - will implement proper parsing when API structure is clear
-      return <StudentSessionApplicationOutSchema>[];
-    } catch (e) {
-      await Sentry.captureException(e);
-      throw Exception('Failed to get student sessions: $e');
+          .studentSessionsApiGetStudentSessions(
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
+          );
+
+      if (response.isSuccess && response.data != null) {
+        return response.data!;
+      } else {
+        throw Exception('Failed to get student sessions');
+      }
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'getStudentSessions',
+      );
+      throw exception;
     }
   }
 
-  /// Get available timeslots for a company
+  /// Get available timeslots for a company with user-specific status
   Future<List<TimeslotSchemaUser>> getTimeslots(int companyId) async {
     try {
       final response = await _api
           .getStudentSessionsApi()
-          .studentSessionsApiGetStudentSessionTimeslots(companyId: companyId);
-      return response.data?.toList() ?? <TimeslotSchemaUser>[];
+          .studentSessionsApiGetStudentSessionTimeslots(
+            companyId: companyId,
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
+          );
+
+      if (response.isSuccess && response.data != null) {
+        return response.data!.toList();
+      } else {
+        throw Exception('Failed to get timeslots');
+      }
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'getTimeslots',
+        additionalContext: {'company_id': companyId},
+      );
+      throw exception;
     } catch (e) {
-      await Sentry.captureException(e);
-      throw Exception('Failed to get timeslots for company $companyId: $e');
+      throw Exception('Failed to get timeslots');
     }
   }
 
   /// Apply for a student session
-  Future<StudentSessionApplicationOutSchema> applyForSession(
+  Future<Response<String>> applyForSession(
     StudentSessionApplicationSchema application,
   ) async {
     try {
-      final _ = await _api
+      final response = await _api
           .getStudentSessionsApi()
           .studentSessionsApiApplyForSession(
             studentSessionApplicationSchema: application,
           );
-      // Create a minimal response for now
-      return StudentSessionApplicationOutSchema(
-        (b) => b
-          ..companyId = application.companyId
-          ..motivationText = application.motivationText,
+      return response;
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'applyForSession',
+        additionalContext: {'company_id': application.companyId},
       );
+      throw exception;
     } catch (e) {
-      await Sentry.captureException(e);
-      throw Exception('Failed to apply for student session: $e');
+      throw Exception('Failed to apply for student session');
     }
   }
 
-  /// Cancel/unbook a student session
-  Future<void> cancelApplication(int companyId) async {
+  /// Upload CV for a student session
+  Future<Response<String>> uploadCV(int companyId, MultipartFile file) async {
     try {
-      await _api.getStudentSessionsApi().studentSessionsApiUnbookStudentSession(
-        companyId: companyId,
+      final response = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiUpdateCvForSession(
+            companyId: companyId,
+            cv: file,
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
+          );
+      return response;
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'uploadCV',
+        additionalContext: {'company_id': companyId},
       );
+      throw exception;
     } catch (e) {
-      await Sentry.captureException(e);
-      throw Exception('Failed to cancel student session application: $e');
+      throw Exception('Failed to upload CV: $e');
+    }
+  }
+
+  /// Confirm/book a timeslot for a student session
+  Future<Response<String>> confirmTimeslot(
+    int companyId,
+    int timeslotId,
+  ) async {
+    try {
+      final response = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiConfirmStudentSession(
+            companyId: companyId,
+            timeslotId: timeslotId,
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
+          );
+      return response;
+    } on DioException catch (e) {
+      // CRITICAL: Preserve original DioException with HTTP status codes for proper conflict detection
+      // Let the repository handle the DioException for conflict detection
+      await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'confirmTimeslot',
+        additionalContext: {'company_id': companyId, 'timeslot_id': timeslotId},
+      );
+      rethrow; // Let repository handle HTTP status codes
+    } catch (e) {
+      throw Exception('Failed to confirm timeslot');
+    }
+  }
+
+  /// Unbook a timeslot for a student session
+  Future<Response<String>> unbookTimeslot(int companyId) async {
+    try {
+      final response = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiUnbookStudentSession(
+            companyId: companyId,
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
+          );
+      return response;
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'unbookTimeslot',
+        additionalContext: {'company_id': companyId},
+      );
+      throw exception;
+    } catch (e) {
+      throw Exception('Failed to unbook timeslot');
+    }
+  }
+
+  /// Get application for a specific company
+  Future<Response<StudentSessionApplicationOutSchema?>>
+  getApplicationForCompany(int companyId) async {
+    try {
+      final response = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiGetStudentSessionApplication(
+            companyId: companyId,
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
+          );
+      return response;
+    } on DioException catch (e) {
+      final exception = await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'getApplicationForCompany',
+        additionalContext: {'company_id': companyId},
+      );
+      throw exception;
+    } catch (e) {
+      throw Exception('Failed to get application');
     }
   }
 }

@@ -123,11 +123,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickCV() async {
     final fileService = serviceLocator<FileService>();
-    final File? cv = await fileService.pickCVFile(context: context);
+    final platformFile = await fileService.pickCVFile(context: context);
 
-    if (cv != null) {
+    if (platformFile != null) {
+      // Convert PlatformFile to File for compatibility with existing profile system
+      // Note: On web, this creates a virtual File object that will work with
+      // the updated profile upload system that handles bytes properly
+      File cvFile;
+      if (platformFile.path != null) {
+        // Mobile: use actual file path
+        cvFile = File(platformFile.path!);
+      } else {
+        // Web: create a virtual file object - the actual upload will use bytes
+        // The filename is used for validation and upload purposes
+        cvFile = File(platformFile.name);
+      }
+
       setState(() {
-        _selectedCV = cv;
+        _selectedCV = cvFile;
         _cvDeleted = false; // Reset deletion flag if new CV selected
       });
     }

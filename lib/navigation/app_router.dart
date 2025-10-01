@@ -15,12 +15,13 @@ import '../features/event/presentation/screens/scan_event_screen.dart';
 import '../features/map/presentation/screens/map_screen.dart';
 import '../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
+import '../features/student_session/domain/entities/student_session.dart';
+import '../features/student_session/presentation/screens/student_session_application_form_screen.dart';
 import '../features/student_session/presentation/screens/student_session_time_selection.dart';
-import '../features/student_session/presentation/screens/student_sessions_form.dart';
 import '../features/student_session/presentation/screens/student_sessions_screen.dart';
-import '../navigation/router_notifier.dart';
 import '../widgets/app_bottom_navigation.dart';
 import 'navigation_items.dart';
+import 'router_notifier.dart';
 
 class AppRouter {
   AppRouter(this._routerNotifier);
@@ -32,7 +33,11 @@ class AppRouter {
   // ────────────────────────────────────────────────────────────
   String? _redirect(BuildContext context, GoRouterState state) {
     final loggedIn = _routerNotifier.isAuthenticated;
+    final isInitializing = _routerNotifier.isInitializing;
     final path = state.uri.path;
+
+    // Wait for auth initialization to complete
+    if (isInitializing) return null;
 
     const publicPrefixes = [
       '/companies',
@@ -117,7 +122,9 @@ class AppRouter {
                 builder: (context, state) {
                   final companyId = state
                       .pathParameters["companyId"]!; // Get "id" param from URL
-                  return StudentSessionFormScreen(id: companyId);
+                  return StudentSessionApplicationFormScreen(
+                    companyId: companyId,
+                  );
                 },
               ),
               GoRoute(
@@ -126,6 +133,28 @@ class AppRouter {
                   final companyId = state
                       .pathParameters["companyId"]!; // Get "id" param from URL
                   return StudentSessionTimeSelectionScreen(id: companyId);
+                },
+              ),
+              GoRoute(
+                path: '/sessions/book/:companyId',
+                builder: (context, state) {
+                  final companyId = state.pathParameters["companyId"]!;
+                  return StudentSessionTimeSelectionScreen(
+                    id: companyId,
+                    isBookingMode:
+                        true, // Flag to indicate this is for booking, not applying
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/sessions/application-form/:companyId',
+                builder: (context, state) {
+                  final session = state.extra as StudentSession?;
+                  final companyId = state.pathParameters["companyId"]!;
+                  return StudentSessionApplicationFormScreen(
+                    session: session,
+                    companyId: companyId,
+                  );
                 },
               ),
             ],
@@ -223,7 +252,7 @@ class AppRouter {
             ],
           ),
 
-          // AUTH FLOW
+          // AUTH FLOW (as bottom navigation tab)
           StatefulShellBranch(
             routes: [
               GoRoute(

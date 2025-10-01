@@ -1,6 +1,11 @@
-import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../shared/errors/app_error.dart';
+import '../../../auth/presentation/view_models/auth_view_model.dart';
+import '../../../student_session/presentation/view_models/student_session_view_model.dart';
 import '../../domain/entities/company.dart';
 import '../commands/get_company_by_id_command.dart';
 
@@ -40,10 +45,99 @@ class CompanyDetailViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Handle session application request
-  void handleSessionApplication() {
-    _message = 'Student session application coming soon!';
-    notifyListeners();
+  /// Handle session application request with authentication check
+  void handleSessionApplication(BuildContext context) {
+    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    final studentSessionViewModel = Provider.of<StudentSessionViewModel>(
+      context,
+      listen: false,
+    );
+
+    // Check authentication status
+    if (!authViewModel.isAuthenticated) {
+      _showSignInPrompt(context);
+      return;
+    }
+
+    // Get the current company
+    final currentCompany = company;
+    if (currentCompany == null) {
+      _message = 'Company information not available. Please try again.';
+      notifyListeners();
+      return;
+    }
+
+    // Load student session data for this company and navigate
+    _loadStudentSessionAndNavigate(
+      context,
+      currentCompany.id,
+      studentSessionViewModel,
+    );
+  }
+
+  /// Show authentication prompt for unauthenticated users
+  void _showSignInPrompt(BuildContext context) {
+    // Capture the original context before showing dialog
+    final originalContext = context;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sign In Required'),
+        content: Text(
+          'You need to sign in to apply for ${company?.name ?? 'this company'}\'s student session.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => dialogContext.pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              dialogContext.pop();
+              // Navigate to login tab (branch index 5) using original context
+              StatefulNavigationShell.of(originalContext).goBranch(5);
+            },
+            child: const Text('Sign In'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Load student session data for the company and navigate to application form
+  Future<void> _loadStudentSessionAndNavigate(
+    BuildContext context,
+    int companyId,
+    StudentSessionViewModel studentSessionViewModel,
+  ) async {
+    try {
+      // Load student sessions to get the specific session for this company
+      await studentSessionViewModel.loadStudentSessions();
+
+      // Find the session for this company
+      final session = studentSessionViewModel.studentSessions.firstWhereOrNull(
+        (s) => s.companyId == companyId,
+      );
+
+      if (session == null) {
+        _message = 'No student session found for this company.';
+        notifyListeners();
+        return;
+      }
+
+      // Navigate to application form with session data
+      if (context.mounted) {
+        await context.push(
+          '/sessions/application-form/$companyId',
+          extra: session,
+        );
+      }
+    } catch (e) {
+      _message =
+          'Failed to load student session information. Please try again.';
+      notifyListeners();
+    }
   }
 
   /// Clear message after UI has consumed it (call from UI)

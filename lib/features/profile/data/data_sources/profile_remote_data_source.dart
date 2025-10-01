@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
@@ -77,11 +78,24 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<String> uploadProfilePicture(File imageFile) async {
     try {
-      // Create multipart file for upload
-      final multipartFile = await MultipartFile.fromFile(
-        imageFile.path,
-        filename: 'profile_picture.${imageFile.path.split('.').last}',
-      );
+      // Create multipart file for upload using platform-appropriate method
+      MultipartFile multipartFile;
+
+      if (kIsWeb) {
+        // On web, read bytes and create multipart file from bytes
+        final bytes = await imageFile.readAsBytes();
+        final filename = imageFile.path.split('/').last;
+        multipartFile = MultipartFile.fromBytes(
+          bytes,
+          filename: filename.isNotEmpty ? filename : 'profile_picture.jpg',
+        );
+      } else {
+        // On mobile, use the traditional path-based approach
+        multipartFile = await MultipartFile.fromFile(
+          imageFile.path,
+          filename: 'profile_picture.${imageFile.path.split('.').last}',
+        );
+      }
 
       final response = await _api
           .getUserProfileApi()
@@ -115,11 +129,24 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<String> uploadCV(File cvFile) async {
     try {
-      // Create multipart file for upload
-      final multipartFile = await MultipartFile.fromFile(
-        cvFile.path,
-        filename: 'cv.${cvFile.path.split('.').last}',
-      );
+      // Create multipart file for upload using platform-appropriate method
+      MultipartFile multipartFile;
+
+      if (kIsWeb) {
+        // On web, read bytes and create multipart file from bytes
+        final bytes = await cvFile.readAsBytes();
+        final filename = cvFile.path.split('/').last;
+        multipartFile = MultipartFile.fromBytes(
+          bytes,
+          filename: filename.isNotEmpty ? filename : 'cv.pdf',
+        );
+      } else {
+        // On mobile, use the traditional path-based approach
+        multipartFile = await MultipartFile.fromFile(
+          cvFile.path,
+          filename: 'cv.${cvFile.path.split('.').last}',
+        );
+      }
 
       final response = await _api.getUserProfileApi().userModelsApiUpdateCv(
         cv: multipartFile,

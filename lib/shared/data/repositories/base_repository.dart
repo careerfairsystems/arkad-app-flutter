@@ -3,6 +3,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../domain/result.dart';
 import '../../errors/app_error.dart';
+import '../../errors/error_mapper.dart';
 
 /// Base repository class providing common functionality for all repositories
 /// Handles error mapping, result transformation, and logging
@@ -144,11 +145,14 @@ abstract class BaseRepository {
     return false;
   }
 
-  /// Map an exception to an AppError
+  /// Map an exception to an AppError using ErrorMapper
   AppError _mapException(dynamic exception, String context) {
-    // For now, create a generic UnknownError
-    // This can be enhanced to handle specific exception types
-    return UnknownError('$context failed: ${exception.toString()}');
+    // Use ErrorMapper for consistent error handling across the app
+    return ErrorMapper.fromException(
+      exception,
+      null, // No BuildContext available in repository layer
+      operationContext: context,
+    );
   }
 
   /// Log error for debugging purposes
