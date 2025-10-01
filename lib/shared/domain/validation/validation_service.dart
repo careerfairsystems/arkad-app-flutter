@@ -1,7 +1,7 @@
 /// Domain validation service for form validation
 class ValidationService {
   // Regular expressions for validation
-  static final _emailRegExp = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+  static final _emailRegExp = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
   static final _upperCaseRegExp = RegExp(r'[A-Z]');
   static final _lowerCaseRegExp = RegExp(r'[a-z]');
   static final _numberRegExp = RegExp(r'[0-9]');
