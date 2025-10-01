@@ -66,3 +66,4 @@ sentry.properties
 # OpenAPI Generator CLI
 openapi-generator-cli.jar
 node_modules
+api/.api_spec_hash

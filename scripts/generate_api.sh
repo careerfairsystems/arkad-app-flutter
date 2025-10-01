@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # API Generation Script for Arkad Flutter App
-# Generates API client using OpenAPI Generator CLI
+# Generates API client using OpenAPI Generator Docker image
 
 set -e
 
@@ -9,6 +9,7 @@ set -e
 OPENAPI_URL="https://staging.backend.arkadtlth.se/api/openapi.json"
 OUTPUT_DIR="api/arkad_api"
 API_HASH_FILE="api/.api_spec_hash"
+TEMP_SPEC_FILE="temp_openapi.json"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -22,8 +23,9 @@ log_error() { echo -e "${RED}$1${NC}"; }
 
 # Check dependencies
 check_dependencies() {
-  if ! command -v java &>/dev/null; then
-    log_error "Java is required but not found in PATH"
+  if ! command -v docker &>/dev/null; then
+    log_error "Docker is required but not found in PATH"
+    log_error "Please install Docker from: https://docs.docker.com/get-docker/"
     exit 1
   fi
 
@@ -31,24 +33,17 @@ check_dependencies() {
     log_error "Flutter is required but not found in PATH"
     exit 1
   fi
-
-  if ! command -v openapi-generator-cli &>/dev/null; then
-    log_error "OpenAPI Generator CLI is required but not found in PATH"
-    log_error "Please install it from: https://openapi-generator.tech/"
-    log_error "Or use the JAR file method as documented in the installation guide"
-    exit 1
-  fi
 }
 
 # Get current API spec hash
 get_api_hash() {
-  if curl -sf --max-time 30 --retry 2 --retry-delay 5 "$OPENAPI_URL" -o temp_openapi.json 2>/dev/null; then
+  if curl -sf --max-time 30 --retry 2 --retry-delay 5 "$OPENAPI_URL" -o "$TEMP_SPEC_FILE" 2>/dev/null; then
     local hash
-    hash=$(sha256sum temp_openapi.json | cut -d' ' -f1)
-    rm -f temp_openapi.json
+    hash=$(shasum -a 256 "$TEMP_SPEC_FILE" | cut -d' ' -f1)
     echo "$hash"
   else
     log_warn "Could not fetch OpenAPI spec for change detection"
+    rm -f "$TEMP_SPEC_FILE"
     echo "force-generation"
   fi
 }
@@ -83,18 +78,35 @@ should_generate() {
 generate_api() {
   log_info "Generating API client..."
 
+  # Download OpenAPI spec if not already present
+  if [[ ! -f "$TEMP_SPEC_FILE" ]]; then
+    log_info "Downloading OpenAPI spec..."
+    if ! curl -sf --max-time 30 --retry 2 --retry-delay 5 "$OPENAPI_URL" -o "$TEMP_SPEC_FILE"; then
+      log_error "Failed to download OpenAPI spec"
+      exit 1
+    fi
+  fi
+
   # Clean and recreate output directory
   rm -rf "$OUTPUT_DIR"
   mkdir -p "$OUTPUT_DIR"
 
-  # Generate base API client
-  if ! openapi-generator-cli generate \
-    -i "$OPENAPI_URL" \
-    -g dart-dio -o "$OUTPUT_DIR" \
+  # Generate base API client using Docker
+  log_info "Running OpenAPI Generator (this may take a moment)..."
+  if ! docker run --rm \
+    -v "${PWD}:/local" \
+    openapitools/openapi-generator-cli generate \
+    -i "/local/$TEMP_SPEC_FILE" \
+    -g dart-dio \
+    -o "/local/$OUTPUT_DIR" \
     --additional-properties=pubName=arkad_api,nullSafe=true; then
     log_error "API generation failed"
+    rm -f "$TEMP_SPEC_FILE"
     exit 1
   fi
+
+  # Clean up temp spec file
+  rm -f "$TEMP_SPEC_FILE"
 
   # Install dependencies and run build_runner
   cd "$OUTPUT_DIR"
@@ -142,6 +154,14 @@ store_api_hash() {
   echo "$hash" >"$API_HASH_FILE"
 }
 
+# Cleanup function
+cleanup() {
+  rm -f "$TEMP_SPEC_FILE"
+}
+
+# Set trap to cleanup on exit
+trap cleanup EXIT
+
 # Main execution
 main() {
   log_info "Arkad API Client Generation"
@@ -164,6 +184,7 @@ main() {
     log_info "API client generated successfully"
   else
     log_info "API client is up to date"
+    rm -f "$TEMP_SPEC_FILE"
   fi
 }
 
