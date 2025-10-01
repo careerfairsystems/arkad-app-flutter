@@ -4,7 +4,7 @@
 # Generates API client using OpenAPI Generator Docker image
 
 param(
-    [string]$OpenApiUrl = "https://staging.backend.arkadtlth.se/api/openapi.json",
+    [string]$OpenApiUrl = "https://backend.arkadtlth.se/api/openapi.json",
     [string]$OutputDir = "api/arkad_api"
 )
 

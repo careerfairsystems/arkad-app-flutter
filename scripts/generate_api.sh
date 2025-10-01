@@ -6,7 +6,7 @@
 set -e
 
 # Configuration
-OPENAPI_URL="https://staging.backend.arkadtlth.se/api/openapi.json"
+OPENAPI_URL="https://backend.arkadtlth.se/api/openapi.json"
 OUTPUT_DIR="api/arkad_api"
 API_HASH_FILE="api/.api_spec_hash"
 TEMP_SPEC_FILE="temp_openapi.json"
