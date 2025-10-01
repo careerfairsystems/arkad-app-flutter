@@ -243,9 +243,7 @@ class EventActions extends StatelessWidget {
   }
 
   void _navigateToLoginTab(BuildContext context) {
-    // Find the StatefulNavigationShell in the widget tree
-    final router = GoRouter.of(context);
-    router.go('/auth/login');
+    StatefulNavigationShell.of(context).goBranch(5);
   }
 
   void _showTicket(BuildContext context) {

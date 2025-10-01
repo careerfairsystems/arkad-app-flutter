@@ -76,6 +76,30 @@ await _secureStorage.write(
 );
 ```
 
+### ⚠️ Async State Dependencies
+
+**NEVER use polling loops for async state waiting. Use Future-based patterns:**
+
+```dart
+// ❌ FORBIDDEN: Infinite loop risk
+while (viewModel.isInitializing) {
+  await Future.delayed(const Duration(milliseconds: 100)); // Can hang forever
+}
+
+// ✅ CORRECT: Future-based waiting with timeout
+Future<bool> _waitForCompletion() async {
+  try {
+    await viewModel.waitForInitialization.timeout(const Duration(seconds: 5));
+    return viewModel.isReady;
+  } catch (e) {
+    return false; // Graceful fallback on timeout
+  }
+}
+
+// Usage pattern
+if (!await _waitForCompletion()) return; // Early return vs infinite wait
+```
+
 ## Folder Structure
 
 ```

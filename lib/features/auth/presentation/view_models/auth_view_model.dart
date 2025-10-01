@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -9,6 +11,7 @@ import '../../domain/entities/signup_data.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/use_cases/complete_signup_use_case.dart';
 import '../../domain/use_cases/get_current_session_use_case.dart';
+import '../../domain/use_cases/refresh_session_use_case.dart';
 import '../../domain/use_cases/resend_verification_use_case.dart';
 import '../../domain/use_cases/reset_password_use_case.dart';
 import '../../domain/use_cases/sign_in_use_case.dart';
@@ -30,8 +33,10 @@ class AuthViewModel extends ChangeNotifier {
     required ResendVerificationUseCase resendVerificationUseCase,
     required SignOutUseCase signOutUseCase,
     required GetCurrentSessionUseCase getCurrentSessionUseCase,
+    required RefreshSessionUseCase refreshSessionUseCase,
   }) : _signOutUseCase = signOutUseCase,
-       _getCurrentSessionUseCase = getCurrentSessionUseCase {
+       _getCurrentSessionUseCase = getCurrentSessionUseCase,
+       _refreshSessionUseCase = refreshSessionUseCase {
     // Initialize commands
     _signInCommand = SignInCommand(signInUseCase);
     _signUpCommand = SignUpCommand(signUpUseCase);
@@ -54,6 +59,7 @@ class AuthViewModel extends ChangeNotifier {
 
   final SignOutUseCase _signOutUseCase;
   final GetCurrentSessionUseCase _getCurrentSessionUseCase;
+  final RefreshSessionUseCase _refreshSessionUseCase;
 
   late final SignInCommand _signInCommand;
   late final SignUpCommand _signUpCommand;
@@ -66,6 +72,9 @@ class AuthViewModel extends ChangeNotifier {
   bool _isInitializing = true;
   AppError? _globalError;
 
+  // Initialization completer for Future-based waiting
+  final Completer<void> _initCompleter = Completer<void>();
+
   // Signup flow state
   SignupData? _pendingSignupData;
   String? _signupToken;
@@ -76,6 +85,10 @@ class AuthViewModel extends ChangeNotifier {
   bool get isAuthenticated => _currentSession?.isActive ?? false;
   bool get isInitializing => _isInitializing;
   AppError? get globalError => _globalError;
+
+  /// Future that completes when authentication initialization is finished
+  /// This allows other components to wait for auth state without polling
+  Future<void> get waitForInitialization => _initCompleter.future;
 
   // Signup flow getters
   SignupData? get pendingSignupData => _pendingSignupData;
@@ -128,6 +141,12 @@ class AuthViewModel extends ChangeNotifier {
     }
 
     _isInitializing = false;
+
+    // Complete the initialization future to notify waiting components
+    if (!_initCompleter.isCompleted) {
+      _initCompleter.complete();
+    }
+
     notifyListeners();
   }
 
@@ -213,6 +232,32 @@ class AuthViewModel extends ChangeNotifier {
   void clearGlobalError() {
     _clearGlobalError();
     notifyListeners();
+  }
+
+  /// Refresh current session to get updated user profile data
+  Future<void> refreshSession() async {
+    if (_currentSession == null) return;
+
+    try {
+      final result = await _refreshSessionUseCase.call();
+      result.when(
+        success: (session) {
+          _currentSession = session;
+          _fireAuthEvent(AuthSessionChangedEvent(session));
+          notifyListeners();
+        },
+        failure: (error) {
+          // Don't set global error for refresh failures - this is a background operation
+          if (kDebugMode) {
+            print('Failed to refresh session: ${error.userMessage}');
+          }
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Exception during session refresh: $e');
+      }
+    }
   }
 
   // Command listeners
