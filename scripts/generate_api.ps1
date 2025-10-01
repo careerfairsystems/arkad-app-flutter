@@ -36,7 +36,7 @@ function Test-Dependencies {
 # Get current API spec hash
 function Get-ApiHash {
     try {
-        Invoke-WebRequest -Uri $OpenApiUrl -OutFile $TempSpecFile -TimeoutSec 30 -MaximumRetryCount 2 -RetryIntervalSec 5
+        Invoke-WebRequest -Uri $OpenApiUrl -OutFile $TempSpecFile -TimeoutSec 30
         $hash = (Get-FileHash -Path $TempSpecFile -Algorithm SHA256).Hash.ToLower()
         return $hash
     } catch {
@@ -80,7 +80,7 @@ function Invoke-ApiGeneration {
     if (-not (Test-Path $TempSpecFile)) {
         Write-Info "Downloading OpenAPI spec..."
         try {
-            Invoke-WebRequest -Uri $OpenApiUrl -OutFile $TempSpecFile -TimeoutSec 30 -MaximumRetryCount 2 -RetryIntervalSec 5
+            Invoke-WebRequest -Uri $OpenApiUrl -OutFile $TempSpecFile -TimeoutSec 30
         } catch {
             Write-Error "Failed to download OpenAPI spec: $_"
             exit 1
@@ -93,8 +93,13 @@ function Invoke-ApiGeneration {
     }
     New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 
-    # Get current directory for Docker volume mount
+    # Get current directory for Docker volume mount (Windows path conversion)
     $currentDir = (Get-Location).Path.Replace('\', '/')
+    # Handle Windows drive letter for Docker (C:\ -> /c/)
+    if ($currentDir -match '^([A-Z]):') {
+        $driveLetter = $matches[1].ToLower()
+        $currentDir = $currentDir -replace '^[A-Z]:', "/$driveLetter"
+    }
 
     # Generate base API client using Docker
     Write-Info "Running OpenAPI Generator (this may take a moment)..."
@@ -117,6 +122,13 @@ function Invoke-ApiGeneration {
     # Clean up temp spec file
     if (Test-Path $TempSpecFile) {
         Remove-Item $TempSpecFile -Force
+    }
+
+    # Fix permissions (in case Docker created files with wrong permissions)
+    if (Test-Path $OutputDir) {
+        Get-ChildItem -Path $OutputDir -Recurse -File | ForEach-Object {
+            $_.IsReadOnly = $false
+        }
     }
 
     # Install dependencies and run build_runner
