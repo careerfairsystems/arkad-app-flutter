@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../../../../shared/presentation/widgets/notification_status_card.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../../student_session/presentation/widgets/profile_student_sessions_tab.dart';
 import '../view_models/profile_view_model.dart';
@@ -93,6 +94,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         ProfileInfoWidget(profile: profile),
         const SizedBox(height: 24),
+        const NotificationStatusCard(),
+        const SizedBox(height: 16),
         Consumer<AuthViewModel>(
           builder: (context, authViewModel, _) {
             return TextButton.icon(

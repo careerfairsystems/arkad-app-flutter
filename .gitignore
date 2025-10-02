@@ -67,3 +67,4 @@ sentry.properties
 openapi-generator-cli.jar
 node_modules
 api/.api_spec_hash
+android/app/google-services.json

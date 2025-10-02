@@ -45,6 +45,12 @@ import '../features/event/presentation/view_models/event_view_model.dart';
 import '../features/map/data/repositories/map_repository_impl.dart';
 import '../features/map/domain/repositories/map_repository.dart';
 import '../features/map/presentation/view_models/map_view_model.dart';
+import '../features/notifications/data/data_sources/notification_local_data_source.dart';
+import '../features/notifications/data/data_sources/notification_remote_data_source.dart';
+import '../features/notifications/data/repositories/notification_repository_impl.dart';
+import '../features/notifications/domain/repositories/notification_repository.dart';
+import '../features/notifications/domain/use_cases/sync_fcm_token_use_case.dart';
+import '../features/notifications/presentation/view_models/notification_view_model.dart';
 import '../features/profile/data/data_sources/profile_local_data_source.dart';
 import '../features/profile/data/data_sources/profile_remote_data_source.dart';
 import '../features/profile/data/repositories/profile_repository_impl.dart';
@@ -174,20 +180,20 @@ void _setupAuthFeature() {
   serviceLocator.registerLazySingleton<RefreshSessionUseCase>(
     () => RefreshSessionUseCase(serviceLocator<AuthRepository>()),
   );
+  final authViewModel = AuthViewModel(
+    signInUseCase: serviceLocator<SignInUseCase>(),
+    signUpUseCase: serviceLocator<SignUpUseCase>(),
+    completeSignupUseCase: serviceLocator<CompleteSignupUseCase>(),
+    resetPasswordUseCase: serviceLocator<ResetPasswordUseCase>(),
+    resendVerificationUseCase: serviceLocator<ResendVerificationUseCase>(),
+    signOutUseCase: serviceLocator<SignOutUseCase>(),
+    getCurrentSessionUseCase: serviceLocator<GetCurrentSessionUseCase>(),
+    refreshSessionUseCase: serviceLocator<RefreshSessionUseCase>(),
+  );
 
   // View model
-  serviceLocator.registerLazySingleton<AuthViewModel>(
-    () => AuthViewModel(
-      signInUseCase: serviceLocator<SignInUseCase>(),
-      signUpUseCase: serviceLocator<SignUpUseCase>(),
-      completeSignupUseCase: serviceLocator<CompleteSignupUseCase>(),
-      resetPasswordUseCase: serviceLocator<ResetPasswordUseCase>(),
-      resendVerificationUseCase: serviceLocator<ResendVerificationUseCase>(),
-      signOutUseCase: serviceLocator<SignOutUseCase>(),
-      getCurrentSessionUseCase: serviceLocator<GetCurrentSessionUseCase>(),
-      refreshSessionUseCase: serviceLocator<RefreshSessionUseCase>(),
-    ),
-  );
+  serviceLocator.registerSingleton<AuthViewModel>(authViewModel);
+  _setupNotificationFeature(authViewModel);
 }
 
 /// Setup Profile feature with clean architecture
@@ -456,4 +462,35 @@ void _setupMapFeature() {
   serviceLocator.registerLazySingleton<MapViewModel>(
     () => MapViewModel(mapRepository: serviceLocator<MapRepository>()),
   );
+}
+
+/// Setup Notification feature with clean architecture
+void _setupNotificationFeature(AuthViewModel authViewModel) {
+  // Data sources
+  serviceLocator.registerLazySingleton<NotificationLocalDataSource>(
+    () =>
+        NotificationLocalDataSourceImpl(serviceLocator<FlutterSecureStorage>()),
+  );
+  serviceLocator.registerLazySingleton<NotificationRemoteDataSource>(
+    () => NotificationRemoteDataSourceImpl(serviceLocator<ArkadApi>()),
+  );
+
+  // Repository
+  serviceLocator.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(
+      serviceLocator<NotificationRemoteDataSource>(),
+      serviceLocator<NotificationLocalDataSource>(),
+    ),
+  );
+  final useCase = SyncFcmTokenUseCase(serviceLocator<NotificationRepository>());
+
+  // Use cases
+  serviceLocator.registerSingleton<SyncFcmTokenUseCase>(useCase);
+  final viewModel = NotificationViewModel(
+    syncFcmTokenUseCase: useCase,
+    authViewModel: authViewModel,
+  );
+
+  // View model
+  serviceLocator.registerSingleton<NotificationViewModel>(viewModel);
 }
