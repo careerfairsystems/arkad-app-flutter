@@ -7,8 +7,7 @@
 .atom/
 .build/
 .buildlog/
-.history
-.svn/
+.history .svn/
 .swiftpm/
 migrate_working_dir/
 
@@ -45,7 +44,6 @@ android/app/release
 
 # Exclude local configuration files that shouldn't be shared
 android/key.properties
-ios/Runner/GoogleService-Info.plist
 **/*.keystore
 **/*.jks
 .env
@@ -67,4 +65,9 @@ sentry.properties
 openapi-generator-cli.jar
 node_modules
 api/.api_spec_hash
+
+
+# Firebase configuration files, needed for notifications
+ios/Runner/GoogleService-Info.plist
 android/app/google-services.json
+lib/firebase_options.dart

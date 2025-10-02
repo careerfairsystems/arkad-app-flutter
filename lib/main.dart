@@ -17,6 +17,7 @@ import 'shared/presentation/themes/providers/theme_provider.dart';
 
 void main() async {
   await SentryFlutter.init(
+
     (options) {
       options.dsn =
           'https://a42d50c4a8a0196fd8b2ace3397d6b3d@o4506696085340160.ingest.us.sentry.io/4509367674142720';
