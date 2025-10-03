@@ -87,7 +87,7 @@ class CompanyQuickFilters extends StatelessWidget {
     final isSelected = selectedPositions.contains(position);
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 0),
+      duration: const Duration(),
       curve: Curves.easeInOut,
       child: FilterChip(
         elevation: isSelected ? 2 : 0,
