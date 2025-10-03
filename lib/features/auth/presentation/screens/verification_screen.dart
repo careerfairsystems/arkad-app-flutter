@@ -60,36 +60,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
     final email = authViewModel.pendingSignupData?.email;
 
     if (email == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error: No email found for verification'),
-          backgroundColor: ArkadColors.lightRed,
-        ),
-      );
       return;
     }
 
     await authViewModel.resendVerification(email);
-
-    if (mounted) {
-      if (authViewModel.resendVerificationCommand.isCompleted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Verification code sent! Check your email.'),
-            backgroundColor: ArkadColors.arkadGreen,
-          ),
-        );
-      } else if (authViewModel.resendVerificationCommand.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to resend: ${authViewModel.resendVerificationCommand.error!.userMessage}',
-            ),
-            backgroundColor: ArkadColors.lightRed,
-          ),
-        );
-      }
-    }
   }
 
   void _goBackToSignup() {
@@ -172,13 +146,21 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
-                    final error = authViewModel.completeSignupCommand.error;
-                    if (error != null) {
-                      return AuthFormWidgets.buildErrorMessage(
-                        error.userMessage,
-                      );
-                    }
-                    return const SizedBox.shrink();
+                    final verifyError = authViewModel.completeSignupCommand.error;
+                    final resendError = authViewModel.resendVerificationCommand.error;
+                    final displayError = verifyError ?? resendError;
+                    
+                    return AuthFormWidgets.buildErrorMessage(
+                      displayError,
+                      onDismiss: () {
+                        if (verifyError != null) {
+                          authViewModel.completeSignupCommand.clearError();
+                        }
+                        if (resendError != null) {
+                          authViewModel.resendVerificationCommand.clearError();
+                        }
+                      },
+                    );
                   },
                 ),
 

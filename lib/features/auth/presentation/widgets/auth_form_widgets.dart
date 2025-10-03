@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 
 class AuthFormWidgets {
@@ -257,15 +258,56 @@ class AuthFormWidgets {
     );
   }
 
-  static Widget buildErrorMessage(String? errorMessage) {
-    if (errorMessage == null) return const SizedBox.shrink();
+  static Widget buildErrorMessage(
+    dynamic error, {
+    VoidCallback? onDismiss,
+    bool showIcon = true,
+  }) {
+    if (error == null) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Text(
-        errorMessage,
-        style: const TextStyle(color: ArkadColors.lightRed),
-        textAlign: TextAlign.center,
+    // Extract message from AppError or use string directly
+    final message = error is AppError ? error.userMessage : error.toString();
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: ArkadColors.lightRed.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: ArkadColors.lightRed.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          if (showIcon) ...[
+            Icon(
+              Icons.error_outline,
+              color: ArkadColors.lightRed,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: ArkadColors.lightRed,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          if (onDismiss != null)
+            IconButton(
+              icon: const Icon(
+                Icons.close,
+                size: 18,
+                color: ArkadColors.lightRed,
+              ),
+              onPressed: onDismiss,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+        ],
       ),
     );
   }

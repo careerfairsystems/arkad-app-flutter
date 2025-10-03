@@ -143,3 +143,56 @@ class UnknownError extends AppError {
         technicalDetails: details,
       );
 }
+
+/// Invalid verification code error
+class VerificationCodeError extends AppError {
+  const VerificationCodeError({String? details, super.recoveryActions})
+    : super(
+        userMessage:
+            "The verification code is incorrect. Please check your email and try again.",
+        severity: ErrorSeverity.warning,
+        technicalDetails: details,
+      );
+}
+
+/// Signup validation error (email format, password strength)
+class SignupValidationError extends AppError {
+  const SignupValidationError(String message, {String? details, super.recoveryActions})
+    : super(
+        userMessage: message,
+        severity: ErrorSeverity.warning,
+        technicalDetails: details,
+      );
+}
+
+/// Password reset error (invalid email, not found)
+class PasswordResetError extends AppError {
+  const PasswordResetError({String? details, super.recoveryActions})
+    : super(
+        userMessage:
+            "We couldn't send a reset email. Please check your email address and try again.",
+        severity: ErrorSeverity.warning,
+        technicalDetails: details,
+      );
+}
+
+/// Rate limiting for auth operations
+class AuthRateLimitError extends AppError {
+  const AuthRateLimitError(String message, {required this.waitTime, super.recoveryActions})
+    : super(
+        userMessage: message,
+        severity: ErrorSeverity.warning,
+      );
+
+  final Duration waitTime;
+}
+
+/// Invalid email format during auth
+class EmailFormatError extends AppError {
+  const EmailFormatError({String? details, super.recoveryActions})
+    : super(
+        userMessage: "Please enter a valid email address.",
+        severity: ErrorSeverity.warning,
+        technicalDetails: details,
+      );
+}

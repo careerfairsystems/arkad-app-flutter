@@ -145,7 +145,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             builder: (context, authViewModel, child) {
               if (authViewModel.resetPasswordCommand.hasError) {
                 return AuthFormWidgets.buildErrorMessage(
-                  authViewModel.resetPasswordCommand.error!.userMessage,
+                  authViewModel.resetPasswordCommand.error!,
+                  onDismiss: () => authViewModel.resetPasswordCommand.clearError(),
                 );
               }
               return const SizedBox.shrink();

@@ -6,7 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
-import '../../../../shared/presentation/widgets/error/error_display.dart';
 import '../../domain/entities/signup_data.dart';
 import '../view_models/auth_view_model.dart';
 import '../widgets/auth_form_widgets.dart';
@@ -371,19 +370,10 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         Consumer<AuthViewModel>(
           builder: (context, authViewModel, child) {
-            final error = authViewModel.signUpCommand.error;
-            if (error != null) {
-              return Column(
-                children: [
-                  const SizedBox(height: 16),
-                  ErrorDisplay(
-                    error: error,
-                    onDismiss: () => authViewModel.signUpCommand.clearError(),
-                  ),
-                ],
-              );
-            }
-            return const SizedBox.shrink();
+            return AuthFormWidgets.buildErrorMessage(
+              authViewModel.signUpCommand.error,
+              onDismiss: () => authViewModel.signUpCommand.clearError(),
+            );
           },
         ),
         const SizedBox(height: 30),
@@ -507,19 +497,10 @@ class _SignupScreenState extends State<SignupScreen> {
         ],
         Consumer<AuthViewModel>(
           builder: (context, authViewModel, child) {
-            final error = authViewModel.signUpCommand.error;
-            if (error != null) {
-              return Column(
-                children: [
-                  const SizedBox(height: 16),
-                  ErrorDisplay(
-                    error: error,
-                    onDismiss: () => authViewModel.signUpCommand.clearError(),
-                  ),
-                ],
-              );
-            }
-            return const SizedBox.shrink();
+            return AuthFormWidgets.buildErrorMessage(
+              authViewModel.signUpCommand.error,
+              onDismiss: () => authViewModel.signUpCommand.clearError(),
+            );
           },
         ),
         const SizedBox(height: 30),
