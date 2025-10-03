@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 /// Arkad brand colors
 class ArkadColors {
   static const Color arkadNavy = Color(0xFF041224);
+  static const Color arkadLightNavy = Color(0xFF0B1F31);
   static const Color arkadTurkos = Color(0xFF19A1DB);
   static const Color arkadGreen = Color(0xFF74B637);
   static const Color arkadSkog = Color(0xFF426128);

@@ -9,7 +9,7 @@ class CompanyCard extends StatelessWidget {
     super.key,
     required this.company,
     this.onTap,
-    this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
   });
 
   final Company company;
@@ -21,6 +21,7 @@ class CompanyCard extends StatelessWidget {
     return Container(
       margin: margin,
       child: Card(
+        color: ArkadColors.arkadLightNavy,
         elevation: 2,
         surfaceTintColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -40,7 +41,7 @@ class CompanyCard extends StatelessWidget {
                       Text(
                         company.name,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w400,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -81,9 +82,6 @@ class CompanyCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: Theme.of(context).colorScheme.surface,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
-        ),
       ),
       child: CompanyLogoImage(
         logoUrl: company.logoUrl,
