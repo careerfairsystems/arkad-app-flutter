@@ -39,8 +39,11 @@ class SyncFcmTokenUseCase extends UseCase<void, SyncFcmTokenParams> {
           token: params.token,
           lastSentAt: DateTime.now(),
         );
-        await _repository.saveTokenInfo(tokenInfo);
-        return Result.success(null);
+        final saveResult = await _repository.saveTokenInfo(tokenInfo);
+        return saveResult.when(
+          success: (_) => Result.success(null),
+          failure: Result.failure,
+        );
       },
       failure: (error) => Result.failure(error),
     );
