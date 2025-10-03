@@ -67,7 +67,7 @@ class ProfileInfoWidget extends StatelessWidget {
                     Text(
                       label,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontFamily: 'MyriadProCondensed',
                         color: ArkadColors.white,
                         fontWeight: FontWeight.w500,
@@ -77,7 +77,7 @@ class ProfileInfoWidget extends StatelessWidget {
                     Text(
                       value,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 15,
                         fontFamily: 'MyriadProCondensed',
                         color: isLink
                             ? ArkadColors.arkadTurkos
