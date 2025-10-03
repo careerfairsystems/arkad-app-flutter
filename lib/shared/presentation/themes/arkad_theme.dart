@@ -19,64 +19,10 @@ class ArkadColors {
 
 /// Arkad app theme configuration
 class ArkadTheme {
-  /// Base theme with shared properties
-  static ThemeData _createBaseTheme({
-    required Brightness brightness,
-    required ColorScheme colorScheme,
-    required Color scaffoldBackgroundColor,
-    required Color appBarBackgroundColor,
-    required Color textColor,
-    required Color inputFillColor,
-  }) {
-    return ThemeData(
-      primaryColor: ArkadColors.arkadNavy,
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: scaffoldBackgroundColor,
-      appBarTheme: AppBarTheme(
-        backgroundColor: appBarBackgroundColor,
-        foregroundColor: ArkadColors.white,
-        elevation: 0,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: ArkadColors.arkadTurkos,
-          foregroundColor: ArkadColors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: ArkadColors.arkadTurkos),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: inputFillColor,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: ArkadColors.lightGray),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: ArkadColors.lightGray),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: ArkadColors.arkadTurkos),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: ArkadColors.lightRed),
-        ),
-      ),
-      useMaterial3: true,
-      fontFamily: 'MyriadProCondensed',
-      textTheme: _createTextTheme(textColor),
-    );
-  }
-
-  /// Create text theme with the specified color
-  static TextTheme _createTextTheme(Color textColor) {
-    return TextTheme(
+  /// Create text theme with white color for dark theme
+  static TextTheme _createTextTheme() {
+    const textColor = ArkadColors.white;
+    return const TextTheme(
       displayLarge: TextStyle(
         fontFamily: 'MyriadProCondensed',
         color: textColor,
@@ -119,27 +65,10 @@ class ArkadTheme {
     );
   }
 
-  /// Light theme
-  static ThemeData get lightTheme {
-    return _createBaseTheme(
-      brightness: Brightness.light,
-      colorScheme: const ColorScheme.light(
-        primary: ArkadColors.arkadTurkos,
-        secondary: ArkadColors.arkadNavy,
-        error: ArkadColors.lightRed,
-        onSecondary: ArkadColors.white,
-      ),
-      scaffoldBackgroundColor: ArkadColors.white,
-      appBarBackgroundColor: ArkadColors.arkadNavy,
-      textColor: ArkadColors.gray,
-      inputFillColor: ArkadColors.lightGray.withValues(alpha: .1),
-    );
-  }
-
-  /// Dark theme
-  static ThemeData get darkTheme {
-    return _createBaseTheme(
-      brightness: Brightness.dark,
+  /// App theme (dark theme only)
+  static ThemeData get appTheme {
+    return ThemeData(
+      primaryColor: ArkadColors.arkadNavy,
       colorScheme: const ColorScheme.dark(
         primary: ArkadColors.arkadTurkos,
         secondary: ArkadColors.arkadGreen,
@@ -150,9 +79,45 @@ class ArkadTheme {
         onError: ArkadColors.white,
       ),
       scaffoldBackgroundColor: ArkadColors.arkadNavy,
-      appBarBackgroundColor: ArkadColors.arkadNavy,
-      textColor: ArkadColors.white,
-      inputFillColor: ArkadColors.gray.withValues(alpha: .1),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: ArkadColors.arkadNavy,
+        foregroundColor: ArkadColors.white,
+        elevation: 0,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: ArkadColors.arkadTurkos,
+          foregroundColor: ArkadColors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: ArkadColors.arkadTurkos),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: ArkadColors.gray.withValues(alpha: .1),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: ArkadColors.lightGray),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: ArkadColors.lightGray),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: ArkadColors.arkadTurkos),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: ArkadColors.lightRed),
+        ),
+      ),
+      useMaterial3: true,
+      fontFamily: 'MyriadProCondensed',
+      textTheme: _createTextTheme(),
     );
   }
 }

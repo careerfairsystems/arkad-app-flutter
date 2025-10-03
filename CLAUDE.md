@@ -120,7 +120,7 @@ lib/
 │   ├── presentation/          # Base commands, UI components, themes
 │   │   ├── commands/         # Command<T>, ParameterizedCommand<T,R>
 │   │   ├── widgets/          # ArkadButton, ArkadFormField, AsyncStateBuilder
-│   │   └── themes/           # ArkadTheme, ArkadColors, ThemeProvider
+│   │   └── themes/           # ArkadTheme, ArkadColors (dark theme only)
 │   ├── domain/                # Result<T>, UseCase<T,R>, validation
 │   ├── data/                  # BaseRepository, extensions, utilities
 │   ├── errors/                # AppError hierarchy, error mapping
@@ -354,15 +354,24 @@ AsyncStateBuilder<List<Company>>(
 
 ### Theme System (`shared/presentation/themes/`)
 
+The app uses a fixed dark theme configuration via `ArkadTheme.appTheme`.
+
 ```dart
-// ✅ ALWAYS use theme colors
+// ✅ ALWAYS use Arkad brand colors
 backgroundColor: ArkadColors.arkadTurkos,    // Primary brand
-backgroundColor: ArkadColors.arkadGreen,     // Success states
+backgroundColor: ArkadColors.arkadGreen,     // Success states  
 backgroundColor: ArkadColors.lightRed,      // Error states
+backgroundColor: ArkadColors.arkadNavy,     // Main background
 
 // ❌ NEVER use raw colors
 backgroundColor: Colors.blue,      // FORBIDDEN
 backgroundColor: Colors.green,     // FORBIDDEN
+
+// ✅ Apply theme in MaterialApp
+MaterialApp.router(
+  theme: ArkadTheme.appTheme,  // Static dark theme
+  routerConfig: router,
+)
 ```
 
 ### Repository Foundation (`shared/data/`)
