@@ -119,6 +119,12 @@ jobs:
           flutter build web \
             --base-href "/"
 
+      - name: Copy .well-known directory
+        run: |
+          if [ -d ".well-known" ]; then
+            cp -r .well-known build/web/.well-known
+          fi
+
       - name: Add CNAME file for custom domain
         run: echo "app.arkadtlth.se" > build/web/CNAME
 
