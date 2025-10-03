@@ -232,18 +232,18 @@ class CompanyViewModel extends ChangeNotifier {
     });
   }
 
-  /// Handle user logout by clearing all cached data and resetting state
+  /// Handle user logout by clearing user-specific state but preserving public company data
   void _handleUserLogout() {
-    // Clear current state
+    // Clear user interaction state (search and filters)
     _currentSearchQuery = '';
     _currentFilter = const CompanyFilter();
-    _displayedCompanies = [];
-
-    // Reset all commands to clear cached data and states
-    _getCompaniesCommand.reset();
+    
+    // Reset search and filter commands (user-specific operations)
     _searchCompaniesCommand.reset();
     _filterCompaniesCommand.reset();
     _searchAndFilterCommand.reset();
+    
+    _updateDisplayedCompanies();
 
     notifyListeners();
   }
