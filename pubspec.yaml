@@ -55,6 +55,7 @@ flutter:
   assets:
     - assets/fonts/
     - assets/icons/
+    - .well-known/
 
   fonts:
     - family: MyriadProCondensed
