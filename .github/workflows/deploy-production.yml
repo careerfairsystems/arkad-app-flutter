@@ -119,6 +119,9 @@ jobs:
           flutter build web \
             --base-href "/"
 
+      - name: Add .nojekyll file
+        run: touch build/web/.nojekyll
+
       - name: Copy .well-known directory
         run: |
           if [ -d ".well-known" ]; then
