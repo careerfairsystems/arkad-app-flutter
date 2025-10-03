@@ -21,6 +21,7 @@ class ProfileFormComponents {
             labelText: 'First Name *',
             border: OutlineInputBorder(),
             helperText: 'Required',
+            helperStyle: TextStyle(color: ArkadColors.gray),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -38,6 +39,7 @@ class ProfileFormComponents {
             labelText: 'Last Name *',
             border: OutlineInputBorder(),
             helperText: 'Required',
+            helperStyle: TextStyle(color: ArkadColors.gray),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -69,6 +71,7 @@ class ProfileFormComponents {
             labelText: 'Programme',
             border: OutlineInputBorder(),
             helperText: 'Optional',
+            helperStyle: TextStyle(color: ArkadColors.gray),
           ),
           initialValue: selectedProgramme,
           hint: const Text('Select your programme'),
@@ -92,6 +95,7 @@ class ProfileFormComponents {
             labelText: 'Study Year',
             border: OutlineInputBorder(),
             helperText: 'Optional',
+            helperStyle: TextStyle(color: ArkadColors.gray),
           ),
           initialValue: studyYear,
           hint: const Text('Select your study year'),
@@ -113,6 +117,7 @@ class ProfileFormComponents {
             labelText: 'Master Title',
             border: OutlineInputBorder(),
             helperText: 'Optional',
+            helperStyle: TextStyle(color: ArkadColors.gray),
           ),
         ),
       ],
@@ -136,6 +141,7 @@ class ProfileFormComponents {
             border: OutlineInputBorder(),
             helperText:
                 'Optional - Enter your LinkedIn username or full profile URL',
+            helperStyle: TextStyle(color: ArkadColors.gray),
           ),
         ),
         const SizedBox(height: 16),
@@ -145,9 +151,11 @@ class ProfileFormComponents {
           textInputAction: TextInputAction.done,
           decoration: const InputDecoration(
             labelText: 'Food Preferences',
-            hintText: 'e.g., Vegetarian, allergic to nuts, etc. (Optional)',
+            hintText: 'e.g., Vegetarian, allergic to nuts, etc.',
             border: OutlineInputBorder(),
-            helperText: 'Optional - Leave empty if none',
+            helperText:
+                'Please specify your allergies, or leave blank if none.',
+            helperStyle: TextStyle(color: ArkadColors.gray),
           ),
         ),
       ],
@@ -207,7 +215,7 @@ class ProfileFormComponents {
             icon: const Icon(Icons.delete, color: ArkadColors.lightRed),
             label: const Text(
               'Remove Picture',
-              style: TextStyle(color: ArkadColors.lightRed),
+              style: TextStyle(color: ArkadColors.lightRed, fontSize: 14),
             ),
             onPressed: onDeleteImage,
           ),
@@ -223,74 +231,124 @@ class ProfileFormComponents {
     required bool cvDeleted,
     required String? currentCV,
   }) {
+    final hasCV =
+        selectedCV != null ||
+        (!cvDeleted && currentCV != null && currentCV.isNotEmpty);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Status container with green background and turquoise border
         Container(
+          width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: ArkadColors.lightGray),
-            borderRadius: BorderRadius.circular(8),
+            color: hasCV
+                ? ArkadColors.arkadGreen.withValues(alpha: 0.1)
+                : ArkadColors.arkadLightNavy,
+            border: Border.all(color: ArkadColors.arkadTurkos, width: 1.5),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             children: [
               Icon(
-                selectedCV != null ||
-                        (!cvDeleted &&
-                            currentCV != null &&
-                            currentCV.isNotEmpty)
-                    ? Icons.check_circle
-                    : Icons.upload_file,
-                color:
-                    selectedCV != null ||
-                        (!cvDeleted &&
-                            currentCV != null &&
-                            currentCV.isNotEmpty)
-                    ? ArkadColors.arkadGreen
-                    : ArkadColors.gray,
+                hasCV ? Icons.check_circle : Icons.upload_file,
+                color: hasCV ? ArkadColors.arkadGreen : ArkadColors.gray,
+                size: 24,
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   selectedCV != null
-                      ? 'Selected: ${selectedCV.path.split('/').last}'
+                      ? 'Current: ${selectedCV.path.split('/').last}'
                       : (cvDeleted
-                            ? 'No CV selected yet (PDF format)'
+                            ? 'No CV uploaded'
                             : (currentCV != null && currentCV.isNotEmpty
                                   ? 'Current: ${currentCV.split('/').last}'
-                                  : 'No CV selected yet (PDF format)')),
-                  style: Theme.of(context).textTheme.bodyMedium,
+                                  : 'No CV uploaded')),
+                  style: const TextStyle(
+                    color: ArkadColors.white,
+                    fontSize: 14,
+                    fontFamily: 'MyriadProCondensed',
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        const Text('CV / Resume (Optional)', style: TextStyle(fontSize: 12)),
+
+        const SizedBox(height: 12),
+
+        // Helper text
+        const Text(
+          'CV / Resume (Optional)',
+          style: TextStyle(
+            color: ArkadColors.gray,
+            fontSize: 12,
+            fontFamily: 'MyriadProCondensed',
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // Side-by-side buttons
         Row(
           children: [
             Expanded(
-              child: ElevatedButton.icon(
+              child: OutlinedButton.icon(
                 onPressed: onPickCV,
-                icon: const Icon(Icons.attach_file, color: ArkadColors.white),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ArkadColors.arkadTurkos,
+                  side: const BorderSide(
+                    color: ArkadColors.arkadTurkos,
+                    width: 1.5,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.attach_file, size: 18),
                 label: Text(
-                  currentCV != null && currentCV.isNotEmpty
-                      ? 'Change CV'
-                      : 'Select CV File',
+                  hasCV ? 'Change CV' : 'Upload CV',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontFamily: 'MyriadProCondensed',
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
-            if (!cvDeleted &&
-                currentCV != null &&
-                currentCV.isNotEmpty &&
-                onDeleteCV != null) ...[
-              const SizedBox(width: 8),
-              TextButton.icon(
+            if (hasCV && onDeleteCV != null) ...[
+              const SizedBox(width: 12),
+              OutlinedButton.icon(
                 onPressed: onDeleteCV,
-                icon: const Icon(Icons.delete, color: ArkadColors.lightRed),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ArkadColors.lightRed,
+                  side: const BorderSide(
+                    color: ArkadColors.lightRed,
+                    width: 1.5,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.delete, size: 18),
                 label: const Text(
                   'Remove',
-                  style: TextStyle(color: ArkadColors.lightRed),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontFamily: 'MyriadProCondensed',
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],

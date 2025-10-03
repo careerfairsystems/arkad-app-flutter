@@ -295,7 +295,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           const Text(
                             'Profile Picture (Optional)',
                             style: TextStyle(
-                              color: ArkadColors.gray,
+                              color: ArkadColors.white,
                               fontSize: 12,
                             ),
                           ),
@@ -332,6 +332,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         labelText: 'Email',
                         border: OutlineInputBorder(),
                         helperText: 'Email cannot be changed',
+                        helperStyle: TextStyle(color: ArkadColors.gray),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -346,7 +347,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                     // Education information section
                     const Text(
-                      'Education Information (Optional)',
+                      'Education Information',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
