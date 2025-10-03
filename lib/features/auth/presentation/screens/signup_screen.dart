@@ -477,7 +477,7 @@ class _SignupScreenState extends State<SignupScreen> {
               }
             });
           },
-          title: Text(
+          title: const Text(
             'I have food preferences',
             style: TextStyle(
               fontSize: 16,

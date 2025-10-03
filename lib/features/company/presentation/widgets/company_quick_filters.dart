@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
-import '../../domain/entities/company.dart';
 
 class CompanyQuickFilters extends StatelessWidget {
   const CompanyQuickFilters({
@@ -87,7 +86,7 @@ class CompanyQuickFilters extends StatelessWidget {
     final isSelected = selectedPositions.contains(position);
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 0),
+      duration: const Duration(),
       curve: Curves.easeInOut,
       child: FilterChip(
         elevation: isSelected ? 2 : 0,
