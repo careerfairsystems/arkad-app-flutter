@@ -1,7 +1,7 @@
 /// Utility class for handling URL construction and conversion
 class UrlUtils {
-  /// Base URL for the staging backend
-  static const String baseUrl = 'https://staging.backend.arkadtlth.se';
+  /// Base URL for the backend
+  static const String baseUrl = 'https://backend.arkadtlth.se';
 
   /// Convert relative path to full URL
   /// Backend returns relative paths like '/user/profile-picture/...' or '/user/cv/...'

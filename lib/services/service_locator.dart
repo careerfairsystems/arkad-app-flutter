@@ -121,7 +121,7 @@ void _registerApiClientConditionally() {
   serviceLocator.registerLazySingleton<ArkadApi>(
     () => ArkadApi(
       // Let ArkadApi create its own Dio with interceptors
-      basePathOverride: 'https://staging.backend.arkadtlth.se',
+      basePathOverride: 'https://backend.arkadtlth.se',
     ),
   );
 

@@ -10,8 +10,8 @@ Arkad Flutter app for career fair management - student profiles, company browsin
 
 **ALWAYS verify backend API before coding:**
 
-1. **Check backend docs**: `https://staging.backend.arkadtlth.se/api/docs#/`
-2. **Verify OpenAPI schema**: `https://staging.backend.arkadtlth.se/api/openapi.json`
+1. **Check backend docs**: `https://backend.arkadtlth.se/api/docs#/`
+2. **Verify OpenAPI schema**: `https://backend.arkadtlth.se/api/openapi.json`
 3. **Regenerate API client with OpenAPI CLI**: `./scripts/generate_api.sh` (Linux/macOS) or `./scripts/generate_api.ps1` (Windows)
 4. **Validate integration**: Test endpoints before implementing features
 
@@ -202,7 +202,7 @@ extension SuccessResponse<T> on Response<T> {
 # Download and run OpenAPI Generator CLI
 curl -L https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.10.0/openapi-generator-cli-7.10.0.jar -o openapi-generator-cli.jar
 java -jar openapi-generator-cli.jar generate \
-  -i https://staging.backend.arkadtlth.se/api/openapi.json \
+  -i https://backend.arkadtlth.se/api/openapi.json \
   -g dart-dio \
   -o api/arkad_api \
   --additional-properties=pubName=arkad_api,pubVersion=1.0.0,pubDescription="OpenAPI API client"
@@ -228,7 +228,7 @@ flutter clean && flutter pub get
 
 ```bash
 # 1. Verify API changes
-curl https://staging.backend.arkadtlth.se/api/openapi.json
+curl https://backend.arkadtlth.se/api/openapi.json
 
 # 2. Regenerate client using OpenAPI CLI
 ./scripts/generate_api.sh
@@ -424,7 +424,7 @@ class ValidationService {
 ```dart
 // Centralized URL conversion for backend API responses
 class UrlUtils {
-  static const String baseUrl = 'https://staging.backend.arkadtlth.se';
+  static const String baseUrl = 'https://backend.arkadtlth.se';
   
   static String? buildFullUrl(String? relativePath) {
     if (relativePath == null || relativePath.isEmpty) return null;
