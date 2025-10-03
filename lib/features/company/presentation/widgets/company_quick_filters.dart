@@ -24,6 +24,7 @@ class CompanyQuickFilters extends StatelessWidget {
 
   static const List<String> popularPositions = [
     'Student Sessions',
+    'Student Sessions',
     'Thesis',
     'Internship',
     'Summer Job',
@@ -86,7 +87,7 @@ class CompanyQuickFilters extends StatelessWidget {
     final isSelected = selectedPositions.contains(position);
 
     return AnimatedContainer(
-      duration: const Duration(),
+      duration: const Duration(milliseconds: 0),
       curve: Curves.easeInOut,
       child: FilterChip(
         elevation: isSelected ? 2 : 0,
