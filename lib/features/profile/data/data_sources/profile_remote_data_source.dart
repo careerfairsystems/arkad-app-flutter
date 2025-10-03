@@ -104,20 +104,25 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       if (response.isSuccess) {
         return 'success'; // Return success indicator, not a URL
       } else {
-        throw ApiException('Profile picture upload failed: ${response.error}');
+        throw ApiException(
+          'Profile picture upload failed: ${response.error}',
+          response.statusCode,
+        );
       }
     } catch (e) {
       await Sentry.captureException(e);
       if (e is DioException) {
-        if (e.response?.statusCode == 401) {
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 401) {
           throw const AuthException('Authentication required');
-        } else if (e.response?.statusCode == 413) {
+        } else if (statusCode == 413) {
           throw const ValidationException('Image file is too large');
-        } else if (e.response?.statusCode == 415) {
+        } else if (statusCode == 415) {
           throw const ValidationException('Unsupported image format');
-        } else if (e.response?.statusCode == 429) {
+        } else if (statusCode == 429) {
           throw const ApiException(
             'Too many requests. Please wait before trying again.',
+            429,
           );
         }
         throw NetworkException('Network error: ${e.message}');
@@ -155,20 +160,22 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       if (response.isSuccess) {
         return 'success'; // Return success indicator, not a URL
       } else {
-        throw ApiException('CV upload failed: ${response.error}');
+        throw ApiException('CV upload failed: ${response.error}', response.statusCode);
       }
     } catch (e) {
       await Sentry.captureException(e);
       if (e is DioException) {
-        if (e.response?.statusCode == 401) {
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 401) {
           throw const AuthException('Authentication required');
-        } else if (e.response?.statusCode == 413) {
+        } else if (statusCode == 413) {
           throw const ValidationException('CV file is too large');
-        } else if (e.response?.statusCode == 415) {
+        } else if (statusCode == 415) {
           throw const ValidationException('Unsupported file format');
-        } else if (e.response?.statusCode == 429) {
+        } else if (statusCode == 429) {
           throw const ApiException(
             'Too many requests. Please wait before trying again.',
+            429,
           );
         }
         throw NetworkException('Network error: ${e.message}');
@@ -187,18 +194,21 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       if (!response.isSuccess) {
         throw ApiException(
           'Profile picture deletion failed: ${response.error}',
+          response.statusCode,
         );
       }
     } catch (e) {
       await Sentry.captureException(e);
       if (e is DioException) {
-        if (e.response?.statusCode == 401) {
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 401) {
           throw const AuthException('Authentication required');
-        } else if (e.response?.statusCode == 404) {
-          throw const ApiException('Profile picture not found');
-        } else if (e.response?.statusCode == 429) {
+        } else if (statusCode == 404) {
+          throw const ApiException('Profile picture not found', 404);
+        } else if (statusCode == 429) {
           throw const ApiException(
             'Too many requests. Please wait before trying again.',
+            429,
           );
         }
         throw NetworkException('Network error: ${e.message}');
@@ -213,18 +223,20 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       final response = await _api.getUserProfileApi().userModelsApiDeleteCv();
 
       if (!response.isSuccess) {
-        throw ApiException('CV deletion failed: ${response.error}');
+        throw ApiException('CV deletion failed: ${response.error}', response.statusCode);
       }
     } catch (e) {
       await Sentry.captureException(e);
       if (e is DioException) {
-        if (e.response?.statusCode == 401) {
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 401) {
           throw const AuthException('Authentication required');
-        } else if (e.response?.statusCode == 404) {
-          throw const ApiException('CV not found');
-        } else if (e.response?.statusCode == 429) {
+        } else if (statusCode == 404) {
+          throw const ApiException('CV not found', 404);
+        } else if (statusCode == 429) {
           throw const ApiException(
             'Too many requests. Please wait before trying again.',
+            429,
           );
         }
         throw NetworkException('Network error: ${e.message}');

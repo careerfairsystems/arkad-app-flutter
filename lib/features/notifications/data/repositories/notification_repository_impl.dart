@@ -1,0 +1,90 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+import '../../../../shared/domain/result.dart';
+import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/errors/exception.dart';
+import '../../domain/entities/fcm_token_info.dart';
+import '../../domain/repositories/notification_repository.dart';
+import '../data_sources/notification_local_data_source.dart';
+import '../data_sources/notification_remote_data_source.dart';
+
+/// Implementation of notification repository
+class NotificationRepositoryImpl implements NotificationRepository {
+  const NotificationRepositoryImpl(
+    this._remoteDataSource,
+    this._localDataSource,
+  );
+
+  final NotificationRemoteDataSource _remoteDataSource;
+  final NotificationLocalDataSource _localDataSource;
+
+  @override
+  Future<Result<void>> sendFcmToken(String token) async {
+    try {
+      await _remoteDataSource.sendFcmToken(token);
+      return Result.success(null);
+    } on AuthException catch (e) {
+      await Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Auth exception in sendFcmToken: ${e.message}',
+          level: SentryLevel.info,
+        ),
+      );
+      return Result.failure(AuthenticationError(details: e.message));
+    } on NetworkException catch (e) {
+      await Sentry.captureMessage(
+        'Send FCM token failed - network unavailable',
+        level: SentryLevel.warning,
+      );
+      await Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Network exception in sendFcmToken: ${e.message}',
+          level: SentryLevel.info,
+        ),
+      );
+      return Result.failure(NetworkError(details: e.message));
+    } on ApiException catch (e, stackTrace) {
+      if (e.message.contains('429')) {
+        await Sentry.captureException(e, stackTrace: stackTrace);
+        return Result.failure(const RateLimitError(Duration(minutes: 5)));
+      }
+      await Sentry.captureException(e, stackTrace: stackTrace);
+      return Result.failure(UnknownError(e.message));
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
+      return Result.failure(UnknownError(e.toString()));
+    }
+  }
+
+  @override
+  Future<FcmTokenInfo?> getStoredTokenInfo() async {
+    try {
+      return await _localDataSource.getTokenInfo();
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
+      return null;
+    }
+  }
+
+  @override
+  Future<Result<void>> saveTokenInfo(FcmTokenInfo tokenInfo) async {
+    try {
+      await _localDataSource.saveTokenInfo(tokenInfo);
+      return Result.success(null);
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
+      return Result.failure(UnknownError(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<void>> clearTokenInfo() async {
+    try {
+      await _localDataSource.clearTokenInfo();
+      return Result.success(null);
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
+      return Result.failure(UnknownError(e.toString()));
+    }
+  }
+}

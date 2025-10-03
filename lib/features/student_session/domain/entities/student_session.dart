@@ -152,7 +152,10 @@ class StudentSession {
         other.logoUrl == logoUrl &&
         other.description == description &&
         other.disclaimer == disclaimer &&
-        const ListEquality().equals(other.fieldConfigurations, fieldConfigurations);
+        const ListEquality().equals(
+          other.fieldConfigurations,
+          fieldConfigurations,
+        );
   }
 
   @override
