@@ -81,8 +81,15 @@ class ArkadTheme {
       scaffoldBackgroundColor: ArkadColors.arkadNavy,
       appBarTheme: const AppBarTheme(
         backgroundColor: ArkadColors.arkadNavy,
-        foregroundColor: ArkadColors.white,
+        foregroundColor: ArkadColors.arkadTurkos,
         elevation: 0,
+        scrolledUnderElevation: 0, // Prevent darker shade on scroll
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          color: ArkadColors.arkadTurkos,
+          fontSize: 30,
+          fontWeight: FontWeight.w700,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
