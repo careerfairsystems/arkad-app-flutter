@@ -19,49 +19,102 @@ class ArkadColors {
 
 /// Arkad app theme configuration
 class ArkadTheme {
-  /// Create text theme with white color for dark theme
   static TextTheme _createTextTheme() {
-    const textColor = ArkadColors.white;
     return const TextTheme(
       displayLarge: TextStyle(
         fontFamily: 'MyriadProCondensed',
-        color: textColor,
+        fontSize: 57,
+        fontWeight: FontWeight.w400,
+        color: ArkadColors.white,
       ),
       displayMedium: TextStyle(
         fontFamily: 'MyriadProCondensed',
-        color: textColor,
+        fontSize: 45,
+        fontWeight: FontWeight.w400,
+        color: ArkadColors.white,
       ),
       displaySmall: TextStyle(
         fontFamily: 'MyriadProCondensed',
-        color: textColor,
+        fontSize: 36,
+        fontWeight: FontWeight.w400,
+        color: ArkadColors.white,
       ),
+      // Headline text for screen titles
       headlineLarge: TextStyle(
         fontFamily: 'MyriadProCondensed',
-        color: textColor,
+        fontSize: 32,
+        fontWeight: FontWeight.w600,
+        color: ArkadColors.white,
       ),
       headlineMedium: TextStyle(
         fontFamily: 'MyriadProCondensed',
-        color: textColor,
+        fontSize: 28,
+        fontWeight: FontWeight.w600,
+        color: ArkadColors.white,
       ),
       headlineSmall: TextStyle(
         fontFamily: 'MyriadProCondensed',
-        color: textColor,
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        color: ArkadColors.white,
       ),
-      titleLarge: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
+      // Title text for cards and sections
+      titleLarge: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        fontSize: 22,
+        fontWeight: FontWeight.w500,
+        color: ArkadColors.white,
+      ),
       titleMedium: TextStyle(
         fontFamily: 'MyriadProCondensed',
-        color: textColor,
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        color: ArkadColors.white,
       ),
-      titleSmall: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
-      bodyLarge: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
-      bodyMedium: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
-      bodySmall: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
-      labelLarge: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
+      titleSmall: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: ArkadColors.white,
+      ),
+      // Body text for content
+      bodyLarge: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: ArkadColors.white,
+      ),
+      bodyMedium: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: ArkadColors.white,
+      ),
+      bodySmall: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: ArkadColors.white,
+      ),
+      // Label text for form labels and small UI elements
+      labelLarge: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: ArkadColors.arkadTurkos,
+      ),
       labelMedium: TextStyle(
         fontFamily: 'MyriadProCondensed',
-        color: textColor,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: ArkadColors.arkadTurkos,
       ),
-      labelSmall: TextStyle(fontFamily: 'MyriadProCondensed', color: textColor),
+      labelSmall: TextStyle(
+        fontFamily: 'MyriadProCondensed',
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+        color: ArkadColors.arkadTurkos,
+      ),
     );
   }
 
