@@ -278,7 +278,7 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         if (_passwordController.text.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -286,11 +286,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   'Password must:',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: ArkadColors.gray,
+                    fontSize: 14,
+                    color: ArkadColors.white,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 8),
                 AuthFormWidgets.buildPasswordRequirementRow(
                   _passwordStrength['minLength']!,
                   'Be at least ${ValidationService.passwordMinLength} characters long',
@@ -482,7 +482,7 @@ class _SignupScreenState extends State<SignupScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
+              color: ArkadColors.white,
             ),
           ),
           controlAffinity: ListTileControlAffinity.leading,
