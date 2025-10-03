@@ -35,6 +35,9 @@ dependencies:
   screen_brightness: ^2.1.7
   mobile_scanner: ^6.0.2
   collection: ^1.18.0
+  firebase_core: ^3.15.2
+  firebase_messaging: ^15.1.5
+  app_settings: ^5.1.1
   arkad_api:
     path: ./api/arkad_api/
 dev_dependencies:

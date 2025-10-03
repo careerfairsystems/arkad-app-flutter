@@ -184,7 +184,9 @@ class StudentSessionViewModel extends ChangeNotifier {
     // Wait for authentication completion with timeout protection
     if (!await _waitForAuthCompletion()) {
       if (kDebugMode) {
-        print('StudentSessionViewModel: Auth completion failed - either timeout (>5s) or user not authenticated');
+        print(
+          'StudentSessionViewModel: Auth completion failed - either timeout (>5s) or user not authenticated',
+        );
       }
       return; // Don't load applications if user is not authenticated or timeout occurred
     }
@@ -201,7 +203,9 @@ class StudentSessionViewModel extends ChangeNotifier {
     // Wait for authentication completion with timeout protection
     if (!await _waitForAuthCompletion()) {
       if (kDebugMode) {
-        print('StudentSessionViewModel: Auth completion failed - either timeout (>5s) or user not authenticated');
+        print(
+          'StudentSessionViewModel: Auth completion failed - either timeout (>5s) or user not authenticated',
+        );
       }
       return; // Don't load applications if user is not authenticated or timeout occurred
     }

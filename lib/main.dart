@@ -7,6 +7,7 @@ import 'features/company/presentation/view_models/company_detail_view_model.dart
 import 'features/company/presentation/view_models/company_view_model.dart';
 import 'features/event/presentation/view_models/event_view_model.dart';
 import 'features/map/presentation/view_models/map_view_model.dart';
+import 'features/notifications/presentation/view_models/notification_view_model.dart';
 import 'features/profile/presentation/view_models/profile_view_model.dart';
 import 'features/student_session/presentation/view_models/student_session_view_model.dart';
 import 'navigation/app_router.dart';
@@ -16,6 +17,7 @@ import 'shared/presentation/themes/providers/theme_provider.dart';
 
 void main() async {
   await SentryFlutter.init(
+
     (options) {
       options.dsn =
           'https://a42d50c4a8a0196fd8b2ace3397d6b3d@o4506696085340160.ingest.us.sentry.io/4509367674142720';
@@ -83,6 +85,9 @@ class _MyAppState extends State<MyApp> {
         ),
         ChangeNotifierProvider.value(value: serviceLocator<EventViewModel>()),
         ChangeNotifierProvider.value(value: serviceLocator<MapViewModel>()),
+        ChangeNotifierProvider.value(
+          value: serviceLocator<NotificationViewModel>(),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (ctx, themeProvider, _) {

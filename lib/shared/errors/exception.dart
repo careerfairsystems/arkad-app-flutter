@@ -10,7 +10,17 @@ abstract class AppException implements Exception {
 
 /// Exception thrown when API call fails
 class ApiException extends AppException {
-  const ApiException(super.message);
+  const ApiException(super.message, [this.statusCode]);
+
+  final int? statusCode;
+
+  @override
+  String toString() {
+    if (statusCode != null) {
+      return '$runtimeType (HTTP $statusCode): $message';
+    }
+    return super.toString();
+  }
 }
 
 /// Exception thrown when validation fails
