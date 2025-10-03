@@ -128,9 +128,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           horizontal: 16.0,
                         ),
                       ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 18,
@@ -146,10 +144,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
-                    final verifyError = authViewModel.completeSignupCommand.error;
-                    final resendError = authViewModel.resendVerificationCommand.error;
+                    final verifyError =
+                        authViewModel.completeSignupCommand.error;
+                    final resendError =
+                        authViewModel.resendVerificationCommand.error;
                     final displayError = verifyError ?? resendError;
-                    
+
                     return AuthFormWidgets.buildErrorMessage(
                       displayError,
                       onDismiss: () {
@@ -170,7 +170,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   builder: (context, authViewModel, child) {
                     return AuthFormWidgets.buildSubmitButton(
                       text: 'Verify',
-                      onPressed: authViewModel.isCompletingSignup || !_isCodeComplete
+                      onPressed:
+                          authViewModel.isCompletingSignup || !_isCodeComplete
                           ? null
                           : _verifyCode,
                       isLoading: authViewModel.isCompletingSignup,

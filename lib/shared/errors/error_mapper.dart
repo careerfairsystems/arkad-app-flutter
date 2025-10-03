@@ -36,12 +36,12 @@ class ErrorMapper {
             details: errorMessage,
           );
         }
-        
+
         if (operationContext == 'verification') {
           final errorMessage = _extractErrorMessage(responseData);
           return VerificationCodeError(details: errorMessage);
         }
-        
+
         if (operationContext == 'password_reset') {
           final errorMessage = _extractErrorMessage(responseData);
           return PasswordResetError(details: errorMessage);
@@ -130,22 +130,11 @@ class ErrorMapper {
           "An account with this email already exists.",
         );
 
-      case 415:
-        // Unsupported media type - auth endpoints expect JSON
-        if (operationContext?.contains('auth') == true ||
-            operationContext == 'signup' ||
-            operationContext == 'signin' ||
-            operationContext == 'verification' ||
-            operationContext == 'password_reset') {
-          return const ValidationError('Invalid request format. Please try again.');
-        }
-        return const ValidationError('Unsupported file format.');
-
       case 429:
         // Rate limiting with auth-specific messages
         final waitTime =
             _extractWaitTime(responseData) ?? const Duration(seconds: 30);
-        
+
         if (operationContext == 'signup') {
           return AuthRateLimitError(
             'Please wait 30 seconds before requesting another verification email.',
@@ -158,7 +147,7 @@ class ErrorMapper {
             waitTime: waitTime,
           );
         }
-        
+
         // Generic rate limiting
         return RateLimitError(waitTime);
 

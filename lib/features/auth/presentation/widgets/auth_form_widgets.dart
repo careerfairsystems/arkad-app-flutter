@@ -272,14 +272,14 @@ class AuthFormWidgets {
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: ArkadColors.lightRed.withOpacity(0.1),
+        color: ArkadColors.lightRed.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: ArkadColors.lightRed.withOpacity(0.3)),
+        border: Border.all(color: ArkadColors.lightRed.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           if (showIcon) ...[
-            Icon(
+            const Icon(
               Icons.error_outline,
               color: ArkadColors.lightRed,
               size: 20,

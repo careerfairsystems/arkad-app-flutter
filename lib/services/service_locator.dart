@@ -110,7 +110,6 @@ void setupServiceLocator() {
   _setupStudentSessionFeature();
   _setupEventFeature();
   _setupMapFeature();
-
 }
 
 /// Setup API client conditionally

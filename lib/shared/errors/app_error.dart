@@ -157,12 +157,15 @@ class VerificationCodeError extends AppError {
 
 /// Signup validation error (email format, password strength)
 class SignupValidationError extends AppError {
-  const SignupValidationError(String message, {String? details, super.recoveryActions})
-    : super(
-        userMessage: message,
-        severity: ErrorSeverity.warning,
-        technicalDetails: details,
-      );
+  const SignupValidationError(
+    String message, {
+    String? details,
+    super.recoveryActions,
+  }) : super(
+         userMessage: message,
+         severity: ErrorSeverity.warning,
+         technicalDetails: details,
+       );
 }
 
 /// Password reset error (invalid email, not found)
@@ -178,11 +181,11 @@ class PasswordResetError extends AppError {
 
 /// Rate limiting for auth operations
 class AuthRateLimitError extends AppError {
-  const AuthRateLimitError(String message, {required this.waitTime, super.recoveryActions})
-    : super(
-        userMessage: message,
-        severity: ErrorSeverity.warning,
-      );
+  const AuthRateLimitError(
+    String message, {
+    required this.waitTime,
+    super.recoveryActions,
+  }) : super(userMessage: message, severity: ErrorSeverity.warning);
 
   final Duration waitTime;
 }
