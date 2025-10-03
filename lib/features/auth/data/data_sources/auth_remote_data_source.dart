@@ -44,16 +44,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         // Strip "Bearer " prefix if present
         return token.startsWith('Bearer ') ? token.substring(7) : token;
       } else {
-        throw ApiException('Sign in failed: ${response.error}');
+        throw ApiException('Sign in failed: ${response.error}', response.statusCode);
       }
     } catch (e) {
       await Sentry.captureException(e);
       if (e is DioException) {
-        if (e.response?.statusCode == 401) {
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 401) {
           throw const AuthException('Incorrect email or password');
-        } else if (e.response?.statusCode == 429) {
+        } else if (statusCode == 429) {
           throw const ApiException(
             'Too many attempts. Please wait before trying again.',
+            429,
           );
         }
         throw NetworkException('Network error: ${e.message}');
@@ -74,18 +76,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (response.isSuccess && response.data != null) {
         return response.data!;
       } else {
-        throw ApiException('Signup failed: ${response.error}');
+        throw ApiException('Signup failed: ${response.error}', response.statusCode);
       }
     } catch (e) {
       await Sentry.captureException(e);
       if (e is DioException) {
-        if (e.response?.statusCode == 415) {
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 415) {
           throw const ValidationException(
             'An account with this email already exists',
           );
-        } else if (e.response?.statusCode == 429) {
+        } else if (statusCode == 429) {
           throw const ApiException(
             'Too many attempts. Please wait before trying again.',
+            429,
           );
         }
         throw NetworkException('Network error: ${e.message}');
@@ -114,16 +118,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (response.isSuccess && response.data != null) {
         return response.data!;
       } else {
-        throw ApiException('Signup completion failed: ${response.error}');
+        throw ApiException('Signup completion failed: ${response.error}', response.statusCode);
       }
     } catch (e) {
       await Sentry.captureException(e);
       if (e is DioException) {
-        if (e.response?.statusCode == 400) {
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 400) {
           throw const ValidationException('Invalid verification code');
-        } else if (e.response?.statusCode == 429) {
+        } else if (statusCode == 429) {
           throw const ApiException(
             'Too many attempts. Please wait before trying again.',
+            429,
           );
         }
         throw NetworkException('Network error: ${e.message}');
@@ -142,12 +148,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (response.isSuccess && response.data != null) {
         return response.data!;
       } else {
-        throw ApiException('Profile loading failed: ${response.error}');
+        throw ApiException('Profile loading failed: ${response.error}', response.statusCode);
       }
     } catch (e) {
       await Sentry.captureException(e);
       if (e is DioException) {
-        if (e.response?.statusCode == 401) {
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 401) {
           throw const AuthException('Authentication required');
         }
         throw NetworkException('Network error: ${e.message}');
@@ -166,18 +173,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           );
 
       if (!response.isSuccess) {
-        throw ApiException('Password reset failed: ${response.error}');
+        throw ApiException('Password reset failed: ${response.error}', response.statusCode);
       }
     } catch (e) {
       await Sentry.captureException(e);
       if (e is DioException) {
-        if (e.response?.statusCode == 404) {
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 404) {
           throw const ValidationException(
             'No account found with this email address',
           );
-        } else if (e.response?.statusCode == 429) {
+        } else if (statusCode == 429) {
           throw const ApiException(
             'Too many attempts. Please wait before trying again.',
+            429,
           );
         }
         throw NetworkException('Network error: ${e.message}');

@@ -28,16 +28,18 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
           );
 
       if (!response.isSuccess) {
-        throw ApiException('Failed to send FCM token: ${response.error}');
+        throw ApiException('Failed to send FCM token: ${response.error}', response.statusCode);
       }
     } catch (e) {
       await Sentry.captureException(e);
       if (e is DioException) {
-        if (e.response?.statusCode == 401) {
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 401) {
           throw const AuthException('Authentication required');
-        } else if (e.response?.statusCode == 429) {
+        } else if (statusCode == 429) {
           throw const ApiException(
             'Too many attempts. Please wait before trying again.',
+            429,
           );
         }
         throw NetworkException('Network error: ${e.message}');
