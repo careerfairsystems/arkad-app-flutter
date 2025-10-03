@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/notification_status_card.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../../student_session/presentation/widgets/profile_student_sessions_tab.dart';
@@ -98,12 +99,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 16),
         Consumer<AuthViewModel>(
           builder: (context, authViewModel, _) {
-            return TextButton.icon(
-              onPressed: () => _handleLogout(context, authViewModel),
-              icon: const Icon(Icons.logout),
-              label: const Text("Logout"),
-              style: TextButton.styleFrom(
-                foregroundColor: ArkadColors.arkadTurkos,
+            return Center(
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                child: ArkadButton(
+                  text: "Log Out",
+                  onPressed: () => _handleLogout(context, authViewModel),
+                  variant: ArkadButtonVariant.secondary,
+                  size: ArkadButtonSize.medium,
+                  icon: Icons.logout,
+                  fullWidth: true,
+                ),
               ),
             );
           },
