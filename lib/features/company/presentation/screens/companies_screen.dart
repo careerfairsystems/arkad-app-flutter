@@ -84,8 +84,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
                 onAdvancedFiltersPressed: _showAdvancedFilters,
                 onClearAllPressed: _clearAllFilters,
                 totalActiveFilters: _getTotalActiveFilters(),
+                resultsCount: viewModel.companies.length,
+                totalCompanies: viewModel.allCompanies.length,
+                hasSearchQuery: _searchController.text.isNotEmpty,
               ),
-              _buildResultsCount(viewModel),
               Expanded(
                 child: CompanyList(
                   command: viewModel.getCompaniesCommand,
@@ -159,46 +161,6 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             onChanged: _onSearchChanged,
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildResultsCount(CompanyViewModel viewModel) {
-    final hasActiveFilters = _hasAnyFilters();
-    final hasSearchQuery = _searchController.text.isNotEmpty;
-
-    if (!hasActiveFilters && !hasSearchQuery) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.filter_list_rounded,
-            size: 16,
-            color: ArkadColors.arkadTurkos,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'Showing ${viewModel.companies.length} of ${viewModel.allCompanies.length} companies',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.7),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
       ),
     );
   }

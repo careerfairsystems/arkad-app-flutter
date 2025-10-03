@@ -12,6 +12,9 @@ class CompanyQuickFilters extends StatelessWidget {
     required this.onAdvancedFiltersPressed,
     required this.onClearAllPressed,
     this.totalActiveFilters = 0,
+    required this.resultsCount,
+    required this.totalCompanies,
+    this.hasSearchQuery = false,
   });
 
   final bool hasStudentSessions;
@@ -21,6 +24,10 @@ class CompanyQuickFilters extends StatelessWidget {
   final VoidCallback onAdvancedFiltersPressed;
   final VoidCallback onClearAllPressed;
   final int totalActiveFilters;
+
+  final int resultsCount;
+  final int totalCompanies;
+  final bool hasSearchQuery;
 
   static const List<String> popularPositions = [
     'Student Sessions',
@@ -32,11 +39,6 @@ class CompanyQuickFilters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasAnyFilters =
-        hasStudentSessions ||
-        selectedPositions.isNotEmpty ||
-        totalActiveFilters > _getQuickFilterCount();
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
       child: Column(
@@ -77,7 +79,7 @@ class CompanyQuickFilters extends StatelessWidget {
             ),
           ),
 
-          if (hasAnyFilters) _buildActiveFiltersDisplay(context),
+          _buildActiveInfoRow(context),
         ],
       ),
     );
@@ -185,38 +187,82 @@ class CompanyQuickFilters extends StatelessWidget {
     );
   }
 
-  Widget _buildActiveFiltersDisplay(BuildContext context) {
+  Widget _buildActiveInfoRow(BuildContext context) {
     final int activeCount =
         (hasStudentSessions ? 1 : 0) + selectedPositions.length;
 
-    if (activeCount == 0) return const SizedBox.shrink();
+    final bool showResults = hasSearchQuery || activeCount > 0;
+    final bool showClear = activeCount > 0;
+
+    if (!showResults && !showClear) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
-      padding: const EdgeInsets.only(top: 12, left: 4),
-      child: InkWell(
-        onTap: onClearAllPressed,
-        borderRadius: BorderRadius.circular(6),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.clear_rounded,
-                size: 18,
-                color: ArkadColors.lightRed,
+      padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
+      child: Row(
+        children: [
+          if (showResults)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 6),
-              Text(
-                'Clear all filters ($activeCount)',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: ArkadColors.lightRed,
-                  fontWeight: FontWeight.w600,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.filter_list_rounded,
+                    size: 16,
+                    color: ArkadColors.arkadTurkos,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Showing $resultsCount of $totalCompanies companies',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const Spacer(),
+          if (showClear)
+            InkWell(
+              onTap: onClearAllPressed,
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.clear_rounded,
+                      size: 18,
+                      color: ArkadColors.lightRed,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Clear all filters ($activeCount)',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: ArkadColors.lightRed,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }

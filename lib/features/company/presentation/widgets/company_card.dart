@@ -9,7 +9,7 @@ class CompanyCard extends StatelessWidget {
     super.key,
     required this.company,
     this.onTap,
-    this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+    this.margin = const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
   });
 
   final Company company;
