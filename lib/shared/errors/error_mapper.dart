@@ -134,16 +134,17 @@ class ErrorMapper {
         // Rate limiting with auth-specific messages
         final waitTime =
             _extractWaitTime(responseData) ?? const Duration(seconds: 30);
+        final waitTimeText = _formatDuration(waitTime);
 
         if (operationContext == 'signup') {
           return AuthRateLimitError(
-            'Please wait 30 seconds before requesting another verification email.',
+            'Please wait $waitTimeText before requesting another verification email.',
             waitTime: waitTime,
           );
         }
         if (operationContext == 'password_reset') {
           return AuthRateLimitError(
-            'Please wait 30 seconds before requesting another password reset.',
+            'Please wait $waitTimeText before requesting another password reset.',
             waitTime: waitTime,
           );
         }
@@ -540,6 +541,19 @@ class ErrorMapper {
       }
     }
     return null;
+  }
+
+  static String _formatDuration(Duration duration) {
+    final totalSeconds = duration.inSeconds;
+
+    // Use minutes for durations >= 60 seconds
+    if (totalSeconds >= 60) {
+      final minutes = duration.inMinutes;
+      return minutes == 1 ? '1 minute' : '$minutes minutes';
+    }
+
+    // Use seconds for durations < 60 seconds
+    return totalSeconds == 1 ? '1 second' : '$totalSeconds seconds';
   }
 
   // Navigation helpers
