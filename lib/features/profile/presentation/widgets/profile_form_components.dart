@@ -65,7 +65,7 @@ class ProfileFormComponents {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Programme dropdown
+        // Programme dropdown with defensive null handling
         DropdownButtonFormField<Programme>(
           decoration: const InputDecoration(
             labelText: 'Programme',
@@ -73,7 +73,10 @@ class ProfileFormComponents {
             helperText: 'Optional',
             helperStyle: TextStyle(color: ArkadColors.gray),
           ),
-          initialValue: selectedProgramme,
+          initialValue: selectedProgramme != null && 
+                        availableProgrammes.any((p) => p.value == selectedProgramme) 
+                        ? selectedProgramme 
+                        : null, // Reset to null if selected programme is not in list
           hint: const Text('Select your programme'),
           items: availableProgrammes.map((program) {
             return DropdownMenuItem<Programme>(
