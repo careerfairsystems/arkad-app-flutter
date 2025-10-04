@@ -21,7 +21,7 @@ class ProfileFormComponents {
             labelText: 'First Name *',
             border: OutlineInputBorder(),
             helperText: 'Required',
-            helperStyle: TextStyle(color: ArkadColors.gray),
+            helperStyle: TextStyle(color: ArkadColors.lightGray),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -39,7 +39,7 @@ class ProfileFormComponents {
             labelText: 'Last Name *',
             border: OutlineInputBorder(),
             helperText: 'Required',
-            helperStyle: TextStyle(color: ArkadColors.gray),
+            helperStyle: TextStyle(color: ArkadColors.lightGray),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -71,12 +71,13 @@ class ProfileFormComponents {
             labelText: 'Programme',
             border: OutlineInputBorder(),
             helperText: 'Optional',
-            helperStyle: TextStyle(color: ArkadColors.gray),
+            helperStyle: TextStyle(color: ArkadColors.lightGray),
           ),
-          initialValue: selectedProgramme != null && 
-                        availableProgrammes.any((p) => p.value == selectedProgramme) 
-                        ? selectedProgramme 
-                        : null, // Reset to null if selected programme is not in list
+          initialValue:
+              selectedProgramme != null &&
+                  availableProgrammes.any((p) => p.value == selectedProgramme)
+              ? selectedProgramme
+              : null, // Reset to null if selected programme is not in list
           hint: const Text('Select your programme'),
           items: availableProgrammes.map((program) {
             return DropdownMenuItem<Programme>(
@@ -98,7 +99,7 @@ class ProfileFormComponents {
             labelText: 'Study Year',
             border: OutlineInputBorder(),
             helperText: 'Optional',
-            helperStyle: TextStyle(color: ArkadColors.gray),
+            helperStyle: TextStyle(color: ArkadColors.lightGray),
           ),
           initialValue: studyYear,
           hint: const Text('Select your study year'),
@@ -120,7 +121,7 @@ class ProfileFormComponents {
             labelText: 'Master Title',
             border: OutlineInputBorder(),
             helperText: 'Optional',
-            helperStyle: TextStyle(color: ArkadColors.gray),
+            helperStyle: TextStyle(color: ArkadColors.lightGray),
           ),
         ),
       ],
@@ -144,7 +145,7 @@ class ProfileFormComponents {
             border: OutlineInputBorder(),
             helperText:
                 'Optional - Enter your LinkedIn username or full profile URL',
-            helperStyle: TextStyle(color: ArkadColors.gray),
+            helperStyle: TextStyle(color: ArkadColors.lightGray),
           ),
         ),
         const SizedBox(height: 16),
@@ -158,7 +159,7 @@ class ProfileFormComponents {
             border: OutlineInputBorder(),
             helperText:
                 'Please specify your allergies, or leave blank if none.',
-            helperStyle: TextStyle(color: ArkadColors.gray),
+            helperStyle: TextStyle(color: ArkadColors.lightGray),
           ),
         ),
       ],
@@ -256,7 +257,7 @@ class ProfileFormComponents {
             children: [
               Icon(
                 hasCV ? Icons.check_circle : Icons.upload_file,
-                color: hasCV ? ArkadColors.arkadGreen : ArkadColors.gray,
+                color: hasCV ? ArkadColors.arkadGreen : ArkadColors.lightGray,
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -285,9 +286,9 @@ class ProfileFormComponents {
 
         // Helper text
         const Text(
-          'CV / Resume (Optional)',
+          'CV / Resume',
           style: TextStyle(
-            color: ArkadColors.gray,
+            color: ArkadColors.lightGray,
             fontSize: 12,
             fontFamily: 'MyriadProCondensed',
           ),

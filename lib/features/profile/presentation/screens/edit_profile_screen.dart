@@ -293,7 +293,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             currentProfilePicture: profile?.profilePictureUrl,
                           ),
                           const Text(
-                            'Profile Picture (Optional)',
+                            'Profile Picture',
                             style: TextStyle(
                               color: ArkadColors.white,
                               fontSize: 12,
@@ -332,7 +332,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         labelText: 'Email',
                         border: OutlineInputBorder(),
                         helperText: 'Email cannot be changed',
-                        helperStyle: TextStyle(color: ArkadColors.gray),
+                        helperStyle: TextStyle(color: ArkadColors.lightGray),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -395,7 +395,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                     // CV management section
                     const Text(
-                      'CV / Resume (Optional)',
+                      'CV / Resume',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
