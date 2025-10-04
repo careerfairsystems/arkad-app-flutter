@@ -60,36 +60,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
     final email = authViewModel.pendingSignupData?.email;
 
     if (email == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error: No email found for verification'),
-          backgroundColor: ArkadColors.lightRed,
-        ),
-      );
       return;
     }
 
     await authViewModel.resendVerification(email);
-
-    if (mounted) {
-      if (authViewModel.resendVerificationCommand.isCompleted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Verification code sent! Check your email.'),
-            backgroundColor: ArkadColors.arkadGreen,
-          ),
-        );
-      } else if (authViewModel.resendVerificationCommand.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to resend: ${authViewModel.resendVerificationCommand.error!.userMessage}',
-            ),
-            backgroundColor: ArkadColors.lightRed,
-          ),
-        );
-      }
-    }
   }
 
   void _goBackToSignup() {
@@ -142,53 +116,51 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         ),
                       ),
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: TextField(
-                        controller: _codeController,
-                        keyboardType: TextInputType.number,
-                        maxLength: 6,
-                        decoration: const InputDecoration(
-                          hintText: 'Enter 6-digit code',
-                          counterText: '',
-                          contentPadding: EdgeInsets.symmetric(
-                            vertical: 16.0,
-                            horizontal: 16.0,
-                          ),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
+                    TextField(
+                      controller: _codeController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      decoration: const InputDecoration(
+                        hintText: 'Enter 6-digit code',
+                        counterText: '',
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 16.0,
+                          horizontal: 16.0,
                         ),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          letterSpacing: _codeController.text.isEmpty
-                              ? 0.5
-                              : 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        onChanged: (_) => setState(() {}),
-                        autofillHints: const [AutofillHints.oneTimeCode],
                       ),
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        letterSpacing: 0,
+                        fontWeight: FontWeight.bold,
+                        color: ArkadColors.white,
+                      ),
+                      onChanged: (_) => setState(() {}),
+                      autofillHints: const [AutofillHints.oneTimeCode],
                     ),
                   ],
                 ),
 
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
-                    final error = authViewModel.completeSignupCommand.error;
-                    if (error != null) {
-                      return AuthFormWidgets.buildErrorMessage(
-                        error.userMessage,
-                      );
-                    }
-                    return const SizedBox.shrink();
+                    final verifyError =
+                        authViewModel.completeSignupCommand.error;
+                    final resendError =
+                        authViewModel.resendVerificationCommand.error;
+                    final displayError = verifyError ?? resendError;
+
+                    return AuthFormWidgets.buildErrorMessage(
+                      displayError,
+                      onDismiss: () {
+                        if (verifyError != null) {
+                          authViewModel.completeSignupCommand.clearError();
+                        }
+                        if (resendError != null) {
+                          authViewModel.resendVerificationCommand.clearError();
+                        }
+                      },
+                    );
                   },
                 ),
 
@@ -196,46 +168,20 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
-                    return ElevatedButton(
+                    return AuthFormWidgets.buildSubmitButton(
+                      text: 'Verify',
                       onPressed:
                           authViewModel.isCompletingSignup || !_isCodeComplete
                           ? null
                           : _verifyCode,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ArkadColors.arkadTurkos,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 0,
-                        disabledBackgroundColor: Colors.grey.shade300,
-                      ),
-                      child: authViewModel.isCompletingSignup
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : const Text(
-                              'Verify',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                      isLoading: authViewModel.isCompletingSignup,
                     );
                   },
                 ),
 
                 const SizedBox(height: 24),
 
-                // Back button
+                // Back button - centered text link with arrow
                 TextButton(
                   onPressed: _goBackToSignup,
                   style: TextButton.styleFrom(
@@ -246,6 +192,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                 const SizedBox(height: 8),
 
+                // Send again button - centered text link in turkos color
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
                     return TextButton(

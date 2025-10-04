@@ -7,11 +7,11 @@ class ValidationService {
   static bool isValidLinkedInUrl(String url) {
     // Accept LinkedIn URLs in various formats and just usernames
     final patterns = [
-      r'^https://www\.linkedin\.com/in/[a-zA-Z0-9_-]+/?$', // https://www.linkedin.com/in/username
-      r'^https://linkedin\.com/in/[a-zA-Z0-9_-]+/?$', // https://linkedin.com/in/username
-      r'^www\.linkedin\.com/in/[a-zA-Z0-9_-]+/?$', // www.linkedin.com/in/username
-      r'^linkedin\.com/in/[a-zA-Z0-9_-]+/?$', // linkedin.com/in/username
-      r'^[a-zA-Z0-9_-]+$', // Just username
+      r'^https://www\.linkedin\.com/in/[a-zA-Z0-9_.-]+/?$', // https://www.linkedin.com/in/username
+      r'^https://linkedin\.com/in/[a-zA-Z0-9_.-]+/?$', // https://linkedin.com/in/username
+      r'^www\.linkedin\.com/in/[a-zA-Z0-9_.-]+/?$', // www.linkedin.com/in/username
+      r'^linkedin\.com/in/[a-zA-Z0-9_.-]+/?$', // linkedin.com/in/username
+      r'^[a-zA-Z0-9_.-]+$', // Just username (can include dots)
     ];
 
     return patterns.any(

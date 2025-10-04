@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 
 class AuthFormWidgets {
@@ -77,23 +78,15 @@ class AuthFormWidgets {
         errorBorder: errorText != null
             ? const OutlineInputBorder(
                 borderSide: BorderSide(color: ArkadColors.lightRed),
-                borderRadius: BorderRadius.all(Radius.circular(8)),
+                borderRadius: BorderRadius.all(Radius.circular(12)),
               )
             : null,
         focusedErrorBorder: errorText != null
             ? const OutlineInputBorder(
                 borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
-                borderRadius: BorderRadius.all(Radius.circular(8)),
+                borderRadius: BorderRadius.all(Radius.circular(12)),
               )
             : null,
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: ArkadColors.arkadTurkos),
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-        ),
       ),
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
@@ -169,23 +162,15 @@ class AuthFormWidgets {
         errorBorder: errorText != null
             ? const OutlineInputBorder(
                 borderSide: BorderSide(color: ArkadColors.lightRed),
-                borderRadius: BorderRadius.all(Radius.circular(8)),
+                borderRadius: BorderRadius.all(Radius.circular(12)),
               )
             : null,
         focusedErrorBorder: errorText != null
             ? const OutlineInputBorder(
                 borderSide: BorderSide(color: ArkadColors.lightRed, width: 2),
-                borderRadius: BorderRadius.all(Radius.circular(8)),
+                borderRadius: BorderRadius.all(Radius.circular(12)),
               )
             : null,
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: ArkadColors.arkadTurkos),
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-        ),
       ),
       obscureText: obscureText,
       textInputAction: textInputAction,
@@ -198,20 +183,23 @@ class AuthFormWidgets {
 
   static Widget buildPasswordRequirementRow(bool isMet, String requirement) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      padding: const EdgeInsets.symmetric(vertical: 3.0),
       child: Row(
         children: [
           Icon(
             isMet ? Icons.check_circle : Icons.cancel,
             color: isMet ? ArkadColors.arkadGreen : ArkadColors.lightRed,
-            size: 18.0,
+            size: 20.0,
           ),
-          const SizedBox(width: 8.0),
-          Text(
-            requirement,
-            style: TextStyle(
-              fontSize: 12.0,
-              color: isMet ? ArkadColors.arkadGreen : ArkadColors.lightRed,
+          const SizedBox(width: 10.0),
+          Expanded(
+            child: Text(
+              requirement,
+              style: TextStyle(
+                fontSize: 13.0,
+                fontWeight: FontWeight.w500,
+                color: isMet ? ArkadColors.arkadGreen : ArkadColors.lightRed,
+              ),
             ),
           ),
         ],
@@ -231,6 +219,8 @@ class AuthFormWidgets {
         foregroundColor: ArkadColors.white,
         minimumSize: const Size(double.infinity, 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        disabledBackgroundColor: ArkadColors.arkadLightNavy,
+        disabledForegroundColor: ArkadColors.lightGray,
       ),
       child: isLoading
           ? const SizedBox(
@@ -268,15 +258,56 @@ class AuthFormWidgets {
     );
   }
 
-  static Widget buildErrorMessage(String? errorMessage) {
-    if (errorMessage == null) return const SizedBox.shrink();
+  static Widget buildErrorMessage(
+    dynamic error, {
+    VoidCallback? onDismiss,
+    bool showIcon = true,
+  }) {
+    if (error == null) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Text(
-        errorMessage,
-        style: const TextStyle(color: ArkadColors.lightRed),
-        textAlign: TextAlign.center,
+    // Extract message from AppError or use string directly
+    final message = error is AppError ? error.userMessage : error.toString();
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: ArkadColors.lightRed.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: ArkadColors.lightRed.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          if (showIcon) ...[
+            const Icon(
+              Icons.error_outline,
+              color: ArkadColors.lightRed,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: ArkadColors.lightRed,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          if (onDismiss != null)
+            IconButton(
+              icon: const Icon(
+                Icons.close,
+                size: 18,
+                color: ArkadColors.lightRed,
+              ),
+              onPressed: onDismiss,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+        ],
       ),
     );
   }

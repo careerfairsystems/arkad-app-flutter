@@ -170,7 +170,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   Consumer<AuthViewModel>(
                     builder: (context, authViewModel, child) {
                       return AuthFormWidgets.buildErrorMessage(
-                        authViewModel.signInCommand.error?.userMessage,
+                        authViewModel.signInCommand.error,
+                        onDismiss: () =>
+                            authViewModel.signInCommand.clearError(),
                       );
                     },
                   ),

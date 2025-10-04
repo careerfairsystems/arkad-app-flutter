@@ -68,13 +68,15 @@ class _NotificationStatusCardState extends State<NotificationStatusCard> {
         final borderColor = permissionGranted
             ? ArkadColors.arkadGreen.withValues(alpha: 0.3)
             : ArkadColors.arkadOrange.withValues(alpha: 0.3);
-        final iconColor =
-            permissionGranted ? ArkadColors.arkadGreen : ArkadColors.arkadOrange;
+        final iconColor = permissionGranted
+            ? ArkadColors.arkadGreen
+            : ArkadColors.arkadOrange;
         final icon = permissionGranted
             ? Icons.notifications_active
             : Icons.notifications_off_outlined;
-        final title =
-            permissionGranted ? 'Notifications Enabled' : 'Notifications Disabled';
+        final title = permissionGranted
+            ? 'Notifications Enabled'
+            : 'Notifications Disabled';
         final message = permissionGranted
             ? 'You\'ll receive updates about career fair events and sessions.'
             : 'Enable notifications to stay updated about career fair events and sessions.';
@@ -92,19 +94,15 @@ class _NotificationStatusCardState extends State<NotificationStatusCard> {
             children: [
               Row(
                 children: [
-                  Icon(
-                    icon,
-                    color: iconColor,
-                    size: 24,
-                  ),
+                  Icon(icon, color: iconColor, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: ArkadColors.gray,
-                          ),
+                        fontWeight: FontWeight.w600,
+                        color: ArkadColors.gray,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -120,8 +118,8 @@ class _NotificationStatusCardState extends State<NotificationStatusCard> {
               Text(
                 message,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: ArkadColors.gray.withValues(alpha: 0.8),
-                    ),
+                  color: ArkadColors.gray.withValues(alpha: 0.8),
+                ),
               ),
               if (!permissionGranted) ...[
                 const SizedBox(height: 12),

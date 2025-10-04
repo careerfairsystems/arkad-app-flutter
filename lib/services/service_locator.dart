@@ -83,7 +83,6 @@ import '../features/student_session/presentation/commands/get_timeslots_command.
 import '../features/student_session/presentation/commands/unbook_timeslot_command.dart';
 import '../features/student_session/presentation/view_models/student_session_view_model.dart';
 import '../shared/infrastructure/services/file_service.dart';
-import '../shared/presentation/themes/providers/theme_provider.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
@@ -111,9 +110,6 @@ void setupServiceLocator() {
   _setupStudentSessionFeature();
   _setupEventFeature();
   _setupMapFeature();
-
-  // Shared providers
-  serviceLocator.registerLazySingleton<ThemeProvider>(() => ThemeProvider());
 }
 
 /// Setup API client conditionally

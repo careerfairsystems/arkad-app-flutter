@@ -19,6 +19,34 @@ class ErrorMapper {
 
     switch (statusCode) {
       case 400:
+        // Auth-specific 400 errors
+        if (operationContext == 'signup') {
+          final errorMessage = _extractErrorMessage(responseData);
+          if (errorMessage?.toLowerCase().contains('email') == true) {
+            return EmailFormatError(details: errorMessage);
+          }
+          if (errorMessage?.toLowerCase().contains('password') == true) {
+            return SignupValidationError(
+              errorMessage ?? 'Password requirements not met',
+              details: errorMessage,
+            );
+          }
+          return SignupValidationError(
+            errorMessage ?? 'Please check your signup information',
+            details: errorMessage,
+          );
+        }
+
+        if (operationContext == 'verification') {
+          final errorMessage = _extractErrorMessage(responseData);
+          return VerificationCodeError(details: errorMessage);
+        }
+
+        if (operationContext == 'password_reset') {
+          final errorMessage = _extractErrorMessage(responseData);
+          return PasswordResetError(details: errorMessage);
+        }
+
         // Student session specific 400 errors
         if (operationContext?.contains('student_session') == true) {
           final errorMessage = _extractErrorMessage(responseData);
@@ -103,9 +131,25 @@ class ErrorMapper {
         );
 
       case 429:
-        // Rate limiting
+        // Rate limiting with auth-specific messages
         final waitTime =
-            _extractWaitTime(responseData) ?? const Duration(minutes: 2);
+            _extractWaitTime(responseData) ?? const Duration(seconds: 30);
+        final waitTimeText = _formatDuration(waitTime);
+
+        if (operationContext == 'signup') {
+          return AuthRateLimitError(
+            'Please wait $waitTimeText before requesting another verification email.',
+            waitTime: waitTime,
+          );
+        }
+        if (operationContext == 'password_reset') {
+          return AuthRateLimitError(
+            'Please wait $waitTimeText before requesting another password reset.',
+            waitTime: waitTime,
+          );
+        }
+
+        // Generic rate limiting
         return RateLimitError(waitTime);
 
       case 500:
@@ -364,6 +408,79 @@ class ErrorMapper {
           ),
         ];
 
+      case VerificationCodeError _:
+        return [
+          if (onRetry != null)
+            RecoveryAction(
+              label: "Resend Code",
+              action: onRetry,
+              isPrimary: true,
+              icon: Icons.email,
+            ),
+          RecoveryAction(
+            label: "Change Email",
+            action: () => context.go('/auth/signup'),
+            icon: Icons.edit,
+          ),
+        ];
+
+      case SignupValidationError _:
+        return [
+          if (onRetry != null)
+            RecoveryAction(
+              label: "Try Again",
+              action: onRetry,
+              isPrimary: true,
+              icon: Icons.refresh,
+            ),
+          RecoveryAction(
+            label: "Back to Login",
+            action: () => context.go('/auth/login'),
+            icon: Icons.arrow_back,
+          ),
+        ];
+
+      case PasswordResetError _:
+        return [
+          if (onRetry != null)
+            RecoveryAction(
+              label: "Try Again",
+              action: onRetry,
+              isPrimary: true,
+              icon: Icons.refresh,
+            ),
+          RecoveryAction(
+            label: "Back to Login",
+            action: () => context.go('/auth/login'),
+            icon: Icons.arrow_back,
+          ),
+        ];
+
+      case AuthRateLimitError _:
+        final rateError = error as AuthRateLimitError;
+        return [
+          RecoveryAction(
+            label: "Wait ${rateError.waitTime.inSeconds}s",
+            action: () {}, // Disabled action
+            icon: Icons.timer,
+          ),
+          RecoveryAction(
+            label: "Back to Login",
+            action: () => context.go('/auth/login'),
+            icon: Icons.arrow_back,
+          ),
+        ];
+
+      case EmailFormatError _:
+        return [
+          RecoveryAction(
+            label: "Fix Email",
+            action: () => context.pop(),
+            isPrimary: true,
+            icon: Icons.edit,
+          ),
+        ];
+
       case UnknownError _:
         return [
           if (onRetry != null)
@@ -424,6 +541,19 @@ class ErrorMapper {
       }
     }
     return null;
+  }
+
+  static String _formatDuration(Duration duration) {
+    final totalSeconds = duration.inSeconds;
+
+    // Use minutes for durations >= 60 seconds
+    if (totalSeconds >= 60) {
+      final minutes = duration.inMinutes;
+      return minutes == 1 ? '1 minute' : '$minutes minutes';
+    }
+
+    // Use seconds for durations < 60 seconds
+    return totalSeconds == 1 ? '1 second' : '$totalSeconds seconds';
   }
 
   // Navigation helpers

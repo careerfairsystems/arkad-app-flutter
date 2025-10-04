@@ -1,5 +1,6 @@
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/exception.dart';
@@ -12,7 +13,7 @@ import '../data_sources/auth_remote_data_source.dart';
 import '../mappers/user_mapper.dart';
 
 /// Implementation of auth repository
-class AuthRepositoryImpl implements AuthRepository {
+class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
   const AuthRepositoryImpl(this._remoteDataSource, this._localDataSource);
 
   final AuthRemoteDataSource _remoteDataSource;

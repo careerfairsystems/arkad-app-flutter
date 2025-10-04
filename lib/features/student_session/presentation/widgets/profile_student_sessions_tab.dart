@@ -38,8 +38,11 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     if (authViewModel.isAuthenticated &&
         !authViewModel.isInitializing &&
         !viewModel.getMyApplicationsWithBookingStateCommand.isExecuting) {
-      viewModel.getMyApplicationsWithBookingStateCommand.reset();
-      viewModel.loadMyApplicationsWithBookingState();
+      // Defer reset() call to avoid setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        viewModel.getMyApplicationsWithBookingStateCommand.reset();
+        viewModel.loadMyApplicationsWithBookingState();
+      });
 
       // Only set hasInitialized to true after actually starting the load
       _hasInitialized = true;

@@ -6,8 +6,10 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../services/service_locator.dart';
+import '../../../../shared/domain/validation_service.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../../../auth/presentation/widgets/auth_form_widgets.dart';
 import '../../domain/entities/programme.dart';
 import '../view_models/profile_view_model.dart';
 import '../widgets/profile_form_components.dart';
@@ -172,7 +174,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         programme: _selectedProgramme,
         linkedin: _linkedinController.text.isEmpty
             ? null
-            : _linkedinController.text,
+            : ValidationService.buildLinkedInUrl(_linkedinController.text),
         masterTitle: _masterTitleController.text.isEmpty
             ? null
             : _masterTitleController.text,
@@ -206,16 +208,57 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (mounted && overallSuccess && profileViewModel.error == null) {
         messenger.showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully!')),
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: ArkadColors.white, size: 20),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Profile updated successfully!',
+                    style: TextStyle(
+                      color: ArkadColors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: ArkadColors.arkadGreen,
+            duration: const Duration(seconds: 3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
         );
         context.pop();
       } else if (mounted) {
         messenger.showSnackBar(
           SnackBar(
-            content: Text(
-              profileViewModel.error != null
-                  ? 'Failed to update profile: ${profileViewModel.error!.userMessage}'
-                  : 'Some changes could not be saved. Please try again.',
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  color: ArkadColors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    profileViewModel.error != null
+                        ? 'Failed to update profile: ${profileViewModel.error!.userMessage}'
+                        : 'Some changes could not be saved. Please try again.',
+                    style: const TextStyle(
+                      color: ArkadColors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: ArkadColors.lightRed,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
         );
@@ -224,7 +267,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await Sentry.captureException(e);
       if (!mounted) return;
       messenger.showSnackBar(
-        SnackBar(content: Text('Error updating profile: $e')),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: ArkadColors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Error updating profile: $e',
+                  style: const TextStyle(
+                    color: ArkadColors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: ArkadColors.lightRed,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
       );
     }
   }
@@ -236,8 +301,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile picture will be removed when you save'),
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.info_outline, color: ArkadColors.white, size: 20),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Profile picture will be removed when you save',
+                  style: TextStyle(
+                    color: ArkadColors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: ArkadColors.arkadTurkos,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
     }
@@ -250,7 +331,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('CV will be removed when you save')),
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.info_outline, color: ArkadColors.white, size: 20),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'CV will be removed when you save',
+                  style: TextStyle(
+                    color: ArkadColors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: ArkadColors.arkadTurkos,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
       );
     }
   }
@@ -259,7 +358,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final profile = _profileViewModel.currentProfile;
     final isLoading = _profileViewModel.isLoading;
-    final error = _profileViewModel.error;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Profile')),
@@ -293,9 +391,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             currentProfilePicture: profile?.profilePictureUrl,
                           ),
                           const Text(
-                            'Profile Picture (Optional)',
+                            'Profile Picture',
                             style: TextStyle(
-                              color: ArkadColors.gray,
+                              color: ArkadColors.white,
                               fontSize: 12,
                             ),
                           ),
@@ -305,18 +403,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                     const SizedBox(height: 24),
 
-                    // Error display
-                    if (error != null)
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        color: ArkadColors.lightRed.withValues(alpha: 0.1),
-                        child: Text(
-                          error.userMessage,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: ArkadColors.lightRed),
-                        ),
-                      ),
+                    // Error display - using consistent auth pattern
+                    Consumer<ProfileViewModel>(
+                      builder: (context, profileViewModel, child) {
+                        return AuthFormWidgets.buildErrorMessage(
+                          profileViewModel.error,
+                          onDismiss: () => profileViewModel.clearError(),
+                        );
+                      },
+                    ),
 
                     const Text(
                       'Basic Information',
@@ -332,6 +427,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         labelText: 'Email',
                         border: OutlineInputBorder(),
                         helperText: 'Email cannot be changed',
+                        helperStyle: TextStyle(color: ArkadColors.lightGray),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -346,7 +442,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                     // Education information section
                     const Text(
-                      'Education Information (Optional)',
+                      'Education Information',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
@@ -394,7 +490,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                     // CV management section
                     const Text(
-                      'CV / Resume (Optional)',
+                      'CV / Resume',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),

@@ -1,31 +1,29 @@
+import 'package:collection/collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-/// Engineering programme options available at LTH
+/// Engineering programme options available at LTH (matching backend exactly)
 enum Programme {
-  architecture,
-  automotive,
-  automation,
-  biomedicalEngineering,
-  chemicalEngineering,
-  civilEngineering,
-  computerScienceEngineering,
-  constructionAndArchitecture,
-  constructionAndRailwayConstruction,
-  roadAndTrafficTechnology,
-  electricalEngineering,
-  engineeringBiotechnology,
-  informationAndCommunicationEngineering,
-  engineeringMathematics,
-  engineeringNanoscience,
-  engineeringPhysics,
-  environmentalEngineering,
-  fireProtectionEngineering,
-  industrialDesign,
-  industrialEconomicsAndManagement,
-  surveying,
-  mechanicalEngineering,
-  mechanicalEngineeringWithIndustrialDesign,
-  riskSafetyAndCrisisManagement,
+  fireProtectionEngineering, // Brandingenjör
+  mechanicalEngineeringWithTechnicalDesign, // Maskinteknik_Teknisk_Design
+  electricalEngineering, // Elektroteknik
+  environmentalEngineering, // Ekosystemteknik
+  mechanicalEngineering, // Maskinteknik
+  engineeringNanoscience, // Nanoveteknik
+  engineeringBiotechnology, // Bioteknik
+  industrialDesign, // Industridesign
+  architecture, // Arkitekt
+  informationAndCommunicationEngineering, // Informations och Kommunikationsteknik
+  chemicalEngineering, // Kemiteknik
+  constructionAndRailwayConstruction, // Byggteknik med Järnvägsteknik
+  roadAndWaterConstruction, // Väg och vatttenbyggnad
+  constructionAndArchitecture, // Byggteknik med arkitektur
+  industrialEconomicsAndManagement, // Industriell ekonomi
+  engineeringMathematics, // Teknisk Matematik
+  biomedicalEngineering, // Medicinteknik
+  surveying, // Lantmäteri
+  computerScienceEngineering, // Datateknik
+  engineeringPhysics, // Teknisk Fysik
+  roadAndTrafficTechnology, // Byggteknik med väg och trafikteknik
 }
 
 /// Programme data with display labels and enum values
@@ -36,85 +34,61 @@ class ProgrammeData {
   final Programme value;
 }
 
-/// Complete list of available programmes with display labels
+/// Complete list of available programmes with backend labels (Swedish)
 const List<ProgrammeData> availableProgrammes = [
-  ProgrammeData(label: "Architecture", value: Programme.architecture),
-  ProgrammeData(label: "Automotive", value: Programme.automotive),
-  ProgrammeData(label: "Automation", value: Programme.automation),
   ProgrammeData(
-    label: "Biomedical Engineering",
-    value: Programme.biomedicalEngineering,
+    label: "Brandingenjör",
+    value: Programme.fireProtectionEngineering,
   ),
   ProgrammeData(
-    label: "Chemical Engineering",
-    value: Programme.chemicalEngineering,
+    label: "Maskinteknik_Teknisk_Design",
+    value: Programme.mechanicalEngineeringWithTechnicalDesign,
   ),
-  ProgrammeData(label: "Civil Engineering", value: Programme.civilEngineering),
+  ProgrammeData(label: "Elektroteknik", value: Programme.electricalEngineering),
   ProgrammeData(
-    label: "Computer Science and Engineering",
-    value: Programme.computerScienceEngineering,
+    label: "Ekosystemteknik",
+    value: Programme.environmentalEngineering,
   ),
+  ProgrammeData(label: "Maskinteknik", value: Programme.mechanicalEngineering),
+  ProgrammeData(label: "Nanoveteknik", value: Programme.engineeringNanoscience),
+  ProgrammeData(label: "Bioteknik", value: Programme.engineeringBiotechnology),
+  ProgrammeData(label: "Industridesign", value: Programme.industrialDesign),
+  ProgrammeData(label: "Arkitekt", value: Programme.architecture),
   ProgrammeData(
-    label: "Construction and Architecture",
-    value: Programme.constructionAndArchitecture,
+    label: "Informations och Kommunikationsteknik",
+    value: Programme.informationAndCommunicationEngineering,
   ),
+  ProgrammeData(label: "Kemiteknik", value: Programme.chemicalEngineering),
   ProgrammeData(
-    label: "Construction and Railway Construction",
+    label: "Byggteknik med Järnvägsteknik",
     value: Programme.constructionAndRailwayConstruction,
   ),
   ProgrammeData(
-    label: "Traffic and Road",
-    value: Programme.roadAndTrafficTechnology,
+    label: "Väg och vatttenbyggnad",
+    value: Programme.roadAndWaterConstruction,
   ),
   ProgrammeData(
-    label: "Electrical Engineering",
-    value: Programme.electricalEngineering,
+    label: "Byggteknik med arkitektur",
+    value: Programme.constructionAndArchitecture,
   ),
   ProgrammeData(
-    label: "Engineering Biotechnology",
-    value: Programme.engineeringBiotechnology,
-  ),
-  ProgrammeData(
-    label: "Information and Communication Engineering",
-    value: Programme.informationAndCommunicationEngineering,
-  ),
-  ProgrammeData(
-    label: "Engineering Mathematics",
-    value: Programme.engineeringMathematics,
-  ),
-  ProgrammeData(
-    label: "Engineering Nanoscience",
-    value: Programme.engineeringNanoscience,
-  ),
-  ProgrammeData(
-    label: "Engineering Physics",
-    value: Programme.engineeringPhysics,
-  ),
-  ProgrammeData(
-    label: "Environmental Engineering",
-    value: Programme.environmentalEngineering,
-  ),
-  ProgrammeData(
-    label: "Fire Protection Engineering",
-    value: Programme.fireProtectionEngineering,
-  ),
-  ProgrammeData(label: "Industrial Design", value: Programme.industrialDesign),
-  ProgrammeData(
-    label: "Industrial Engineering and Management",
+    label: "Industriell ekonomi",
     value: Programme.industrialEconomicsAndManagement,
   ),
-  ProgrammeData(label: "Surveying", value: Programme.surveying),
   ProgrammeData(
-    label: "Mechanical Engineering",
-    value: Programme.mechanicalEngineering,
+    label: "Teknisk Matematik",
+    value: Programme.engineeringMathematics,
   ),
+  ProgrammeData(label: "Medicinteknik", value: Programme.biomedicalEngineering),
+  ProgrammeData(label: "Lantmäteri", value: Programme.surveying),
   ProgrammeData(
-    label: "Mechanical Engineering with Technical Design",
-    value: Programme.mechanicalEngineeringWithIndustrialDesign,
+    label: "Datateknik",
+    value: Programme.computerScienceEngineering,
   ),
+  ProgrammeData(label: "Teknisk Fysik", value: Programme.engineeringPhysics),
   ProgrammeData(
-    label: "Risk, Safety and Crisis Management",
-    value: Programme.riskSafetyAndCrisisManagement,
+    label: "Byggteknik med väg och trafikteknik",
+    value: Programme.roadAndTrafficTechnology,
   ),
 ];
 
@@ -125,9 +99,21 @@ class ProgrammeUtils {
     if (programme == null) return null;
 
     try {
-      return availableProgrammes
-          .firstWhere((prog) => prog.value == programme)
-          .label;
+      // Use where().firstOrNull for safer lookup without throwing
+      final programmeData = availableProgrammes
+          .where((prog) => prog.value == programme)
+          .firstOrNull;
+
+      if (programmeData != null) {
+        return programmeData.label;
+      }
+
+      // Log unknown programme enum for debugging
+      Sentry.captureMessage(
+        'Unknown programme enum value: "$programme"',
+        level: SentryLevel.warning,
+      );
+      return null;
     } catch (e) {
       Sentry.captureException(e);
       return null;
@@ -139,9 +125,21 @@ class ProgrammeUtils {
     if (label == null || label.isEmpty) return null;
 
     try {
-      return availableProgrammes
-          .firstWhere((prog) => prog.label == label)
-          .value;
+      // Use where().firstOrNull for safer lookup without throwing
+      final programmeData = availableProgrammes
+          .where((prog) => prog.label == label)
+          .firstOrNull;
+
+      if (programmeData != null) {
+        return programmeData.value;
+      }
+
+      // Log unknown programme labels for debugging
+      Sentry.captureMessage(
+        'Unknown programme label received from API: "$label"',
+        level: SentryLevel.warning,
+      );
+      return null;
     } catch (e) {
       Sentry.captureException(e);
       return null;

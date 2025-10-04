@@ -148,9 +148,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
                 ),
               ),
               filled: true,
-              fillColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+              fillColor: ArkadColors.arkadLightNavy,
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear_rounded),

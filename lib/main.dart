@@ -13,11 +13,10 @@ import 'features/student_session/presentation/view_models/student_session_view_m
 import 'navigation/app_router.dart';
 import 'navigation/router_notifier.dart';
 import 'services/service_locator.dart';
-import 'shared/presentation/themes/providers/theme_provider.dart';
+import 'shared/presentation/themes/arkad_theme.dart';
 
 void main() async {
   await SentryFlutter.init(
-
     (options) {
       options.dsn =
           'https://a42d50c4a8a0196fd8b2ace3397d6b3d@o4506696085340160.ingest.us.sentry.io/4509367674142720';
@@ -70,9 +69,6 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Shared providers
-        ChangeNotifierProvider.value(value: serviceLocator<ThemeProvider>()),
-
         // Clean architecture view models
         ChangeNotifierProvider.value(value: serviceLocator<AuthViewModel>()),
         ChangeNotifierProvider.value(value: serviceLocator<ProfileViewModel>()),
@@ -89,14 +85,10 @@ class _MyAppState extends State<MyApp> {
           value: serviceLocator<NotificationViewModel>(),
         ),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (ctx, themeProvider, _) {
-          return MaterialApp.router(
-            title: 'Arkad App',
-            theme: themeProvider.getTheme(),
-            routerConfig: _appRouter.router,
-          );
-        },
+      child: MaterialApp.router(
+        title: 'Arkad App',
+        theme: ArkadTheme.appTheme,
+        routerConfig: _appRouter.router,
       ),
     );
   }

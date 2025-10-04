@@ -237,12 +237,12 @@ class CompanyViewModel extends ChangeNotifier {
     // Clear user interaction state (search and filters)
     _currentSearchQuery = '';
     _currentFilter = const CompanyFilter();
-    
+
     // Reset search and filter commands (user-specific operations)
     _searchCompaniesCommand.reset();
     _filterCompaniesCommand.reset();
     _searchAndFilterCommand.reset();
-    
+
     _updateDisplayedCompanies();
 
     notifyListeners();

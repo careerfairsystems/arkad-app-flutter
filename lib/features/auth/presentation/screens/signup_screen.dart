@@ -6,7 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
-import '../../../../shared/presentation/widgets/error/error_display.dart';
 import '../../domain/entities/signup_data.dart';
 import '../view_models/auth_view_model.dart';
 import '../widgets/auth_form_widgets.dart';
@@ -278,7 +277,7 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         if (_passwordController.text.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -286,11 +285,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   'Password must:',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: ArkadColors.gray,
+                    fontSize: 14,
+                    color: ArkadColors.white,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 8),
                 AuthFormWidgets.buildPasswordRequirementRow(
                   _passwordStrength['minLength']!,
                   'Be at least ${ValidationService.passwordMinLength} characters long',
@@ -371,19 +370,10 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         Consumer<AuthViewModel>(
           builder: (context, authViewModel, child) {
-            final error = authViewModel.signUpCommand.error;
-            if (error != null) {
-              return Column(
-                children: [
-                  const SizedBox(height: 16),
-                  ErrorDisplay(
-                    error: error,
-                    onDismiss: () => authViewModel.signUpCommand.clearError(),
-                  ),
-                ],
-              );
-            }
-            return const SizedBox.shrink();
+            return AuthFormWidgets.buildErrorMessage(
+              authViewModel.signUpCommand.error,
+              onDismiss: () => authViewModel.signUpCommand.clearError(),
+            );
           },
         ),
         const SizedBox(height: 30),
@@ -477,12 +467,12 @@ class _SignupScreenState extends State<SignupScreen> {
               }
             });
           },
-          title: Text(
+          title: const Text(
             'I have food preferences',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
+              color: ArkadColors.white,
             ),
           ),
           controlAffinity: ListTileControlAffinity.leading,
@@ -507,19 +497,10 @@ class _SignupScreenState extends State<SignupScreen> {
         ],
         Consumer<AuthViewModel>(
           builder: (context, authViewModel, child) {
-            final error = authViewModel.signUpCommand.error;
-            if (error != null) {
-              return Column(
-                children: [
-                  const SizedBox(height: 16),
-                  ErrorDisplay(
-                    error: error,
-                    onDismiss: () => authViewModel.signUpCommand.clearError(),
-                  ),
-                ],
-              );
-            }
-            return const SizedBox.shrink();
+            return AuthFormWidgets.buildErrorMessage(
+              authViewModel.signUpCommand.error,
+              onDismiss: () => authViewModel.signUpCommand.clearError(),
+            );
           },
         ),
         const SizedBox(height: 30),

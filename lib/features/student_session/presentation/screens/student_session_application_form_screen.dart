@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../services/service_locator.dart';
+import '../../../../shared/domain/validation_service.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_form_field.dart';
@@ -182,7 +183,7 @@ class _StudentSessionApplicationFormScreenState
       programme: ProgrammeUtils.programmeToLabel(_selectedProgramme),
       linkedin: _linkedinController.text.trim().isEmpty
           ? null
-          : _linkedinController.text.trim(),
+          : ValidationService.buildLinkedInUrl(_linkedinController.text.trim()),
       masterTitle: _masterTitleController.text.trim(),
       studyYear: _studyYear,
       cvFile: _selectedCV,
@@ -910,7 +911,11 @@ class _StudentSessionApplicationFormScreenState
           vertical: 16,
         ),
       ),
-      initialValue: _selectedProgramme,
+      initialValue:
+          _selectedProgramme != null &&
+              availableProgrammes.any((p) => p.value == _selectedProgramme)
+          ? _selectedProgramme
+          : null, // Reset to null if selected programme is not in list
       hint: const Text('Select your programme'),
       validator: isOptional
           ? null

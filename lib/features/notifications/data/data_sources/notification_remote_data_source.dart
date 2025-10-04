@@ -28,7 +28,10 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
           );
 
       if (!response.isSuccess) {
-        throw ApiException('Failed to send FCM token: ${response.error}', response.statusCode);
+        throw ApiException(
+          'Failed to send FCM token: ${response.error}',
+          response.statusCode,
+        );
       }
     } catch (e) {
       await Sentry.captureException(e);

@@ -160,7 +160,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       if (response.isSuccess) {
         return 'success'; // Return success indicator, not a URL
       } else {
-        throw ApiException('CV upload failed: ${response.error}', response.statusCode);
+        throw ApiException(
+          'CV upload failed: ${response.error}',
+          response.statusCode,
+        );
       }
     } catch (e) {
       await Sentry.captureException(e);
@@ -223,7 +226,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       final response = await _api.getUserProfileApi().userModelsApiDeleteCv();
 
       if (!response.isSuccess) {
-        throw ApiException('CV deletion failed: ${response.error}', response.statusCode);
+        throw ApiException(
+          'CV deletion failed: ${response.error}',
+          response.statusCode,
+        );
       }
     } catch (e) {
       await Sentry.captureException(e);

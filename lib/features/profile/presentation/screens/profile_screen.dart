@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
+import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/notification_status_card.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
+import '../../../auth/presentation/widgets/auth_form_widgets.dart';
 import '../../../student_session/presentation/widgets/profile_student_sessions_tab.dart';
 import '../view_models/profile_view_model.dart';
 import '../widgets/profile_info_widget.dart';
@@ -60,17 +62,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     if (error != null) {
-      return Center(
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error, color: ArkadColors.lightRed, size: 48),
+            AuthFormWidgets.buildErrorMessage(
+              error,
+              onDismiss: () => profileViewModel.clearError(),
+            ),
             const SizedBox(height: 16),
-            Text(error.userMessage, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => profileViewModel.refreshProfile(),
-              child: const Text('Retry'),
+            ElevatedButton.icon(
+              onPressed: profileViewModel.canRetry
+                  ? () => profileViewModel.retryLastOperation()
+                  : null,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ArkadColors.arkadTurkos,
+                foregroundColor: ArkadColors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                disabledBackgroundColor: ArkadColors.arkadLightNavy,
+                disabledForegroundColor: ArkadColors.lightGray,
+              ),
             ),
           ],
         ),
@@ -98,12 +114,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 16),
         Consumer<AuthViewModel>(
           builder: (context, authViewModel, _) {
-            return TextButton.icon(
-              onPressed: () => _handleLogout(context, authViewModel),
-              icon: const Icon(Icons.logout),
-              label: const Text("Logout"),
-              style: TextButton.styleFrom(
-                foregroundColor: ArkadColors.arkadTurkos,
+            return Center(
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                child: ArkadButton(
+                  text: "Log Out",
+                  onPressed: () => _handleLogout(context, authViewModel),
+                  variant: ArkadButtonVariant.secondary,
+                  size: ArkadButtonSize.medium,
+                  icon: Icons.logout,
+                  fullWidth: true,
+                ),
               ),
             );
           },

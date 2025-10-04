@@ -44,7 +44,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         // Strip "Bearer " prefix if present
         return token.startsWith('Bearer ') ? token.substring(7) : token;
       } else {
-        throw ApiException('Sign in failed: ${response.error}', response.statusCode);
+        throw ApiException(
+          'Sign in failed: ${response.error}',
+          response.statusCode,
+        );
       }
     } catch (e) {
       await Sentry.captureException(e);
@@ -76,7 +79,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (response.isSuccess && response.data != null) {
         return response.data!;
       } else {
-        throw ApiException('Signup failed: ${response.error}', response.statusCode);
+        throw ApiException(
+          'Signup failed: ${response.error}',
+          response.statusCode,
+        );
       }
     } catch (e) {
       await Sentry.captureException(e);
@@ -118,7 +124,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (response.isSuccess && response.data != null) {
         return response.data!;
       } else {
-        throw ApiException('Signup completion failed: ${response.error}', response.statusCode);
+        throw ApiException(
+          'Signup completion failed: ${response.error}',
+          response.statusCode,
+        );
       }
     } catch (e) {
       await Sentry.captureException(e);
@@ -148,7 +157,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (response.isSuccess && response.data != null) {
         return response.data!;
       } else {
-        throw ApiException('Profile loading failed: ${response.error}', response.statusCode);
+        throw ApiException(
+          'Profile loading failed: ${response.error}',
+          response.statusCode,
+        );
       }
     } catch (e) {
       await Sentry.captureException(e);
@@ -173,7 +185,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           );
 
       if (!response.isSuccess) {
-        throw ApiException('Password reset failed: ${response.error}', response.statusCode);
+        throw ApiException(
+          'Password reset failed: ${response.error}',
+          response.statusCode,
+        );
       }
     } catch (e) {
       await Sentry.captureException(e);

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/events/app_events.dart';
@@ -396,12 +397,14 @@ class StudentSessionViewModel extends ChangeNotifier {
   }
 
   /// Handle book timeslot command state changes with unified conflict resolution
-  void _onBookTimeslotCommandChanged() async {
+  void _onBookTimeslotCommandChanged() {
     // CRITICAL: Check errors FIRST to prevent success flow during error states
     if (_bookTimeslotCommand.hasError) {
       if (_bookTimeslotCommand.isBookingConflict) {
-        // Handle booking conflict with immediate refresh and user guidance
-        await _handleBookingConflict();
+        // Handle booking conflict with deferred async operations
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _handleBookingConflict();
+        });
       }
       notifyListeners(); // Ensure all error states propagate to UI
       return; // CRITICAL: Exit early to prevent success flow after error
@@ -410,21 +413,32 @@ class StudentSessionViewModel extends ChangeNotifier {
     // Success flow - only execute if NO errors exist
     if (_bookTimeslotCommand.isCompleted &&
         _bookTimeslotCommand.result != null) {
-      // Refresh profile data to immediately reflect new booking state
-      await loadMyApplicationsWithBookingState(forceRefresh: true);
-
-      notifyListeners(); // Ensure success state is reflected
+      // Defer async operations to avoid setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // Refresh profile data to immediately reflect new booking state
+        await loadMyApplicationsWithBookingState(forceRefresh: true);
+        notifyListeners(); // Notify after async operation completes
+      });
+    } else {
+      // Immediate notify for non-async state changes
+      notifyListeners();
     }
   }
 
   /// Handle unbook timeslot command state changes
-  void _onUnbookTimeslotCommandChanged() async {
+  void _onUnbookTimeslotCommandChanged() {
     if (_unbookTimeslotCommand.isCompleted &&
         !_unbookTimeslotCommand.hasError) {
-      // Refresh profile data to immediately reflect cancelled booking state
-      await loadMyApplicationsWithBookingState(forceRefresh: true);
+      // Defer async operations to avoid setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // Refresh profile data to immediately reflect cancelled booking state
+        await loadMyApplicationsWithBookingState(forceRefresh: true);
+        notifyListeners(); // Notify after async operation completes
+      });
+    } else {
+      // Immediate notify for non-async state changes
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   /// Handle booking conflict with simple refresh
