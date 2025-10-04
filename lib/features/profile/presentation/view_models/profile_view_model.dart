@@ -125,12 +125,13 @@ class ProfileViewModel extends ChangeNotifier {
   // Getters for UI state
   Profile? get currentProfile => _currentProfile;
 
-  // Aggregate error from all commands
+  // Aggregate error from all commands with priority logic
+  // Priority: Update > Upload > Get (most user-actionable first)
   AppError? get error =>
-      _getProfileCommand.error ??
       _updateProfileCommand.error ??
       _uploadProfilePictureCommand.error ??
-      _uploadCVCommand.error;
+      _uploadCVCommand.error ??
+      _getProfileCommand.error;
 
   // Command getters for UI
   GetProfileCommand get getProfileCommand => _getProfileCommand;
@@ -147,6 +148,10 @@ class ProfileViewModel extends ChangeNotifier {
       _uploadCVCommand.isExecuting;
 
   bool get hasProfile => _currentProfile != null;
+
+  bool get hasError => error != null;
+
+  bool get canRetry => hasError && !isLoading;
 
   List<String> get missingRequiredFields {
     if (_currentProfile == null) {
@@ -221,10 +226,48 @@ class ProfileViewModel extends ChangeNotifier {
     await loadProfile();
   }
 
+  /// Retry the last failed operation intelligently
+  Future<void> retryLastOperation() async {
+    // Determine which operation failed and retry appropriately
+    if (_updateProfileCommand.hasError) {
+      clearUpdateProfileError();
+      // Note: Cannot automatically retry update as it requires user input
+      // UI should guide user to try updating again
+    } else if (_uploadProfilePictureCommand.hasError ||
+        _uploadCVCommand.hasError) {
+      clearUploadErrors();
+      // Note: Cannot automatically retry uploads as they require file selection
+      // UI should guide user to try uploading again
+    } else if (_getProfileCommand.hasError) {
+      clearGetProfileError();
+      await loadProfile();
+    } else {
+      // Fallback: refresh profile
+      await refreshProfile();
+    }
+  }
+
   void clearError() {
     // Clear all command errors
     _getProfileCommand.clearError();
     _updateProfileCommand.clearError();
+    _uploadProfilePictureCommand.clearError();
+    _uploadCVCommand.clearError();
+    notifyListeners();
+  }
+
+  /// Clear errors for a specific operation
+  void clearGetProfileError() {
+    _getProfileCommand.clearError();
+    notifyListeners();
+  }
+
+  void clearUpdateProfileError() {
+    _updateProfileCommand.clearError();
+    notifyListeners();
+  }
+
+  void clearUploadErrors() {
     _uploadProfilePictureCommand.clearError();
     _uploadCVCommand.clearError();
     notifyListeners();

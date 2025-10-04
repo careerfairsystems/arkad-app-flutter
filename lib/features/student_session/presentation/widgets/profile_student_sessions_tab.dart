@@ -38,7 +38,6 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     if (authViewModel.isAuthenticated &&
         !authViewModel.isInitializing &&
         !viewModel.getMyApplicationsWithBookingStateCommand.isExecuting) {
-      
       // Defer reset() call to avoid setState during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         viewModel.getMyApplicationsWithBookingStateCommand.reset();

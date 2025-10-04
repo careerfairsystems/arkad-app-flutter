@@ -36,27 +36,60 @@ class ProgrammeData {
 
 /// Complete list of available programmes with backend labels (Swedish)
 const List<ProgrammeData> availableProgrammes = [
-  ProgrammeData(label: "Brandingenjör", value: Programme.fireProtectionEngineering),
-  ProgrammeData(label: "Maskinteknik_Teknisk_Design", value: Programme.mechanicalEngineeringWithTechnicalDesign),
+  ProgrammeData(
+    label: "Brandingenjör",
+    value: Programme.fireProtectionEngineering,
+  ),
+  ProgrammeData(
+    label: "Maskinteknik_Teknisk_Design",
+    value: Programme.mechanicalEngineeringWithTechnicalDesign,
+  ),
   ProgrammeData(label: "Elektroteknik", value: Programme.electricalEngineering),
-  ProgrammeData(label: "Ekosystemteknik", value: Programme.environmentalEngineering),
+  ProgrammeData(
+    label: "Ekosystemteknik",
+    value: Programme.environmentalEngineering,
+  ),
   ProgrammeData(label: "Maskinteknik", value: Programme.mechanicalEngineering),
   ProgrammeData(label: "Nanoveteknik", value: Programme.engineeringNanoscience),
   ProgrammeData(label: "Bioteknik", value: Programme.engineeringBiotechnology),
   ProgrammeData(label: "Industridesign", value: Programme.industrialDesign),
   ProgrammeData(label: "Arkitekt", value: Programme.architecture),
-  ProgrammeData(label: "Informations och Kommunikationsteknik", value: Programme.informationAndCommunicationEngineering),
+  ProgrammeData(
+    label: "Informations och Kommunikationsteknik",
+    value: Programme.informationAndCommunicationEngineering,
+  ),
   ProgrammeData(label: "Kemiteknik", value: Programme.chemicalEngineering),
-  ProgrammeData(label: "Byggteknik med Järnvägsteknik", value: Programme.constructionAndRailwayConstruction),
-  ProgrammeData(label: "Väg och vatttenbyggnad", value: Programme.roadAndWaterConstruction),
-  ProgrammeData(label: "Byggteknik med arkitektur", value: Programme.constructionAndArchitecture),
-  ProgrammeData(label: "Industriell ekonomi", value: Programme.industrialEconomicsAndManagement),
-  ProgrammeData(label: "Teknisk Matematik", value: Programme.engineeringMathematics),
+  ProgrammeData(
+    label: "Byggteknik med Järnvägsteknik",
+    value: Programme.constructionAndRailwayConstruction,
+  ),
+  ProgrammeData(
+    label: "Väg och vatttenbyggnad",
+    value: Programme.roadAndWaterConstruction,
+  ),
+  ProgrammeData(
+    label: "Byggteknik med arkitektur",
+    value: Programme.constructionAndArchitecture,
+  ),
+  ProgrammeData(
+    label: "Industriell ekonomi",
+    value: Programme.industrialEconomicsAndManagement,
+  ),
+  ProgrammeData(
+    label: "Teknisk Matematik",
+    value: Programme.engineeringMathematics,
+  ),
   ProgrammeData(label: "Medicinteknik", value: Programme.biomedicalEngineering),
   ProgrammeData(label: "Lantmäteri", value: Programme.surveying),
-  ProgrammeData(label: "Datateknik", value: Programme.computerScienceEngineering),
+  ProgrammeData(
+    label: "Datateknik",
+    value: Programme.computerScienceEngineering,
+  ),
   ProgrammeData(label: "Teknisk Fysik", value: Programme.engineeringPhysics),
-  ProgrammeData(label: "Byggteknik med väg och trafikteknik", value: Programme.roadAndTrafficTechnology),
+  ProgrammeData(
+    label: "Byggteknik med väg och trafikteknik",
+    value: Programme.roadAndTrafficTechnology,
+  ),
 ];
 
 /// Utility methods for programme handling
@@ -70,11 +103,11 @@ class ProgrammeUtils {
       final programmeData = availableProgrammes
           .where((prog) => prog.value == programme)
           .firstOrNull;
-      
+
       if (programmeData != null) {
         return programmeData.label;
       }
-      
+
       // Log unknown programme enum for debugging
       Sentry.captureMessage(
         'Unknown programme enum value: "$programme"',
@@ -96,11 +129,11 @@ class ProgrammeUtils {
       final programmeData = availableProgrammes
           .where((prog) => prog.label == label)
           .firstOrNull;
-      
+
       if (programmeData != null) {
         return programmeData.value;
       }
-      
+
       // Log unknown programme labels for debugging
       Sentry.captureMessage(
         'Unknown programme label received from API: "$label"',

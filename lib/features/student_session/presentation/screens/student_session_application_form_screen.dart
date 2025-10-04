@@ -910,10 +910,11 @@ class _StudentSessionApplicationFormScreenState
           vertical: 16,
         ),
       ),
-      initialValue: _selectedProgramme != null && 
-                    availableProgrammes.any((p) => p.value == _selectedProgramme) 
-                    ? _selectedProgramme 
-                    : null, // Reset to null if selected programme is not in list
+      initialValue:
+          _selectedProgramme != null &&
+              availableProgrammes.any((p) => p.value == _selectedProgramme)
+          ? _selectedProgramme
+          : null, // Reset to null if selected programme is not in list
       hint: const Text('Select your programme'),
       validator: isOptional
           ? null
