@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../services/service_locator.dart';
+import '../../../../shared/domain/validation_service.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_form_field.dart';
@@ -182,7 +183,7 @@ class _StudentSessionApplicationFormScreenState
       programme: ProgrammeUtils.programmeToLabel(_selectedProgramme),
       linkedin: _linkedinController.text.trim().isEmpty
           ? null
-          : _linkedinController.text.trim(),
+          : ValidationService.buildLinkedInUrl(_linkedinController.text.trim()),
       masterTitle: _masterTitleController.text.trim(),
       studyYear: _studyYear,
       cvFile: _selectedCV,

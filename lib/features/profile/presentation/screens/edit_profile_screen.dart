@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../services/service_locator.dart';
+import '../../../../shared/domain/validation_service.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../auth/presentation/widgets/auth_form_widgets.dart';
@@ -173,7 +174,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         programme: _selectedProgramme,
         linkedin: _linkedinController.text.isEmpty
             ? null
-            : _linkedinController.text,
+            : ValidationService.buildLinkedInUrl(_linkedinController.text),
         masterTitle: _masterTitleController.text.isEmpty
             ? null
             : _masterTitleController.text,
