@@ -1,0 +1,2 @@
+json_key_file("./fastlane/google_playstore_service_account.json")
+package_name("se.arkadtlth.nexpo")
