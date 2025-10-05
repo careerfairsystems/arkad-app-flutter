@@ -1,7 +1,9 @@
+import '../infrastructure/app_environment.dart';
+
 /// Utility class for handling URL construction and conversion
 class UrlUtils {
-  /// Base URL for the backend
-  static const String baseUrl = 'https://backend.arkadtlth.se';
+  /// Base URL for the backend - automatically switches based on environment
+  static String get baseUrl => AppEnvironment.baseUrl;
 
   /// Convert relative path to full URL
   /// Backend returns relative paths like '/user/profile-picture/...' or '/user/cv/...'
