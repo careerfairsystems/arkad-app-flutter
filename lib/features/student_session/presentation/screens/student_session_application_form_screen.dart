@@ -45,6 +45,9 @@ class _StudentSessionApplicationFormScreenState
   Programme? _selectedProgramme;
   int? _studyYear;
 
+  // CV validation state tracking
+  bool _cvFieldTouched = false;
+
   // Message handling state to prevent duplicates and setState during build
   bool _hasHandledApplicationSuccess = false;
   bool _hasHandledApplicationError = false;
@@ -140,6 +143,17 @@ class _StudentSessionApplicationFormScreenState
     });
   }
 
+  /// Check if CV field is valid based on dynamic configuration
+  bool _isCVValid() {
+    final isRequired = _formConfig?.isFieldRequired('cv') ?? true;
+    return !isRequired || _selectedCV != null;
+  }
+
+  /// Check if CV error state should be displayed
+  bool _shouldShowCVError() {
+    return _cvFieldTouched && !_isCVValid();
+  }
+
   bool _validateDynamicFields() {
     if (_formConfig == null) return false;
 
@@ -170,6 +184,9 @@ class _StudentSessionApplicationFormScreenState
   }
 
   Future<void> _submitApplication() async {
+    // Mark CV field as touched to show validation errors
+    setState(() => _cvFieldTouched = true);
+
     if (!_formKey.currentState!.validate()) return;
 
     // Validate dynamic fields based on configuration
@@ -344,16 +361,9 @@ class _StudentSessionApplicationFormScreenState
     );
   }
 
-  /// Build header section with session info and timeline warnings
+  /// Build header section with session info
   Widget _buildHeaderSection() {
-    return Column(
-      children: [
-        _buildSessionInfo(),
-        const SizedBox(height: 24),
-        _buildTimelineWarning(),
-        const SizedBox(height: 32),
-      ],
-    );
+    return Column(children: [_buildSessionInfo(), const SizedBox(height: 24)]);
   }
 
   /// Build application form sections dynamically based on field configuration
@@ -367,7 +377,6 @@ class _StudentSessionApplicationFormScreenState
           title: 'Your Motivation',
           icon: Icons.edit_outlined,
           child: _buildMotivationField(),
-          isEssential: true,
         ),
         const SizedBox(height: 20),
       ]);
@@ -383,7 +392,6 @@ class _StudentSessionApplicationFormScreenState
             : 'Document Upload',
         icon: Icons.assignment_outlined,
         child: _buildRequiredFields(),
-        isEssential: true,
       ),
       const SizedBox(height: 20),
     ]);
@@ -397,7 +405,6 @@ class _StudentSessionApplicationFormScreenState
               'These fields are optional and can help strengthen your application',
           icon: Icons.info_outlined,
           child: _buildOptionalFields(),
-          isEssential: false,
         ),
         const SizedBox(height: 20),
       ]);
@@ -430,141 +437,100 @@ class _StudentSessionApplicationFormScreenState
     String? subtitle,
     required IconData icon,
     required Widget child,
-    required bool isEssential,
   }) {
-    return Card(
-      elevation: isEssential ? 3 : 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: isEssential
-              ? LinearGradient(
-                  colors: [
-                    ArkadColors.white,
-                    ArkadColors.arkadTurkos.withValues(alpha: 0.02),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
-          border: isEssential
-              ? Border.all(
-                  color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-                )
-              : null,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: ArkadColors.arkadNavy.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: ArkadColors.arkadLightTurkos),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color:
-                          (isEssential
-                                  ? ArkadColors.arkadTurkos
-                                  : ArkadColors.arkadNavy)
-                              .withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: isEssential
-                          ? ArkadColors.arkadTurkos
-                          : ArkadColors.arkadNavy,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: isEssential
-                                    ? ArkadColors.arkadTurkos
-                                    : null,
-                              ),
-                        ),
-                        if (subtitle != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            subtitle,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface
-                                      .withValues(alpha: 0.7),
-                                ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: ArkadColors.arkadTurkos.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: ArkadColors.arkadTurkos, size: 20),
               ),
-              const SizedBox(height: 16),
-              child,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: ArkadColors.white,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: ArkadColors.white.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ],
           ),
-        ),
+          const SizedBox(height: 16),
+          child,
+        ],
       ),
     );
   }
 
   /// Build disclaimer section with distinct styling
   Widget _buildDisclaimerSection() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: ArkadColors.arkadTurkos.withValues(alpha: 0.05),
-          border: Border.all(
-            color: ArkadColors.arkadTurkos.withValues(alpha: 0.2),
-          ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: ArkadColors.arkadNavy.withValues(alpha: 0.3),
+        border: Border.all(
+          color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.info_outline,
-                  color: ArkadColors.arkadTurkos,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Important Information',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: ArkadColors.arkadTurkos,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _session!.disclaimer!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                height: 1.5,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.info_outline,
+                color: ArkadColors.arkadTurkos,
+                size: 20,
               ),
+              const SizedBox(width: 8),
+              Text(
+                'Important Information',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: ArkadColors.arkadTurkos,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _session!.disclaimer!,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              height: 1.5,
+              color: ArkadColors.white.withValues(alpha: 0.9),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -576,14 +542,15 @@ class _StudentSessionApplicationFormScreenState
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [ArkadColors.arkadNavy, ArkadColors.arkadTurkos],
+          colors: [ArkadColors.arkadLightNavy, ArkadColors.arkadNavy],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: ArkadColors.arkadLightTurkos),
         boxShadow: [
           BoxShadow(
-            color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
+            color: ArkadColors.arkadLightNavy.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -654,17 +621,15 @@ class _StudentSessionApplicationFormScreenState
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: ArkadColors.white.withValues(alpha: 0.1),
+                color: ArkadColors.arkadLightNavy,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: ArkadColors.white.withValues(alpha: 0.2),
-                ),
+                border: Border.all(color: ArkadColors.arkadLightTurkos),
               ),
               child: _session!.description != null
                   ? Text(
                       _session!.description!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: ArkadColors.white.withValues(alpha: 0.9),
+                        color: ArkadColors.white,
                         height: 1.5,
                       ),
                     )
@@ -752,11 +717,6 @@ class _StudentSessionApplicationFormScreenState
     );
   }
 
-  // Timeline warnings removed - session availability controlled by server data
-  Widget _buildTimelineWarning() {
-    return const SizedBox.shrink();
-  }
-
   Widget _buildMotivationField() {
     if (_formConfig == null ||
         !_formConfig!.shouldShowField('motivationText')) {
@@ -769,9 +729,7 @@ class _StudentSessionApplicationFormScreenState
         Text(
           'Explain why you want to participate in this Student Session (max 300 words)',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.7),
+            color: ArkadColors.white.withValues(alpha: 0.8),
             height: 1.4,
           ),
         ),
@@ -783,7 +741,7 @@ class _StudentSessionApplicationFormScreenState
               'Your motivation',
               'motivationText',
             ),
-            border: const OutlineInputBorder(),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             alignLabelWithHint: true,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -824,12 +782,14 @@ class _StudentSessionApplicationFormScreenState
                       (_motivationWordCount > 300
                               ? ArkadColors.lightRed
                               : ArkadColors.arkadOrange)
-                          .withValues(alpha: 0.1),
+                          .withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: _motivationWordCount > 300
-                        ? ArkadColors.lightRed
-                        : ArkadColors.arkadOrange,
+                    color:
+                        (_motivationWordCount > 300
+                                ? ArkadColors.lightRed
+                                : ArkadColors.arkadOrange)
+                            .withValues(alpha: 0.5),
                   ),
                 ),
                 child: Text(
@@ -851,9 +811,7 @@ class _StudentSessionApplicationFormScreenState
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: _motivationWordCount > 300
                     ? ArkadColors.lightRed
-                    : Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    : ArkadColors.white.withValues(alpha: 0.7),
                 fontWeight: _motivationWordCount > 300 ? FontWeight.w600 : null,
               ),
             ),
@@ -911,7 +869,7 @@ class _StudentSessionApplicationFormScreenState
     return DropdownButtonFormField<Programme>(
       decoration: InputDecoration(
         labelText: _formConfig!.getFieldLabel('Programme', 'programme'),
-        border: const OutlineInputBorder(),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 16,
@@ -947,7 +905,7 @@ class _StudentSessionApplicationFormScreenState
     return DropdownButtonFormField<int>(
       decoration: InputDecoration(
         labelText: _formConfig!.getFieldLabel('Study Year', 'studyYear'),
-        border: const OutlineInputBorder(),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 16,
@@ -1037,10 +995,10 @@ class _StudentSessionApplicationFormScreenState
   }
 
   Widget _buildCVUploadSection({bool isOptional = false}) {
-    // Use dynamic label and required indicator based on form configuration
     final cvLabel =
         _formConfig?.getFieldLabel('CV / Resume', 'cv') ?? 'CV / Resume';
-    final isRequired = _formConfig?.isFieldRequired('cv') ?? true;
+    final isRequired =
+        !isOptional && (_formConfig?.isFieldRequired('cv') ?? true);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1056,31 +1014,35 @@ class _StudentSessionApplicationFormScreenState
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             border: Border.all(
-              color: _selectedCV != null
-                  ? ArkadColors.arkadGreen
-                  : (isRequired ? ArkadColors.lightRed : ArkadColors.gray),
-              width: 1.5,
+              color: _shouldShowCVError()
+                  ? ArkadColors.lightRed.withValues(alpha: 0.6)
+                  : _selectedCV != null
+                  ? ArkadColors.arkadGreen.withValues(alpha: 0.5)
+                  : ArkadColors.white.withValues(alpha: 0.2),
+              width: _shouldShowCVError() ? 1.5 : 1,
             ),
             borderRadius: BorderRadius.circular(8),
-            color: _selectedCV != null
-                ? ArkadColors.arkadGreen.withValues(alpha: 0.05)
-                : (isRequired
-                      ? ArkadColors.lightRed.withValues(alpha: 0.05)
-                      : ArkadColors.gray.withValues(alpha: 0.05)),
+            color: _shouldShowCVError()
+                ? ArkadColors.lightRed.withValues(alpha: 0.15)
+                : _selectedCV != null
+                ? ArkadColors.arkadGreen.withValues(alpha: 0.1)
+                : ArkadColors.arkadNavy.withValues(alpha: 0.2),
           ),
           child: Column(
             children: [
               Row(
                 children: [
                   Icon(
-                    _selectedCV != null
+                    _shouldShowCVError()
+                        ? Icons.error_outline
+                        : _selectedCV != null
                         ? Icons.check_circle
                         : Icons.upload_file,
-                    color: _selectedCV != null
+                    color: _shouldShowCVError()
+                        ? ArkadColors.lightRed
+                        : _selectedCV != null
                         ? ArkadColors.arkadGreen
-                        : (isRequired
-                              ? ArkadColors.lightRed
-                              : ArkadColors.gray),
+                        : ArkadColors.white.withValues(alpha: 0.7),
                     size: 24,
                   ),
                   const SizedBox(width: 16),
@@ -1089,18 +1051,20 @@ class _StudentSessionApplicationFormScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _selectedCV != null
+                          _shouldShowCVError()
+                              ? 'CV Required - Please select a file'
+                              : _selectedCV != null
                               ? 'CV Selected: ${_selectedCV!.name}'
                               : isRequired
                               ? 'CV Required - No file selected'
                               : 'CV - No file selected (Optional)',
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
-                                color: _selectedCV != null
+                                color: _shouldShowCVError()
+                                    ? ArkadColors.lightRed
+                                    : _selectedCV != null
                                     ? ArkadColors.arkadGreen
-                                    : (isRequired
-                                          ? ArkadColors.lightRed
-                                          : ArkadColors.gray),
+                                    : ArkadColors.white.withValues(alpha: 0.9),
                                 fontWeight: FontWeight.w500,
                               ),
                         ),
@@ -1109,9 +1073,7 @@ class _StudentSessionApplicationFormScreenState
                           'PDF format only, max 10MB',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.6),
+                                color: ArkadColors.white.withValues(alpha: 0.6),
                               ),
                         ),
                       ],
@@ -1157,6 +1119,16 @@ class _StudentSessionApplicationFormScreenState
             ],
           ),
         ),
+        if (_shouldShowCVError()) ...[
+          const SizedBox(height: 8),
+          Text(
+            'CV is required for this application',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: ArkadColors.lightRed,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -1168,6 +1140,7 @@ class _StudentSessionApplicationFormScreenState
     if (platformFile != null) {
       setState(() {
         _selectedCV = platformFile;
+        _cvFieldTouched = false; // Reset error state when valid file selected
       });
     }
   }
