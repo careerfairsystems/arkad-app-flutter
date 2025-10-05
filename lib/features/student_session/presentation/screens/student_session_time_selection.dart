@@ -502,10 +502,10 @@ class _StudentSessionTimeSelection
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               child: Text(
                 weekday,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: Theme.of(context).primaryColor,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                  color: ArkadColors.white,
                 ),
               ),
             ),
@@ -518,12 +518,20 @@ class _StudentSessionTimeSelection
     );
   }
 
+  /// Format date header in Stockholm timezone
+  /// Returns format: "Tuesday (23 Sep 2025)"
+  /// Note: DateTime is already in Stockholm time from mapper conversion
+  String _formatDateHeader(DateTime stockholmDateTime) {
+    final formatter = DateFormat('EEEE (dd MMM yyyy)', 'en_US');
+    return formatter.format(stockholmDateTime);
+  }
+
   /// Group timeslots by weekday
   Map<String, List<Timeslot>> _groupSlotsByWeekday(List<Timeslot> slots) {
     final Map<String, List<Timeslot>> groupedSlots = {};
 
     for (final slot in slots) {
-      final weekday = DateFormat('EEEE (dd MMM yyyy)').format(slot.startTime);
+      final weekday = _formatDateHeader(slot.startTime);
 
       if (!groupedSlots.containsKey(weekday)) {
         groupedSlots[weekday] = [];
@@ -563,24 +571,27 @@ class _StudentSessionTimeSelection
     final isEffectivelyAvailable =
         (isAvailable || isBookedByUser) && isTimelineValid;
 
-    // Determine card color based on status and timeline
+    // Determine card color and border based on status and timeline
     Color? cardColor;
-    if (isBookedByUser) {
-      cardColor = ArkadColors.arkadGreen.withValues(alpha: 0.2);
-    } else if (isSelected) {
-      cardColor = ArkadColors.lightGray;
-    } else if (!isTimelineValid) {
-      // Gray out timeslots when booking deadline has passed
-      cardColor = ArkadColors.lightGray.withValues(alpha: 0.3);
-    }
-
-    // Border for booked slots
     Border? cardBorder;
+
     if (isBookedByUser) {
+      // Booked state: green background and border
+      cardColor = ArkadColors.arkadGreen.withValues(alpha: 0.2);
       cardBorder = Border.all(
         color: ArkadColors.arkadGreen.withValues(alpha: 0.6),
         width: 2.5,
       );
+    } else if (isSelected) {
+      // Selected state: turkos background and border
+      cardColor = ArkadColors.arkadTurkos.withValues(alpha: 0.2);
+      cardBorder = Border.all(color: ArkadColors.arkadTurkos, width: 2);
+    } else if (!isTimelineValid) {
+      // Disabled/timeline invalid state: gray out
+      cardColor = ArkadColors.lightGray.withValues(alpha: 0.3);
+    } else {
+      // Neutral state: subtle navy background
+      cardColor = ArkadColors.arkadLightNavy.withValues(alpha: 0.5);
     }
 
     return Card(
@@ -597,12 +608,6 @@ class _StudentSessionTimeSelection
             Text(_formatTimeRange(slot)),
             if (isBookedByUser) ...[
               const SizedBox(width: 8),
-              const Icon(
-                Icons.check_circle_rounded,
-                color: ArkadColors.arkadGreen,
-                size: 20,
-              ),
-              const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -610,7 +615,7 @@ class _StudentSessionTimeSelection
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Booked by you',
+                  'Booked',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: ArkadColors.white,
                     fontWeight: FontWeight.w600,
@@ -652,7 +657,11 @@ class _StudentSessionTimeSelection
                 },
                 child: Radio<int>(
                   value: slot.id,
-                  activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
+                  activeColor: isBookedByUser
+                      ? ArkadColors.arkadGreen
+                      : isSelected
+                      ? ArkadColors.arkadTurkos
+                      : null,
                 ),
               )
             : RadioGroup<int>(
@@ -662,7 +671,11 @@ class _StudentSessionTimeSelection
                 },
                 child: Radio<int>(
                   value: slot.id,
-                  activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
+                  activeColor: isBookedByUser
+                      ? ArkadColors.arkadGreen
+                      : isSelected
+                      ? ArkadColors.arkadTurkos
+                      : null,
                 ),
               ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -679,11 +692,9 @@ class _StudentSessionTimeSelection
     );
   }
 
-  /// Format time range for display
+  /// Format time range for display in Stockholm timezone
   String _formatTimeRange(Timeslot slot) {
-    final startTime = DateFormat('HH:mm').format(slot.startTime);
-    final endTime = DateFormat('HH:mm').format(slot.endTime);
-    return '$startTime - $endTime';
+    return slot.timeRangeDisplay;
   }
 
   /// Build simple action button

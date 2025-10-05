@@ -363,7 +363,7 @@ class _StudentSessionApplicationFormScreenState
 
   /// Build header section with session info
   Widget _buildHeaderSection() {
-    return Column(children: [_buildSessionInfo(), const SizedBox(height: 24)]);
+    return Column(children: [_buildSessionInfo(), const SizedBox(height: 16)]);
   }
 
   /// Build application form sections dynamically based on field configuration
@@ -617,7 +617,7 @@ class _StudentSessionApplicationFormScreenState
               ],
             ),
             // Always show additional content section to balance the layout
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
