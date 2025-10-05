@@ -6,7 +6,14 @@
 set -e
 
 # Configuration
-OPENAPI_URL="https://backend.arkadtlth.se/api/openapi.json"
+USE_STAGING=false  # Set to true for staging, false for production
+
+if [[ "$USE_STAGING" == "true" ]]; then
+    OPENAPI_URL="https://staging.backend.arkadtlth.se/api/openapi.json"
+else
+    OPENAPI_URL="https://backend.arkadtlth.se/api/openapi.json"
+fi
+
 OUTPUT_DIR="api/arkad_api"
 API_HASH_FILE="api/.api_spec_hash"
 TEMP_SPEC_FILE="temp_openapi.json"

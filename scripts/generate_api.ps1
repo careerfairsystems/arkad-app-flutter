@@ -4,13 +4,20 @@
 # Generates API client using OpenAPI Generator Docker image
 
 param(
-    [string]$OpenApiUrl = "https://backend.arkadtlth.se/api/openapi.json",
     [string]$OutputDir = "api/arkad_api"
 )
 
 $ErrorActionPreference = "Stop"
 
 # Configuration
+$UseStaging = $false  # Set to $true for staging, $false for production
+
+if ($UseStaging) {
+    $OpenApiUrl = "https://staging.backend.arkadtlth.se/api/openapi.json"
+} else {
+    $OpenApiUrl = "https://backend.arkadtlth.se/api/openapi.json"
+}
+
 $TempSpecFile = "temp_openapi.json"
 $ApiHashFile = "api/.api_spec_hash"
 
