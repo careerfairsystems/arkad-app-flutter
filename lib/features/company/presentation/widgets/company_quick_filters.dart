@@ -31,7 +31,6 @@ class CompanyQuickFilters extends StatelessWidget {
 
   static const List<String> popularPositions = [
     'Student Sessions',
-    'Student Sessions',
     'Thesis',
     'Internship',
     'Summer Job',
