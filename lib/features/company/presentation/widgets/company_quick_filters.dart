@@ -186,11 +186,9 @@ class CompanyQuickFilters extends StatelessWidget {
   }
 
   Widget _buildActiveInfoRow(BuildContext context) {
-    final int activeCount =
-        (hasStudentSessions ? 1 : 0) + selectedPositions.length;
-
-    final bool showResults = hasSearchQuery || activeCount > 0;
-    final bool showClear = activeCount > 0;
+    final bool anyFiltersActive = totalActiveFilters > 0;
+    final bool showResults = hasSearchQuery || anyFiltersActive;
+    final bool showClear = anyFiltersActive;
 
     if (!showResults && !showClear) {
       return const SizedBox.shrink();
@@ -250,7 +248,7 @@ class CompanyQuickFilters extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Clear all filters ($activeCount)',
+                      'Clear all filters ($totalActiveFilters)',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: ArkadColors.lightRed,
                         fontWeight: FontWeight.w600,

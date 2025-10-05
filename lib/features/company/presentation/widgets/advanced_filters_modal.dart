@@ -610,13 +610,6 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
   }
 
   Widget _buildBottomActions() {
-    final totalSelected =
-        _currentFilter.degrees.length +
-        _currentFilter.positions.length +
-        _currentFilter.industries.length +
-        _currentFilter.competences.length +
-        (_currentFilter.hasStudentSessions ? 1 : 0);
-
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
       decoration: BoxDecoration(
@@ -640,19 +633,6 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
           children: [
             Row(
               children: [
-                Expanded(
-                  child: ArkadButton(
-                    text: 'Clear All',
-                    onPressed: totalSelected > 0
-                        ? () {
-                            _clearAllFilters();
-                            context.pop();
-                          }
-                        : null,
-                    variant: ArkadButtonVariant.secondary,
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
@@ -729,11 +709,5 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
       sourceOptions: FilterOptions.competences,
       onUpdate: (filtered) => _filteredCompetences = filtered,
     );
-  }
-
-  void _clearAllFilters() {
-    setState(() {
-      _currentFilter = const CompanyFilter();
-    });
   }
 }
