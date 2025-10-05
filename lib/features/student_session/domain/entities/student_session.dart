@@ -31,10 +31,12 @@ class StudentSession {
   /// Whether this session is available for applications/booking
   final bool isAvailable;
 
-  /// When booking closes for this session (null if no booking period)
+  /// When APPLICATION period closes for this session (null if no application period)
+  /// Note: Despite the "booking" name, this field controls when users can APPLY to the session
   final DateTime? bookingCloseTime;
 
-  /// When booking opens for this session (null if no booking period)
+  /// When APPLICATION period opens for this session (null if no application period)  
+  /// Note: Despite the "booking" name, this field controls when users can APPLY to the session
   final DateTime? bookingOpenTime;
 
   /// Current user's application status for this session
@@ -70,37 +72,23 @@ class StudentSession {
   /// Check if user can apply to this session with timeline validation
   bool get canApplyNow => canApply && isApplicationPeriodActive();
 
-  /// Check if user can book timeslots (must be accepted and within booking period)
-  bool get canBook => isAccepted && _isBookingPeriodActive();
+  /// Check if user can book timeslots (must be accepted)
+  /// Note: Actual booking availability depends on individual timeslot deadlines
+  bool get canBook => isAccepted;
 
-  /// Check if application period is currently active
+  /// Check if APPLICATION period is currently active
+  /// This determines when users can submit applications to this session
+  /// Uses session-level bookingOpenTime/bookingCloseTime (which are application period fields)
   bool isApplicationPeriodActive({DateTime? now}) {
     final currentTime = now ?? DateTime.now();
 
-    // If no booking times are set, use basic availability
+    // If no application times are set, use basic availability
     if (bookingOpenTime == null && bookingCloseTime == null) {
       return isAvailable;
     }
 
-    // Check if current time is within the application/booking window
-    final isAfterOpen =
-        bookingOpenTime == null || !currentTime.isBefore(bookingOpenTime!);
-    final isBeforeClose =
-        bookingCloseTime == null || !currentTime.isAfter(bookingCloseTime!);
-
-    return isAfterOpen && isBeforeClose;
-  }
-
-  /// Check if booking period is currently active
-  bool _isBookingPeriodActive({DateTime? now}) {
-    final currentTime = now ?? DateTime.now();
-
-    // If no booking times are set, use basic acceptance status
-    if (bookingOpenTime == null && bookingCloseTime == null) {
-      return true;
-    }
-
-    // Check if current time is within the booking window
+    // Check if current time is within the APPLICATION window
+    // Note: bookingOpenTime/bookingCloseTime are the application period fields from the API
     final isAfterOpen =
         bookingOpenTime == null || !currentTime.isBefore(bookingOpenTime!);
     final isBeforeClose =

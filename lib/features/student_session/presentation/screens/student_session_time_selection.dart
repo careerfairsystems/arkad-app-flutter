@@ -310,34 +310,50 @@ class _StudentSessionTimeSelection
       final allTimeslots = provider.timeslots;
 
       if (allTimeslots.isNotEmpty) {
-        // There are timeslots but none are selectable - likely timeline restriction
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.schedule_rounded,
-                size: 64,
-                color: ArkadColors.lightRed,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Booking period has ended',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Time slot booking is no longer available for this session',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+        // Check if timeslots exist but none are selectable due to timeline restrictions
+        const timelineService = TimelineValidationService.instance;
+        final hasValidTimeslots = allTimeslots.any(
+          (slot) => timelineService.isTimeslotBookingOpen(slot),
         );
+
+        if (!hasValidTimeslots) {
+          // All timeslots have passed their booking deadline
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.schedule_rounded,
+                  size: 64,
+                  color: ArkadColors.lightRed,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Booking period has ended',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'All timeslots have passed their booking deadlines',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        } else {
+          // Timeslots exist and some are valid, but filtered list is empty for other reasons
+          return const Center(
+            child: Text(
+              'No available time slots match the current filter',
+              style: TextStyle(fontSize: 16),
+            ),
+          );
+        }
       } else {
         return const Center(
           child: Text(
@@ -603,8 +619,8 @@ class _StudentSessionTimeSelection
                 ),
               ),
             ],
-            // Show timeline warning for booked slots when booking has ended
-            if (isBookedByUser && !isTimelineValid) ...[
+            // Show timeline warning for any timeslot when booking has ended
+            if (!isTimelineValid) ...[
               const SizedBox(width: 8),
               const Icon(
                 Icons.schedule_rounded,
@@ -613,7 +629,7 @@ class _StudentSessionTimeSelection
               ),
               const SizedBox(width: 4),
               Text(
-                'Booking ended',
+                isBookedByUser ? 'Booking ended' : 'Booking closed',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: ArkadColors.lightRed,
                   fontWeight: FontWeight.w600,

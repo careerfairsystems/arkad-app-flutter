@@ -2,7 +2,9 @@ import '../entities/student_session.dart';
 import '../entities/timeslot.dart';
 
 /// Centralized service for timeline validation logic across student session features
-/// Provides consistent validation rules for application and booking periods
+/// Provides consistent validation rules for TWO separate periods:
+/// 1. Application Period: Session-level bookingOpenTime/bookingCloseTime (when users can apply)
+/// 2. Booking Period: Timeslot-level bookingClosesAt (when accepted users can book timeslots)
 class TimelineValidationService {
   const TimelineValidationService._();
 
@@ -17,23 +19,15 @@ class TimelineValidationService {
 
   /// Check if booking period is currently active for a session
   /// Returns true if timeslots can be booked/managed now
+  /// Note: Booking period is separate from application period and depends on individual timeslots
   bool isBookingPeriodActive(StudentSession session, {DateTime? now}) {
-    final currentTime = now ?? DateTime.now();
+    // User must be accepted to book timeslots
+    if (!session.isAccepted) return false;
 
-    // If no booking times are set, use basic acceptance status
-    if (session.bookingOpenTime == null && session.bookingCloseTime == null) {
-      return session.isAccepted;
-    }
-
-    // Check if current time is within the booking window
-    final isAfterOpen =
-        session.bookingOpenTime == null ||
-        !currentTime.isBefore(session.bookingOpenTime!);
-    final isBeforeClose =
-        session.bookingCloseTime == null ||
-        !currentTime.isAfter(session.bookingCloseTime!);
-
-    return session.isAccepted && isAfterOpen && isBeforeClose;
+    // For booking period, we need to check individual timeslots
+    // This method provides a session-level check, but actual booking
+    // should use isTimeslotBookingOpen() for individual timeslots
+    return true; // If accepted, booking availability depends on individual timeslots
   }
 
   /// Check if timeslot booking is still open
@@ -69,10 +63,11 @@ class TimelineValidationService {
 
   /// Get timeline status for a session
   /// Returns comprehensive timeline information for UI decisions
+  /// Note: Booking period status is session-level only; individual timeslots have their own deadlines
   TimelineStatus getTimelineStatus(StudentSession session, {DateTime? now}) {
     final currentTime = now ?? DateTime.now();
 
-    // Check application period
+    // Check application period (session-level)
     final applicationPeriodActive = isApplicationPeriodActive(
       session,
       now: currentTime,
@@ -86,13 +81,15 @@ class TimelineValidationService {
       currentTime,
     );
 
-    // Check booking period (only relevant if user is accepted)
+    // Booking period is session-level: simple acceptance-based check
+    // Individual timeslots have their own deadlines checked separately
     final bookingPeriodActive =
         session.isAccepted && isBookingPeriodActive(session, now: currentTime);
-    final bookingPeriodPassed =
-        session.isAccepted && _isBookingPeriodPassed(session, currentTime);
-    final bookingPeriodUpcoming =
-        session.isAccepted && _isBookingPeriodUpcoming(session, currentTime);
+    
+    // At session level, booking doesn't have past/upcoming states
+    // because booking availability depends on individual timeslot deadlines
+    const bookingPeriodPassed = false; 
+    const bookingPeriodUpcoming = false;
 
     return TimelineStatus(
       applicationPeriodActive: applicationPeriodActive,
@@ -120,20 +117,35 @@ class TimelineValidationService {
       return 'Application period has ended';
     }
 
-    if (session.isAccepted) {
-      if (status.bookingPeriodUpcoming) {
-        if (session.bookingOpenTime != null) {
-          return 'Booking opens on ${_formatDateTime(session.bookingOpenTime!)}';
-        }
-        return 'Booking not yet available';
-      }
-
-      if (status.bookingPeriodPassed) {
-        return 'Booking period has ended';
-      }
-    }
+    // For accepted users, booking is available but depends on individual timeslots
+    // No session-level booking period messages needed since timeslots have their own deadlines
 
     return null; // No special timeline message needed
+  }
+
+  /// Get booking-specific timeline message for a timeslot
+  /// Returns appropriate message based on timeslot booking deadline
+  String? getTimeslotBookingMessage(Timeslot timeslot, {DateTime? now}) {
+    if (!timeslot.isBookingStillOpen(now: now)) {
+      if (timeslot.bookingClosesAt != null) {
+        return 'Booking closed on ${_formatDateTime(timeslot.bookingClosesAt!)}';
+      }
+      return 'Booking period has ended';
+    }
+    
+    // If booking is still open but has a deadline, show it
+    if (timeslot.bookingClosesAt != null) {
+      final currentTime = now ?? DateTime.now();
+      final timeUntilDeadline = timeslot.bookingClosesAt!.difference(currentTime);
+      
+      if (timeUntilDeadline.inHours < 24) {
+        return 'Booking closes today at ${_formatTime(timeslot.bookingClosesAt!)}';
+      } else if (timeUntilDeadline.inDays < 7) {
+        return 'Booking closes on ${_formatDateTime(timeslot.bookingClosesAt!)}';
+      }
+    }
+    
+    return null; // No urgent booking message needed
   }
 
   // Private helper methods
@@ -154,19 +166,15 @@ class TimelineValidationService {
     return currentTime.isBefore(session.bookingOpenTime!);
   }
 
-  bool _isBookingPeriodPassed(StudentSession session, DateTime currentTime) {
-    if (session.bookingCloseTime == null) return false;
-    return currentTime.isAfter(session.bookingCloseTime!);
-  }
-
-  bool _isBookingPeriodUpcoming(StudentSession session, DateTime currentTime) {
-    if (session.bookingOpenTime == null) return false;
-    return currentTime.isBefore(session.bookingOpenTime!);
-  }
 
   String _formatDateTime(DateTime dateTime) {
     // Simple formatting - can be enhanced with proper date formatting
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _formatTime(DateTime dateTime) {
+    // Format time only (HH:MM)
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }
 

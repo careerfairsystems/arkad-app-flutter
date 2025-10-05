@@ -112,9 +112,12 @@ class _StudentSessionApplicationFormScreenState
         _selectedProgramme = ProgrammeUtils.labelToProgramme(user.programme!);
       }
 
-      // Set study year (only if field is visible)
+      // Set study year (only if field is visible and valid)
       if (_formConfig!.shouldShowField('studyYear')) {
-        _studyYear = user.studyYear;
+        // Only set study year if it's within valid range [1-5]
+        _studyYear = (user.studyYear != null && user.studyYear! >= 1 && user.studyYear! <= 5) 
+            ? user.studyYear 
+            : null;
       }
 
       // Set master's title (only if field is visible)
@@ -947,7 +950,9 @@ class _StudentSessionApplicationFormScreenState
           vertical: 16,
         ),
       ),
-      initialValue: _studyYear,
+      initialValue: _studyYear != null && _studyYear! >= 1 && _studyYear! <= 5 
+          ? _studyYear 
+          : null,
       hint: const Text('Select your study year'),
       validator: isOptional
           ? null
