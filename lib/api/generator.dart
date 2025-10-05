@@ -7,7 +7,7 @@ import 'package:openapi_generator_annotations/openapi_generator_annotations.dart
     pubName: 'arkad_api',
     pubAuthor: 'Ludvig Lindholm',
   ),
-  inputSpec: RemoteSpec(path: 'https://backend.arkadtlth.se/api/openapi.json'),
+  inputSpec: RemoteSpec(path: 'https://staging.backend.arkadtlth.se/api/openapi.json'),
   generatorName: Generator.dio,
   runSourceGenOnOutput: true,
   outputDirectory: 'api/arkad_api',

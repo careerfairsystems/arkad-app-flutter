@@ -82,6 +82,7 @@ import '../features/student_session/presentation/commands/get_student_sessions_c
 import '../features/student_session/presentation/commands/get_timeslots_command.dart';
 import '../features/student_session/presentation/commands/unbook_timeslot_command.dart';
 import '../features/student_session/presentation/view_models/student_session_view_model.dart';
+import '../shared/infrastructure/app_environment.dart';
 import '../shared/infrastructure/services/file_service.dart';
 
 final GetIt serviceLocator = GetIt.instance;
@@ -123,7 +124,7 @@ void _registerApiClientConditionally() {
   serviceLocator.registerLazySingleton<ArkadApi>(
     () => ArkadApi(
       // Let ArkadApi create its own Dio with interceptors
-      basePathOverride: 'https://backend.arkadtlth.se',
+      basePathOverride: AppEnvironment.baseUrl,
     ),
   );
 
