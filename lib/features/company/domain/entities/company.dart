@@ -13,6 +13,7 @@ class Company {
     required this.desiredCompetences,
     required this.jobs,
     required this.daysWithStudentSession,
+    required this.studentSessionMotivation,
     required this.urlLinkedin,
     required this.urlInstagram,
     required this.urlFacebook,
@@ -32,6 +33,7 @@ class Company {
   final List<String> desiredCompetences;
   final List<CompanyJob> jobs;
   final int daysWithStudentSession;
+  final String? studentSessionMotivation;
   final String? urlLinkedin;
   final String? urlInstagram;
   final String? urlFacebook;

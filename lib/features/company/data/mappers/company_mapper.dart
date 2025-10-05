@@ -24,6 +24,7 @@ class CompanyMapper {
       urlTwitter: dto.urlTwitter,
       urlYoutube: dto.urlYoutube,
       websiteUrl: dto.website,
+      studentSessionMotivation: dto.studentSessionMotivation,
     );
   }
 

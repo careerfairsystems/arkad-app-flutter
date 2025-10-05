@@ -155,8 +155,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
         children: [
           _buildHeaderSection(context, company),
           _buildDescriptionSection(context, company),
-          _buildFactsSection(context, company),
           _buildStudentSessionSection(context, company),
+          _buildFactsSection(context, company),
           _buildJobsSection(context, company),
         ],
       ),
@@ -322,6 +322,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 color: Theme.of(
                   context,
                 ).colorScheme.onSurface.withValues(alpha: 0.8),
+                fontSize: 16,
               ),
             ),
           ],
@@ -438,21 +439,11 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
 
   Widget _buildStudentSessionSection(BuildContext context, Company company) {
     if (!company.hasStudentSessions) return const SizedBox.shrink();
-
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Theme.of(
-              context,
-            ).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
-            Theme.of(context).colorScheme.surface,
-          ],
-        ),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.08),
@@ -470,13 +461,13 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                   decoration: BoxDecoration(
                     color: Theme.of(
                       context,
-                    ).colorScheme.tertiaryContainer.withValues(alpha: 0.5),
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    Icons.people_rounded,
+                    Icons.calendar_month,
                     size: 20,
-                    color: Theme.of(context).colorScheme.tertiary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -489,99 +480,50 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primaryContainer.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Text(
+                    '${company.daysWithStudentSession} ${company.daysWithStudentSession == 1 ? 'day' : 'days'} available',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (company.studentSessionMotivation != null &&
+                company.studentSessionMotivation!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                company.studentSessionMotivation!,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  height: 1.6,
                   color: Theme.of(
                     context,
-                  ).colorScheme.primary.withValues(alpha: 0.1),
+                  ).colorScheme.onSurface.withValues(alpha: 0.8),
+                  fontSize: 16,
                 ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.calendar_month_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Sessions Available',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${company.daysWithStudentSession} days available',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer
-                                    .withValues(alpha: 0.8),
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: Consumer<CompanyDetailViewModel>(
-                builder: (context, viewModel, child) {
-                  // Show SnackBar when message is available
-                  if (viewModel.message != null) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(viewModel.message!),
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          onVisible: () => viewModel.clearMessage(),
-                        ),
-                      );
-                    });
-                  }
-
-                  return ArkadButton(
-                    text: 'Apply for Session',
-                    onPressed: () =>
-                        viewModel.handleSessionApplication(context),
-                    icon: Icons.schedule_rounded,
-                  );
-                },
-              ),
-            ),
+            ],
           ],
         ),
       ),
@@ -956,19 +898,10 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
               children: [
                 Expanded(
                   child: _pillButton(
-                    icon: Icons.language, // globe
+                    icon: Icons.language,
                     label: 'Website',
                     enabled: websiteUri != null,
-                    onTap: websiteUri != null
-                        ? () => _openExternal(websiteUri, 'website')
-                        : () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('No website available'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
+                    onTap: () => _openExternal(websiteUri, 'website'),
                   ),
                 ),
                 const SizedBox(width: 12),
