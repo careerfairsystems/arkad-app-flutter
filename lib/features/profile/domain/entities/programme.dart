@@ -34,60 +34,60 @@ class ProgrammeData {
   final Programme value;
 }
 
-/// Complete list of available programmes with backend labels (Swedish)
+/// Complete list of available programmes with backend labels (English)
 const List<ProgrammeData> availableProgrammes = [
   ProgrammeData(
-    label: "Brandingenjör",
+    label: "Fire Engineering",
     value: Programme.fireProtectionEngineering,
   ),
   ProgrammeData(
-    label: "Maskinteknik_Teknisk_Design",
+    label: "Mechanical Engineering with Technical Design",
     value: Programme.mechanicalEngineeringWithTechnicalDesign,
   ),
-  ProgrammeData(label: "Elektroteknik", value: Programme.electricalEngineering),
+  ProgrammeData(label: "Electrical Engineering", value: Programme.electricalEngineering),
   ProgrammeData(
-    label: "Ekosystemteknik",
+    label: "Environmental Engineering",
     value: Programme.environmentalEngineering,
   ),
-  ProgrammeData(label: "Maskinteknik", value: Programme.mechanicalEngineering),
-  ProgrammeData(label: "Nanoveteknik", value: Programme.engineeringNanoscience),
-  ProgrammeData(label: "Bioteknik", value: Programme.engineeringBiotechnology),
-  ProgrammeData(label: "Industridesign", value: Programme.industrialDesign),
-  ProgrammeData(label: "Arkitekt", value: Programme.architecture),
+  ProgrammeData(label: "Mechanical Engineering", value: Programme.mechanicalEngineering),
+  ProgrammeData(label: "Nanoscience and Technology", value: Programme.engineeringNanoscience),
+  ProgrammeData(label: "Biotechnology", value: Programme.engineeringBiotechnology),
+  ProgrammeData(label: "Industrial Design", value: Programme.industrialDesign),
+  ProgrammeData(label: "Architecture", value: Programme.architecture),
   ProgrammeData(
-    label: "Informations och Kommunikationsteknik",
+    label: "Information and Communication Engineering",
     value: Programme.informationAndCommunicationEngineering,
   ),
-  ProgrammeData(label: "Kemiteknik", value: Programme.chemicalEngineering),
+  ProgrammeData(label: "Chemical Engineering", value: Programme.chemicalEngineering),
   ProgrammeData(
-    label: "Byggteknik med Järnvägsteknik",
+    label: "Civil Engineering with Railway Engineering",
     value: Programme.constructionAndRailwayConstruction,
   ),
   ProgrammeData(
-    label: "Väg och vatttenbyggnad",
+    label: "Road and Water Engineering",
     value: Programme.roadAndWaterConstruction,
   ),
   ProgrammeData(
-    label: "Byggteknik med arkitektur",
+    label: "Civil Engineering with Architecture",
     value: Programme.constructionAndArchitecture,
   ),
   ProgrammeData(
-    label: "Industriell ekonomi",
+    label: "Industrial Engineering and Management",
     value: Programme.industrialEconomicsAndManagement,
   ),
   ProgrammeData(
-    label: "Teknisk Matematik",
+    label: "Engineering Mathematics",
     value: Programme.engineeringMathematics,
   ),
-  ProgrammeData(label: "Medicinteknik", value: Programme.biomedicalEngineering),
-  ProgrammeData(label: "Lantmäteri", value: Programme.surveying),
+  ProgrammeData(label: "Biomedical Engineering", value: Programme.biomedicalEngineering),
+  ProgrammeData(label: "Surveying", value: Programme.surveying),
   ProgrammeData(
-    label: "Datateknik",
+    label: "Computer Engineering",
     value: Programme.computerScienceEngineering,
   ),
-  ProgrammeData(label: "Teknisk Fysik", value: Programme.engineeringPhysics),
+  ProgrammeData(label: "Engineering Physics", value: Programme.engineeringPhysics),
   ProgrammeData(
-    label: "Byggteknik med väg och trafikteknik",
+    label: "Civil Engineering with Road and Traffic Engineering",
     value: Programme.roadAndTrafficTechnology,
   ),
 ];
