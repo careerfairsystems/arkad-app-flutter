@@ -259,11 +259,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(
-        context,
-      ).colorScheme.surface.withValues(alpha: 0.0),
+      backgroundColor: Colors.transparent,
       builder: (context) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.9,
+        height: MediaQuery.of(context).size.height * 0.83, // was 0.9
         child: AdvancedFiltersModal(
           initialFilter: _currentFilter,
           onFiltersApplied: (filter) {
@@ -282,6 +280,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
       _currentFilter = const CompanyFilter();
     });
     _applyFilters();
+    _searchController.clear();
   }
 
   void _applyFilters() {

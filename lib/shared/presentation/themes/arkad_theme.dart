@@ -127,7 +127,7 @@ class ArkadTheme {
       colorScheme: const ColorScheme.dark(
         primary: ArkadColors.arkadTurkos,
         onPrimary: ArkadColors.white,
-        secondary: ArkadColors.arkadGreen,
+        secondary: ArkadColors.arkadTurkos,
         onSecondary: ArkadColors.white,
         tertiary: ArkadColors.arkadOrange,
         onTertiary: ArkadColors.white,

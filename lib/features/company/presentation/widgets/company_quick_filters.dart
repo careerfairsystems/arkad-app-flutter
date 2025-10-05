@@ -71,7 +71,7 @@ class CompanyQuickFilters extends StatelessWidget {
                       child: _buildPositionChip(context, position),
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 2),
                   _buildMoreFiltersButton(context),
                   const SizedBox(width: 12),
                 ],
@@ -96,7 +96,7 @@ class CompanyQuickFilters extends StatelessWidget {
         label: Text(
           position,
           style: TextStyle(
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            fontWeight: FontWeight.w500,
             color: isSelected ? Colors.white : null,
           ),
         ),
@@ -108,10 +108,9 @@ class CompanyQuickFilters extends StatelessWidget {
             ? ArkadColors.arkadTurkos
             : ArkadColors.arkadLightNavy,
         side: BorderSide(
-          width: isSelected ? 0 : 0.5,
           color: isSelected
               ? Colors.transparent
-              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
+              : Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
       ),
