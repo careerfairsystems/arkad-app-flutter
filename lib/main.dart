@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 import 'features/auth/presentation/view_models/auth_view_model.dart';
 import 'features/company/presentation/view_models/company_detail_view_model.dart';
@@ -37,6 +38,9 @@ void main() async {
     appRunner: () async {
       // Ensure that the Flutter engine is initialized before running the app
       WidgetsFlutterBinding.ensureInitialized();
+
+      // Initialize timezone data for accurate timezone conversions
+      tz.initializeTimeZones();
 
       // Initialize the GetIt.instance, a singleton instance of the service locator
       setupServiceLocator();

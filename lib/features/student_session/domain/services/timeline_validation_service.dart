@@ -1,3 +1,4 @@
+import '../../../../shared/infrastructure/services/timezone_service.dart';
 import '../entities/student_session.dart';
 import '../entities/timeslot.dart';
 
@@ -65,7 +66,7 @@ class TimelineValidationService {
   /// Returns comprehensive timeline information for UI decisions
   /// Note: Booking period status is session-level only; individual timeslots have their own deadlines
   TimelineStatus getTimelineStatus(StudentSession session, {DateTime? now}) {
-    final currentTime = now ?? DateTime.now();
+    final currentTime = now ?? TimezoneService.stockholmNow();
 
     // Check application period (session-level)
     final applicationPeriodActive = isApplicationPeriodActive(
@@ -104,21 +105,18 @@ class TimelineValidationService {
   /// Get user-friendly timeline message for a session
   /// Returns appropriate message based on current timeline status
   String? getTimelineMessage(StudentSession session, {DateTime? now}) {
-    final status = getTimelineStatus(session, now: now);
+    final currentTime = now ?? TimezoneService.stockholmNow();
 
-    if (status.applicationPeriodUpcoming) {
-      if (session.bookingOpenTime != null) {
-        return 'Applications open on ${_formatDateTime(session.bookingOpenTime!)}';
-      }
-      return 'Applications not yet open';
+    // Since domain entities already contain Stockholm time, we can compare directly
+    if (session.bookingOpenTime != null &&
+        currentTime.isBefore(session.bookingOpenTime!)) {
+      return 'Applications open on ${TimezoneService.formatDateTime(session.bookingOpenTime!)}';
     }
 
-    if (status.applicationPeriodPassed) {
+    if (session.bookingCloseTime != null &&
+        currentTime.isAfter(session.bookingCloseTime!)) {
       return 'Application period has ended';
     }
-
-    // For accepted users, booking is available but depends on individual timeslots
-    // No session-level booking period messages needed since timeslots have their own deadlines
 
     return null; // No special timeline message needed
   }
@@ -126,28 +124,27 @@ class TimelineValidationService {
   /// Get booking-specific timeline message for a timeslot
   /// Returns appropriate message based on timeslot booking deadline
   String? getTimeslotBookingMessage(Timeslot timeslot, {DateTime? now}) {
-    if (!timeslot.isBookingStillOpen(now: now)) {
-      if (timeslot.bookingClosesAt != null) {
-        return 'Booking closed on ${_formatDateTime(timeslot.bookingClosesAt!)}';
-      }
-      return 'Booking period has ended';
+    final currentTime = now ?? TimezoneService.stockholmNow();
+
+    if (timeslot.bookingClosesAt != null &&
+        currentTime.isAfter(timeslot.bookingClosesAt!)) {
+      return 'Booking closed on ${TimezoneService.formatDateTime(timeslot.bookingClosesAt!)}';
     }
 
     // If booking is still open but has a deadline, show it
     if (timeslot.bookingClosesAt != null) {
-      final currentTime = now ?? DateTime.now();
       final timeUntilDeadline = timeslot.bookingClosesAt!.difference(
         currentTime,
       );
 
       if (timeUntilDeadline.inHours < 24) {
-        return 'Booking closes today at ${_formatTime(timeslot.bookingClosesAt!)}';
+        return 'Booking closes today at ${TimezoneService.formatTime(timeslot.bookingClosesAt!)}';
       } else if (timeUntilDeadline.inDays < 7) {
-        return 'Booking closes on ${_formatDateTime(timeslot.bookingClosesAt!)}';
+        return 'Booking closes on ${TimezoneService.formatDateTime(timeslot.bookingClosesAt!)}';
       }
     }
 
-    return null; // No urgent booking message needed
+    return null;
   }
 
   // Private helper methods
@@ -166,16 +163,6 @@ class TimelineValidationService {
   ) {
     if (session.bookingOpenTime == null) return false;
     return currentTime.isBefore(session.bookingOpenTime!);
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    // Simple formatting - can be enhanced with proper date formatting
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  }
-
-  String _formatTime(DateTime dateTime) {
-    // Format time only (HH:MM)
-    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }
 

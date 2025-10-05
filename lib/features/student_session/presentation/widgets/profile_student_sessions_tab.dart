@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../shared/infrastructure/services/timezone_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/async_state_builder.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
@@ -77,9 +78,10 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     // Sort within each group by submission date (newest first)
     for (final statusGroup in groups.values) {
       statusGroup.sort(
-        (a, b) => (b.application.createdAt ?? DateTime.now()).compareTo(
-          a.application.createdAt ?? DateTime.now(),
-        ),
+        (a, b) => (b.application.createdAt ?? TimezoneService.stockholmNow())
+            .compareTo(
+              a.application.createdAt ?? TimezoneService.stockholmNow(),
+            ),
       );
     }
 
@@ -487,16 +489,17 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     if (application.createdAt == null) return const SizedBox.shrink();
 
     final submittedTime = application.createdAt!;
-    final now = DateTime.now();
-    final difference = now.difference(submittedTime);
+    final difference = TimezoneService.differenceFromNow(submittedTime);
 
     String timeAgo;
-    if (difference.inDays > 0) {
-      timeAgo = '${difference.inDays} days ago';
-    } else if (difference.inHours > 0) {
-      timeAgo = '${difference.inHours} hours ago';
-    } else if (difference.inMinutes > 0) {
-      timeAgo = '${difference.inMinutes} minutes ago';
+    // Since differenceFromNow returns negative duration for past dates
+    final absDifference = difference.abs();
+    if (absDifference.inDays > 0) {
+      timeAgo = '${absDifference.inDays} days ago';
+    } else if (absDifference.inHours > 0) {
+      timeAgo = '${absDifference.inHours} hours ago';
+    } else if (absDifference.inMinutes > 0) {
+      timeAgo = '${absDifference.inMinutes} minutes ago';
     } else {
       timeAgo = 'Just now';
     }
@@ -588,7 +591,7 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     IconData buttonIcon = hasBooking
         ? Icons.edit_calendar_rounded
         : Icons.schedule_rounded;
-    
+
     // For accepted applications, booking is generally available
     // Individual timeslot deadlines will be checked in the booking screen
 
@@ -597,9 +600,9 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
       children: [
         // Show timeline warning if needed
         _buildTimelineWarning(context, applicationWithBookingState),
-        
+
         const SizedBox(height: 8),
-        
+
         Row(
           children: [
             Expanded(

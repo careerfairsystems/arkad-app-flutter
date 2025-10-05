@@ -2,6 +2,7 @@ import 'package:arkad_api/arkad_api.dart' as api;
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/data/url_utils.dart';
+import '../../../../shared/infrastructure/services/timezone_service.dart';
 
 import '../../domain/entities/field_configuration.dart';
 import '../../domain/entities/student_session.dart';
@@ -24,8 +25,13 @@ class StudentSessionMapper {
       companyId: apiSession.companyId,
       companyName: companyName ?? 'Unknown Company',
       isAvailable: apiSession.available,
-      bookingCloseTime: apiSession.bookingCloseTime,
-      bookingOpenTime: apiSession.bookingOpenTime,
+      // Convert UTC times to Stockholm time at the boundary
+      bookingCloseTime: apiSession.bookingCloseTime != null
+          ? TimezoneService.utcToStockholm(apiSession.bookingCloseTime!)
+          : null,
+      bookingOpenTime: apiSession.bookingOpenTime != null
+          ? TimezoneService.utcToStockholm(apiSession.bookingOpenTime!)
+          : null,
       userStatus: _mapUserStatusToStudentSessionStatus(apiSession.userStatus),
       logoUrl: logoUrl,
       description: apiSession.description,
@@ -89,10 +95,14 @@ class StudentSessionMapper {
     return Timeslot(
       id: apiTimeslot.id,
       companyId: companyId,
-      startTime: apiTimeslot.startTime,
+      // Convert UTC times to Stockholm time at the boundary
+      startTime: TimezoneService.utcToStockholm(apiTimeslot.startTime),
       durationMinutes: apiTimeslot.duration,
       status: mappedStatus,
-      bookingClosesAt: apiTimeslot.bookingClosesAt,
+      // Convert booking deadline to Stockholm time - API field is non-nullable but domain expects nullable
+      bookingClosesAt: TimezoneService.utcToStockholm(
+        apiTimeslot.bookingClosesAt,
+      ),
     );
   }
 

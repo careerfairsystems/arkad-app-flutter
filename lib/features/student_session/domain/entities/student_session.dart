@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 
+import '../../../../shared/infrastructure/services/timezone_service.dart';
 import 'field_configuration.dart';
 
 /// Domain entity representing a student session for a company
@@ -80,21 +81,22 @@ class StudentSession {
   /// This determines when users can submit applications to this session
   /// Uses session-level bookingOpenTime/bookingCloseTime (which are application period fields)
   bool isApplicationPeriodActive({DateTime? now}) {
-    final currentTime = now ?? DateTime.now();
+    final currentTime = now ?? TimezoneService.stockholmNow();
 
     // If no application times are set, use basic availability
     if (bookingOpenTime == null && bookingCloseTime == null) {
       return isAvailable;
     }
 
-    // Check if current time is within the APPLICATION window
-    // Note: bookingOpenTime/bookingCloseTime are the application period fields from the API
+    // Direct comparison since both times are in Stockholm timezone
     final isAfterOpen =
-        bookingOpenTime == null || !currentTime.isBefore(bookingOpenTime!);
+        bookingOpenTime == null ||
+        currentTime.isAfter(bookingOpenTime!) ||
+        currentTime.isAtSameMomentAs(bookingOpenTime!);
     final isBeforeClose =
-        bookingCloseTime == null || !currentTime.isAfter(bookingCloseTime!);
+        bookingCloseTime == null || currentTime.isBefore(bookingCloseTime!);
 
-    return isAfterOpen && isBeforeClose;
+    return isAfterOpen && isBeforeClose && isAvailable;
   }
 
   /// Get field configuration for a specific field

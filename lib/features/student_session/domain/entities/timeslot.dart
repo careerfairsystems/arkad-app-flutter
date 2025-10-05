@@ -1,3 +1,5 @@
+import '../../../../shared/infrastructure/services/timezone_service.dart';
+
 /// Status of a timeslot for the current user
 /// Maps from TimeslotSchemaUserStatusEnum in API
 enum TimeslotStatus {
@@ -98,15 +100,15 @@ class Timeslot {
 
   /// Check if booking is still open for this timeslot
   bool isBookingStillOpen({DateTime? now}) {
-    final currentTime = now ?? DateTime.now();
+    final currentTime = now ?? TimezoneService.stockholmNow();
 
-    // If no booking close time is set, booking is always open (as long as status allows)
+    // If no booking close time is set, booking is always open
     if (bookingClosesAt == null) {
       return true;
     }
 
-    // Check if current time is before the booking deadline
-    return !currentTime.isAfter(bookingClosesAt!);
+    // Direct comparison since both times are in Stockholm timezone
+    return currentTime.isBefore(bookingClosesAt!);
   }
 
   /// Check if this timeslot can be booked now (combines status and timeline)
@@ -115,10 +117,10 @@ class Timeslot {
   /// Check if this timeslot can be managed now (for existing bookings)
   bool get canManageNow => isBooked && isBookingStillOpen();
 
-  /// Format time range for display
+  /// Format time range for display in Stockholm time
   String get timeRangeDisplay {
-    final startStr = _formatTime(startTime);
-    final endStr = _formatTime(endTime);
+    final startStr = TimezoneService.formatTime(startTime);
+    final endStr = TimezoneService.formatTime(endTime);
     return '$startStr - $endStr';
   }
 
@@ -145,29 +147,9 @@ class Timeslot {
     );
   }
 
-  /// Format date for display
+  /// Format date for display in Stockholm time
   String get dateDisplay {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${startTime.day} ${months[startTime.month - 1]}';
-  }
-
-  String _formatTime(DateTime time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    return TimezoneService.formatDate(startTime);
   }
 
   @override
