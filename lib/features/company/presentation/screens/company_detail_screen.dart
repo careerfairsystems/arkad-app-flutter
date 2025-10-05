@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/async_state_builder.dart';
 import '../../../../shared/presentation/widgets/optimized_image.dart';
@@ -182,29 +183,6 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 textAlign: TextAlign.center,
               ),
 
-              /* if (company.industriesString.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.secondaryContainer.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    company.industriesString,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ], */
               if (company.locationsString.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Row(
@@ -234,6 +212,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 ),
               ],
               _buildCircularLinks(context, company),
+              const SizedBox(height: 16),
+              _buildWebAndMapSection(context, company),
             ],
           ),
         ),
@@ -767,10 +747,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
   Widget _buildCircularLinks(BuildContext context, Company company) {
     final theme = Theme.of(context);
 
-    // Helper to build a circular clickable icon
     Widget buildBtn({
       required String url,
-      required Widget icon, // CHANGED: accept a Widget instead of IconData
+      required Widget icon,
       required String tooltip,
     }) {
       Uri normalize(String raw) {
@@ -882,6 +861,138 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           children: items,
         ),
       ),
+    );
+  }
+
+  Widget _buildWebAndMapSection(BuildContext buildContext, Company company) {
+    final theme = Theme.of(buildContext);
+
+    Uri? _normalizeWeb(String? raw) {
+      if (raw == null || raw.trim().isEmpty) return null;
+      var s = raw.trim();
+      if (!s.startsWith('http://') && !s.startsWith('https://')) {
+        s = 'https://$s';
+      }
+      return Uri.tryParse(s);
+    }
+
+    Future<void> _openExternal(Uri uri, String label) async {
+      try {
+        final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (!ok && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Could not open $label'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (_) {
+        if (buildContext.mounted) {
+          ScaffoldMessenger.of(buildContext).showSnackBar(
+            SnackBar(
+              content: Text('Could not open $label'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    }
+
+    Widget _pillButton({
+      required IconData icon,
+      required String label,
+      required VoidCallback? onTap,
+      bool enabled = true,
+    }) {
+      final bg = theme.colorScheme.surfaceContainer.withValues(alpha: 0.35);
+      final border = theme.colorScheme.outline.withValues(alpha: 0.12);
+      final fg = enabled
+          ? theme.colorScheme.onSurface.withValues(alpha: 0.9)
+          : theme.colorScheme.onSurface.withValues(alpha: 0.4);
+
+      return InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: enabled ? onTap : null,
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: border),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 20, color: fg),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: fg,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final websiteUri = _normalizeWeb(company.websiteUrl);
+    final mapQuery =
+        (company.locationsString.isNotEmpty
+                ? company.locationsString
+                : company.name)
+            .trim();
+    final mapUri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(mapQuery)}',
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: websiteUri != null
+          ? Row(
+              children: [
+                Expanded(
+                  child: _pillButton(
+                    icon: Icons.language, // globe
+                    label: 'Website',
+                    enabled: websiteUri != null,
+                    onTap: websiteUri != null
+                        ? () => _openExternal(websiteUri, 'website')
+                        : () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('No website available'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _pillButton(
+                    icon: Icons.map_outlined,
+                    label: 'View on Map',
+                    //TODO: Route correctly to map screen!
+                    onTap: () => context.push('/map/${company.id}'),
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _pillButton(
+                  icon: Icons.map_outlined,
+                  label: 'View on Map',
+                  //TODO: Route correctly to map screen!
+                  onTap: () => context.push('/map/${company.id}'),
+                ),
+              ],
+            ),
     );
   }
 }

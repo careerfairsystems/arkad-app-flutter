@@ -5,7 +5,7 @@ class Company {
     required this.name,
     this.description,
     this.logoUrl,
-    this.websiteUrl,
+    required this.websiteUrl,
     required this.industries,
     required this.desiredProgrammes,
     required this.desiredDegrees,

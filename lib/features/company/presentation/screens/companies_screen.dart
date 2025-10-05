@@ -68,9 +68,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext buildContext) {
     return Consumer<CompanyViewModel>(
-      builder: (context, viewModel, child) {
+      builder: (buildContext, viewModel, child) {
         return Scaffold(
           appBar: AppBar(title: const Text('Companies')),
           body: Column(

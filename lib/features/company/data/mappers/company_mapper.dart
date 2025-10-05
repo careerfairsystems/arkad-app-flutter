@@ -23,6 +23,7 @@ class CompanyMapper {
       urlFacebook: dto.urlFacebook,
       urlTwitter: dto.urlTwitter,
       urlYoutube: dto.urlYoutube,
+      websiteUrl: dto.website,
     );
   }
 
