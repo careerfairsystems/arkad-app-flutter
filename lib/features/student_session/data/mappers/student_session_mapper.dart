@@ -25,6 +25,7 @@ class StudentSessionMapper {
       companyName: companyName ?? 'Unknown Company',
       isAvailable: apiSession.available,
       bookingCloseTime: apiSession.bookingCloseTime,
+      bookingOpenTime: apiSession.bookingOpenTime,
       userStatus: _mapUserStatusToStudentSessionStatus(apiSession.userStatus),
       logoUrl: logoUrl,
       description: apiSession.description,
@@ -91,6 +92,7 @@ class StudentSessionMapper {
       startTime: apiTimeslot.startTime,
       durationMinutes: apiTimeslot.duration,
       status: mappedStatus,
+      bookingClosesAt: apiTimeslot.bookingClosesAt,
     );
   }
 

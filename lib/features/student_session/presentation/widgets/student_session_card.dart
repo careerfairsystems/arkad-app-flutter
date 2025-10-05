@@ -6,6 +6,7 @@ import '../../domain/entities/student_session.dart';
 import '../../domain/entities/student_session_application.dart';
 import '../../domain/services/student_session_data_service.dart';
 import '../../domain/services/student_session_status_service.dart';
+import '../../domain/services/timeline_validation_service.dart';
 import '../mappers/student_session_status_mapper.dart';
 
 /// Modern student session card with status indicators and actions
@@ -159,8 +160,47 @@ class StudentSessionCard extends StatelessWidget {
   }
 
   Widget _buildStatus(BuildContext context) {
-    // Application status is already shown in the top-right badge
-    // No need for redundant status display here
+    // Show timeline message if there are timeline restrictions
+    const timelineService = TimelineValidationService.instance;
+    final timelineMessage = timelineService.getTimelineMessage(session);
+
+    if (timelineMessage != null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: ArkadColors.lightGray.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: ArkadColors.lightGray.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.schedule_rounded,
+              size: 16,
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                timelineMessage,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // No timeline message needed
     return const SizedBox.shrink();
   }
 

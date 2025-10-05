@@ -11,6 +11,7 @@ class StudentSession {
     required this.companyName,
     required this.isAvailable,
     this.bookingCloseTime,
+    this.bookingOpenTime,
     this.userStatus,
     this.logoUrl,
     this.description,
@@ -32,6 +33,9 @@ class StudentSession {
 
   /// When booking closes for this session (null if no booking period)
   final DateTime? bookingCloseTime;
+
+  /// When booking opens for this session (null if no booking period)
+  final DateTime? bookingOpenTime;
 
   /// Current user's application status for this session
   final StudentSessionStatus? userStatus;
@@ -60,17 +64,49 @@ class StudentSession {
   /// Check if user's application was rejected
   bool get isRejected => userStatus == StudentSessionStatus.rejected;
 
-  /// Check if user can apply to this session
+  /// Check if user can apply to this session (basic availability check)
   bool get canApply => isAvailable && !hasApplied;
 
-  /// Check if user can book timeslots (must be accepted)
+  /// Check if user can apply to this session with timeline validation
+  bool get canApplyNow => canApply && isApplicationPeriodActive();
+
+  /// Check if user can book timeslots (must be accepted and within booking period)
   bool get canBook => isAccepted && _isBookingPeriodActive();
+
+  /// Check if application period is currently active
+  bool isApplicationPeriodActive({DateTime? now}) {
+    final currentTime = now ?? DateTime.now();
+
+    // If no booking times are set, use basic availability
+    if (bookingOpenTime == null && bookingCloseTime == null) {
+      return isAvailable;
+    }
+
+    // Check if current time is within the application/booking window
+    final isAfterOpen =
+        bookingOpenTime == null || !currentTime.isBefore(bookingOpenTime!);
+    final isBeforeClose =
+        bookingCloseTime == null || !currentTime.isAfter(bookingCloseTime!);
+
+    return isAfterOpen && isBeforeClose;
+  }
 
   /// Check if booking period is currently active
   bool _isBookingPeriodActive({DateTime? now}) {
-    if (bookingCloseTime == null) return false;
     final currentTime = now ?? DateTime.now();
-    return !currentTime.isAfter(bookingCloseTime!);
+
+    // If no booking times are set, use basic acceptance status
+    if (bookingOpenTime == null && bookingCloseTime == null) {
+      return true;
+    }
+
+    // Check if current time is within the booking window
+    final isAfterOpen =
+        bookingOpenTime == null || !currentTime.isBefore(bookingOpenTime!);
+    final isBeforeClose =
+        bookingCloseTime == null || !currentTime.isAfter(bookingCloseTime!);
+
+    return isAfterOpen && isBeforeClose;
   }
 
   /// Get field configuration for a specific field
@@ -119,6 +155,7 @@ class StudentSession {
     String? companyName,
     bool? isAvailable,
     DateTime? bookingCloseTime,
+    DateTime? bookingOpenTime,
     StudentSessionStatus? userStatus,
     String? logoUrl,
     String? description,
@@ -131,6 +168,7 @@ class StudentSession {
       companyName: companyName ?? this.companyName,
       isAvailable: isAvailable ?? this.isAvailable,
       bookingCloseTime: bookingCloseTime ?? this.bookingCloseTime,
+      bookingOpenTime: bookingOpenTime ?? this.bookingOpenTime,
       userStatus: userStatus ?? this.userStatus,
       logoUrl: logoUrl ?? this.logoUrl,
       description: description ?? this.description,
@@ -148,6 +186,7 @@ class StudentSession {
         other.companyName == companyName &&
         other.isAvailable == isAvailable &&
         other.bookingCloseTime == bookingCloseTime &&
+        other.bookingOpenTime == bookingOpenTime &&
         other.userStatus == userStatus &&
         other.logoUrl == logoUrl &&
         other.description == description &&
@@ -166,6 +205,7 @@ class StudentSession {
       companyName,
       isAvailable,
       bookingCloseTime,
+      bookingOpenTime,
       userStatus,
       logoUrl,
       description,

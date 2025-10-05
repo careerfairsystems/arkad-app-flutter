@@ -1,5 +1,6 @@
 import '../entities/student_session_application.dart';
 import 'student_session_data_service.dart';
+import 'timeline_validation_service.dart';
 
 /// Domain service for consistent status determination across all student session screens
 /// Centralizes all status logic without presentation concerns (colors, icons)
@@ -66,37 +67,45 @@ class StudentSessionStatusService {
     }
   }
 
-  /// Get action button information for a session
+  /// Get action button information for a session with timeline validation
   ActionButtonInfo getActionButtonInfo(
     StudentSessionWithApplicationState sessionWithApp,
   ) {
     final statusInfo = getStatusInfo(sessionWithApp);
+    const timelineService = TimelineValidationService.instance;
+    final session = sessionWithApp.session;
 
+    // Check if user can apply (with timeline validation)
     if (statusInfo.canApply) {
-      return const ActionButtonInfo(
+      final canShowApply = timelineService.canShowApplyButton(session);
+      return ActionButtonInfo(
         text: 'Apply',
         action: ActionType.apply,
-        isEnabled: true,
+        isEnabled: canShowApply,
       );
     }
 
+    // Check if user can book timeslots (with timeline validation)
     if (statusInfo.canBook) {
-      return const ActionButtonInfo(
+      final canBookNow = timelineService.canBookTimeslots(session);
+      return ActionButtonInfo(
         text: 'Book Timeslot',
         action: ActionType.bookTimeslot,
-        isEnabled: true,
+        isEnabled: canBookNow,
       );
     }
 
+    // Check if user can manage existing booking (with timeline validation)
     if (statusInfo.hasBooking) {
-      return const ActionButtonInfo(
+      final canManageNow = timelineService.canManageBooking(session);
+      return ActionButtonInfo(
         text: 'Manage Booking',
         action: ActionType.manageBooking,
-        isEnabled: true,
+        isEnabled: canManageNow,
       );
     }
 
-    // No actions available
+    // No actions available - determine appropriate disabled text
     return ActionButtonInfo(
       text: _getDisabledButtonText(sessionWithApp),
       action: ActionType.none,
@@ -145,7 +154,16 @@ class StudentSessionStatusService {
     StudentSessionWithApplicationState sessionWithApp,
   ) {
     final applicationStatus = sessionWithApp.effectiveApplicationStatus;
+    const timelineService = TimelineValidationService.instance;
+    final session = sessionWithApp.session;
 
+    // Get timeline-aware message first
+    final timelineMessage = timelineService.getTimelineMessage(session);
+    if (timelineMessage != null) {
+      return timelineMessage;
+    }
+
+    // Fall back to status-based messages
     if (applicationStatus == ApplicationStatus.rejected) {
       return 'Application Rejected';
     }

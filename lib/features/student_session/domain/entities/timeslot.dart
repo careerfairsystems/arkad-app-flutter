@@ -45,6 +45,7 @@ class Timeslot {
     this.maxParticipants,
     this.currentParticipants,
     required this.status,
+    this.bookingClosesAt,
   });
 
   /// Unique identifier for this timeslot
@@ -67,6 +68,9 @@ class Timeslot {
 
   /// Status of this timeslot for the current user
   final TimeslotStatus status;
+
+  /// When booking closes for this specific timeslot (optional deadline)
+  final DateTime? bookingClosesAt;
 
   /// Whether this timeslot is available for booking (convenience getter)
   bool get isAvailable => status.isAvailable;
@@ -92,6 +96,25 @@ class Timeslot {
     return maxParticipants! - currentParticipants!;
   }
 
+  /// Check if booking is still open for this timeslot
+  bool isBookingStillOpen({DateTime? now}) {
+    final currentTime = now ?? DateTime.now();
+
+    // If no booking close time is set, booking is always open (as long as status allows)
+    if (bookingClosesAt == null) {
+      return true;
+    }
+
+    // Check if current time is before the booking deadline
+    return !currentTime.isAfter(bookingClosesAt!);
+  }
+
+  /// Check if this timeslot can be booked now (combines status and timeline)
+  bool get canBookNow => isAvailable && isBookingStillOpen();
+
+  /// Check if this timeslot can be managed now (for existing bookings)
+  bool get canManageNow => isBooked && isBookingStillOpen();
+
   /// Format time range for display
   String get timeRangeDisplay {
     final startStr = _formatTime(startTime);
@@ -108,6 +131,7 @@ class Timeslot {
     int? maxParticipants,
     int? currentParticipants,
     TimeslotStatus? status,
+    DateTime? bookingClosesAt,
   }) {
     return Timeslot(
       id: id ?? this.id,
@@ -117,6 +141,7 @@ class Timeslot {
       maxParticipants: maxParticipants ?? this.maxParticipants,
       currentParticipants: currentParticipants ?? this.currentParticipants,
       status: status ?? this.status,
+      bookingClosesAt: bookingClosesAt ?? this.bookingClosesAt,
     );
   }
 
@@ -155,7 +180,8 @@ class Timeslot {
         other.durationMinutes == durationMinutes &&
         other.maxParticipants == maxParticipants &&
         other.currentParticipants == currentParticipants &&
-        other.status == status;
+        other.status == status &&
+        other.bookingClosesAt == bookingClosesAt;
   }
 
   @override
@@ -168,6 +194,7 @@ class Timeslot {
       maxParticipants,
       currentParticipants,
       status,
+      bookingClosesAt,
     );
   }
 

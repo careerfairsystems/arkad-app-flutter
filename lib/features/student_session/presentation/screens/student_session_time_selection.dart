@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/timeslot.dart';
+import '../../domain/services/timeline_validation_service.dart';
 import '../view_models/student_session_view_model.dart';
 
 class StudentSessionTimeSelectionScreen extends StatefulWidget {
@@ -45,12 +46,17 @@ class _StudentSessionTimeSelection
         .firstOrNull;
   }
 
-  /// Check if current selection is valid (exists and is available)
+  /// Check if current selection is valid (exists, available, and timeline valid)
   bool _isSelectionValid(List<Timeslot> timeslots) {
     final selectedSlot = _getSelectedTimeslot(timeslots);
-    return selectedSlot != null &&
-        (selectedSlot.status.isAvailable ||
-            selectedSlot.status.isBookedByCurrentUser);
+    if (selectedSlot == null) return false;
+
+    const timelineService = TimelineValidationService.instance;
+    final isTimelineValid = timelineService.isTimeslotBookingOpen(selectedSlot);
+
+    return (selectedSlot.status.isAvailable ||
+            selectedSlot.status.isBookedByCurrentUser) &&
+        isTimelineValid;
   }
 
   @override
@@ -296,9 +302,50 @@ class _StudentSessionTimeSelection
         ),
       );
     } else {
-      return const Center(
-        child: Text('No time slots available', style: TextStyle(fontSize: 16)),
+      // Check if there are timeslots but they're not bookable due to timeline
+      final provider = Provider.of<StudentSessionViewModel>(
+        context,
+        listen: false,
       );
+      final allTimeslots = provider.timeslots;
+
+      if (allTimeslots.isNotEmpty) {
+        // There are timeslots but none are selectable - likely timeline restriction
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.schedule_rounded,
+                size: 64,
+                color: ArkadColors.lightRed,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Booking period has ended',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Time slot booking is no longer available for this session',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        );
+      } else {
+        return const Center(
+          child: Text(
+            'No time slots available',
+            style: TextStyle(fontSize: 16),
+          ),
+        );
+      }
     }
   }
 
@@ -492,12 +539,23 @@ class _StudentSessionTimeSelection
     final isBookedByUser = slot.status.isBookedByCurrentUser;
     final isAvailable = slot.status.isAvailable;
 
-    // Determine card color based on status
+    // Check timeline validation for this specific timeslot
+    const timelineService = TimelineValidationService.instance;
+    final isTimelineValid = timelineService.isTimeslotBookingOpen(slot);
+
+    // Effective availability considers both status and timeline
+    final isEffectivelyAvailable =
+        (isAvailable || isBookedByUser) && isTimelineValid;
+
+    // Determine card color based on status and timeline
     Color? cardColor;
     if (isBookedByUser) {
       cardColor = ArkadColors.arkadGreen.withValues(alpha: 0.2);
     } else if (isSelected) {
       cardColor = ArkadColors.lightGray;
+    } else if (!isTimelineValid) {
+      // Gray out timeslots when booking deadline has passed
+      cardColor = ArkadColors.lightGray.withValues(alpha: 0.3);
     }
 
     // Border for booked slots
@@ -545,10 +603,28 @@ class _StudentSessionTimeSelection
                 ),
               ),
             ],
+            // Show timeline warning for booked slots when booking has ended
+            if (isBookedByUser && !isTimelineValid) ...[
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.schedule_rounded,
+                color: ArkadColors.lightRed,
+                size: 16,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Booking ended',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: ArkadColors.lightRed,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                ),
+              ),
+            ],
           ],
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        leading: (isAvailable || isBookedByUser)
+        leading: isEffectivelyAvailable
             ? RadioGroup<int>(
                 groupValue: _selectedTimeslotId,
                 onChanged: (int? value) {
@@ -575,14 +651,14 @@ class _StudentSessionTimeSelection
               ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         visualDensity: VisualDensity.compact,
-        onTap: (isAvailable || isBookedByUser)
+        onTap: isEffectivelyAvailable
             ? () {
                 setState(() {
                   _selectedTimeslotId = slot.id;
                 });
               }
             : null,
-        enabled: (isAvailable || isBookedByUser),
+        enabled: isEffectivelyAvailable,
       ),
     );
   }
