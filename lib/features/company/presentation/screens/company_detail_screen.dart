@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:url_launcher/url_launcher.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/async_state_builder.dart';
 import '../../../../shared/presentation/widgets/optimized_image.dart';
@@ -37,7 +38,10 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
       builder: (context, viewModel, child) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(viewModel.company?.name ?? 'Company Details'),
+            title: Text(
+              viewModel.company?.name ?? 'Company Details',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
           ),
           body: AsyncStateBuilder<Company>(
             command: viewModel.getCompanyByIdCommand,
@@ -159,28 +163,16 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
   }
 
   Widget _buildHeaderSection(BuildContext context, Company company) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Theme.of(
-              context,
-            ).colorScheme.primaryContainer.withValues(alpha: 0.3),
-            Theme.of(context).colorScheme.surface,
-          ],
-        ),
-      ),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
               _buildLogo(context, company),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Text(
                 company.name,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -189,7 +181,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              if (company.industriesString.isNotEmpty) ...[
+
+              /* if (company.industriesString.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -211,7 +204,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-              ],
+              ], */
               if (company.locationsString.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Row(
@@ -240,6 +233,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                   ],
                 ),
               ],
+              _buildCircularLinks(context, company),
             ],
           ),
         ),
@@ -249,8 +243,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
 
   Widget _buildLogo(BuildContext context, Company company) {
     return Container(
-      width: 100,
-      height: 100,
+      width: 110,
+      height: 110,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         color: Theme.of(context).colorScheme.surface,
@@ -765,6 +759,127 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCircularLinks(BuildContext context, Company company) {
+    final theme = Theme.of(context);
+
+    // Helper to build a circular clickable icon
+    Widget buildBtn({
+      required String url,
+      required Widget icon, // CHANGED: accept a Widget instead of IconData
+      required String tooltip,
+    }) {
+      Uri normalize(String raw) {
+        var s = raw.trim();
+        if (!s.startsWith('http://') && !s.startsWith('https://')) {
+          s = 'https://$s';
+        }
+        return Uri.parse(s);
+      }
+
+      Future<void> open() async {
+        final uri = normalize(url);
+        try {
+          final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+          if (!ok && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Could not open $tooltip'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        } catch (_) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Could not open $tooltip'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        }
+      }
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Tooltip(
+          message: tooltip,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: open,
+            child: Ink(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: theme.colorScheme.surfaceContainer.withValues(
+                  alpha: 0.4,
+                ),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.08),
+                ),
+              ),
+              child: Center(child: icon),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final items = <Widget>[];
+
+    void add(String? url, Widget icon, String label) {
+      if (url != null && url.trim().isNotEmpty) {
+        items.add(buildBtn(url: url, icon: icon, tooltip: label));
+      }
+    }
+
+    final iconColor = theme.colorScheme.onSurface.withValues(alpha: 0.8);
+
+    add(
+      company.urlLinkedin,
+      Icon(MdiIcons.linkedin, size: 22, color: iconColor),
+      'LinkedIn',
+    );
+    add(
+      company.urlInstagram,
+      Icon(MdiIcons.instagram, size: 22, color: iconColor),
+      'Instagram',
+    );
+    add(
+      company.urlFacebook,
+      Icon(MdiIcons.facebook, size: 22, color: iconColor),
+      'Facebook',
+    );
+    add(
+      company.urlTwitter,
+      ImageIcon(
+        const AssetImage('assets/icons/x-logo.png'),
+        size: 16,
+        color: iconColor,
+      ),
+      'X',
+    );
+    add(
+      company.urlYoutube,
+      Icon(MdiIcons.youtube, size: 22, color: iconColor),
+      'YouTube',
+    );
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: items,
         ),
       ),
     );

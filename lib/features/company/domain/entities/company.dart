@@ -13,6 +13,11 @@ class Company {
     required this.desiredCompetences,
     required this.jobs,
     required this.daysWithStudentSession,
+    required this.urlLinkedin,
+    required this.urlInstagram,
+    required this.urlFacebook,
+    required this.urlTwitter,
+    required this.urlYoutube,
   });
 
   final int id;
@@ -27,6 +32,11 @@ class Company {
   final List<String> desiredCompetences;
   final List<CompanyJob> jobs;
   final int daysWithStudentSession;
+  final String? urlLinkedin;
+  final String? urlInstagram;
+  final String? urlFacebook;
+  final String? urlTwitter;
+  final String? urlYoutube;
 
   /// Check if company has student sessions available
   bool get hasStudentSessions => daysWithStudentSession > 0;
