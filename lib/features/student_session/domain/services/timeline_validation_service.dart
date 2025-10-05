@@ -85,10 +85,10 @@ class TimelineValidationService {
     // Individual timeslots have their own deadlines checked separately
     final bookingPeriodActive =
         session.isAccepted && isBookingPeriodActive(session, now: currentTime);
-    
+
     // At session level, booking doesn't have past/upcoming states
     // because booking availability depends on individual timeslot deadlines
-    const bookingPeriodPassed = false; 
+    const bookingPeriodPassed = false;
     const bookingPeriodUpcoming = false;
 
     return TimelineStatus(
@@ -132,19 +132,21 @@ class TimelineValidationService {
       }
       return 'Booking period has ended';
     }
-    
+
     // If booking is still open but has a deadline, show it
     if (timeslot.bookingClosesAt != null) {
       final currentTime = now ?? DateTime.now();
-      final timeUntilDeadline = timeslot.bookingClosesAt!.difference(currentTime);
-      
+      final timeUntilDeadline = timeslot.bookingClosesAt!.difference(
+        currentTime,
+      );
+
       if (timeUntilDeadline.inHours < 24) {
         return 'Booking closes today at ${_formatTime(timeslot.bookingClosesAt!)}';
       } else if (timeUntilDeadline.inDays < 7) {
         return 'Booking closes on ${_formatDateTime(timeslot.bookingClosesAt!)}';
       }
     }
-    
+
     return null; // No urgent booking message needed
   }
 
@@ -165,7 +167,6 @@ class TimelineValidationService {
     if (session.bookingOpenTime == null) return false;
     return currentTime.isBefore(session.bookingOpenTime!);
   }
-
 
   String _formatDateTime(DateTime dateTime) {
     // Simple formatting - can be enhanced with proper date formatting

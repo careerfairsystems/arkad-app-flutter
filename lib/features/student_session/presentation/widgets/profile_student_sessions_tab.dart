@@ -538,7 +538,6 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     StudentSessionApplicationWithBookingState applicationWithBookingState,
   ) {
     final application = applicationWithBookingState.application;
-    final hasBooking = applicationWithBookingState.hasBooking;
 
     // Show booking actions based on application status - backend controls availability
     if (application.status != ApplicationStatus.accepted) {
@@ -567,27 +566,95 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
       );
     }
 
-    // Booking is open - show single manage booking button
+    // For accepted applications, use timeline validation to determine button state
+    return _buildTimelineAwareBookingButton(
+      context,
+      applicationWithBookingState,
+    );
+  }
+
+  /// Build timeline-aware booking button for accepted applications
+  Widget _buildTimelineAwareBookingButton(
+    BuildContext context,
+    StudentSessionApplicationWithBookingState applicationWithBookingState,
+  ) {
+    final application = applicationWithBookingState.application;
+    final hasBooking = applicationWithBookingState.hasBooking;
+
+    // Basic booking logic without full session timeline validation
+    // This is a simplified approach since we don't have session data in this context
+    // Individual timeslot deadlines will be checked in the booking screen
     String buttonText = hasBooking ? 'Manage Booking' : 'Book Timeslot';
     IconData buttonIcon = hasBooking
         ? Icons.edit_calendar_rounded
         : Icons.schedule_rounded;
+    
+    // For accepted applications, booking is generally available
+    // Individual timeslot deadlines will be checked in the booking screen
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {
-              context.push('/sessions/book/${application.companyId}');
-            },
-            icon: Icon(buttonIcon, size: 18),
-            label: Text(buttonText),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: ArkadColors.arkadTurkos,
+        // Show timeline warning if needed
+        _buildTimelineWarning(context, applicationWithBookingState),
+        
+        const SizedBox(height: 8),
+        
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  context.push('/sessions/book/${application.companyId}');
+                },
+                icon: Icon(buttonIcon, size: 18),
+                label: Text(buttonText),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ArkadColors.arkadTurkos,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ],
+    );
+  }
+
+  /// Build timeline warning message for accepted applications
+  Widget _buildTimelineWarning(
+    BuildContext context,
+    StudentSessionApplicationWithBookingState applicationWithBookingState,
+  ) {
+    // For now, show general booking information
+    // This would be enhanced with actual session timeline data
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.info_outline,
+            size: 16,
+            color: ArkadColors.arkadTurkos,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Individual timeslots may have their own booking deadlines',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: ArkadColors.arkadTurkos,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

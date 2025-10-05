@@ -35,7 +35,7 @@ class StudentSession {
   /// Note: Despite the "booking" name, this field controls when users can APPLY to the session
   final DateTime? bookingCloseTime;
 
-  /// When APPLICATION period opens for this session (null if no application period)  
+  /// When APPLICATION period opens for this session (null if no application period)
   /// Note: Despite the "booking" name, this field controls when users can APPLY to the session
   final DateTime? bookingOpenTime;
 
