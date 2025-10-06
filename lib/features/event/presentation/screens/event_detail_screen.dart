@@ -237,7 +237,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   Widget _buildEventContent(Event event, bool isPastEvent) {
     final dateFormat = DateFormat('EEEE, MMMM dd, yyyy');
     final timeFormat = DateFormat('HH:mm');
-
+    final isFull =
+        event.maxParticipants != null &&
+        event.currentParticipants >= event.maxParticipants!;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -323,7 +325,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           const SizedBox(height: 32),
 
           // Action Button
-          if (!isPastEvent)
+          if (!isPastEvent && !isFull)
             EventActions(
               event: event,
               onRegister: () => _registerForEvent(event),
@@ -465,20 +467,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   Color _getEventTypeColor(EventType type) {
-    switch (type) {
-      case EventType.presentation:
-        return ArkadColors.arkadTurkos;
-      case EventType.workshop:
-        return ArkadColors.arkadGreen;
-      case EventType.networking:
-        return ArkadColors.arkadOrange;
-      case EventType.panel:
-        return ArkadColors.arkadSkog;
-      case EventType.careerFair:
-        return ArkadColors.arkadNavy;
-      case EventType.social:
-        return ArkadColors.accenture;
-    }
+    return ArkadColors.arkadTurkos;
   }
 
   String _formatDuration(Duration duration) {
