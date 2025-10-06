@@ -7,6 +7,8 @@ import '../../../../services/service_locator.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../company/domain/entities/company.dart';
 import '../../../company/presentation/view_models/company_view_model.dart';
+import '../view_models/map_permissions_view_model.dart';
+import '../widgets/permission_step_widget.dart';
 
 /// Displays an interactive map of companies at ARKAD event
 class MapScreen extends StatefulWidget {
@@ -62,86 +64,148 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Consumer<CombainIntializer>(
-        builder: (context, combainInitializer, child) {
-          // Show loading while Combain SDK is initializing
-          if (!combainInitializer.combainIntialized) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: ArkadColors.arkadTurkos),
-                  SizedBox(height: 16),
-                  Text(
-                    'Initializing map...',
-                    style: TextStyle(
-                      color: ArkadColors.white,
-                      fontSize: 16,
-                      fontFamily: 'MyriadProCondensed',
-                    ),
-                  ),
-                ],
-              ),
+      backgroundColor: ArkadColors.arkadNavy,
+      body: Consumer<MapPermissionsViewModel>(
+        builder: (context, permissionsViewModel, child) {
+          // Show permission flow if not all permissions granted
+          if (!permissionsViewModel.allPermissionsGranted) {
+            return SafeArea(
+              child: _buildPermissionFlow(permissionsViewModel),
             );
           }
 
-          // Show map once initialized
-          return Stack(
-            children: [
-              // Map
-              Consumer<CompanyViewModel>(
-                builder: (context, companyViewModel, child) {
-                  // Update markers when companies change
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _updateMarkers(companyViewModel.allCompanies);
-                  });
+          // Permissions granted, now wait for SDK to start
+          return Consumer<CombainIntializer>(
+            builder: (context, combainInitializer, child) {
+              // Show loading while Combain SDK is starting
+              if (!combainInitializer.combainIntialized || permissionsViewModel.isStartingSDK) {
+                return const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: ArkadColors.arkadTurkos),
+                      SizedBox(height: 16),
+                      Text(
+                        'Starting map services...',
+                        style: TextStyle(
+                          color: ArkadColors.white,
+                          fontSize: 16,
+                          fontFamily: 'MyriadProCondensed',
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
 
-                  return GoogleMap(
-                    onMapCreated: (GoogleMapController controller) {
-                      _mapController = controller;
+              // Show map once SDK is started
+              return Stack(
+                children: [
+                  // Map
+                  Consumer<CompanyViewModel>(
+                    builder: (context, companyViewModel, child) {
+                      // Update markers when companies change
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _updateMarkers(companyViewModel.allCompanies);
+                      });
+
+                      return GoogleMap(
+                        onMapCreated: (GoogleMapController controller) {
+                          _mapController = controller;
+                        },
+                        initialCameraPosition: const CameraPosition(
+                          target: _lundCenter,
+                          zoom: 15.0,
+                        ),
+                        markers: _markers,
+                        minMaxZoomPreference: const MinMaxZoomPreference(
+                          12.0,
+                          18.0,
+                        ),
+                        onTap: (_) {
+                          // Deselect company when tapping map
+                          if (_selectedCompany != null) {
+                            setState(() {
+                              _selectedCompany = null;
+                            });
+                          }
+                        },
+                        myLocationEnabled: true,
+                      );
                     },
-                    initialCameraPosition: const CameraPosition(
-                      target: _lundCenter,
-                      zoom: 15.0,
-                    ),
-                    markers: _markers,
-                    minMaxZoomPreference: const MinMaxZoomPreference(
-                      12.0,
-                      18.0,
-                    ),
-                    onTap: (_) {
-                      // Deselect company when tapping map
-                      if (_selectedCompany != null) {
-                        setState(() {
-                          _selectedCompany = null;
-                        });
-                      }
-                    },
-                    myLocationEnabled: true,
-                  );
-                },
-              ),
+                  ),
 
-              // Search bar at top
-              Positioned(
-                top: MediaQuery.of(context).padding.top + 16,
-                left: 16,
-                right: 16,
-                child: _buildSearchBar(),
-              ),
+                  // Search bar at top
+                  Positioned(
+                    top: MediaQuery.of(context).padding.top + 16,
+                    left: 16,
+                    right: 16,
+                    child: _buildSearchBar(),
+                  ),
 
-              // Selected company info card at bottom
-              if (_selectedCompany != null)
-                Positioned(
-                  bottom: 16,
-                  left: 16,
-                  right: 16,
-                  child: _buildCompanyInfoCard(_selectedCompany!),
-                ),
-            ],
+                  // Selected company info card at bottom
+                  if (_selectedCompany != null)
+                    Positioned(
+                      bottom: 16,
+                      left: 16,
+                      right: 16,
+                      child: _buildCompanyInfoCard(_selectedCompany!),
+                    ),
+                ],
+              );
+            },
           );
         },
       ),
+    );
+  }
+
+  Widget _buildPermissionFlow(MapPermissionsViewModel viewModel) {
+    if (viewModel.currentStep == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: ArkadColors.arkadTurkos),
+      );
+    }
+
+    return Column(
+      children: [
+        // Main content
+        Expanded(
+          child: PermissionStepWidget(
+            step: viewModel.currentStep!,
+            onRequestPermission: () {
+              viewModel.requestCurrentPermission();
+            },
+            onOpenSettings: () {
+              viewModel.openSettings();
+            },
+            isLoading: viewModel.isRequestingPermission,
+          ),
+        ),
+
+        // Page indicator
+        Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              viewModel.steps.length,
+              (index) {
+                final isActive = index == viewModel.currentStepIndex;
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: isActive ? 12 : 8,
+                  height: isActive ? 12 : 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isActive ? ArkadColors.arkadTurkos : Colors.white38,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 

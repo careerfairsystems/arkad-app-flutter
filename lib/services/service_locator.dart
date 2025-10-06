@@ -51,7 +51,9 @@ import '../features/event/data/repositories/event_repository_impl.dart';
 import '../features/event/domain/repositories/event_repository.dart';
 import '../features/event/presentation/view_models/event_view_model.dart';
 import '../features/map/data/repositories/map_repository_impl.dart';
+import '../features/map/data/services/permission_service.dart';
 import '../features/map/domain/repositories/map_repository.dart';
+import '../features/map/presentation/view_models/map_permissions_view_model.dart';
 import '../features/map/presentation/view_models/map_view_model.dart';
 import '../features/notifications/data/data_sources/notification_local_data_source.dart';
 import '../features/notifications/data/data_sources/notification_remote_data_source.dart';
@@ -99,6 +101,7 @@ final GetIt serviceLocator = GetIt.instance;
 
 class CombainIntializer extends ChangeNotifier {
   var combainIntialized = false;
+  FlutterCombainSDK? _combainSDK;
 
   /// Mark as initialized (used for web platform)
   void markAsInitialized() {
@@ -106,8 +109,14 @@ class CombainIntializer extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> initialize() async {
-    print("Running combain init");
+  /// Initialize SDK without starting it (config setup only)
+  Future<void> initializeWithoutStart() async {
+    if (_combainSDK != null) {
+      print("Combain SDK already initialized");
+      return;
+    }
+
+    print("Running combain SDK configuration");
 
     // Combain SDK initialization with persistent device UUID
     final deviceId = await _getOrCreateDeviceId();
@@ -119,16 +128,31 @@ class CombainIntializer extends ChangeNotifier {
     );
 
     // Step 1: Create the SDK instance
-    FlutterCombainSDK combainSDK = await FlutterCombainSDK.create();
-    print("Created sdk instance");
+    _combainSDK = await FlutterCombainSDK.create();
+    print("Created SDK instance");
 
     // Step 2: Initialize the SDK with the config
-    await combainSDK.initializeSDK(combainConfig);
-    print("Initialized sdk");
+    await _combainSDK!.initializeSDK(combainConfig);
+    print("Initialized SDK config");
 
-    // Step 3: Start the SDK
-    await combainSDK.start();
-    serviceLocator.registerSingleton(combainSDK);
+    // Register SDK instance so it can be used by PermissionsDataSource
+    serviceLocator.registerSingleton(_combainSDK!);
+  }
+
+  /// Start the SDK after permissions are granted
+  Future<void> startSDK() async {
+    if (_combainSDK == null) {
+      print("Cannot start SDK - not initialized");
+      return;
+    }
+
+    if (combainIntialized) {
+      print("Combain SDK already started");
+      return;
+    }
+
+    print("Starting Combain SDK");
+    await _combainSDK!.start();
     combainIntialized = true;
     notifyListeners();
   }
@@ -149,13 +173,16 @@ Future<void> setupServiceLocator() async {
     () => FileService(serviceLocator<ImagePicker>()),
   );
 
+  // Register Combain initializer
+  serviceLocator.registerSingleton<CombainIntializer>(CombainIntializer());
+
   // Clean architecture features
   _setupAuthFeature();
   _setupProfileFeature();
   _setupCompanyFeature();
   _setupStudentSessionFeature();
   _setupEventFeature();
-  _setupMapFeature();
+  await _setupMapFeature();
 }
 
 /// Get or create a persistent device UUID for Combain SDK
@@ -509,24 +536,37 @@ void _setupEventFeature() {
   );
 }
 
-/// Setup Map feature with minimal clean architecture
-void _setupMapFeature() {
+/// Setup Map feature with permission-gated SDK initialization
+Future<void> _setupMapFeature() async {
   if (!shouldShowMap()) {
     return;
   }
+
+  // Initialize Combain SDK config WITHOUT starting it
+  final combainInitializer = serviceLocator<CombainIntializer>();
+  await combainInitializer.initializeWithoutStart();
+
+  // Setup permission service for map
+  serviceLocator.registerLazySingleton<PermissionService>(
+    () => PermissionService(),
+  );
+
   // Repository (placeholder implementation)
   serviceLocator.registerLazySingleton<MapRepository>(
     () => MapRepositoryImpl(),
   );
 
-  // View model
+  // View models
   serviceLocator.registerLazySingleton<MapViewModel>(
     () => MapViewModel(mapRepository: serviceLocator<MapRepository>()),
   );
 
-  final combainInitializer = CombainIntializer();
-  serviceLocator.registerSingleton(combainInitializer);
-  combainInitializer.initialize();
+  serviceLocator.registerLazySingleton<MapPermissionsViewModel>(
+    () => MapPermissionsViewModel(
+      permissionService: serviceLocator<PermissionService>(),
+      combainInitializer: combainInitializer,
+    ),
+  );
 }
 
 /// Setup Notification feature with clean architecture

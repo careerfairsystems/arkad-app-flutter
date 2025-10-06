@@ -7,6 +7,7 @@ import 'features/auth/presentation/view_models/auth_view_model.dart';
 import 'features/company/presentation/view_models/company_detail_view_model.dart';
 import 'features/company/presentation/view_models/company_view_model.dart';
 import 'features/event/presentation/view_models/event_view_model.dart';
+import 'features/map/presentation/view_models/map_permissions_view_model.dart';
 import 'features/map/presentation/view_models/map_view_model.dart';
 import 'features/notifications/presentation/view_models/notification_view_model.dart';
 import 'features/profile/presentation/view_models/profile_view_model.dart';
@@ -67,18 +68,6 @@ class _MyAppState extends State<MyApp> {
     final authViewModel = serviceLocator<AuthViewModel>();
     _routerNotifier = RouterNotifier(authViewModel);
     _appRouter = AppRouter(_routerNotifier);
-
-    // Initialize Combain SDK AFTER first frame to ensure Activity lifecycle is ready
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeCombainSDK();
-    });
-  }
-
-  Future<void> _initializeCombainSDK() async {
-    final combainInitializer = serviceLocator<CombainIntializer>();
-    if (!combainInitializer.combainIntialized) {
-      await combainInitializer.initialize();
-    }
   }
 
   @override
@@ -97,6 +86,9 @@ class _MyAppState extends State<MyApp> {
         ),
         ChangeNotifierProvider.value(value: serviceLocator<EventViewModel>()),
         ChangeNotifierProvider.value(value: serviceLocator<MapViewModel>()),
+        ChangeNotifierProvider.value(
+          value: serviceLocator<MapPermissionsViewModel>(),
+        ),
         ChangeNotifierProvider.value(
           value: serviceLocator<NotificationViewModel>(),
         ),
