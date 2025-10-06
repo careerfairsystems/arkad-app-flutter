@@ -39,7 +39,7 @@ void main() async {
       WidgetsFlutterBinding.ensureInitialized();
 
       // Initialize the GetIt.instance, a singleton instance of the service locator
-      setupServiceLocator();
+      await setupServiceLocator();
 
       runApp(SentryWidget(child: const MyApp()));
     },
@@ -63,6 +63,18 @@ class _MyAppState extends State<MyApp> {
     final authViewModel = serviceLocator<AuthViewModel>();
     _routerNotifier = RouterNotifier(authViewModel);
     _appRouter = AppRouter(_routerNotifier);
+
+    // Initialize Combain SDK AFTER first frame to ensure Activity lifecycle is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeCombainSDK();
+    });
+  }
+
+  Future<void> _initializeCombainSDK() async {
+    final combainInitializer = serviceLocator<CombainIntializer>();
+    if (!combainInitializer.combainIntialized) {
+      await combainInitializer.initialize();
+    }
   }
 
   @override
@@ -83,6 +95,10 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider.value(value: serviceLocator<MapViewModel>()),
         ChangeNotifierProvider.value(
           value: serviceLocator<NotificationViewModel>(),
+        ),
+        // Combain SDK initialization state
+        ChangeNotifierProvider.value(
+          value: serviceLocator<CombainIntializer>(),
         ),
       ],
       child: MaterialApp.router(

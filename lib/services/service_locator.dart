@@ -1,9 +1,16 @@
+import 'dart:async';
+
 import 'package:arkad_api/arkad_api.dart';
+import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
+import 'package:flutter_combainsdk/messages.g.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import '../features/auth/data/data_sources/auth_local_data_source.dart';
 import '../features/auth/data/data_sources/auth_remote_data_source.dart';
@@ -87,10 +94,47 @@ import '../shared/infrastructure/services/file_service.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
-/// Centrialized initialization of all the services and providers. An alternative to Flutter’s inherited widgets and provides a more decoupled way to access services and providers throughout the app. This abstracts the complexity from lower-level components and avoids the need to pass dependencies down the widget tree.
+/// Centrialized initialization of all the services and providers. An alternative to Flutter's inherited widgets and provides a more decoupled way to access services and providers throughout the app. This abstracts the complexity from lower-level components and avoids the need to pass dependencies down the widget tree.
+
+class CombainIntializer extends ChangeNotifier {
+  var combainIntialized = false;
+
+  /// Mark as initialized (used for web platform)
+  void markAsInitialized() {
+    combainIntialized = true;
+    notifyListeners();
+  }
+
+  Future<void> initialize() async {
+    print("Running combain init");
+
+    // Combain SDK initialization with persistent device UUID
+    final deviceId = await _getOrCreateDeviceId();
+    final combainConfig = CombainSDKConfig(
+      apiKey: "848bb5dadbcba210e0ad",
+      settingsKey: "848bb5dadbcba210e0ad",
+      locationProvider: FlutterLocationProvider.aiNavigation,
+      deviceIdentifier: deviceId,
+    );
+
+    // Step 1: Create the SDK instance
+    FlutterCombainSDK combainSDK = await FlutterCombainSDK.create();
+    print("Created sdk instance");
+
+    // Step 2: Initialize the SDK with the config
+    await combainSDK.initializeSDK(combainConfig);
+    print("Initialized sdk");
+
+    // Step 3: Start the SDK
+    await combainSDK.start();
+    serviceLocator.registerSingleton(combainSDK);
+    combainIntialized = true;
+    notifyListeners();
+  }
+}
 
 // We could have used InheritedWidget or riverpod package to handle state, but GetIt with provider is a solid combo to my understanding.
-void setupServiceLocator() {
+Future<void> setupServiceLocator() async {
   // Core services
   _setupApiClient();
   serviceLocator.registerLazySingleton<FlutterSecureStorage>(
@@ -111,6 +155,36 @@ void setupServiceLocator() {
   _setupStudentSessionFeature();
   _setupEventFeature();
   _setupMapFeature();
+  _setupCombainInitializer();
+}
+
+void _setupCombainInitializer() {
+  final combainInitializer = CombainIntializer();
+  serviceLocator.registerSingleton(combainInitializer);
+
+  if (kIsWeb) {
+    // On web, mark as initialized immediately since SDK is not supported
+    combainInitializer.markAsInitialized();
+  }
+
+  // SDK initialization will be triggered from a widget's initState
+  // to ensure proper Android Activity lifecycle timing
+}
+
+/// Get or create a persistent device UUID for Combain SDK
+Future<String> _getOrCreateDeviceId() async {
+  const String deviceIdKey = 'combain_device_id';
+  final prefs = await SharedPreferences.getInstance();
+
+  String? deviceId = prefs.getString(deviceIdKey);
+
+  if (deviceId == null || deviceId.isEmpty) {
+    // Generate new UUID
+    deviceId = const Uuid().v4();
+    await prefs.setString(deviceIdKey, deviceId);
+  }
+
+  return deviceId;
 }
 
 /// Setup API client conditionally

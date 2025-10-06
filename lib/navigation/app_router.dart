@@ -106,6 +106,18 @@ class AppRouter {
               GoRoute(
                 path: '/map',
                 pageBuilder: _noAnim((_) => const MapScreen()),
+                routes: [
+                  GoRoute(
+                    path: ':companyId',
+                    pageBuilder: (context, state) {
+                      final companyIdStr = state.pathParameters['companyId'];
+                      final companyId = int.tryParse(companyIdStr ?? '');
+                      return NoTransitionPage(
+                        child: MapScreen(selectedCompanyId: companyId),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

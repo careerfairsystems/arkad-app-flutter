@@ -38,8 +38,13 @@ dependencies:
   firebase_core: ^3.15.2
   firebase_messaging: ^15.1.5
   app_settings: ^5.1.1
+  flutter_combainsdk:
+    path: ../../combain/combainsdk/flutter-sdk/
   arkad_api:
     path: ./api/arkad_api/
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  uuid: ^4.5.1
 dev_dependencies:
   sentry_dart_plugin: ^3.1.1
   flutter_test:
@@ -47,7 +52,6 @@ dev_dependencies:
   flutter_lints: ^3.0.1
   build_runner: ^2.4.6
   json_serializable: ^6.7.1
-  openapi_generator: ^6.1.0
   flutter_launcher_icons: "^0.14.4"
 
 flutter:
