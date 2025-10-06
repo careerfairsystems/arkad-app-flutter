@@ -228,7 +228,7 @@ class _EventScreenState extends State<EventScreen> {
           title,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: ArkadColors.arkadNavy,
+            color: ArkadColors.white,
           ),
         ),
         const SizedBox(width: 8),
