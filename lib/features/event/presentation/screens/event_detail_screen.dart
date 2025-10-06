@@ -282,9 +282,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     return SliverAppBar(
       //rexpandedHeight: 10.0,
       pinned: true,
-      backgroundColor: _getEventTypeColor(event.type),
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        icon: const Icon(Icons.arrow_back),
         onPressed: () => context.pop(),
       ),
       title: Text(
@@ -296,9 +295,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       ),
       bottom: isStaff
           ? TabBar(
-              tabs: [
-                const Tab(text: "Details"),
-                const Tab(text: "Coordinator"),
+              tabs: const [
+                Tab(text: "Details"),
+                Tab(text: "Coordinator"),
               ],
               labelColor: ArkadColors.white,
               unselectedLabelColor: ArkadColors.white.withValues(alpha: 0.7),
@@ -580,10 +579,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         ],
       ],
     );
-  }
-
-  Color _getEventTypeColor(EventType type) {
-    return ArkadColors.arkadTurkos;
   }
 
   String _formatDuration(Duration duration) {

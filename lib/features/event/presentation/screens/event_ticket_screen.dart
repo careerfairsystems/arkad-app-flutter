@@ -86,8 +86,6 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
         return Scaffold(
           appBar: AppBar(
             title: Text(event?.title ?? 'Event Ticket'),
-            backgroundColor: ArkadColors.arkadTurkos,
-            foregroundColor: Colors.white,
             elevation: 0,
           ),
           body: _buildBody(event, viewModel),

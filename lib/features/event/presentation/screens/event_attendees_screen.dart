@@ -80,9 +80,10 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Attendees - ${widget.event.title}'),
-        backgroundColor: ArkadColors.arkadTurkos,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Attendees - ${widget.event.title}',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
       ),
       body: Column(
         children: [

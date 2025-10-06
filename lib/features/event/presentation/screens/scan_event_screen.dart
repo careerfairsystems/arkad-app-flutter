@@ -86,7 +86,12 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
     return Consumer<EventViewModel>(
       builder: (context, eventViewModel, child) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Scan Event QR Code')),
+          appBar: AppBar(
+            title: Text(
+              'Scan Event QR Code',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
           body: Column(
             children: [
               // Scanner or result display
