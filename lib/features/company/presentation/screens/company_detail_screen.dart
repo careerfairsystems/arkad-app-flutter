@@ -204,7 +204,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    Icons.work_rounded,
+                    Icons.work_outline_rounded,
                     size: 20,
                     color: Theme.of(context).colorScheme.primary,
                   ),
