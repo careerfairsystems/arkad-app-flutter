@@ -49,10 +49,10 @@ class CompanyQuickFilters extends StatelessWidget {
               shaderCallback: (Rect bounds) {
                 return const LinearGradient(
                   colors: [
-                    Colors.transparent,
-                    Colors.black,
-                    Colors.black,
-                    Colors.transparent,
+                    ArkadColors.transparent,
+                    ArkadColors.black,
+                    ArkadColors.black,
+                    ArkadColors.transparent,
                   ],
                   stops: [0.0, 0.03, 0.97, 1.0],
                 ).createShader(bounds);
@@ -99,7 +99,7 @@ class CompanyQuickFilters extends StatelessWidget {
           position,
           style: TextStyle(
             fontWeight: FontWeight.w500,
-            color: isSelected ? Colors.white : null,
+            color: isSelected ? ArkadColors.white : null,
           ),
         ),
         selected: isSelected,
@@ -118,7 +118,7 @@ class CompanyQuickFilters extends StatelessWidget {
             : ArkadColors.arkadLightNavy,
         side: BorderSide(
           color: isSelected
-              ? Colors.transparent
+              ? ArkadColors.transparent
               : Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
@@ -141,7 +141,7 @@ class CompanyQuickFilters extends StatelessWidget {
             Icon(
               Icons.tune_rounded,
               size: 16,
-              color: hasAdditionalFilters ? Colors.white : null,
+              color: hasAdditionalFilters ? ArkadColors.white : null,
             ),
             const SizedBox(width: 6),
             Text(
@@ -150,7 +150,7 @@ class CompanyQuickFilters extends StatelessWidget {
                 fontWeight: hasAdditionalFilters
                     ? FontWeight.w600
                     : FontWeight.w500,
-                color: hasAdditionalFilters ? Colors.white : null,
+                color: hasAdditionalFilters ? ArkadColors.white : null,
               ),
             ),
             if (hasAdditionalFilters) ...[
@@ -171,7 +171,7 @@ class CompanyQuickFilters extends StatelessWidget {
                 child: Text(
                   '$additionalFilters',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: ArkadColors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                   ),
@@ -187,7 +187,7 @@ class CompanyQuickFilters extends StatelessWidget {
         side: BorderSide(
           width: hasAdditionalFilters ? 0 : 0.5,
           color: hasAdditionalFilters
-              ? Colors.transparent
+              ? ArkadColors.transparent
               : Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),

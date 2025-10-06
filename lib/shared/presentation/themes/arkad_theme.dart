@@ -15,6 +15,7 @@ class ArkadColors {
   static const Color lightRed = Color(0xFFCB0000);
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
+  static const Color transparent = Color(0x00000000);
   static const Color gray = Color(0xFF333333);
   static const Color accenture = Color(0xFFA917FE);
 }
