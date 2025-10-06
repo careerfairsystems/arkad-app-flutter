@@ -214,6 +214,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       //rexpandedHeight: 10.0,
       pinned: true,
       backgroundColor: _getEventTypeColor(event.type),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () => context.pop(),
+      ),
       title: Text(
         event.title,
         style: const TextStyle(
@@ -221,16 +225,18 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           fontWeight: FontWeight.bold,
         ),
       ),
-      bottom: TabBar(
-        tabs: [
-          const Tab(text: "Details"),
-          if (isStaff) const Tab(text: "Coordinator"),
-        ],
-        labelColor: ArkadColors.white,
-        unselectedLabelColor: ArkadColors.white.withValues(alpha: 0.7),
-        indicatorColor: ArkadColors.arkadTurkos,
-        indicatorWeight: 3,
-      ),
+      bottom: isStaff
+          ? TabBar(
+              tabs: [
+                const Tab(text: "Details"),
+                const Tab(text: "Coordinator"),
+              ],
+              labelColor: ArkadColors.white,
+              unselectedLabelColor: ArkadColors.white.withValues(alpha: 0.7),
+              indicatorColor: ArkadColors.arkadTurkos,
+              indicatorWeight: 3,
+            )
+          : null,
     );
   }
 
