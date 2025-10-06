@@ -1,0 +1,16 @@
+git_url("git@github.com:Hugo-Persson/fastlane-nk.git")
+
+storage_mode("git")
+
+type("appstore") # For App Store releases
+
+app_identifier([
+  "se.arkadtlth.nexpo",
+])
+team_id("68L5ZM83LK")
+username("hugo.e.persson@gmail.com")
+
+# For all available options run `fastlane match --help`
+# Remove the # in the beginning of the line to enable the other options
+
+# The docs are available on https://docs.fastlane.tools/actions/match

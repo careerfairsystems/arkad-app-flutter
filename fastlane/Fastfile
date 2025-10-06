@@ -1,0 +1,82 @@
+require 'dotenv'
+
+before_all do
+  Dotenv.load('../.env')
+end
+
+platform :ios do
+  lane :beta do
+    increment_build_number(
+      xcodeproj: "./ios/Runner.xcodeproj/" ,
+      build_number: ENV["VERSION_CODE"]
+
+    )
+    api_key = app_store_connect_api_key(
+      key_id: "Z668K9MPRU",
+      issuer_id: "69a6de79-4aaa-47e3-e053-5b8c7c11a4d1",
+      key_filepath: "./fastlane/AuthKey_Z668K9MPRU.p8",
+    )
+   
+   # # Sync certificates and provisioning profiles for all targets
+   # match(
+   #   type: "appstore",
+   #   readonly: false,  # Create new profiles if they don't exist
+   #   api_key: api_key,
+   #   app_identifier: [
+   #     "se.arkadtlth.nexpo",
+   #   ]
+   #)
+   
+   # Build with export options specifying provisioning profiles
+   build_app(
+      scheme:       "Runner",
+      workspace:    "ios/Runner.xcworkspace",
+      export_method:"app-store",
+      clean:        false,
+   )
+    
+    pilot(api_key: api_key)
+  end
+
+  lane :ios_production do
+    api_key = app_store_connect_api_key(
+      key_id: "Z668K9MPRU",
+      issuer_id: "69a6de79-4aaa-47e3-e053-5b8c7c11a4d1",
+      key_filepath: "./fastlane/AuthKey_Z668K9MPRU.p8",
+    )
+
+    deliver(
+      api_key: api_key,
+      app_identifier: "se.arkadtlth.nexpo",
+      submit_for_review: true,
+      automatic_release: true,
+      force: true,
+      skip_metadata: true,
+      skip_screenshots: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+end
+platform :android do
+  lane :beta do
+    gradle(
+      task: "bundleRelease",
+      project_dir: "./android",
+    )
+    upload_to_play_store(
+      track: "internal",
+      aab: "./build/app/outputs/bundle/release/app-release.aab",
+    )
+  end
+
+  lane :android_production do
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "production",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end

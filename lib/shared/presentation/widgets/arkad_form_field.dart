@@ -224,7 +224,7 @@ class _ArkadFormFieldState extends State<ArkadFormField> {
       borderColor = ArkadColors.arkadTurkos;
       borderWidth = 2;
     } else {
-      borderColor = ArkadColors.lightGray;
+      borderColor = ArkadColors.arkadLightTurkos;
       borderWidth = 1;
     }
 

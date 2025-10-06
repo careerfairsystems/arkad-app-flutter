@@ -72,3 +72,7 @@ api/.api_spec_hash
 ios/Runner/GoogleService-Info.plist
 android/app/google-services.json
 lib/firebase_options.dart
+fastlane/AuthKey_XCPYNSNSG9.p8
+fastlane/google_playstore_service_account.json
+fastlane/report.xml
+fastlane/AuthKey_Z668K9MPRU.p8

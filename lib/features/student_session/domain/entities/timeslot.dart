@@ -1,3 +1,5 @@
+import '../../../../shared/infrastructure/services/timezone_service.dart';
+
 /// Status of a timeslot for the current user
 /// Maps from TimeslotSchemaUserStatusEnum in API
 enum TimeslotStatus {
@@ -45,6 +47,7 @@ class Timeslot {
     this.maxParticipants,
     this.currentParticipants,
     required this.status,
+    this.bookingClosesAt,
   });
 
   /// Unique identifier for this timeslot
@@ -67,6 +70,9 @@ class Timeslot {
 
   /// Status of this timeslot for the current user
   final TimeslotStatus status;
+
+  /// When booking closes for this specific timeslot (optional deadline)
+  final DateTime? bookingClosesAt;
 
   /// Whether this timeslot is available for booking (convenience getter)
   bool get isAvailable => status.isAvailable;
@@ -92,10 +98,29 @@ class Timeslot {
     return maxParticipants! - currentParticipants!;
   }
 
-  /// Format time range for display
+  /// Check if booking is still open for this timeslot
+  bool isBookingStillOpen({DateTime? now}) {
+    final currentTime = now ?? TimezoneService.stockholmNow();
+
+    // If no booking close time is set, booking is always open
+    if (bookingClosesAt == null) {
+      return true;
+    }
+
+    // Direct comparison since both times are in Stockholm timezone
+    return currentTime.isBefore(bookingClosesAt!);
+  }
+
+  /// Check if this timeslot can be booked now (combines status and timeline)
+  bool get canBookNow => isAvailable && isBookingStillOpen();
+
+  /// Check if this timeslot can be managed now (for existing bookings)
+  bool get canManageNow => isBooked && isBookingStillOpen();
+
+  /// Format time range for display in Stockholm time
   String get timeRangeDisplay {
-    final startStr = _formatTime(startTime);
-    final endStr = _formatTime(endTime);
+    final startStr = TimezoneService.formatTime(startTime);
+    final endStr = TimezoneService.formatTime(endTime);
     return '$startStr - $endStr';
   }
 
@@ -108,6 +133,7 @@ class Timeslot {
     int? maxParticipants,
     int? currentParticipants,
     TimeslotStatus? status,
+    DateTime? bookingClosesAt,
   }) {
     return Timeslot(
       id: id ?? this.id,
@@ -117,32 +143,13 @@ class Timeslot {
       maxParticipants: maxParticipants ?? this.maxParticipants,
       currentParticipants: currentParticipants ?? this.currentParticipants,
       status: status ?? this.status,
+      bookingClosesAt: bookingClosesAt ?? this.bookingClosesAt,
     );
   }
 
-  /// Format date for display
+  /// Format date for display in Stockholm time
   String get dateDisplay {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${startTime.day} ${months[startTime.month - 1]}';
-  }
-
-  String _formatTime(DateTime time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    return TimezoneService.formatDate(startTime);
   }
 
   @override
@@ -155,7 +162,8 @@ class Timeslot {
         other.durationMinutes == durationMinutes &&
         other.maxParticipants == maxParticipants &&
         other.currentParticipants == currentParticipants &&
-        other.status == status;
+        other.status == status &&
+        other.bookingClosesAt == bookingClosesAt;
   }
 
   @override
@@ -168,6 +176,7 @@ class Timeslot {
       maxParticipants,
       currentParticipants,
       status,
+      bookingClosesAt,
     );
   }
 

@@ -1,6 +1,10 @@
 lint:
 	flutter analyze --no-fatal-infos
 
+icons:
+	flutter pub run flutter_launcher_icons
+
+
 fmt:
 	dart format lib/
 
