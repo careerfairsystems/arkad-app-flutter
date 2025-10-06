@@ -26,6 +26,12 @@ class _EventScreenState extends State<EventScreen> {
   Future<void> _loadEvents() async {
     final eventViewModel = Provider.of<EventViewModel>(context, listen: false);
     await eventViewModel.loadEvents();
+
+    // Debug: Log loaded event IDs
+    print('🔍 [EventScreen] Loaded ${eventViewModel.events.length} events');
+    for (final event in eventViewModel.events) {
+      print('   - Event ID: ${event.id}, Title: ${event.title}');
+    }
   }
 
   @override

@@ -260,6 +260,8 @@ class EventCard extends StatelessWidget {
   }
 
   void _onEventTap(BuildContext context) {
+    print('🔍 [EventCard] Navigating to event detail: ID=${event.id}, Title="${event.title}"');
+    print('   Navigation path: /events/detail/${event.id}');
     context.push('/events/detail/${event.id}');
   }
 }
