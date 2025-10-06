@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 
+import '../../../../shared/infrastructure/services/timezone_service.dart';
 import 'field_configuration.dart';
 
 /// Domain entity representing a student session for a company
@@ -11,6 +12,7 @@ class StudentSession {
     required this.companyName,
     required this.isAvailable,
     this.bookingCloseTime,
+    this.bookingOpenTime,
     this.userStatus,
     this.logoUrl,
     this.description,
@@ -30,8 +32,13 @@ class StudentSession {
   /// Whether this session is available for applications/booking
   final bool isAvailable;
 
-  /// When booking closes for this session (null if no booking period)
+  /// When APPLICATION period closes for this session (null if no application period)
+  /// Note: Despite the "booking" name, this field controls when users can APPLY to the session
   final DateTime? bookingCloseTime;
+
+  /// When APPLICATION period opens for this session (null if no application period)
+  /// Note: Despite the "booking" name, this field controls when users can APPLY to the session
+  final DateTime? bookingOpenTime;
 
   /// Current user's application status for this session
   final StudentSessionStatus? userStatus;
@@ -60,17 +67,36 @@ class StudentSession {
   /// Check if user's application was rejected
   bool get isRejected => userStatus == StudentSessionStatus.rejected;
 
-  /// Check if user can apply to this session
+  /// Check if user can apply to this session (basic availability check)
   bool get canApply => isAvailable && !hasApplied;
 
-  /// Check if user can book timeslots (must be accepted)
-  bool get canBook => isAccepted && _isBookingPeriodActive();
+  /// Check if user can apply to this session with timeline validation
+  bool get canApplyNow => canApply && isApplicationPeriodActive();
 
-  /// Check if booking period is currently active
-  bool _isBookingPeriodActive({DateTime? now}) {
-    if (bookingCloseTime == null) return false;
-    final currentTime = now ?? DateTime.now();
-    return !currentTime.isAfter(bookingCloseTime!);
+  /// Check if user can book timeslots (must be accepted)
+  /// Note: Actual booking availability depends on individual timeslot deadlines
+  bool get canBook => isAccepted;
+
+  /// Check if APPLICATION period is currently active
+  /// This determines when users can submit applications to this session
+  /// Uses session-level bookingOpenTime/bookingCloseTime (which are application period fields)
+  bool isApplicationPeriodActive({DateTime? now}) {
+    final currentTime = now ?? TimezoneService.stockholmNow();
+
+    // If no application times are set, use basic availability
+    if (bookingOpenTime == null && bookingCloseTime == null) {
+      return isAvailable;
+    }
+
+    // Direct comparison since both times are in Stockholm timezone
+    final isAfterOpen =
+        bookingOpenTime == null ||
+        currentTime.isAfter(bookingOpenTime!) ||
+        currentTime.isAtSameMomentAs(bookingOpenTime!);
+    final isBeforeClose =
+        bookingCloseTime == null || currentTime.isBefore(bookingCloseTime!);
+
+    return isAfterOpen && isBeforeClose && isAvailable;
   }
 
   /// Get field configuration for a specific field
@@ -119,6 +145,7 @@ class StudentSession {
     String? companyName,
     bool? isAvailable,
     DateTime? bookingCloseTime,
+    DateTime? bookingOpenTime,
     StudentSessionStatus? userStatus,
     String? logoUrl,
     String? description,
@@ -131,6 +158,7 @@ class StudentSession {
       companyName: companyName ?? this.companyName,
       isAvailable: isAvailable ?? this.isAvailable,
       bookingCloseTime: bookingCloseTime ?? this.bookingCloseTime,
+      bookingOpenTime: bookingOpenTime ?? this.bookingOpenTime,
       userStatus: userStatus ?? this.userStatus,
       logoUrl: logoUrl ?? this.logoUrl,
       description: description ?? this.description,
@@ -148,6 +176,7 @@ class StudentSession {
         other.companyName == companyName &&
         other.isAvailable == isAvailable &&
         other.bookingCloseTime == bookingCloseTime &&
+        other.bookingOpenTime == bookingOpenTime &&
         other.userStatus == userStatus &&
         other.logoUrl == logoUrl &&
         other.description == description &&
@@ -166,6 +195,7 @@ class StudentSession {
       companyName,
       isAvailable,
       bookingCloseTime,
+      bookingOpenTime,
       userStatus,
       logoUrl,
       description,

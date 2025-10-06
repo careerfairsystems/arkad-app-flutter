@@ -10,6 +10,7 @@ import '../../../../shared/events/auth_events.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../domain/entities/student_session.dart';
+import '../../domain/services/timeline_validation_service.dart';
 import '../view_models/student_session_view_model.dart';
 import '../widgets/student_session_card.dart';
 
@@ -318,7 +319,14 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
       return;
     }
 
-    // Navigate to application form - session availability controlled by server data
+    // Check timeline validation before allowing navigation
+    const timelineService = TimelineValidationService.instance;
+    if (!timelineService.canNavigateToApplication(session)) {
+      _showTimelineRestrictionMessage(session);
+      return;
+    }
+
+    // Navigate to application form
     context.push(
       '/sessions/application-form/${session.companyId}',
       extra: session,
@@ -356,6 +364,67 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
               backgroundColor: ArkadColors.arkadTurkos,
             ),
             child: const Text('Sign In'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showTimelineRestrictionMessage(StudentSession session) {
+    const timelineService = TimelineValidationService.instance;
+    final timelineMessage =
+        timelineService.getTimelineMessage(session) ??
+        'Applications are currently not available for this session.';
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Application Not Available'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Applications for ${session.companyName}\'s student session are currently not available.',
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: ArkadColors.lightGray.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: ArkadColors.lightGray.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.schedule_rounded,
+                    size: 20,
+                    color: ArkadColors.lightGray,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      timelineMessage,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => dialogContext.pop(),
+            style: FilledButton.styleFrom(
+              backgroundColor: ArkadColors.arkadTurkos,
+            ),
+            child: const Text('OK'),
           ),
         ],
       ),
