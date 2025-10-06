@@ -5,27 +5,17 @@ import 'package:intl/intl.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/event.dart';
 
-/// Status of an event for display purposes
-enum EventStatus { upcoming, booked, past }
-
 /// Reusable event card component
 class EventCard extends StatelessWidget {
   final Event event;
-  final EventStatus status;
   final VoidCallback? onTap;
 
-  const EventCard({
-    super.key,
-    required this.event,
-    required this.status,
-    this.onTap,
-  });
+  const EventCard({super.key, required this.event, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM dd, yyyy');
     final timeFormat = DateFormat('HH:mm');
-    final isPast = status == EventStatus.past;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -44,18 +34,14 @@ class EventCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isPast
-                          ? Colors.grey.withValues(alpha: 0.1)
-                          : _getEventTypeColor(
-                              event.type,
-                            ).withValues(alpha: 0.1),
+                      color: _getEventTypeColor(
+                        event.type,
+                      ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       _getEventTypeIcon(event.type),
-                      color: isPast
-                          ? Colors.grey
-                          : _getEventTypeColor(event.type),
+                      color: _getEventTypeColor(event.type),
                       size: 24,
                     ),
                   ),
@@ -67,35 +53,30 @@ class EventCard extends StatelessWidget {
                         Text(
                           event.title,
                           style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: isPast ? Colors.grey : null,
-                              ),
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           event.type.displayName,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: isPast
-                                    ? Colors.grey
-                                    : _getEventTypeColor(event.type),
+                                color: _getEventTypeColor(event.type),
                                 fontWeight: FontWeight.w500,
                               ),
                         ),
                       ],
                     ),
                   ),
-                  if (event.isRegistrationRequired && !isPast)
+                  if (event.isRegistrationRequired)
                     _buildStatusIndicator(context),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
                 event.description,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isPast ? Colors.grey : Colors.grey[700],
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -105,14 +86,14 @@ class EventCard extends StatelessWidget {
                   Icon(
                     Icons.access_time,
                     size: 16,
-                    color: isPast ? Colors.grey : ArkadColors.arkadTurkos,
+                    color: ArkadColors.arkadTurkos,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     '${dateFormat.format(event.startTime)} • ${timeFormat.format(event.startTime)} - ${timeFormat.format(event.endTime)}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isPast ? Colors.grey : Colors.grey[600],
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -122,35 +103,35 @@ class EventCard extends StatelessWidget {
                   Icon(
                     Icons.location_on,
                     size: 16,
-                    color: isPast ? Colors.grey : ArkadColors.arkadTurkos,
+                    color: ArkadColors.arkadTurkos,
                   ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       event.location,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: isPast ? Colors.grey : Colors.grey[600],
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                     ),
                   ),
                 ],
               ),
               // Show registration count for registration-required events
-              if (event.isRegistrationRequired && !isPast) ...[
+              if (event.isRegistrationRequired) ...[
                 const SizedBox(height: 4),
                 Row(
                   children: [
                     Icon(
                       Icons.people,
                       size: 16,
-                      color: isPast ? Colors.grey : ArkadColors.arkadTurkos,
+                      color: ArkadColors.arkadTurkos,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '${event.currentParticipants}${event.maxParticipants != null ? '/${event.maxParticipants}' : ''} registered',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: isPast ? Colors.grey : Colors.grey[600],
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -163,7 +144,8 @@ class EventCard extends StatelessWidget {
   }
 
   Widget _buildStatusIndicator(BuildContext context) {
-    if (status == EventStatus.booked) {
+    // Show "Booked" badge if user has booked this event
+    if (event.isBooked) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
@@ -180,7 +162,7 @@ class EventCard extends StatelessWidget {
       );
     }
 
-    // For upcoming events, show registration status
+    // Show registration status
     final canRegister = event.canRegister;
     final isFull =
         event.maxParticipants != null &&
@@ -226,20 +208,7 @@ class EventCard extends StatelessWidget {
   }
 
   Color _getEventTypeColor(EventType type) {
-    switch (type) {
-      case EventType.presentation:
-        return ArkadColors.arkadTurkos;
-      case EventType.workshop:
-        return ArkadColors.arkadGreen;
-      case EventType.networking:
-        return ArkadColors.arkadOrange;
-      case EventType.panel:
-        return ArkadColors.arkadSkog;
-      case EventType.careerFair:
-        return ArkadColors.arkadNavy;
-      case EventType.social:
-        return ArkadColors.accenture;
-    }
+    return ArkadColors.arkadTurkos;
   }
 
   IconData _getEventTypeIcon(EventType type) {

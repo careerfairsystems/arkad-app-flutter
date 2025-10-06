@@ -173,7 +173,7 @@ class _EventScreenState extends State<EventScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Check back later for upcoming ARKAD events',
+                    'Check back later for ARKAD events',
                     style: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
@@ -196,63 +196,12 @@ class _EventScreenState extends State<EventScreen> {
   }
 
   Widget _buildEventsList(EventViewModel viewModel) {
-    final now = DateTime.now();
-    final upcomingEvents =
-        viewModel.events.where((event) => event.endTime.isAfter(now)).toList()
-          ..sort((a, b) => a.startTime.compareTo(b.startTime));
-
-    final pastEvents =
-        viewModel.events.where((event) => event.endTime.isBefore(now)).toList()
-          ..sort((a, b) => b.startTime.compareTo(a.startTime));
+    final sortedEvents = viewModel.events.toList()
+      ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: [
-        if (upcomingEvents.isNotEmpty) ...[
-          _buildSectionHeader('Upcoming Events', upcomingEvents.length),
-          const SizedBox(height: 8),
-          ...upcomingEvents.map(
-            (event) => EventCard(event: event, status: EventStatus.upcoming),
-          ),
-          const SizedBox(height: 24),
-        ],
-        if (pastEvents.isNotEmpty) ...[
-          _buildSectionHeader('Past Events', pastEvents.length),
-          const SizedBox(height: 8),
-          ...pastEvents.map(
-            (event) => EventCard(event: event, status: EventStatus.past),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader(String title, int count) {
-    return Row(
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: ArkadColors.white,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            count.toString(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: ArkadColors.arkadTurkos,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
+      children: sortedEvents.map((event) => EventCard(event: event)).toList(),
     );
   }
 }
