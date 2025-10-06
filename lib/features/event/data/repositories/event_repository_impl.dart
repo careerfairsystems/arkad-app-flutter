@@ -151,13 +151,37 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
     String token,
     int eventId,
   ) async {
+    print('🎫 [EventRepositoryImpl] useTicket called');
+    print('   Token: $token');
+    print('   Event ID: $eventId');
+
     return executeOperation(() async {
       try {
+        print('🎫 [EventRepositoryImpl] Calling remote data source...');
         final ticketSchema = await _remoteDataSource.useTicket(token, eventId);
-        return _ticketMapper.fromSuccessfulTicketSchema(ticketSchema);
-      } on TicketAlreadyUsedException catch (_) {
-        // Convert the exception to a domain result
-        return _ticketMapper.createAlreadyUsedResult(token, eventId);
+
+        print('🎫 [EventRepositoryImpl] Got ticket schema from data source');
+        print('   Schema UUID: ${ticketSchema.uuid}');
+        print('   Schema Event ID: ${ticketSchema.eventId}');
+        print('   Schema Used: ${ticketSchema.used}');
+        print('   Schema Has User: ${ticketSchema.user != null}');
+
+        print('🎫 [EventRepositoryImpl] Mapping to domain entity...');
+        final result = _ticketMapper.fromSuccessfulTicketSchema(ticketSchema);
+
+        print('🎫 [EventRepositoryImpl] Mapped result:');
+        print('   Status: ${result.status}');
+        print('   UUID: ${result.uuid}');
+        print('   Event ID: ${result.eventId}');
+        print('   User Info: ${result.userInfo?.toString()}');
+
+        return result;
+      } on TicketAlreadyUsedException catch (e) {
+        print('🎫 [EventRepositoryImpl] Caught TicketAlreadyUsedException');
+        print('   Token: ${e.token}');
+        print('   Event ID: ${e.eventId}');
+        // Rethrow to be handled by executeOperation's error mapping
+        rethrow;
       }
     }, 'use ticket');
   }

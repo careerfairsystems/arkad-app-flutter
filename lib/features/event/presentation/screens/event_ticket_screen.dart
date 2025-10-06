@@ -201,10 +201,6 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
 
           // QR Code Section
           _buildQRCodeSection(),
-          const SizedBox(height: 32),
-
-          // Instructions
-          _buildInstructions(),
         ],
       ),
     );
@@ -347,50 +343,6 @@ class _EventTicketScreenState extends State<EventTicketScreen> {
             ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildInstructions() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.info_outline,
-                color: ArkadColors.arkadTurkos,
-                size: 24,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Instructions',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: ArkadColors.arkadNavy,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '• Present this QR code at the event entrance\n',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[700],
-              height: 1.5,
-            ),
-          ),
-        ],
       ),
     );
   }

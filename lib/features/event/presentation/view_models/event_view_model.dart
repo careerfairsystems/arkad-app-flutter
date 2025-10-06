@@ -217,16 +217,30 @@ class EventViewModel extends ChangeNotifier {
     String token,
     int eventId,
   ) async {
+    print('🎫 [EventViewModel] useTicket called');
+    print('   Token: $token');
+    print('   Event ID: $eventId');
+
     _setLoading(true);
     _clearError();
 
+    print('🎫 [EventViewModel] Calling repository...');
     final result = await _eventRepository.useTicket(token, eventId);
 
+    print('🎫 [EventViewModel] Repository result received');
     result.when(
-      success: (_) {
+      success: (verification) {
+        print('🎫 [EventViewModel] Success result:');
+        print('   Status: ${verification.status}');
+        print('   UUID: ${verification.uuid}');
+        print('   Event ID: ${verification.eventId}');
+        print('   User Info: ${verification.userInfo?.toString()}');
         _setLoading(false);
       },
       failure: (error) {
+        print('🎫 [EventViewModel] Failure result:');
+        print('   Error type: ${error.runtimeType}');
+        print('   Error message: ${error.userMessage}');
         _setError(error);
         _setLoading(false);
       },
@@ -243,6 +257,11 @@ class EventViewModel extends ChangeNotifier {
 
   void _setError(AppError? error) {
     _error = error;
+    notifyListeners();
+  }
+
+  void clearError() {
+    _error = null;
     notifyListeners();
   }
 

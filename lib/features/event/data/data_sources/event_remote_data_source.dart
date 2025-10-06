@@ -1,3 +1,4 @@
+import 'package:arkad/shared/errors/app_error.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -6,11 +7,17 @@ import '../../../../api/extensions.dart';
 import '../../../../shared/data/api_error_handler.dart';
 
 /// Exception thrown when a ticket has already been used or user doesn't have a ticket
-class TicketAlreadyUsedException implements Exception {
+class TicketAlreadyUsedException extends AppError {
   final String token;
   final int eventId;
 
-  const TicketAlreadyUsedException(this.token, this.eventId);
+  const TicketAlreadyUsedException(this.token, this.eventId)
+    : super(
+        userMessage: 'Ticket has already been used or does not exist',
+        technicalDetails:
+            'Ticket $token for event $eventId has already been used or does not exist',
+        severity: ErrorSeverity.warning,
+      );
 
   @override
   String toString() =>
@@ -267,6 +274,10 @@ class EventRemoteDataSource {
   /// Use/verify a ticket (staff only)
   /// Returns either TicketSchema for successful verification or throws specific exceptions
   Future<TicketSchema> useTicket(String token, int eventId) async {
+    print('🎫 [EventRemoteDataSource] useTicket called');
+    print('   Token: $token');
+    print('   Event ID: $eventId');
+
     try {
       final useTicketSchema = UseTicketSchema(
         (b) => b
@@ -274,22 +285,62 @@ class EventRemoteDataSource {
           ..eventId = eventId,
       );
 
+      print('🎫 [EventRemoteDataSource] Sending API request...');
       final response = await _api.getEventsApi().eventBookingApiVerifyTicket(
         useTicketSchema: useTicketSchema,
       );
 
+      print('🎫 [EventRemoteDataSource] API response received');
+      print('   Status code: ${response.statusCode}');
+      print('   Success: ${response.isSuccess}');
+      print('   Has data: ${response.data != null}');
+
+      if (response.data != null) {
+        print('🎫 [EventRemoteDataSource] Response data:');
+        print('   UUID: ${response.data!.uuid}');
+        print('   Event ID: ${response.data!.eventId}');
+        print('   Used: ${response.data!.used}');
+        print('   Has User: ${response.data!.user != null}');
+        if (response.data!.user != null) {
+          print('   User ID: ${response.data!.user.id}');
+          print(
+            '   User Name: ${response.data!.user.firstName} ${response.data!.user.lastName}',
+          );
+        }
+
+        // Log to Sentry for tracking
+        Sentry.logger.info(
+          'Ticket verification response received',
+          attributes: {
+            'event_id': SentryLogAttribute.int(eventId),
+            'has_data': SentryLogAttribute.bool(response.data != null),
+            'status_code': SentryLogAttribute.int(response.statusCode ?? 0),
+            'used': SentryLogAttribute.bool(response.data!.used),
+          },
+        );
+      }
+
       if (response.isSuccess && response.data != null) {
+        print('   ✅ Ticket verification successful');
         return response.data!;
       } else {
         response.logResponse('useTicket');
         if (response.data == null) {
+          print('   ❌ No data in response');
           throw Exception('Failed to use ticket');
         }
+        print('   ❌ Response not successful: ${response.detailedError}');
         throw Exception('Failed to use ticket: ${response.detailedError}');
       }
     } on DioException catch (e) {
+      print('🎫 [EventRemoteDataSource] DioException caught');
+      print('   Status code: ${e.response?.statusCode}');
+      print('   Response data: ${e.response?.data}');
+      print('   Message: ${e.message}');
+
       // Check for 404 error indicating ticket already used or no ticket
       if (e.response?.statusCode == 404) {
+        print('   ❌ 404 - Ticket already used or does not exist');
         throw TicketAlreadyUsedException(token, eventId);
       }
 
@@ -303,6 +354,7 @@ class EventRemoteDataSource {
       if (e is TicketAlreadyUsedException) {
         rethrow;
       }
+      print('🎫 [EventRemoteDataSource] Unexpected exception: $e');
       await Sentry.captureException(e);
       throw Exception('Failed to use ticket: $e');
     }

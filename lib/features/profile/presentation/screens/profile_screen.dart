@@ -109,8 +109,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       children: [
         ProfileInfoWidget(profile: profile),
-        const SizedBox(height: 24),
-        const NotificationStatusCard(),
         const SizedBox(height: 16),
         Consumer<AuthViewModel>(
           builder: (context, authViewModel, _) {

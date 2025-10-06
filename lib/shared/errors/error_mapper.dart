@@ -184,6 +184,9 @@ class ErrorMapper {
     String? operationContext,
   }) {
     // If it's a DioException, use the specialized mapper
+    if(exception is TicketAlreadyUsedException){
+      return exception;
+    }
     if (exception is DioException) {
       return fromDioException(
         exception,

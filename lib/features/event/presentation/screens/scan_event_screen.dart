@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
+import '../../data/data_sources/event_remote_data_source.dart';
 import '../../domain/entities/ticket_verification_result.dart';
 import '../view_models/event_view_model.dart';
 
@@ -66,6 +67,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
       failure: (error) {
         setState(() {
           isProcessingTicket = false;
+          ticketResult = null;  // Clear stale success state
         });
         // Error will be shown through the EventViewModel's error state
       },
@@ -73,6 +75,10 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
   }
 
   void _scanAgain() {
+    // Clear EventViewModel error state
+    final eventViewModel = Provider.of<EventViewModel>(context, listen: false);
+    eventViewModel.clearError();
+
     setState(() {
       scannedData = null;
       isScanning = true;
