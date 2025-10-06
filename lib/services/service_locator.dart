@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:arkad/navigation/navigation_items.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
 import 'package:flutter_combainsdk/messages.g.dart';
@@ -155,20 +156,6 @@ Future<void> setupServiceLocator() async {
   _setupStudentSessionFeature();
   _setupEventFeature();
   _setupMapFeature();
-  _setupCombainInitializer();
-}
-
-void _setupCombainInitializer() {
-  final combainInitializer = CombainIntializer();
-  serviceLocator.registerSingleton(combainInitializer);
-
-  if (kIsWeb) {
-    // On web, mark as initialized immediately since SDK is not supported
-    combainInitializer.markAsInitialized();
-  }
-
-  // SDK initialization will be triggered from a widget's initState
-  // to ensure proper Android Activity lifecycle timing
 }
 
 /// Get or create a persistent device UUID for Combain SDK
@@ -524,6 +511,9 @@ void _setupEventFeature() {
 
 /// Setup Map feature with minimal clean architecture
 void _setupMapFeature() {
+  if (!shouldShowMap()) {
+    return;
+  }
   // Repository (placeholder implementation)
   serviceLocator.registerLazySingleton<MapRepository>(
     () => MapRepositoryImpl(),
@@ -533,6 +523,10 @@ void _setupMapFeature() {
   serviceLocator.registerLazySingleton<MapViewModel>(
     () => MapViewModel(mapRepository: serviceLocator<MapRepository>()),
   );
+
+  final combainInitializer = CombainIntializer();
+  serviceLocator.registerSingleton(combainInitializer);
+  combainInitializer.initialize();
 }
 
 /// Setup Notification feature with clean architecture
