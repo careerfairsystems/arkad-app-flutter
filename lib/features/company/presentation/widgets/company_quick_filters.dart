@@ -85,10 +85,13 @@ class CompanyQuickFilters extends StatelessWidget {
   }
 
   Widget _buildPositionChip(BuildContext context, String position) {
-    final isSelected = selectedPositions.contains(position);
+    // Special handling for Student Sessions - it's a boolean filter, not a position
+    final bool isSelected = position == 'Student Sessions'
+        ? hasStudentSessions
+        : selectedPositions.contains(position);
 
     return AnimatedContainer(
-      duration: const Duration(),
+      duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
       child: FilterChip(
         elevation: isSelected ? 2 : 0,
@@ -101,7 +104,14 @@ class CompanyQuickFilters extends StatelessWidget {
         ),
         selected: isSelected,
         showCheckmark: false,
-        onSelected: (_) => onPositionToggled(position),
+        onSelected: (_) {
+          // Route to correct callback based on position type
+          if (position == 'Student Sessions') {
+            onStudentSessionsChanged(!hasStudentSessions);
+          } else {
+            onPositionToggled(position);
+          }
+        },
         selectedColor: ArkadColors.arkadTurkos,
         backgroundColor: isSelected
             ? ArkadColors.arkadTurkos

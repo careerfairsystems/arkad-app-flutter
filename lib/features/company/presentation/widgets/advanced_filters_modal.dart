@@ -80,7 +80,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.35),
+              color: Colors.black.withValues(alpha: 0.35),
               blurRadius: 24,
               offset: const Offset(0, 12),
             ),
@@ -110,7 +110,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                       alignment: Alignment.centerRight,
                       child: IconButton(
                         icon: const Icon(Icons.close_rounded),
-                        color: onSurface.withOpacity(0.8),
+                        color: onSurface.withValues(alpha: 0.8),
                         onPressed: () => context.pop(),
                       ),
                     ),
@@ -140,7 +140,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                     ),
                     labelColor: Colors.white,
                     // dim unselected items more, like in the mock
-                    unselectedLabelColor: Colors.white.withOpacity(0.35),
+                    unselectedLabelColor: Colors.white.withValues(alpha: 0.35),
                     labelStyle: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -207,30 +207,26 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
   }) {
     return Tab(
       height: 55,
-      child: Padding(
-        // compact padding; overall pill size is driven by TabBar.labelPadding
-        padding: const EdgeInsets.symmetric(vertical: 0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18), // inherits selected/unselected color
-            const SizedBox(height: 6),
-            Text(
-              title,
-              // inherits selected/unselected text style from TabBar
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18), // inherits selected/unselected color
+          const SizedBox(height: 6),
+          Text(
+            title,
+            // inherits selected/unselected text style from TabBar
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '$selectedCount/$totalCount',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              // keep slightly faint for readability on both states
+              color: Colors.white.withValues(alpha: 0.75),
             ),
-            const SizedBox(height: 2),
-            Text(
-              '$selectedCount/$totalCount',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                // keep slightly faint for readability on both states
-                color: Colors.white.withOpacity(0.75),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -393,7 +389,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.18),
+              color: Colors.black.withValues(alpha: 0.18),
               blurRadius: 6,
               offset: const Offset(0, 3),
             ),
@@ -527,7 +523,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isSelected ? 0.18 : 0.10),
+                color: Colors.black.withValues(alpha: isSelected ? 0.18 : 0.10),
                 blurRadius: 6,
                 offset: const Offset(0, 3),
               ),
@@ -620,7 +616,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 12,
             offset: const Offset(0, -4),
           ),

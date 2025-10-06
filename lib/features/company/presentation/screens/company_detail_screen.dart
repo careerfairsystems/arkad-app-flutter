@@ -1,9 +1,10 @@
-import 'package:arkad/shared/presentation/themes/arkad_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:go_router/go_router.dart';
+
+import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/async_state_builder.dart';
 import '../../../../shared/presentation/widgets/optimized_image.dart';
@@ -220,7 +221,6 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
             ),
           ),
           _buildPositionsSection(context, company),
-          //_buildJobsSection(context, company),
           _buildJobsSection(context, company),
         ],
       ),
@@ -246,35 +246,6 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-
-              if (company.locationsString.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.location_on_rounded,
-                      size: 18,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        company.locationsString,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
               _buildCircularLinks(context, company),
               const SizedBox(height: 16),
               _buildWebAndMapSection(context, company),
@@ -387,112 +358,6 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                   context,
                 ).colorScheme.onSurface.withValues(alpha: 0.8),
                 fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFactsSection(BuildContext context, Company company) {
-    final facts = <String, String>{};
-
-    if (company.industries.isNotEmpty) {
-      facts['Industries'] = company.industriesString;
-    }
-    if (company.positions.isNotEmpty) {
-      facts['Positions'] = company.positions.join(', ');
-    }
-    if (company.desiredDegrees.isNotEmpty) {
-      facts['Desired Degrees'] = company.desiredDegrees.join(', ');
-    }
-    if (company.desiredCompetences.isNotEmpty) {
-      facts['Desired Competences'] = company.desiredCompetences.join(', ');
-    }
-
-    if (facts.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.08),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.secondaryContainer.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.domain_rounded,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Company Facts',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ...facts.entries.map(
-              (entry) => Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outline.withValues(alpha: 0.05),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.key,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      entry.value,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.8),
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ),
           ],
@@ -674,6 +539,34 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                           ),
                         ],
                       ),
+                      if (job.jobTypes.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.work_outline_rounded,
+                              size: 18,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                job.jobTypes.join(', '),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.7),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       if (job.locations.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         Row(
@@ -722,6 +615,19 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                                   color: Theme.of(context).colorScheme.onSurface
                                       .withValues(alpha: 0.8),
                                 ),
+                          ),
+                        ),
+                      ],
+                      if (job.hasLink) ...[
+                        const SizedBox(height: 16),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: ArkadButton(
+                            text: 'View Job',
+                            onPressed: () => _launchJobUrl(context, job.link!),
+                            variant: ArkadButtonVariant.secondary,
+                            size: ArkadButtonSize.small,
+                            icon: Icons.open_in_new_rounded,
                           ),
                         ),
                       ],
@@ -951,7 +857,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
   Widget _buildWebAndMapSection(BuildContext buildContext, Company company) {
     final theme = Theme.of(buildContext);
 
-    Uri? _normalizeWeb(String? raw) {
+    Uri? normalizeWeb(String? raw) {
       if (raw == null || raw.trim().isEmpty) return null;
       var s = raw.trim();
       if (!s.startsWith('http://') && !s.startsWith('https://')) {
@@ -960,11 +866,11 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
       return Uri.tryParse(s);
     }
 
-    Future<void> _openExternal(Uri uri, String label) async {
+    Future<void> openExternal(Uri uri, String label) async {
       try {
         final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-        if (!ok && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+        if (!ok && buildContext.mounted) {
+          ScaffoldMessenger.of(buildContext).showSnackBar(
             SnackBar(
               content: Text('Could not open $label'),
               behavior: SnackBarBehavior.floating,
@@ -983,7 +889,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
       }
     }
 
-    Widget _pillButton({
+    Widget pillButton({
       required IconData icon,
       required String label,
       required VoidCallback? onTap,
@@ -1023,15 +929,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
       );
     }
 
-    final websiteUri = _normalizeWeb(company.websiteUrl);
-    final mapQuery =
-        (company.locationsString.isNotEmpty
-                ? company.locationsString
-                : company.name)
-            .trim();
-    final mapUri = Uri.parse(
-      'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(mapQuery)}',
-    );
+    final websiteUri = normalizeWeb(company.websiteUrl);
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
@@ -1039,19 +937,17 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           ? Row(
               children: [
                 Expanded(
-                  child: _pillButton(
+                  child: pillButton(
                     icon: Icons.language,
                     label: 'Website',
-                    enabled: websiteUri != null,
-                    onTap: () => _openExternal(websiteUri, 'website'),
+                    onTap: () => openExternal(websiteUri, 'website'),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _pillButton(
+                  child: pillButton(
                     icon: Icons.map_outlined,
                     label: 'View on Map',
-                    //TODO: Route correctly to map screen!
                     onTap: () => context.push('/map/${company.id}'),
                   ),
                 ),
@@ -1060,15 +956,51 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _pillButton(
+                pillButton(
                   icon: Icons.map_outlined,
                   label: 'View on Map',
-                  //TODO: Route correctly to map screen!
                   onTap: () => context.push('/map/${company.id}'),
                 ),
               ],
             ),
     );
+  }
+
+  /// Launch job application URL
+  Future<void> _launchJobUrl(BuildContext context, String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid job link'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open job link'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to open job link'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildIndustriesSection(BuildContext context, Company company) {

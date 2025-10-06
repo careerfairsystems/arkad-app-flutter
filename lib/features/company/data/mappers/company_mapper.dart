@@ -37,7 +37,9 @@ class CompanyMapper {
       id: jobSchema.id,
       title: jobSchema.title ?? '',
       locations: jobSchema.location?.toList() ?? [],
+      jobTypes: jobSchema.jobType?.toList() ?? [],
       description: jobSchema.description,
+      link: jobSchema.link,
     );
   }
 }

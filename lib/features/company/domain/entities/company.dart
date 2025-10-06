@@ -5,7 +5,7 @@ class Company {
     required this.name,
     this.description,
     this.logoUrl,
-    required this.websiteUrl,
+    this.websiteUrl,
     required this.industries,
     required this.desiredProgrammes,
     required this.desiredDegrees,
@@ -43,30 +43,6 @@ class Company {
   /// Check if company has student sessions available
   bool get hasStudentSessions => daysWithStudentSession > 0;
 
-  /// Get all unique locations from company jobs
-  List<String> get locations {
-    final Set<String> locationSet = {};
-    for (final job in jobs) {
-      locationSet.addAll(job.locations);
-    }
-    return locationSet.toList()..sort();
-  }
-
-  /// Get comma-separated string of industries
-  String get industriesString =>
-      industries.isEmpty ? "No industries specified" : industries.join(', ');
-
-  /// Get comma-separated string of locations
-  String get locationsString {
-    if (jobs.isEmpty) return "";
-
-    final Set<String> uniqueLocations = {};
-    for (final job in jobs) {
-      uniqueLocations.addAll(job.locations);
-    }
-    return uniqueLocations.join(', ');
-  }
-
   /// Get full logo URL (for now just returns logoUrl, but could add base URL logic)
   String? get fullLogoUrl => logoUrl;
 
@@ -88,13 +64,6 @@ class Company {
     // Search in industries
     if (industries.any(
       (industry) => industry.toLowerCase().contains(queryLower),
-    )) {
-      return true;
-    }
-
-    // Search in job locations
-    if (locations.any(
-      (location) => location.toLowerCase().contains(queryLower),
     )) {
       return true;
     }
@@ -172,13 +141,20 @@ class CompanyJob {
     required this.id,
     required this.title,
     required this.locations,
+    required this.jobTypes,
     this.description,
+    this.link,
   });
 
   final int id;
   final String title;
   final List<String> locations;
+  final List<String> jobTypes;
   final String? description;
+  final String? link;
+
+  /// Check if job has application link
+  bool get hasLink => link != null && link!.isNotEmpty;
 
   @override
   bool operator ==(Object other) =>
