@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../services/service_locator.dart';
@@ -20,8 +19,9 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final MapController _mapController = MapController();
+  GoogleMapController? _mapController;
   Company? _selectedCompany;
+  Set<Marker> _markers = {};
 
   // Lund University coordinates (center of map)
   static const LatLng _lundCenter = LatLng(55.7104, 13.2109);
@@ -40,6 +40,9 @@ class _MapScreenState extends State<MapScreen> {
       if (!companyViewModel.isInitialized) {
         companyViewModel.loadCompanies();
       }
+
+      // Build markers
+      _updateMarkers(companyViewModel.allCompanies);
 
       // Select and center on company if companyId is provided
       if (widget.selectedCompanyId != null) {
@@ -67,9 +70,7 @@ class _MapScreenState extends State<MapScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(
-                    color: ArkadColors.arkadTurkos,
-                  ),
+                  CircularProgressIndicator(color: ArkadColors.arkadTurkos),
                   SizedBox(height: 16),
                   Text(
                     'Initializing map...',
@@ -90,35 +91,33 @@ class _MapScreenState extends State<MapScreen> {
               // Map
               Consumer<CompanyViewModel>(
                 builder: (context, companyViewModel, child) {
-                  final companies = companyViewModel.allCompanies;
+                  // Update markers when companies change
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _updateMarkers(companyViewModel.allCompanies);
+                  });
 
-                  return FlutterMap(
-                    mapController: _mapController,
-                    options: MapOptions(
-                      initialCenter: _lundCenter,
-                      initialZoom: 15.0,
-                      minZoom: 12.0,
-                      maxZoom: 18.0,
-                      onTap: (_, __) {
-                        // Deselect company when tapping map
-                        if (_selectedCompany != null) {
-                          setState(() {
-                            _selectedCompany = null;
-                          });
-                        }
-                      },
+                  return GoogleMap(
+                    onMapCreated: (GoogleMapController controller) {
+                      _mapController = controller;
+                    },
+                    initialCameraPosition: const CameraPosition(
+                      target: _lundCenter,
+                      zoom: 15.0,
                     ),
-                    children: [
-                      // OpenStreetMap tile layer
-                      TileLayer(
-                        urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'se.arkadtlth.app',
-                      ),
-
-                      // Company markers
-                      MarkerLayer(markers: _buildMarkers(companies)),
-                    ],
+                    markers: _markers,
+                    minMaxZoomPreference: const MinMaxZoomPreference(
+                      12.0,
+                      18.0,
+                    ),
+                    onTap: (_) {
+                      // Deselect company when tapping map
+                      if (_selectedCompany != null) {
+                        setState(() {
+                          _selectedCompany = null;
+                        });
+                      }
+                    },
+                    myLocationEnabled: true,
                   );
                 },
               ),
@@ -289,52 +288,43 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  List<Marker> _buildMarkers(List<Company> companies) {
-    final markers = <Marker>[];
+  void _updateMarkers(List<Company> companies) {
+    final newMarkers = <Marker>{};
 
     for (int i = 0; i < companies.length; i++) {
       final company = companies[i];
       final location = _getMockLocation(i, companies.length);
 
-      markers.add(
+      newMarkers.add(
         Marker(
-          point: location,
-          width: 40,
-          height: 40,
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedCompany = company;
-              });
-              _mapController.move(location, 16.0);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: _selectedCompany?.id == company.id
-                    ? ArkadColors.arkadOrange
-                    : ArkadColors.arkadTurkos,
-                shape: BoxShape.circle,
-                border: Border.all(color: ArkadColors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: ArkadColors.black.withValues(alpha: 0.3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.business,
-                color: ArkadColors.white,
-                size: 20,
-              ),
-            ),
+          markerId: MarkerId(company.id.toString()),
+          position: location,
+          onTap: () {
+            setState(() {
+              _selectedCompany = company;
+            });
+            _centerOnCompany(company);
+          },
+          icon: _selectedCompany?.id == company.id
+              ? BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueOrange,
+                )
+              : BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+          infoWindow: InfoWindow(
+            title: company.name,
+            snippet: company.industries.isNotEmpty
+                ? company.industries.first
+                : null,
           ),
         ),
       );
     }
 
-    return markers;
+    if (mounted) {
+      setState(() {
+        _markers = newMarkers;
+      });
+    }
   }
 
   /// Generate mock locations in a grid pattern around Lund center
@@ -365,9 +355,13 @@ class _MapScreenState extends State<MapScreen> {
     final companies = companyViewModel.allCompanies;
     final index = companies.indexWhere((c) => c.id == company.id);
 
-    if (index != -1) {
+    if (index != -1 && _mapController != null) {
       final location = _getMockLocation(index, companies.length);
-      _mapController.move(location, 16.0);
+      _mapController!.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: location, zoom: 16.0),
+        ),
+      );
     }
   }
 
@@ -393,7 +387,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
-    _mapController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 }

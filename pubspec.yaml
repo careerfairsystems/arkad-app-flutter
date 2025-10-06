@@ -43,8 +43,7 @@ dependencies:
     path: ../../combain/combainsdk/flutter-sdk/
   arkad_api:
     path: ./api/arkad_api/
-  flutter_map: ^8.2.2
-  latlong2: ^0.9.1
+  google_maps_flutter: ^2.10.0
   uuid: ^4.5.1
 dev_dependencies:
   sentry_dart_plugin: ^3.1.1
