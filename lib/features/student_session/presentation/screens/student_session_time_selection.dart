@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/timeslot.dart';
+import '../../domain/services/timeline_validation_service.dart';
 import '../view_models/student_session_view_model.dart';
 
 class StudentSessionTimeSelectionScreen extends StatefulWidget {
@@ -45,12 +46,17 @@ class _StudentSessionTimeSelection
         .firstOrNull;
   }
 
-  /// Check if current selection is valid (exists and is available)
+  /// Check if current selection is valid (exists, available, and timeline valid)
   bool _isSelectionValid(List<Timeslot> timeslots) {
     final selectedSlot = _getSelectedTimeslot(timeslots);
-    return selectedSlot != null &&
-        (selectedSlot.status.isAvailable ||
-            selectedSlot.status.isBookedByCurrentUser);
+    if (selectedSlot == null) return false;
+
+    const timelineService = TimelineValidationService.instance;
+    final isTimelineValid = timelineService.isTimeslotBookingOpen(selectedSlot);
+
+    return (selectedSlot.status.isAvailable ||
+            selectedSlot.status.isBookedByCurrentUser) &&
+        isTimelineValid;
   }
 
   @override
@@ -296,9 +302,66 @@ class _StudentSessionTimeSelection
         ),
       );
     } else {
-      return const Center(
-        child: Text('No time slots available', style: TextStyle(fontSize: 16)),
+      // Check if there are timeslots but they're not bookable due to timeline
+      final provider = Provider.of<StudentSessionViewModel>(
+        context,
+        listen: false,
       );
+      final allTimeslots = provider.timeslots;
+
+      if (allTimeslots.isNotEmpty) {
+        // Check if timeslots exist but none are selectable due to timeline restrictions
+        const timelineService = TimelineValidationService.instance;
+        final hasValidTimeslots = allTimeslots.any(
+          (slot) => timelineService.isTimeslotBookingOpen(slot),
+        );
+
+        if (!hasValidTimeslots) {
+          // All timeslots have passed their booking deadline
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.schedule_rounded,
+                  size: 64,
+                  color: ArkadColors.lightRed,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Booking period has ended',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'All timeslots have passed their booking deadlines',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        } else {
+          // Timeslots exist and some are valid, but filtered list is empty for other reasons
+          return const Center(
+            child: Text(
+              'No available time slots match the current filter',
+              style: TextStyle(fontSize: 16),
+            ),
+          );
+        }
+      } else {
+        return const Center(
+          child: Text(
+            'No time slots available',
+            style: TextStyle(fontSize: 16),
+          ),
+        );
+      }
     }
   }
 
@@ -439,10 +502,10 @@ class _StudentSessionTimeSelection
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               child: Text(
                 weekday,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: Theme.of(context).primaryColor,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                  color: ArkadColors.white,
                 ),
               ),
             ),
@@ -455,12 +518,20 @@ class _StudentSessionTimeSelection
     );
   }
 
+  /// Format date header in Stockholm timezone
+  /// Returns format: "Tuesday (23 Sep 2025)"
+  /// Note: DateTime is already in Stockholm time from mapper conversion
+  String _formatDateHeader(DateTime stockholmDateTime) {
+    final formatter = DateFormat('EEEE (dd MMM yyyy)', 'en_US');
+    return formatter.format(stockholmDateTime);
+  }
+
   /// Group timeslots by weekday
   Map<String, List<Timeslot>> _groupSlotsByWeekday(List<Timeslot> slots) {
     final Map<String, List<Timeslot>> groupedSlots = {};
 
     for (final slot in slots) {
-      final weekday = DateFormat('EEEE (dd MMM yyyy)').format(slot.startTime);
+      final weekday = _formatDateHeader(slot.startTime);
 
       if (!groupedSlots.containsKey(weekday)) {
         groupedSlots[weekday] = [];
@@ -492,21 +563,35 @@ class _StudentSessionTimeSelection
     final isBookedByUser = slot.status.isBookedByCurrentUser;
     final isAvailable = slot.status.isAvailable;
 
-    // Determine card color based on status
-    Color? cardColor;
-    if (isBookedByUser) {
-      cardColor = ArkadColors.arkadGreen.withValues(alpha: 0.2);
-    } else if (isSelected) {
-      cardColor = ArkadColors.lightGray;
-    }
+    // Check timeline validation for this specific timeslot
+    const timelineService = TimelineValidationService.instance;
+    final isTimelineValid = timelineService.isTimeslotBookingOpen(slot);
 
-    // Border for booked slots
+    // Effective availability considers both status and timeline
+    final isEffectivelyAvailable =
+        (isAvailable || isBookedByUser) && isTimelineValid;
+
+    // Determine card color and border based on status and timeline
+    Color? cardColor;
     Border? cardBorder;
+
     if (isBookedByUser) {
+      // Booked state: green background and border
+      cardColor = ArkadColors.arkadGreen.withValues(alpha: 0.2);
       cardBorder = Border.all(
         color: ArkadColors.arkadGreen.withValues(alpha: 0.6),
         width: 2.5,
       );
+    } else if (isSelected) {
+      // Selected state: turkos background and border
+      cardColor = ArkadColors.arkadTurkos.withValues(alpha: 0.2);
+      cardBorder = Border.all(color: ArkadColors.arkadTurkos, width: 2);
+    } else if (!isTimelineValid) {
+      // Disabled/timeline invalid state: gray out
+      cardColor = ArkadColors.lightGray.withValues(alpha: 0.3);
+    } else {
+      // Neutral state: subtle navy background
+      cardColor = ArkadColors.arkadLightNavy.withValues(alpha: 0.5);
     }
 
     return Card(
@@ -523,12 +608,6 @@ class _StudentSessionTimeSelection
             Text(_formatTimeRange(slot)),
             if (isBookedByUser) ...[
               const SizedBox(width: 8),
-              const Icon(
-                Icons.check_circle_rounded,
-                color: ArkadColors.arkadGreen,
-                size: 20,
-              ),
-              const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -536,7 +615,7 @@ class _StudentSessionTimeSelection
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Booked by you',
+                  'Booked',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: ArkadColors.white,
                     fontWeight: FontWeight.w600,
@@ -545,10 +624,28 @@ class _StudentSessionTimeSelection
                 ),
               ),
             ],
+            // Show timeline warning for any timeslot when booking has ended
+            if (!isTimelineValid) ...[
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.schedule_rounded,
+                color: ArkadColors.lightRed,
+                size: 16,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                isBookedByUser ? 'Booking ended' : 'Booking closed',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: ArkadColors.lightRed,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                ),
+              ),
+            ],
           ],
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        leading: (isAvailable || isBookedByUser)
+        leading: isEffectivelyAvailable
             ? RadioGroup<int>(
                 groupValue: _selectedTimeslotId,
                 onChanged: (int? value) {
@@ -560,7 +657,11 @@ class _StudentSessionTimeSelection
                 },
                 child: Radio<int>(
                   value: slot.id,
-                  activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
+                  activeColor: isBookedByUser
+                      ? ArkadColors.arkadGreen
+                      : isSelected
+                      ? ArkadColors.arkadTurkos
+                      : null,
                 ),
               )
             : RadioGroup<int>(
@@ -570,28 +671,30 @@ class _StudentSessionTimeSelection
                 },
                 child: Radio<int>(
                   value: slot.id,
-                  activeColor: isBookedByUser ? ArkadColors.arkadGreen : null,
+                  activeColor: isBookedByUser
+                      ? ArkadColors.arkadGreen
+                      : isSelected
+                      ? ArkadColors.arkadTurkos
+                      : null,
                 ),
               ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         visualDensity: VisualDensity.compact,
-        onTap: (isAvailable || isBookedByUser)
+        onTap: isEffectivelyAvailable
             ? () {
                 setState(() {
                   _selectedTimeslotId = slot.id;
                 });
               }
             : null,
-        enabled: (isAvailable || isBookedByUser),
+        enabled: isEffectivelyAvailable,
       ),
     );
   }
 
-  /// Format time range for display
+  /// Format time range for display in Stockholm timezone
   String _formatTimeRange(Timeslot slot) {
-    final startTime = DateFormat('HH:mm').format(slot.startTime);
-    final endTime = DateFormat('HH:mm').format(slot.endTime);
-    return '$startTime - $endTime';
+    return slot.timeRangeDisplay;
   }
 
   /// Build simple action button

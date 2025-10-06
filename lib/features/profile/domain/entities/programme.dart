@@ -44,21 +44,36 @@ const List<ProgrammeData> availableProgrammes = [
     label: "Mechanical Engineering with Technical Design",
     value: Programme.mechanicalEngineeringWithTechnicalDesign,
   ),
-  ProgrammeData(label: "Electrical Engineering", value: Programme.electricalEngineering),
+  ProgrammeData(
+    label: "Electrical Engineering",
+    value: Programme.electricalEngineering,
+  ),
   ProgrammeData(
     label: "Environmental Engineering",
     value: Programme.environmentalEngineering,
   ),
-  ProgrammeData(label: "Mechanical Engineering", value: Programme.mechanicalEngineering),
-  ProgrammeData(label: "Nanoscience and Technology", value: Programme.engineeringNanoscience),
-  ProgrammeData(label: "Biotechnology", value: Programme.engineeringBiotechnology),
+  ProgrammeData(
+    label: "Mechanical Engineering",
+    value: Programme.mechanicalEngineering,
+  ),
+  ProgrammeData(
+    label: "Nanoscience and Technology",
+    value: Programme.engineeringNanoscience,
+  ),
+  ProgrammeData(
+    label: "Biotechnology",
+    value: Programme.engineeringBiotechnology,
+  ),
   ProgrammeData(label: "Industrial Design", value: Programme.industrialDesign),
   ProgrammeData(label: "Architecture", value: Programme.architecture),
   ProgrammeData(
     label: "Information and Communication Engineering",
     value: Programme.informationAndCommunicationEngineering,
   ),
-  ProgrammeData(label: "Chemical Engineering", value: Programme.chemicalEngineering),
+  ProgrammeData(
+    label: "Chemical Engineering",
+    value: Programme.chemicalEngineering,
+  ),
   ProgrammeData(
     label: "Civil Engineering with Railway Engineering",
     value: Programme.constructionAndRailwayConstruction,
@@ -79,13 +94,19 @@ const List<ProgrammeData> availableProgrammes = [
     label: "Engineering Mathematics",
     value: Programme.engineeringMathematics,
   ),
-  ProgrammeData(label: "Biomedical Engineering", value: Programme.biomedicalEngineering),
+  ProgrammeData(
+    label: "Biomedical Engineering",
+    value: Programme.biomedicalEngineering,
+  ),
   ProgrammeData(label: "Surveying", value: Programme.surveying),
   ProgrammeData(
     label: "Computer Engineering",
     value: Programme.computerScienceEngineering,
   ),
-  ProgrammeData(label: "Engineering Physics", value: Programme.engineeringPhysics),
+  ProgrammeData(
+    label: "Engineering Physics",
+    value: Programme.engineeringPhysics,
+  ),
   ProgrammeData(
     label: "Civil Engineering with Road and Traffic Engineering",
     value: Programme.roadAndTrafficTechnology,

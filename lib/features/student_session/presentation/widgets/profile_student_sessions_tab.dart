@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../shared/infrastructure/services/timezone_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/async_state_builder.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
@@ -77,9 +78,10 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     // Sort within each group by submission date (newest first)
     for (final statusGroup in groups.values) {
       statusGroup.sort(
-        (a, b) => (b.application.createdAt ?? DateTime.now()).compareTo(
-          a.application.createdAt ?? DateTime.now(),
-        ),
+        (a, b) => (b.application.createdAt ?? TimezoneService.stockholmNow())
+            .compareTo(
+              a.application.createdAt ?? TimezoneService.stockholmNow(),
+            ),
       );
     }
 
@@ -487,16 +489,17 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     if (application.createdAt == null) return const SizedBox.shrink();
 
     final submittedTime = application.createdAt!;
-    final now = DateTime.now();
-    final difference = now.difference(submittedTime);
+    final difference = TimezoneService.differenceFromNow(submittedTime);
 
     String timeAgo;
-    if (difference.inDays > 0) {
-      timeAgo = '${difference.inDays} days ago';
-    } else if (difference.inHours > 0) {
-      timeAgo = '${difference.inHours} hours ago';
-    } else if (difference.inMinutes > 0) {
-      timeAgo = '${difference.inMinutes} minutes ago';
+    // Since differenceFromNow returns negative duration for past dates
+    final absDifference = difference.abs();
+    if (absDifference.inDays > 0) {
+      timeAgo = '${absDifference.inDays} days ago';
+    } else if (absDifference.inHours > 0) {
+      timeAgo = '${absDifference.inHours} hours ago';
+    } else if (absDifference.inMinutes > 0) {
+      timeAgo = '${absDifference.inMinutes} minutes ago';
     } else {
       timeAgo = 'Just now';
     }
@@ -538,7 +541,6 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     StudentSessionApplicationWithBookingState applicationWithBookingState,
   ) {
     final application = applicationWithBookingState.application;
-    final hasBooking = applicationWithBookingState.hasBooking;
 
     // Show booking actions based on application status - backend controls availability
     if (application.status != ApplicationStatus.accepted) {
@@ -567,27 +569,95 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
       );
     }
 
-    // Booking is open - show single manage booking button
+    // For accepted applications, use timeline validation to determine button state
+    return _buildTimelineAwareBookingButton(
+      context,
+      applicationWithBookingState,
+    );
+  }
+
+  /// Build timeline-aware booking button for accepted applications
+  Widget _buildTimelineAwareBookingButton(
+    BuildContext context,
+    StudentSessionApplicationWithBookingState applicationWithBookingState,
+  ) {
+    final application = applicationWithBookingState.application;
+    final hasBooking = applicationWithBookingState.hasBooking;
+
+    // Basic booking logic without full session timeline validation
+    // This is a simplified approach since we don't have session data in this context
+    // Individual timeslot deadlines will be checked in the booking screen
     String buttonText = hasBooking ? 'Manage Booking' : 'Book Timeslot';
     IconData buttonIcon = hasBooking
         ? Icons.edit_calendar_rounded
         : Icons.schedule_rounded;
 
-    return Row(
+    // For accepted applications, booking is generally available
+    // Individual timeslot deadlines will be checked in the booking screen
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {
-              context.push('/sessions/book/${application.companyId}');
-            },
-            icon: Icon(buttonIcon, size: 18),
-            label: Text(buttonText),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: ArkadColors.arkadTurkos,
+        // Show timeline warning if needed
+        _buildTimelineWarning(context, applicationWithBookingState),
+
+        const SizedBox(height: 8),
+
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  context.push('/sessions/book/${application.companyId}');
+                },
+                icon: Icon(buttonIcon, size: 18),
+                label: Text(buttonText),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ArkadColors.arkadTurkos,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ],
+    );
+  }
+
+  /// Build timeline warning message for accepted applications
+  Widget _buildTimelineWarning(
+    BuildContext context,
+    StudentSessionApplicationWithBookingState applicationWithBookingState,
+  ) {
+    // For now, show general booking information
+    // This would be enhanced with actual session timeline data
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.info_outline,
+            size: 16,
+            color: ArkadColors.arkadTurkos,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Individual timeslots may have their own booking deadlines',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: ArkadColors.arkadTurkos,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
