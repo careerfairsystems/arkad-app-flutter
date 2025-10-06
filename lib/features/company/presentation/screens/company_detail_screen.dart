@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/async_state_builder.dart';
 import '../../../../shared/presentation/widgets/optimized_image.dart';
@@ -37,7 +41,10 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
       builder: (context, viewModel, child) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(viewModel.company?.name ?? 'Company Details'),
+            title: Text(
+              viewModel.company?.name ?? 'Company Details',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
           ),
           body: AsyncStateBuilder<Company>(
             command: viewModel.getCompanyByIdCommand,
@@ -150,8 +157,70 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
         children: [
           _buildHeaderSection(context, company),
           _buildDescriptionSection(context, company),
-          _buildFactsSection(context, company),
           _buildStudentSessionSection(context, company),
+          _buildIndustriesSection(context, company),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.school_outlined,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  "What we're looking for",
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildDegreesSection(context, company),
+          _buildCompetencesSection(context, company),
+          //_buildFactsSection(context, company),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.work_outline_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  "Opportunities",
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildPositionsSection(context, company),
           _buildJobsSection(context, company),
         ],
       ),
@@ -159,28 +228,16 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
   }
 
   Widget _buildHeaderSection(BuildContext context, Company company) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Theme.of(
-              context,
-            ).colorScheme.primaryContainer.withValues(alpha: 0.3),
-            Theme.of(context).colorScheme.surface,
-          ],
-        ),
-      ),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
               _buildLogo(context, company),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Text(
                 company.name,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -189,57 +246,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              if (company.industriesString.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.secondaryContainer.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    company.industriesString,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-              if (company.locationsString.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.location_on_rounded,
-                      size: 18,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        company.locationsString,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              _buildCircularLinks(context, company),
+              const SizedBox(height: 16),
+              _buildWebAndMapSection(context, company),
             ],
           ),
         ),
@@ -249,8 +258,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
 
   Widget _buildLogo(BuildContext context, Company company) {
     return Container(
-      width: 100,
-      height: 100,
+      width: 110,
+      height: 110,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         color: Theme.of(context).colorScheme.surface,
@@ -348,6 +357,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 color: Theme.of(
                   context,
                 ).colorScheme.onSurface.withValues(alpha: 0.8),
+                fontSize: 16,
               ),
             ),
           ],
@@ -356,24 +366,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
     );
   }
 
-  Widget _buildFactsSection(BuildContext context, Company company) {
-    final facts = <String, String>{};
-
-    if (company.industries.isNotEmpty) {
-      facts['Industries'] = company.industriesString;
-    }
-    if (company.positions.isNotEmpty) {
-      facts['Positions'] = company.positions.join(', ');
-    }
-    if (company.desiredDegrees.isNotEmpty) {
-      facts['Desired Degrees'] = company.desiredDegrees.join(', ');
-    }
-    if (company.desiredCompetences.isNotEmpty) {
-      facts['Desired Competences'] = company.desiredCompetences.join(', ');
-    }
-
-    if (facts.isEmpty) return const SizedBox.shrink();
-
+  Widget _buildStudentSessionSection(BuildContext context, Company company) {
+    if (!company.hasStudentSessions) return const SizedBox.shrink();
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -396,113 +390,13 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                   decoration: BoxDecoration(
                     color: Theme.of(
                       context,
-                    ).colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    Icons.domain_rounded,
+                    Icons.calendar_month,
                     size: 20,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Company Facts',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ...facts.entries.map(
-              (entry) => Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outline.withValues(alpha: 0.05),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.key,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      entry.value,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.8),
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStudentSessionSection(BuildContext context, Company company) {
-    if (!company.hasStudentSessions) return const SizedBox.shrink();
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Theme.of(
-              context,
-            ).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
-            Theme.of(context).colorScheme.surface,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.08),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.tertiaryContainer.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.people_rounded,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.tertiary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -515,99 +409,50 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primaryContainer.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Text(
+                    '${company.daysWithStudentSession} ${company.daysWithStudentSession == 1 ? 'day' : 'days'} available',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (company.studentSessionMotivation != null &&
+                company.studentSessionMotivation!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                company.studentSessionMotivation!,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  height: 1.6,
                   color: Theme.of(
                     context,
-                  ).colorScheme.primary.withValues(alpha: 0.1),
+                  ).colorScheme.onSurface.withValues(alpha: 0.8),
+                  fontSize: 16,
                 ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.calendar_month_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Sessions Available',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${company.daysWithStudentSession} days available',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer
-                                    .withValues(alpha: 0.8),
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: Consumer<CompanyDetailViewModel>(
-                builder: (context, viewModel, child) {
-                  // Show SnackBar when message is available
-                  if (viewModel.message != null) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(viewModel.message!),
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          onVisible: () => viewModel.clearMessage(),
-                        ),
-                      );
-                    });
-                  }
-
-                  return ArkadButton(
-                    text: 'Apply for Session',
-                    onPressed: () =>
-                        viewModel.handleSessionApplication(context),
-                    icon: Icons.schedule_rounded,
-                  );
-                },
-              ),
-            ),
+            ],
           ],
         ),
       ),
@@ -634,26 +479,12 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.errorContainer.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.work_rounded,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Text(
-                  'Available Positions',
+                  'Available Jobs',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: -0.3,
+                    fontSize: 19,
                   ),
                 ),
               ],
@@ -708,6 +539,34 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                           ),
                         ],
                       ),
+                      if (job.jobTypes.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.work_outline_rounded,
+                              size: 18,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                job.jobTypes.join(', '),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.7),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       if (job.locations.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         Row(
@@ -759,10 +618,461 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                           ),
                         ),
                       ],
+                      if (job.hasLink) ...[
+                        const SizedBox(height: 16),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: ArkadButton(
+                            text: 'View Job',
+                            onPressed: () => _launchJobUrl(context, job.link!),
+                            variant: ArkadButtonVariant.secondary,
+                            size: ArkadButtonSize.small,
+                            icon: Icons.open_in_new_rounded,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Reusable section for titled chip lists (Degrees, Competences, Positions)
+  Widget _buildTagsSection(
+    BuildContext context, {
+    required String title,
+    required List<String> items,
+  }) {
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.3,
+                    fontSize: 19,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: items.map((value) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: ArkadColors.lightGray.withValues(alpha: 0.4),
+                    backgroundBlendMode: BlendMode.overlay,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    value,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDegreesSection(BuildContext context, Company company) {
+    return _buildTagsSection(
+      context,
+      title: 'Desired Degrees',
+      items: company.desiredDegrees,
+    );
+  }
+
+  Widget _buildCompetencesSection(BuildContext context, Company company) {
+    return _buildTagsSection(
+      context,
+      title: 'Desired Competences',
+      items: company.desiredCompetences,
+    );
+  }
+
+  Widget _buildPositionsSection(BuildContext context, Company company) {
+    return _buildTagsSection(
+      context,
+      title: 'Open Positions',
+      items: company.positions,
+    );
+  }
+
+  Widget _buildCircularLinks(BuildContext context, Company company) {
+    final theme = Theme.of(context);
+
+    Widget buildBtn({
+      required String url,
+      required Widget icon,
+      required String tooltip,
+    }) {
+      Uri normalize(String raw) {
+        var s = raw.trim();
+        if (!s.startsWith('http://') && !s.startsWith('https://')) {
+          s = 'https://$s';
+        }
+        return Uri.parse(s);
+      }
+
+      Future<void> open() async {
+        final uri = normalize(url);
+        try {
+          final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+          if (!ok && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Could not open $tooltip'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        } catch (_) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Could not open $tooltip'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        }
+      }
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Tooltip(
+          message: tooltip,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: open,
+            child: Ink(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: theme.colorScheme.surfaceContainer.withValues(
+                  alpha: 0.4,
+                ),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.08),
+                ),
+              ),
+              child: Center(child: icon),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final items = <Widget>[];
+
+    void add(String? url, Widget icon, String label) {
+      if (url != null && url.trim().isNotEmpty) {
+        items.add(buildBtn(url: url, icon: icon, tooltip: label));
+      }
+    }
+
+    final iconColor = theme.colorScheme.onSurface.withValues(alpha: 0.8);
+
+    add(
+      company.urlLinkedin,
+      Icon(MdiIcons.linkedin, size: 22, color: iconColor),
+      'LinkedIn',
+    );
+    add(
+      company.urlInstagram,
+      Icon(MdiIcons.instagram, size: 22, color: iconColor),
+      'Instagram',
+    );
+    add(
+      company.urlFacebook,
+      Icon(MdiIcons.facebook, size: 22, color: iconColor),
+      'Facebook',
+    );
+    add(
+      company.urlTwitter,
+      ImageIcon(
+        const AssetImage('assets/icons/x-logo.png'),
+        size: 16,
+        color: iconColor,
+      ),
+      'X',
+    );
+    add(
+      company.urlYoutube,
+      Icon(MdiIcons.youtube, size: 22, color: iconColor),
+      'YouTube',
+    );
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: items,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWebAndMapSection(BuildContext buildContext, Company company) {
+    final theme = Theme.of(buildContext);
+
+    Uri? normalizeWeb(String? raw) {
+      if (raw == null || raw.trim().isEmpty) return null;
+      var s = raw.trim();
+      if (!s.startsWith('http://') && !s.startsWith('https://')) {
+        s = 'https://$s';
+      }
+      return Uri.tryParse(s);
+    }
+
+    Future<void> openExternal(Uri uri, String label) async {
+      try {
+        final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (!ok && buildContext.mounted) {
+          ScaffoldMessenger.of(buildContext).showSnackBar(
+            SnackBar(
+              content: Text('Could not open $label'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (_) {
+        if (buildContext.mounted) {
+          ScaffoldMessenger.of(buildContext).showSnackBar(
+            SnackBar(
+              content: Text('Could not open $label'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    }
+
+    Widget pillButton({
+      required IconData icon,
+      required String label,
+      required VoidCallback? onTap,
+      bool enabled = true,
+    }) {
+      final bg = theme.colorScheme.surfaceContainer.withValues(alpha: 0.35);
+      final border = theme.colorScheme.outline.withValues(alpha: 0.12);
+      final fg = enabled
+          ? theme.colorScheme.onSurface.withValues(alpha: 0.9)
+          : theme.colorScheme.onSurface.withValues(alpha: 0.4);
+
+      return InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: enabled ? onTap : null,
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: border),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 20, color: fg),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: fg,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final websiteUri = normalizeWeb(company.websiteUrl);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: websiteUri != null
+          ? Row(
+              children: [
+                Expanded(
+                  child: pillButton(
+                    icon: Icons.language,
+                    label: 'Website',
+                    onTap: () => openExternal(websiteUri, 'website'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: pillButton(
+                    icon: Icons.map_outlined,
+                    label: 'View on Map',
+                    onTap: () => context.push('/map/${company.id}'),
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                pillButton(
+                  icon: Icons.map_outlined,
+                  label: 'View on Map',
+                  onTap: () => context.push('/map/${company.id}'),
+                ),
+              ],
+            ),
+    );
+  }
+
+  /// Launch job application URL
+  Future<void> _launchJobUrl(BuildContext context, String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid job link'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open job link'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to open job link'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildIndustriesSection(BuildContext context, Company company) {
+    if (company.industries.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondaryContainer.withValues(
+                      alpha: 0.3,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    MdiIcons.briefcaseOutline,
+                    size: 20,
+                    color: theme.colorScheme.secondary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Industries',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: company.industries.map((industry) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: ArkadColors.lightGray.withValues(alpha: 0.4),
+                    backgroundBlendMode: BlendMode.overlay,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    industry,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),
