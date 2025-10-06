@@ -24,7 +24,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   @override
   void initState() {
     super.initState();
-    print('🔍 [EventDetailScreen] initState called with eventId=${widget.eventId}');
+    print(
+      '🔍 [EventDetailScreen] initState called with eventId=${widget.eventId}',
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadEvent();
@@ -35,7 +37,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     print('🔍 [EventDetailScreen] Loading event with ID=${widget.eventId}');
     final eventViewModel = Provider.of<EventViewModel>(context, listen: false);
     await eventViewModel.getEventById(widget.eventId);
-    print('🔍 [EventDetailScreen] Load completed. Error: ${eventViewModel.error}, Event: ${eventViewModel.selectedEvent?.title}');
+    print(
+      '🔍 [EventDetailScreen] Load completed. Error: ${eventViewModel.error}, Event: ${eventViewModel.selectedEvent?.title}',
+    );
   }
 
   @override

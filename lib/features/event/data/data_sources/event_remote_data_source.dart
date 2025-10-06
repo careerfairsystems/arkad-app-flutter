@@ -49,7 +49,9 @@ class EventRemoteDataSource {
 
   /// Get a specific event by ID
   Future<EventSchema> getEventById(int eventId) async {
-    print('🔍 [EventRemoteDataSource] Fetching event from API: eventId=$eventId');
+    print(
+      '🔍 [EventRemoteDataSource] Fetching event from API: eventId=$eventId',
+    );
     print('   API endpoint: GET /api/events/$eventId/');
 
     try {
@@ -63,7 +65,9 @@ class EventRemoteDataSource {
       print('   Has data: ${response.data != null}');
 
       if (response.isSuccess && response.data != null) {
-        print('   ✅ Got event: id=${response.data!.id}, name="${response.data!.name}"');
+        print(
+          '   ✅ Got event: id=${response.data!.id}, name="${response.data!.name}"',
+        );
         return response.data!;
       } else {
         response.logResponse('getEventById');
