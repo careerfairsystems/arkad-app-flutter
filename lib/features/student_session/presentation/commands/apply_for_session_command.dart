@@ -1,3 +1,4 @@
+import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/errors/student_session_errors.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
 import '../../domain/entities/student_session.dart';
@@ -211,30 +212,14 @@ class ApplyForSessionCommand
 
     // LinkedIn validation (if provided)
     if (params.linkedin != null && params.linkedin!.isNotEmpty) {
-      if (!_isValidLinkedInUrl(params.linkedin!)) {
+      if (!ValidationService.isValidLinkedInUrl(params.linkedin!)) {
         return const StudentSessionApplicationError(
-          'Please provide a valid LinkedIn URL or username.',
+          'Please provide a valid LinkedIn URL (e.g., https://www.linkedin.com/in/username).',
         );
       }
     }
 
     return null;
-  }
-
-  /// Validates LinkedIn URL or username format
-  bool _isValidLinkedInUrl(String linkedin) {
-    if (linkedin.trim().isEmpty) return true;
-
-    final patterns = [
-      r'^https://www\.linkedin\.com/in/[a-zA-Z0-9_-]+/?$',
-      r'^www\.linkedin\.com/in/[a-zA-Z0-9_-]+/?$',
-      r'^[a-zA-Z0-9_-]+$', // Just username
-    ];
-
-    return patterns.any(
-      (pattern) =>
-          RegExp(pattern, caseSensitive: false).hasMatch(linkedin.trim()),
-    );
   }
 
   /// Reset command state and clear any errors and messages

@@ -141,10 +141,9 @@ class ProfileFormComponents {
           readOnly: readOnlyMode,
           decoration: const InputDecoration(
             labelText: 'LinkedIn',
-            hintText: 'e.g., yourname or linkedin.com/in/yourname',
+            hintText: 'e.g., https://www.linkedin.com/in/yourname',
             border: OutlineInputBorder(),
-            helperText:
-                'Optional - Enter your LinkedIn username or full profile URL',
+            helperText: 'Optional - Enter your full LinkedIn profile URL',
             helperStyle: TextStyle(color: ArkadColors.lightGray),
           ),
         ),

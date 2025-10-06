@@ -1,3 +1,4 @@
+import '../../../../shared/domain/validation/validation_service.dart';
 import '../entities/field_configuration.dart';
 
 /// Service for managing dynamic form configuration in Student Session applications.
@@ -160,6 +161,13 @@ class StudentSessionFormConfigService {
         }
         if (maxLength != null && value.trim().length > maxLength) {
           return '${_getFieldDisplayName(fieldName)} must be no more than $maxLength characters';
+        }
+      }
+
+      // Validate LinkedIn URL format if this is the linkedin field
+      if (fieldName == 'linkedin' && value != null && value.trim().isNotEmpty) {
+        if (!ValidationService.isValidLinkedInUrl(value.trim())) {
+          return 'Please enter a valid LinkedIn URL (e.g., https://www.linkedin.com/in/yourname)';
         }
       }
 
