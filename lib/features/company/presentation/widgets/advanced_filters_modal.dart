@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -45,11 +46,24 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _currentFilter = widget.initialFilter.copyWith();
+    // Use the initial filter directly - no copy needed
+    _currentFilter = widget.initialFilter;
 
     _filteredDegrees = List.from(FilterOptions.degrees);
     _filteredIndustries = List.from(FilterOptions.industries);
     _filteredCompetences = List.from(FilterOptions.competences);
+
+    // Log initial filter state when modal opens
+    if (kDebugMode) {
+      print(
+        '[AdvancedFiltersModal] Opened with initial state: '
+        'positions=[${_currentFilter.positions.join(", ")}], '
+        'degrees=[${_currentFilter.degrees.join(", ")}], '
+        'industries=[${_currentFilter.industries.join(", ")}], '
+        'competences=[${_currentFilter.competences.join(", ")}], '
+        'hasStudentSessions=${_currentFilter.hasStudentSessions}',
+      );
+    }
   }
 
   @override
@@ -638,6 +652,18 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                       // Keep label simple like in the screenshot
                       text: 'Apply',
                       onPressed: () {
+                        // Log final filter state before applying
+                        if (kDebugMode) {
+                          print(
+                            '[AdvancedFiltersModal] User clicked Apply with final state: '
+                            'positions=[${_currentFilter.positions.join(", ")}], '
+                            'degrees=[${_currentFilter.degrees.join(", ")}], '
+                            'industries=[${_currentFilter.industries.join(", ")}], '
+                            'competences=[${_currentFilter.competences.join(", ")}], '
+                            'hasStudentSessions=${_currentFilter.hasStudentSessions}',
+                          );
+                        }
+
                         widget.onFiltersApplied(_currentFilter);
                         context.pop();
                       },

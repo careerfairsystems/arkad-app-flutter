@@ -250,18 +250,31 @@ class CompanyViewModel extends ChangeNotifier {
 
   void _updateDisplayedCompanies() {
     if (_currentSearchQuery.isEmpty && !_currentFilter.hasActiveFilters) {
+      // Reset all filter/search commands when showing all companies
+      _searchAndFilterCommand.reset(notify: false);
+      _searchCompaniesCommand.reset(notify: false);
+      _filterCompaniesCommand.reset(notify: false);
       _displayedCompanies = _getCompaniesCommand.result ?? [];
     } else if (_currentSearchQuery.isNotEmpty &&
         _currentFilter.hasActiveFilters) {
+      // Reset other commands when using search + filter
+      _searchCompaniesCommand.reset(notify: false);
+      _filterCompaniesCommand.reset(notify: false);
       _searchAndFilterCommand.searchAndFilterCompanies(
         _currentSearchQuery,
         _currentFilter,
       );
       return;
     } else if (_currentSearchQuery.isNotEmpty) {
+      // Reset other commands when using search only
+      _searchAndFilterCommand.reset(notify: false);
+      _filterCompaniesCommand.reset(notify: false);
       _searchCompaniesCommand.searchCompanies(_currentSearchQuery);
       return;
     } else if (_currentFilter.hasActiveFilters) {
+      // Reset other commands when using filter only
+      _searchAndFilterCommand.reset(notify: false);
+      _searchCompaniesCommand.reset(notify: false);
       _filterCompaniesCommand.filterCompanies(_currentFilter);
       return;
     }
@@ -270,16 +283,57 @@ class CompanyViewModel extends ChangeNotifier {
   }
 
   void _onCommandChanged() {
+    final totalCompanies = allCompanies.length;
+
     if (_searchAndFilterCommand.isCompleted) {
       _displayedCompanies = _searchAndFilterCommand.result ?? [];
+
+      // Log intersection of search AND filter
+      if (kDebugMode) {
+        print(
+          '[CompanyViewModel] Search + Filter INTERSECTION: '
+          'total=$totalCompanies → result=${_displayedCompanies.length} | '
+          'query="$_currentSearchQuery", '
+          'filters: ${_currentFilter.positions.length} positions, '
+          '${_currentFilter.degrees.length} degrees, '
+          '${_currentFilter.industries.length} industries',
+        );
+      }
     } else if (_searchCompaniesCommand.isCompleted) {
       _displayedCompanies = _searchCompaniesCommand.result ?? [];
+
+      // Log search-only results
+      if (kDebugMode) {
+        print(
+          '[CompanyViewModel] Search ONLY: '
+          'total=$totalCompanies → result=${_displayedCompanies.length} | '
+          'query="$_currentSearchQuery"',
+        );
+      }
     } else if (_filterCompaniesCommand.isCompleted) {
       _displayedCompanies = _filterCompaniesCommand.result ?? [];
+
+      // Log filter-only results
+      if (kDebugMode) {
+        print(
+          '[CompanyViewModel] Filter ONLY: '
+          'total=$totalCompanies → result=${_displayedCompanies.length} | '
+          'filters: ${_currentFilter.positions.length} positions, '
+          '${_currentFilter.degrees.length} degrees, '
+          '${_currentFilter.industries.length} industries',
+        );
+      }
     } else if (_getCompaniesCommand.isCompleted &&
         _currentSearchQuery.isEmpty &&
         !_currentFilter.hasActiveFilters) {
       _displayedCompanies = _getCompaniesCommand.result ?? [];
+
+      // Log showing all companies (no filters)
+      if (kDebugMode) {
+        print(
+          '[CompanyViewModel] Showing ALL companies (no filters): total=$totalCompanies',
+        );
+      }
     }
 
     notifyListeners();

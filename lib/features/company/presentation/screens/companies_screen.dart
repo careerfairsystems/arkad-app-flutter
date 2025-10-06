@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -244,8 +245,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   void _onSearchChanged(String value) {
-    final viewModel = Provider.of<CompanyViewModel>(context, listen: false);
-    viewModel.searchCompanies(value);
+    // Apply search and filters together to avoid redundant state updates
     _applyFilters();
   }
 
@@ -265,6 +265,17 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
         child: AdvancedFiltersModal(
           initialFilter: _currentFilter,
           onFiltersApplied: (filter) {
+            if (kDebugMode) {
+              print(
+                '[CompaniesScreen] Advanced filters applied: '
+                'positions=[${filter.positions.join(", ")}], '
+                'degrees=[${filter.degrees.join(", ")}], '
+                'industries=[${filter.industries.join(", ")}], '
+                'competences=[${filter.competences.join(", ")}], '
+                'hasStudentSessions=${filter.hasStudentSessions}',
+              );
+            }
+
             setState(() {
               _currentFilter = filter;
             });
@@ -276,15 +287,35 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   void _clearAllFilters() {
+    if (kDebugMode) {
+      print('[CompaniesScreen] Clearing all filters and search');
+    }
+
+    // Clear search first so _applyFilters() uses empty search text
+    _searchController.clear();
     setState(() {
       _currentFilter = const CompanyFilter();
     });
     _applyFilters();
-    _searchController.clear();
   }
 
   void _applyFilters() {
     final viewModel = Provider.of<CompanyViewModel>(context, listen: false);
+
+    // Log filter application for debugging
+    if (kDebugMode) {
+      print(
+        '[CompaniesScreen] Applying filters: '
+        'search="${_searchController.text}", '
+        'hasFilters=${_currentFilter.hasActiveFilters}, '
+        'positions=${_currentFilter.positions.length}, '
+        'degrees=${_currentFilter.degrees.length}, '
+        'industries=${_currentFilter.industries.length}, '
+        'competences=${_currentFilter.competences.length}, '
+        'hasStudentSessions=${_currentFilter.hasStudentSessions}',
+      );
+    }
+
     viewModel.searchAndFilterCompanies(_searchController.text, _currentFilter);
   }
 
