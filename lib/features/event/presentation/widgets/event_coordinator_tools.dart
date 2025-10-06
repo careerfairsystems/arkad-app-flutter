@@ -43,8 +43,10 @@ class EventCoordinatorTools extends StatelessWidget {
 
   Widget _buildCoordinatorHeader() {
     return Card(
+      color: ArkadColors.arkadLightNavy,
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -56,7 +58,7 @@ class EventCoordinatorTools extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
-                Icons.admin_panel_settings,
+                Icons.admin_panel_settings_rounded,
                 size: 32,
                 color: ArkadColors.arkadTurkos,
               ),
@@ -67,16 +69,13 @@ class EventCoordinatorTools extends StatelessWidget {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: ArkadColors.arkadNavy,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Manage "${event.title}"',
-              style: TextStyle(
-                fontSize: 14,
-                color: ArkadColors.arkadNavy.withValues(alpha: 0.7),
-              ),
+              style: const TextStyle(fontSize: 14, color: Colors.white70),
               textAlign: TextAlign.center,
             ),
           ],
@@ -93,8 +92,10 @@ class EventCoordinatorTools extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Card(
+      color: ArkadColors.arkadLightNavy,
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
@@ -104,7 +105,7 @@ class EventCoordinatorTools extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: ArkadColors.arkadTurkos, size: 24),
         ),
@@ -112,21 +113,21 @@ class EventCoordinatorTools extends StatelessWidget {
           title,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: ArkadColors.arkadNavy,
+            color: Colors.white,
           ),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Text(
             subtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: ArkadColors.arkadNavy.withValues(alpha: 0.7),
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
           ),
         ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          color: ArkadColors.arkadNavy.withValues(alpha: 0.5),
+        trailing: const Icon(
+          Icons.arrow_forward_ios_rounded,
+          color: Colors.white54,
           size: 16,
         ),
         onTap: onTap,

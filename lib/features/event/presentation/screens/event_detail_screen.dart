@@ -81,16 +81,41 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const Scaffold(
-      appBar: _LoadingAppBar(),
+    return Scaffold(
+      appBar: const _LoadingAppBar(),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Loading event details...'),
-          ],
+        child: Container(
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Loading event details...',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -100,37 +125,59 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Event Details')),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+        child: Container(
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.errorContainer.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+            ),
+          ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.error_outline,
-                size: 64,
-                color: ArkadColors.lightRed,
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.errorContainer.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  Icons.error_outline_rounded,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.error,
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Text(
                 'Failed to load event',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 viewModel.error?.userMessage ?? 'Something went wrong',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
+                  height: 1.4,
+                ),
               ),
               const SizedBox(height: 24),
               ArkadButton(
                 text: 'Try Again',
                 onPressed: _loadEvent,
-                icon: Icons.refresh,
+                icon: Icons.refresh_rounded,
               ),
             ],
           ),
@@ -143,37 +190,59 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Event Details')),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+        child: Container(
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.errorContainer.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+            ),
+          ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.event_busy,
-                size: 64,
-                color: ArkadColors.lightRed,
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.errorContainer.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  Icons.event_busy_rounded,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.error,
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Text(
                 'Event Not Found',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 'The event you\'re looking for doesn\'t exist or has been removed.',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
+                  height: 1.4,
+                ),
               ),
               const SizedBox(height: 24),
               ArkadButton(
                 text: 'Back to Events',
                 onPressed: () => context.pop(),
-                icon: Icons.arrow_back,
+                icon: Icons.arrow_back_rounded,
                 variant: ArkadButtonVariant.secondary,
               ),
             ],
@@ -348,18 +417,30 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
-          Icon(Icons.history, color: Colors.grey[600], size: 20),
+          Icon(
+            Icons.history_rounded,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.6),
+            size: 20,
+          ),
           const SizedBox(width: 8),
           Text(
             'This event has ended',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -380,14 +461,16 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     String message;
 
     if (isFull) {
-      backgroundColor = ArkadColors.lightRed.withValues(alpha: 0.1);
-      textColor = ArkadColors.lightRed;
-      icon = Icons.event_busy;
+      backgroundColor = Theme.of(
+        context,
+      ).colorScheme.errorContainer.withValues(alpha: 0.1);
+      textColor = Theme.of(context).colorScheme.error;
+      icon = Icons.event_busy_rounded;
       message = 'This event is fully booked';
     } else if (canRegister) {
       backgroundColor = ArkadColors.arkadGreen.withValues(alpha: 0.1);
       textColor = ArkadColors.arkadGreen;
-      icon = Icons.event_available;
+      icon = Icons.event_available_rounded;
       message = 'Registration is open';
     } else {
       return Container(); // No banner if registration is not required or already booked
@@ -398,7 +481,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: textColor.withValues(alpha: 0.3)),
       ),
       child: Row(
@@ -418,25 +501,52 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   Widget _buildSection(String title, IconData icon, Widget content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 20, color: ArkadColors.arkadTurkos),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: ArkadColors.arkadNavy,
-              ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
             ),
+            const SizedBox(height: 16),
+            content,
           ],
         ),
-        const SizedBox(height: 12),
-        content,
-      ],
+      ),
     );
   }
 
