@@ -158,7 +158,69 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           _buildDescriptionSection(context, company),
           _buildStudentSessionSection(context, company),
           _buildIndustriesSection(context, company),
-          _buildFactsSection(context, company),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.school_outlined,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  "What we're looking for",
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildDegreesSection(context, company),
+          _buildCompetencesSection(context, company),
+          //_buildFactsSection(context, company),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.work_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  "Opportunities",
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildPositionsSection(context, company),
+          //_buildJobsSection(context, company),
           _buildJobsSection(context, company),
         ],
       ),
@@ -552,26 +614,12 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.errorContainer.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.work_rounded,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Text(
-                  'Available Positions',
+                  'Available Jobs',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: -0.3,
+                    fontSize: 19,
                   ),
                 ),
               ],
@@ -685,6 +733,98 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // Reusable section for titled chip lists (Degrees, Competences, Positions)
+  Widget _buildTagsSection(
+    BuildContext context, {
+    required String title,
+    required List<String> items,
+  }) {
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.3,
+                    fontSize: 19,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: items.map((value) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: ArkadColors.lightGray.withValues(alpha: 0.4),
+                    backgroundBlendMode: BlendMode.overlay,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    value,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDegreesSection(BuildContext context, Company company) {
+    return _buildTagsSection(
+      context,
+      title: 'Desired Degrees',
+      items: company.desiredDegrees,
+    );
+  }
+
+  Widget _buildCompetencesSection(BuildContext context, Company company) {
+    return _buildTagsSection(
+      context,
+      title: 'Desired Competences',
+      items: company.desiredCompetences,
+    );
+  }
+
+  Widget _buildPositionsSection(BuildContext context, Company company) {
+    return _buildTagsSection(
+      context,
+      title: 'Open Positions',
+      items: company.positions,
     );
   }
 
@@ -985,20 +1125,18 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 return Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
-                    vertical: 8,
+                    vertical: 7,
                   ),
                   decoration: BoxDecoration(
-                    color: ArkadColors.arkadLightNavy.withValues(alpha: 0.6),
+                    color: ArkadColors.lightGray.withValues(alpha: 0.4),
+                    backgroundBlendMode: BlendMode.overlay,
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: theme.colorScheme.secondary.withValues(alpha: 0.2),
-                    ),
                   ),
                   child: Text(
                     industry,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.onSecondaryContainer,
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 );
