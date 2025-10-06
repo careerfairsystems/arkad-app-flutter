@@ -95,32 +95,45 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
 
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Search attendees...',
-          prefixIcon: const Icon(Icons.search, color: ArkadColors.arkadTurkos),
+          prefixIcon: const Icon(Icons.search_rounded),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3)),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: Theme.of(
+                context,
+              ).colorScheme.outline.withValues(alpha: 0.3),
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: Theme.of(
+                context,
+              ).colorScheme.outline.withValues(alpha: 0.3),
+            ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: ArkadColors.arkadTurkos),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(
+              color: ArkadColors.arkadTurkos,
+              width: 2,
+            ),
           ),
           filled: true,
-          fillColor: Colors.grey.withValues(alpha: 0.05),
+          fillColor: ArkadColors.arkadLightNavy,
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded),
+                  onPressed: () {
+                    _searchController.clear();
+                  },
+                )
+              : null,
         ),
       ),
     );
@@ -151,18 +164,43 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const CustomScrollView(
-      physics: AlwaysScrollableScrollPhysics(),
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverFillRemaining(
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(color: ArkadColors.arkadTurkos),
-                SizedBox(height: 16),
-                Text('Loading attendees...'),
-              ],
+            child: Container(
+              margin: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Loading attendees...',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -176,37 +214,61 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
       slivers: [
         SliverFillRemaining(
           child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
+            child: Container(
+              margin: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.errorContainer.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.error.withValues(alpha: 0.1),
+                ),
+              ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: ArkadColors.lightRed,
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.errorContainer.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.error_outline_rounded,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
                     'Failed to load attendees',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     _error ?? 'Something went wrong',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                     textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      height: 1.4,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   ArkadButton(
                     text: 'Try Again',
                     onPressed: _loadAttendees,
-                    icon: Icons.refresh,
+                    icon: Icons.refresh_rounded,
                   ),
                 ],
               ),
@@ -225,39 +287,57 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
       slivers: [
         SliverFillRemaining(
           child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
+            child: Container(
+              margin: const EdgeInsets.all(32),
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
-                      isSearching ? Icons.search_off : Icons.people_outline,
-                      size: 64,
-                      color: ArkadColors.arkadTurkos,
+                      isSearching
+                          ? Icons.search_off_rounded
+                          : Icons.people_outline_rounded,
+                      size: 48,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.7),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   Text(
                     isSearching ? 'No matching attendees' : 'No attendees yet',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.8),
+                      fontWeight: FontWeight.w600,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     isSearching
                         ? 'Try adjusting your search terms'
                         : 'No one has registered for this event yet.',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -292,8 +372,10 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Card(
+        color: ArkadColors.arkadLightNavy,
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -304,7 +386,10 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
                   color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.people, color: ArkadColors.arkadTurkos),
+                child: const Icon(
+                  Icons.people_rounded,
+                  color: ArkadColors.arkadTurkos,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -317,15 +402,15 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
                           : '$totalCount attendees',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: ArkadColors.arkadNavy,
+                        color: Colors.white,
                       ),
                     ),
                     if (widget.event.maxParticipants != null)
                       Text(
                         'Capacity: ${widget.event.currentParticipants}/${widget.event.maxParticipants}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: ArkadColors.arkadNavy.withValues(alpha: 0.7),
-                        ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: Colors.white70),
                       ),
                   ],
                 ),
@@ -339,9 +424,11 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
 
   Widget _buildAttendeeCard(EventAttendee attendee) {
     return Card(
+      color: ArkadColors.arkadLightNavy,
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
@@ -360,7 +447,7 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
           attendee.fullName,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: ArkadColors.arkadNavy,
+            color: Colors.white,
           ),
         ),
         subtitle:
@@ -371,17 +458,17 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.restaurant,
+                      Icons.restaurant_rounded,
                       size: 16,
-                      color: ArkadColors.arkadNavy.withValues(alpha: 0.6),
+                      color: Colors.white60,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         attendee.foodPreferences!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: ArkadColors.arkadNavy.withValues(alpha: 0.7),
-                        ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: Colors.white70),
                       ),
                     ),
                   ],
