@@ -17,6 +17,17 @@ class TicketAlreadyUsedException implements Exception {
       'TicketAlreadyUsedException: Ticket $token for event $eventId has already been used or does not exist';
 }
 
+/// Exception thrown when an event is at full capacity
+class EventFullException implements Exception {
+  final int eventId;
+  final String message;
+
+  const EventFullException(this.eventId, this.message);
+
+  @override
+  String toString() => 'EventFullException: Event $eventId is full - $message';
+}
+
 /// Remote data source for event operations
 class EventRemoteDataSource {
   final ArkadApi _api;
@@ -49,7 +60,9 @@ class EventRemoteDataSource {
 
   /// Get a specific event by ID
   Future<EventSchema> getEventById(int eventId) async {
-    print('🔍 [EventRemoteDataSource] Fetching event from API: eventId=$eventId');
+    print(
+      '🔍 [EventRemoteDataSource] Fetching event from API: eventId=$eventId',
+    );
     print('   API endpoint: GET /api/events/$eventId/');
 
     try {
@@ -63,7 +76,9 @@ class EventRemoteDataSource {
       print('   Has data: ${response.data != null}');
 
       if (response.isSuccess && response.data != null) {
-        print('   ✅ Got event: id=${response.data!.id}, name="${response.data!.name}"');
+        print(
+          '   ✅ Got event: id=${response.data!.id}, name="${response.data!.name}"',
+        );
         return response.data!;
       } else {
         response.logResponse('getEventById');
@@ -136,6 +151,14 @@ class EventRemoteDataSource {
         );
       }
     } on DioException catch (e) {
+      // Check for 409 status code (event full)
+      if (e.response?.statusCode == 409) {
+        final errorMessage = ApiErrorHandler.extractErrorMessage(
+          e.response?.data,
+        );
+        throw EventFullException(eventId, errorMessage);
+      }
+
       final exception = await ApiErrorHandler.handleDioException(
         e,
         operationName: 'bookEvent',
@@ -143,6 +166,9 @@ class EventRemoteDataSource {
       );
       throw exception;
     } catch (e) {
+      if (e is EventFullException) {
+        rethrow;
+      }
       await Sentry.captureException(e);
       throw Exception('Failed to book event $eventId: $e');
     }

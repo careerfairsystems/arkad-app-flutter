@@ -191,7 +191,9 @@ class AppRouter {
                       print('   Parsed event ID: $eventId');
 
                       if (eventId == null) {
-                        print('   ❌ Failed to parse event ID - showing error screen');
+                        print(
+                          '   ❌ Failed to parse event ID - showing error screen',
+                        );
                         return const Scaffold(
                           body: Center(child: Text('Error: Invalid event ID')),
                         );

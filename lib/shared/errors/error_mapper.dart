@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/event/data/data_sources/event_remote_data_source.dart';
 import 'app_error.dart';
+import 'event_errors.dart';
 import 'student_session_errors.dart';
 
 /// Maps HTTP errors and exceptions to user-friendly AppErrors
@@ -188,6 +190,11 @@ class ErrorMapper {
         context,
         operationContext: operationContext,
       );
+    }
+
+    // Handle custom event exceptions
+    if (exception is EventFullException) {
+      return EventFullError('Event', details: exception.message);
     }
 
     // For all other exceptions, return a generic user-friendly error
@@ -478,6 +485,21 @@ class ErrorMapper {
             action: () => context.pop(),
             isPrimary: true,
             icon: Icons.edit,
+          ),
+        ];
+
+      case EventFullError _:
+        return [
+          RecoveryAction(
+            label: "Browse Other Events",
+            action: () => context.go('/events'),
+            isPrimary: true,
+            icon: Icons.event,
+          ),
+          RecoveryAction(
+            label: "Go Back",
+            action: () => context.pop(),
+            icon: Icons.arrow_back,
           ),
         ];
 

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../shared/errors/event_errors.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
@@ -24,7 +25,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   @override
   void initState() {
     super.initState();
-    print('🔍 [EventDetailScreen] initState called with eventId=${widget.eventId}');
+    print(
+      '🔍 [EventDetailScreen] initState called with eventId=${widget.eventId}',
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadEvent();
@@ -35,7 +38,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     print('🔍 [EventDetailScreen] Loading event with ID=${widget.eventId}');
     final eventViewModel = Provider.of<EventViewModel>(context, listen: false);
     await eventViewModel.getEventById(widget.eventId);
-    print('🔍 [EventDetailScreen] Load completed. Error: ${eventViewModel.error}, Event: ${eventViewModel.selectedEvent?.title}');
+    print(
+      '🔍 [EventDetailScreen] Load completed. Error: ${eventViewModel.error}, Event: ${eventViewModel.selectedEvent?.title}',
+    );
   }
 
   @override
@@ -503,15 +508,31 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         // Refresh the event details to show updated participant count
         await _loadEvent();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              eventViewModel.error?.userMessage ?? 'Registration failed',
+        // Check if the error is an EventFullError (409 status)
+        final error = eventViewModel.error;
+        if (error is EventFullError) {
+          // Show toast that event is full
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('This event is fully booked'),
+              backgroundColor: ArkadColors.lightRed,
+              behavior: SnackBarBehavior.floating,
             ),
-            backgroundColor: ArkadColors.lightRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          );
+          // Navigate back
+          context.pop();
+          // Reload events list (trigger refresh on events screen)
+          await eventViewModel.refreshEvents();
+        } else {
+          // Show generic error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error?.userMessage ?? 'Registration failed'),
+              backgroundColor: ArkadColors.lightRed,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     }
   }
