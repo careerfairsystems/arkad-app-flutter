@@ -256,14 +256,36 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   void _showAdvancedFilters() {
+    final viewModel = Provider.of<CompanyViewModel>(context, listen: false);
+
+    // Get dynamic filter options from loaded company data
+    final availablePositions = viewModel.getAvailablePositions();
+    final availableDegrees = viewModel.getAvailableDegrees();
+    final availableIndustries = viewModel.getAvailableIndustries();
+    final availableCompetences = viewModel.getAvailableCompetences();
+
+    if (kDebugMode) {
+      print(
+        '[CompaniesScreen] Opening advanced filters with dynamic options: '
+        '${availablePositions.length} positions, '
+        '${availableDegrees.length} degrees, '
+        '${availableIndustries.length} industries, '
+        '${availableCompetences.length} competences',
+      );
+    }
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.83, // was 0.9
+        height: MediaQuery.of(context).size.height * 0.83,
         child: AdvancedFiltersModal(
           initialFilter: _currentFilter,
+          availablePositions: availablePositions,
+          availableDegrees: availableDegrees,
+          availableIndustries: availableIndustries,
+          availableCompetences: availableCompetences,
           onFiltersApplied: (filter) {
             if (kDebugMode) {
               print(
