@@ -41,13 +41,16 @@ class _MapScreenState extends State<MapScreen> {
         listen: false,
       );
 
+      // Listen to company changes and update markers
+      companyViewModel.addListener(_onCompaniesChanged);
+
       // Load companies if not already loaded
       if (!companyViewModel.isInitialized) {
         companyViewModel.loadCompanies();
+      } else {
+        // Build markers immediately if already loaded
+        _updateMarkers(companyViewModel.allCompanies);
       }
-
-      // Build markers
-      _updateMarkers(companyViewModel.allCompanies);
 
       // Select and center on company if companyId is provided
       if (widget.selectedCompanyId != null) {
@@ -62,6 +65,14 @@ class _MapScreenState extends State<MapScreen> {
         }
       }
     });
+  }
+
+  void _onCompaniesChanged() {
+    final companyViewModel = Provider.of<CompanyViewModel>(
+      context,
+      listen: false,
+    );
+    _updateMarkers(companyViewModel.allCompanies);
   }
 
   @override
@@ -113,31 +124,22 @@ class _MapScreenState extends State<MapScreen> {
     return Stack(
       children: [
         // Map
-        Consumer<CompanyViewModel>(
-          builder: (context, companyViewModel, child) {
-            // Update markers when companies change
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _updateMarkers(companyViewModel.allCompanies);
-            });
-
-            return ArkadMapWidget(
-              initialCameraPosition: const CameraPosition(
-                target: _lundCenter,
-                zoom: 15.0,
-              ),
-              markers: _markers,
-              onMapCreated: (controller) {
-                _mapController = controller;
-              },
-              onTap: (_) {
-                // Deselect company when tapping map
-                if (_selectedCompany != null) {
-                  setState(() {
-                    _selectedCompany = null;
-                  });
-                }
-              },
-            );
+        ArkadMapWidget(
+          initialCameraPosition: const CameraPosition(
+            target: _lundCenter,
+            zoom: 15.0,
+          ),
+          markers: _markers,
+          onMapCreated: (controller) {
+            _mapController = controller;
+          },
+          onTap: (_) {
+            // Deselect company when tapping map
+            if (_selectedCompany != null) {
+              setState(() {
+                _selectedCompany = null;
+              });
+            }
           },
         ),
 
@@ -311,6 +313,11 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
+    final companyViewModel = Provider.of<CompanyViewModel>(
+      context,
+      listen: false,
+    );
+    companyViewModel.removeListener(_onCompaniesChanged);
     _mapController?.dispose();
     super.dispose();
   }

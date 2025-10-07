@@ -69,6 +69,11 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       style: _mapStyle,
       initialCameraPosition: widget.initialCameraPosition,
       markers: widget.markers,
+      scrollGesturesEnabled: true, // Enables panning
+      zoomGesturesEnabled: true, // Enables pinch-to-zoom
+      tiltGesturesEnabled: true, // Enables tilt gestures
+      rotateGesturesEnabled: true, // Enables rotation
+
       minMaxZoomPreference: MinMaxZoomPreference(
         widget.minZoom,
         widget.maxZoom,
