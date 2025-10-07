@@ -35,12 +35,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   Future<void> _loadEvent() async {
-    print('🔍 [EventDetailScreen] Loading event with ID=${widget.eventId}');
     final eventViewModel = Provider.of<EventViewModel>(context, listen: false);
     await eventViewModel.getEventById(widget.eventId);
-    print(
-      '🔍 [EventDetailScreen] Load completed. Error: ${eventViewModel.error}, Event: ${eventViewModel.selectedEvent?.title}',
-    );
   }
 
   @override

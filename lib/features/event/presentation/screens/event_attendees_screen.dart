@@ -375,7 +375,6 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
       child: Card(
         color: ArkadColors.arkadLightNavy,
         elevation: 2,
-        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -403,15 +402,17 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
                           : '$totalCount attendees',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                     if (widget.event.maxParticipants != null)
                       Text(
                         'Capacity: ${widget.event.currentParticipants}/${widget.event.maxParticipants}',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimary.withValues(alpha: 0.7),
+                        ),
                       ),
                   ],
                 ),
@@ -428,7 +429,6 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
       color: ArkadColors.arkadLightNavy,
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 8),
-      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -448,7 +448,7 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
           attendee.fullName,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
         ),
         subtitle:
@@ -461,15 +461,19 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
                     Icon(
                       Icons.restaurant_rounded,
                       size: 16,
-                      color: Colors.white60,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onPrimary.withValues(alpha: 0.6),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         attendee.foodPreferences!,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimary.withValues(alpha: 0.7),
+                        ),
                       ),
                     ),
                   ],
