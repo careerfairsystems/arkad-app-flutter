@@ -26,14 +26,18 @@ class TicketAlreadyUsedException extends AppError {
 }
 
 /// Exception thrown when an event is at full capacity
-class EventFullException implements Exception {
+class EventFullException extends AppError {
   final int eventId;
-  final String message;
 
-  const EventFullException(this.eventId, this.message);
+  const EventFullException(this.eventId, String message)
+      : super(
+          userMessage: 'This event is full',
+          technicalDetails: 'Event $eventId is at full capacity: $message',
+          severity: ErrorSeverity.warning,
+        );
 
   @override
-  String toString() => 'EventFullException: Event $eventId is full - $message';
+  String toString() => 'EventFullException: Event $eventId is full';
 }
 
 /// Remote data source for event operations
