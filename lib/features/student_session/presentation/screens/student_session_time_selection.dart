@@ -110,25 +110,21 @@ class _StudentSessionTimeSelection
       _hasHandledBookingSuccess = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(
-                const SnackBar(
-                  content: Text('Timeslot booked successfully!'),
-                  backgroundColor: ArkadColors.arkadGreen,
-                  duration: Duration(milliseconds: 500),
-                ),
-              )
-              .closed
-              .then((_) {
-                // Navigate back after SnackBar dismisses
-                if (mounted &&
-                    context.mounted &&
-                    context.canPop() &&
-                    bookCommand.isCompleted &&
-                    !bookCommand.hasError) {
-                  context.pop();
-                }
-              });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Timeslot booked successfully!'),
+              backgroundColor: ArkadColors.arkadGreen,
+              duration: Duration(milliseconds: 300),
+            ),
+          );
+
+          // Navigate back immediately on command success (event-driven)
+          if (context.mounted &&
+              context.canPop() &&
+              bookCommand.isCompleted &&
+              !bookCommand.hasError) {
+            context.pop();
+          }
 
           bookCommand.clearSuccessMessage();
         }
@@ -167,25 +163,21 @@ class _StudentSessionTimeSelection
       _hasHandledUnbookingSuccess = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(
-                const SnackBar(
-                  content: Text('Booking cancelled successfully!'),
-                  backgroundColor: ArkadColors.arkadGreen,
-                  duration: Duration(milliseconds: 1500),
-                ),
-              )
-              .closed
-              .then((_) {
-                // Navigate back after SnackBar dismisses
-                if (mounted &&
-                    context.mounted &&
-                    context.canPop() &&
-                    unbookCommand.isCompleted &&
-                    !unbookCommand.hasError) {
-                  context.pop();
-                }
-              });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Booking cancelled successfully!'),
+              backgroundColor: ArkadColors.arkadGreen,
+              duration: Duration(milliseconds: 300),
+            ),
+          );
+
+          // Navigate back immediately on command success (event-driven)
+          if (context.mounted &&
+              context.canPop() &&
+              unbookCommand.isCompleted &&
+              !unbookCommand.hasError) {
+            context.pop();
+          }
 
           unbookCommand.clearSuccessMessage();
         }
@@ -221,25 +213,21 @@ class _StudentSessionTimeSelection
       _hasHandledSwitchSuccess = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(
-                const SnackBar(
-                  content: Text('Timeslot switched successfully!'),
-                  backgroundColor: ArkadColors.arkadGreen,
-                  duration: Duration(milliseconds: 1500),
-                ),
-              )
-              .closed
-              .then((_) {
-                // Navigate back after SnackBar dismisses
-                if (mounted &&
-                    context.mounted &&
-                    context.canPop() &&
-                    switchCommand.isCompleted &&
-                    !switchCommand.hasError) {
-                  context.pop();
-                }
-              });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Timeslot switched successfully!'),
+              backgroundColor: ArkadColors.arkadGreen,
+              duration: Duration(milliseconds: 300),
+            ),
+          );
+
+          // Navigate back immediately on command success (event-driven)
+          if (context.mounted &&
+              context.canPop() &&
+              switchCommand.isCompleted &&
+              !switchCommand.hasError) {
+            context.pop();
+          }
 
           switchCommand.clearSuccessMessage();
         }
