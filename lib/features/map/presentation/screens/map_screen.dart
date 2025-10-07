@@ -10,7 +10,6 @@ import '../../../company/presentation/view_models/company_view_model.dart';
 import '../view_models/map_permissions_view_model.dart';
 import '../widgets/arkad_map_widget.dart';
 import '../widgets/company_info_card.dart';
-import '../widgets/company_search_sheet.dart';
 import '../widgets/map_search_bar.dart';
 import '../widgets/permission_step_widget.dart';
 
@@ -296,22 +295,17 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _showSearchView() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => CompanySearchSheet(
-        onCompanySelected: (company) {
-          setState(() {
-            _selectedCompany = company;
-          });
-          _centerOnCompany(company);
-          Navigator.pop(context);
+    context.push(
+      '/map/search',
+      extra: (Company company) {
+        setState(() {
+          _selectedCompany = company;
+        });
+        _centerOnCompany(company);
 
-          // Update URL to reflect selected company
-          context.go('/map/${company.id}');
-        },
-      ),
+        // Navigate back and update URL to reflect selected company
+        context.go('/map/${company.id}');
+      },
     );
   }
 

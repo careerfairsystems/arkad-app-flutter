@@ -46,6 +46,7 @@ dependencies:
     path: ./api/arkad_api/
   google_maps_flutter: ^2.10.0
   uuid: ^4.5.1
+  material_design_icons_flutter: ^7.0.7296
 dev_dependencies:
   sentry_dart_plugin: ^3.1.1
   flutter_test:

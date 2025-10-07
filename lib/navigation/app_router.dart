@@ -6,6 +6,7 @@ import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/reset_password_screen.dart';
 import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/screens/verification_screen.dart';
+import '../features/company/domain/entities/company.dart';
 import '../features/company/presentation/screens/companies_screen.dart';
 import '../features/company/presentation/screens/company_detail_screen.dart';
 import '../features/event/presentation/screens/event_attendees_wrapper.dart';
@@ -13,6 +14,7 @@ import '../features/event/presentation/screens/event_detail_screen.dart';
 import '../features/event/presentation/screens/event_screen.dart';
 import '../features/event/presentation/screens/event_ticket_screen.dart';
 import '../features/event/presentation/screens/scan_event_screen.dart';
+import '../features/map/presentation/screens/company_search_screen.dart';
 import '../features/map/presentation/screens/map_screen.dart';
 import '../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
@@ -108,6 +110,20 @@ class AppRouter {
                 path: '/map',
                 pageBuilder: _noAnim((_) => const MapScreen()),
                 routes: [
+                  GoRoute(
+                    path: 'search',
+                    pageBuilder: _slide((context, state) {
+                      final onCompanySelected =
+                          state.extra as void Function(Company)?;
+                      return CompanySearchScreen(
+                        onCompanySelected:
+                            onCompanySelected ??
+                            (company) {
+                              context.go('/map/${company.id}');
+                            },
+                      );
+                    }),
+                  ),
                   GoRoute(
                     path: ':companyId',
                     pageBuilder: (context, state) {
