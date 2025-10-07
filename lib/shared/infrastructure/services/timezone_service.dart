@@ -73,6 +73,13 @@ class TimezoneService {
     return formatter.format(_ensureStockholmTime(dateTime));
   }
 
+  /// Format DateTime for company events
+  /// Returns format: "Oct 05, 2025 at 14:30"
+  static String formatEventDateTime(DateTime dateTime) {
+    final formatter = DateFormat('MMM dd, y \'at\' HH:mm', 'en_US');
+    return formatter.format(_ensureStockholmTime(dateTime));
+  }
+
   /// Check if a DateTime is in the past relative to Stockholm time
   static bool isInPast(DateTime dateTime, {DateTime? relativeTo}) {
     final stockholmTime = _ensureStockholmTime(dateTime);

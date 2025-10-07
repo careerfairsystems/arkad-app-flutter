@@ -3,6 +3,35 @@ import 'package:collection/collection.dart';
 import '../../../../shared/infrastructure/services/timezone_service.dart';
 import 'field_configuration.dart';
 
+/// Session type enum - distinguishes regular sessions from company events
+enum StudentSessionType {
+  regular('regular'),
+  companyEvent('company_event');
+
+  const StudentSessionType(this.value);
+
+  final String value;
+
+  /// Create from API string value
+  static StudentSessionType fromValue(String? value) {
+    if (value == null) return StudentSessionType.regular;
+    for (final type in StudentSessionType.values) {
+      if (type.value == value) return type;
+    }
+    return StudentSessionType.regular; // Default for unknown values
+  }
+
+  /// Display name for UI
+  String get displayName {
+    switch (this) {
+      case StudentSessionType.regular:
+        return 'Student Session';
+      case StudentSessionType.companyEvent:
+        return 'Company Event';
+    }
+  }
+}
+
 /// Domain entity representing a student session for a company
 /// Maps from StudentSessionNormalUserSchema in API
 class StudentSession {
@@ -11,6 +40,7 @@ class StudentSession {
     required this.companyId,
     required this.companyName,
     required this.isAvailable,
+    this.sessionType = StudentSessionType.regular,
     this.bookingCloseTime,
     this.bookingOpenTime,
     this.userStatus,
@@ -18,6 +48,8 @@ class StudentSession {
     this.description,
     this.disclaimer,
     this.fieldConfigurations = const [],
+    this.location,
+    this.companyEventAt,
   });
 
   /// Unique identifier for this student session
@@ -31,6 +63,15 @@ class StudentSession {
 
   /// Whether this session is available for applications/booking
   final bool isAvailable;
+
+  /// Type of session (regular or company event)
+  final StudentSessionType sessionType;
+
+  /// Location of the session or event (optional)
+  final String? location;
+
+  /// Date/time when company event occurs (only for company events)
+  final DateTime? companyEventAt;
 
   /// When APPLICATION period closes for this session (null if no application period)
   /// Note: Despite the "booking" name, this field controls when users can APPLY to the session
@@ -54,6 +95,12 @@ class StudentSession {
 
   /// Field configurations for dynamic form rendering
   final List<FieldConfiguration> fieldConfigurations;
+
+  /// Check if this is a company event
+  bool get isCompanyEvent => sessionType == StudentSessionType.companyEvent;
+
+  /// Check if this is a regular student session
+  bool get isRegularSession => sessionType == StudentSessionType.regular;
 
   /// Check if user has applied to this session
   bool get hasApplied => userStatus != null;
@@ -144,6 +191,7 @@ class StudentSession {
     int? companyId,
     String? companyName,
     bool? isAvailable,
+    StudentSessionType? sessionType,
     DateTime? bookingCloseTime,
     DateTime? bookingOpenTime,
     StudentSessionStatus? userStatus,
@@ -151,12 +199,15 @@ class StudentSession {
     String? description,
     String? disclaimer,
     List<FieldConfiguration>? fieldConfigurations,
+    String? location,
+    DateTime? companyEventAt,
   }) {
     return StudentSession(
       id: id ?? this.id,
       companyId: companyId ?? this.companyId,
       companyName: companyName ?? this.companyName,
       isAvailable: isAvailable ?? this.isAvailable,
+      sessionType: sessionType ?? this.sessionType,
       bookingCloseTime: bookingCloseTime ?? this.bookingCloseTime,
       bookingOpenTime: bookingOpenTime ?? this.bookingOpenTime,
       userStatus: userStatus ?? this.userStatus,
@@ -164,6 +215,8 @@ class StudentSession {
       description: description ?? this.description,
       disclaimer: disclaimer ?? this.disclaimer,
       fieldConfigurations: fieldConfigurations ?? this.fieldConfigurations,
+      location: location ?? this.location,
+      companyEventAt: companyEventAt ?? this.companyEventAt,
     );
   }
 
@@ -175,12 +228,15 @@ class StudentSession {
         other.companyId == companyId &&
         other.companyName == companyName &&
         other.isAvailable == isAvailable &&
+        other.sessionType == sessionType &&
         other.bookingCloseTime == bookingCloseTime &&
         other.bookingOpenTime == bookingOpenTime &&
         other.userStatus == userStatus &&
         other.logoUrl == logoUrl &&
         other.description == description &&
         other.disclaimer == disclaimer &&
+        other.location == location &&
+        other.companyEventAt == companyEventAt &&
         const ListEquality().equals(
           other.fieldConfigurations,
           fieldConfigurations,
@@ -194,19 +250,24 @@ class StudentSession {
       companyId,
       companyName,
       isAvailable,
+      sessionType,
       bookingCloseTime,
       bookingOpenTime,
       userStatus,
       logoUrl,
-      description,
-      disclaimer,
-      const ListEquality().hash(fieldConfigurations),
+      Object.hash(
+        description,
+        disclaimer,
+        location,
+        companyEventAt,
+        const ListEquality().hash(fieldConfigurations),
+      ),
     );
   }
 
   @override
   String toString() {
-    return 'StudentSession(id: $id, companyName: $companyName, status: $userStatus, available: $isAvailable)';
+    return 'StudentSession(id: $id, companyName: $companyName, type: ${sessionType.value}, status: $userStatus, available: $isAvailable)';
   }
 }
 

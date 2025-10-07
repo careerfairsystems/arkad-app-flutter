@@ -57,6 +57,7 @@ class StudentSessionViewModel extends ChangeNotifier {
   // UI state
   String _searchQuery = '';
   int? _selectedCompanyId;
+  StudentSessionType _selectedSessionTypeFilter = StudentSessionType.regular;
 
   // CV upload error state (when CV upload fails after successful application)
   StudentSessionApplicationError? _cvUploadError;
@@ -93,10 +94,16 @@ class StudentSessionViewModel extends ChangeNotifier {
               companyId: session.companyId,
               companyName: session.companyName,
               isAvailable: session.isAvailable,
+              sessionType: session.sessionType,
               bookingCloseTime: session.bookingCloseTime,
+              bookingOpenTime: session.bookingOpenTime,
               // userStatus omitted (defaults to null) for public view
               logoUrl: session.logoUrl,
               description: session.description,
+              disclaimer: session.disclaimer,
+              fieldConfigurations: session.fieldConfigurations,
+              location: session.location,
+              companyEventAt: session.companyEventAt,
             ),
           )
           .toList();
@@ -113,6 +120,8 @@ class StudentSessionViewModel extends ChangeNotifier {
   // UI state getters
   String get searchQuery => _searchQuery;
   int? get selectedCompanyId => _selectedCompanyId;
+  StudentSessionType get selectedSessionTypeFilter =>
+      _selectedSessionTypeFilter;
 
   // CV upload error getter
   StudentSessionApplicationError? get cvUploadError => _cvUploadError;
@@ -154,6 +163,38 @@ class StudentSessionViewModel extends ChangeNotifier {
     if (_searchQuery.isEmpty) return studentSessions;
 
     return studentSessions.where((session) {
+      return session.companyName.toLowerCase().contains(
+        _searchQuery.toLowerCase(),
+      );
+    }).toList();
+  }
+
+  // Filtered regular sessions (for tab 1)
+  List<StudentSession> get filteredRegularSessions {
+    final regularSessions = studentSessions
+        .where((session) => session.sessionType == StudentSessionType.regular)
+        .toList();
+
+    if (_searchQuery.isEmpty) return regularSessions;
+
+    return regularSessions.where((session) {
+      return session.companyName.toLowerCase().contains(
+        _searchQuery.toLowerCase(),
+      );
+    }).toList();
+  }
+
+  // Filtered company events (for tab 2)
+  List<StudentSession> get filteredCompanyEvents {
+    final companyEvents = studentSessions
+        .where(
+          (session) => session.sessionType == StudentSessionType.companyEvent,
+        )
+        .toList();
+
+    if (_searchQuery.isEmpty) return companyEvents;
+
+    return companyEvents.where((session) {
       return session.companyName.toLowerCase().contains(
         _searchQuery.toLowerCase(),
       );
@@ -340,6 +381,12 @@ class StudentSessionViewModel extends ChangeNotifier {
   /// Clear search
   void clearSearch() {
     _searchQuery = '';
+    notifyListeners();
+  }
+
+  /// Set session type filter (for tab switching)
+  void setSessionTypeFilter(StudentSessionType filter) {
+    _selectedSessionTypeFilter = filter;
     notifyListeners();
   }
 

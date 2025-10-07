@@ -25,6 +25,7 @@ class StudentSessionMapper {
       companyId: apiSession.companyId,
       companyName: companyName ?? 'Unknown Company',
       isAvailable: apiSession.available,
+      sessionType: _mapSessionType(apiSession.sessionType),
       // Convert UTC times to Stockholm time at the boundary
       bookingCloseTime: apiSession.bookingCloseTime != null
           ? TimezoneService.utcToStockholm(apiSession.bookingCloseTime!)
@@ -39,6 +40,10 @@ class StudentSessionMapper {
       fieldConfigurations: _mapFieldModifications(
         apiSession.fieldModifications.toList(),
       ),
+      location: apiSession.location,
+      companyEventAt: apiSession.companyEventAt != null
+          ? TimezoneService.utcToStockholm(apiSession.companyEventAt!)
+          : null,
     );
   }
 
@@ -104,6 +109,23 @@ class StudentSessionMapper {
         apiTimeslot.bookingClosesAt,
       ),
     );
+  }
+
+  /// Helper method to map API session type to domain StudentSessionType
+  StudentSessionType _mapSessionType(
+    api.StudentSessionNormalUserSchemaSessionTypeEnum? apiSessionType,
+  ) {
+    if (apiSessionType == null) return StudentSessionType.regular;
+
+    switch (apiSessionType) {
+      case api.StudentSessionNormalUserSchemaSessionTypeEnum.regular:
+        return StudentSessionType.regular;
+      case api.StudentSessionNormalUserSchemaSessionTypeEnum.companyEvent:
+        return StudentSessionType.companyEvent;
+      default:
+        // Default to regular for unknown values (backward compatibility)
+        return StudentSessionType.regular;
+    }
   }
 
   /// Helper method to map API user status to domain StudentSessionStatus
