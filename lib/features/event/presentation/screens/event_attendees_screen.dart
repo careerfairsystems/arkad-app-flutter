@@ -482,7 +482,10 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
             : null,
         trailing: attendee.hasBeenScanned
             ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: ArkadColors.arkadGreen.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),

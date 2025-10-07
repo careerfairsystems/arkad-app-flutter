@@ -184,7 +184,7 @@ class ErrorMapper {
     String? operationContext,
   }) {
     // If it's a DioException, use the specialized mapper
-    if(exception is TicketAlreadyUsedException){
+    if (exception is TicketAlreadyUsedException) {
       return exception;
     }
     if (exception is DioException) {
@@ -197,7 +197,7 @@ class ErrorMapper {
 
     // Handle custom event exceptions
     if (exception is EventFullException) {
-      return EventFullError('Event', details: exception.message);
+      return EventFullError('Event', details: exception.userMessage);
     }
 
     // For all other exceptions, return a generic user-friendly error

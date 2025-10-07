@@ -30,11 +30,11 @@ class EventFullException extends AppError {
   final int eventId;
 
   const EventFullException(this.eventId, String message)
-      : super(
-          userMessage: 'This event is full',
-          technicalDetails: 'Event $eventId is at full capacity: $message',
-          severity: ErrorSeverity.warning,
-        );
+    : super(
+        userMessage: 'This event is full',
+        technicalDetails: 'Event $eventId is at full capacity: $message',
+        severity: ErrorSeverity.warning,
+      );
 
   @override
   String toString() => 'EventFullException: Event $eventId is full';
@@ -277,7 +277,6 @@ class EventRemoteDataSource {
   /// Use/verify a ticket (staff only)
   /// Returns either TicketSchema for successful verification or throws specific exceptions
   Future<TicketSchema> useTicket(String token, int eventId) async {
-
     try {
       final useTicketSchema = UseTicketSchema(
         (b) => b
@@ -288,7 +287,6 @@ class EventRemoteDataSource {
       final response = await _api.getEventsApi().eventBookingApiVerifyTicket(
         useTicketSchema: useTicketSchema,
       );
-
 
       if (response.data != null) {
         // Log to Sentry for tracking
@@ -313,7 +311,6 @@ class EventRemoteDataSource {
         throw Exception('Failed to use ticket: ${response.detailedError}');
       }
     } on DioException catch (e) {
-
       // Check for 404 error indicating ticket already used or no ticket
       if (e.response?.statusCode == 404) {
         print('   ❌ 404 - Ticket already used or does not exist');

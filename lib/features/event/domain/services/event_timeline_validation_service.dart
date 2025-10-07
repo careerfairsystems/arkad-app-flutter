@@ -34,7 +34,8 @@ class EventTimelineValidationService {
     if (!isEventVisible(event, now: currentTime)) return false;
 
     // Check if booking hasn't frozen yet
-    return currentTime.isBefore(event.bookingClosesAt) || currentTime.isAtSameMomentAs(event.bookingClosesAt);
+    return currentTime.isBefore(event.bookingClosesAt) ||
+        currentTime.isAtSameMomentAs(event.bookingClosesAt);
   }
 
   /// Check if booking deadline has passed
@@ -67,7 +68,4 @@ class EventTimelineValidationService {
 
     return true;
   }
-
-
-
 }

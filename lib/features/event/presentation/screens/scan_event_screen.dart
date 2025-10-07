@@ -66,7 +66,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
       failure: (error) {
         setState(() {
           isProcessingTicket = false;
-          ticketResult = null;  // Clear stale success state
+          ticketResult = null; // Clear stale success state
         });
         // Error will be shown through the EventViewModel's error state
       },
