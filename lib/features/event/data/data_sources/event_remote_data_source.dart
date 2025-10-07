@@ -273,9 +273,6 @@ class EventRemoteDataSource {
   /// Use/verify a ticket (staff only)
   /// Returns either TicketSchema for successful verification or throws specific exceptions
   Future<TicketSchema> useTicket(String token, int eventId) async {
-    print('🎫 [EventRemoteDataSource] useTicket called');
-    print('   Token: $token');
-    print('   Event ID: $eventId');
 
     try {
       final useTicketSchema = UseTicketSchema(
@@ -284,26 +281,12 @@ class EventRemoteDataSource {
           ..eventId = eventId,
       );
 
-      print('🎫 [EventRemoteDataSource] Sending API request...');
       final response = await _api.getEventsApi().eventBookingApiVerifyTicket(
         useTicketSchema: useTicketSchema,
       );
 
-      print('🎫 [EventRemoteDataSource] API response received');
-      print('   Status code: ${response.statusCode}');
-      print('   Success: ${response.isSuccess}');
-      print('   Has data: ${response.data != null}');
 
       if (response.data != null) {
-        print('🎫 [EventRemoteDataSource] Response data:');
-        print('   UUID: ${response.data!.uuid}');
-        print('   Event ID: ${response.data!.eventId}');
-        print('   Used: ${response.data!.used}');
-        print('   User ID: ${response.data!.user.id}');
-        print(
-          '   User Name: ${response.data!.user.firstName} ${response.data!.user.lastName}',
-        );
-
         // Log to Sentry for tracking
         Sentry.logger.info(
           'Ticket verification response received',
@@ -317,22 +300,15 @@ class EventRemoteDataSource {
       }
 
       if (response.isSuccess && response.data != null) {
-        print('   ✅ Ticket verification successful');
         return response.data!;
       } else {
         response.logResponse('useTicket');
         if (response.data == null) {
-          print('   ❌ No data in response');
           throw Exception('Failed to use ticket');
         }
-        print('   ❌ Response not successful: ${response.detailedError}');
         throw Exception('Failed to use ticket: ${response.detailedError}');
       }
     } on DioException catch (e) {
-      print('🎫 [EventRemoteDataSource] DioException caught');
-      print('   Status code: ${e.response?.statusCode}');
-      print('   Response data: ${e.response?.data}');
-      print('   Message: ${e.message}');
 
       // Check for 404 error indicating ticket already used or no ticket
       if (e.response?.statusCode == 404) {
