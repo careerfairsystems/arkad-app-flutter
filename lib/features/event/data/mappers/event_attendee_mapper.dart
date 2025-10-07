@@ -9,6 +9,8 @@ class EventAttendeeMapper {
     return EventAttendee(
       fullName: schema.fullName,
       foodPreferences: schema.foodPreferences,
+      // TODO: Map hasBeenScanned field once backend API is updated
+      // hasBeenScanned: schema.hasBeenScanned ?? false,
     );
   }
 
@@ -18,6 +20,7 @@ class EventAttendeeMapper {
       (builder) => builder
         ..fullName = attendee.fullName
         ..foodPreferences = attendee.foodPreferences,
+      // TODO: Add hasBeenScanned field once backend API is updated
     );
   }
 }
