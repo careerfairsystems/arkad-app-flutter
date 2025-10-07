@@ -598,9 +598,6 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Show timeline warning if needed
-        _buildTimelineWarning(context, applicationWithBookingState),
-
         const SizedBox(height: 8),
 
         Row(
@@ -623,14 +620,5 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
         ),
       ],
     );
-  }
-
-  /// Build timeline warning message for accepted applications
-  /// Removed as per user request - redundant information
-  Widget _buildTimelineWarning(
-    BuildContext context,
-    StudentSessionApplicationWithBookingState applicationWithBookingState,
-  ) {
-    return const SizedBox.shrink();
   }
 }
