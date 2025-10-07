@@ -180,12 +180,13 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
   }
 
   Widget _buildBookedEventsList(EventViewModel viewModel) {
-    final sortedEvents = viewModel.bookedEvents.toList()
+    final events = viewModel.bookedEvents.toList()
+      ..removeWhere((event) => event.endTime.isAfter(DateTime.now()))
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: sortedEvents.map((event) => EventCard(event: event)).toList(),
+      children: events.map((event) => EventCard(event: event)).toList(),
     );
   }
 }
