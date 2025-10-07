@@ -615,9 +615,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               behavior: SnackBarBehavior.floating,
             ),
           );
-          // Navigate back
-          context.pop();
-          // Reload events list (trigger refresh on events screen)
+          // Reload event details and events list to reflect updated state
+          await _loadEvent();
           await eventViewModel.refreshEvents();
         } else {
           // Show generic error message
