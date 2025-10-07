@@ -181,7 +181,7 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
 
   Widget _buildBookedEventsList(EventViewModel viewModel) {
     final events = viewModel.bookedEvents.toList()
-      ..removeWhere((event) => event.endTime.isAfter(DateTime.now()))
+      ..removeWhere((event) => event.endTime.isBefore(DateTime.now()))
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
     return ListView(

@@ -18,6 +18,7 @@ class EventMapper {
       maxParticipants: schema.capacity > 0 ? schema.capacity : null,
       currentParticipants: schema.numberBooked,
       status: _mapApiStatusToDomain(schema.status),
+      bookingClosesAt: schema.bookingFreezesAt,
     );
   }
 
@@ -37,7 +38,8 @@ class EventMapper {
         ..capacity = event.maxParticipants ?? 0
         ..numberBooked = event.currentParticipants
         ..companyId = null
-        ..status = _mapDomainStatusToApi(event.status),
+        ..status = _mapDomainStatusToApi(event.status)
+        ..bookingFreezesAt = event.bookingClosesAt,
     );
   }
 

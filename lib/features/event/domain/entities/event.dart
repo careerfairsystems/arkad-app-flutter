@@ -14,6 +14,7 @@ class Event {
   final int? maxParticipants;
   final int currentParticipants;
   final EventStatus? status;
+  final DateTime bookingClosesAt;
 
   const Event({
     required this.id,
@@ -28,6 +29,7 @@ class Event {
     this.maxParticipants,
     this.currentParticipants = 0,
     this.status,
+    required this.bookingClosesAt,
   });
 
   /// Create a copy with updated values
@@ -59,6 +61,7 @@ class Event {
       maxParticipants: maxParticipants ?? this.maxParticipants,
       currentParticipants: currentParticipants ?? this.currentParticipants,
       status: status ?? this.status,
+      bookingClosesAt: bookingClosesAt,
     );
   }
 
@@ -70,6 +73,8 @@ class Event {
 
   /// Check if event is currently happening
   bool get isOngoing => hasStarted && !hasEnded;
+
+  bool get bookingDeadlineClosed => DateTime.now().isAfter(bookingClosesAt);
 
   /// Check if registration is still available
   bool get canRegister {
@@ -121,7 +126,7 @@ class Event {
 
   @override
   String toString() {
-    return 'Event(id: $id, title: $title, startTime: $startTime, status: $status)';
+    return 'Event(id: $id, title: $title, description: $description, startTime: $startTime, endTime: $endTime, location: $location, imageUrl: $imageUrl, type: $type, isRegistrationRequired: $isRegistrationRequired, maxParticipants: $maxParticipants, currentParticipants: $currentParticipants, status: $status, bookingClosesAt: $bookingClosesAt)';
   }
 }
 

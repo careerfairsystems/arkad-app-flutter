@@ -77,15 +77,7 @@ class EventRemoteDataSource {
         eventId: eventId,
       );
 
-      print('🔍 [EventRemoteDataSource] API response received');
-      print('   Status code: ${response.statusCode}');
-      print('   Success: ${response.isSuccess}');
-      print('   Has data: ${response.data != null}');
-
       if (response.isSuccess && response.data != null) {
-        print(
-          '   ✅ Got event: id=${response.data!.id}, name="${response.data!.name}"',
-        );
         return response.data!;
       } else {
         response.logResponse('getEventById');

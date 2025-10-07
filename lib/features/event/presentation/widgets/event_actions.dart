@@ -20,11 +20,53 @@ class EventActions extends StatelessWidget {
     required this.onRegister,
   });
 
+  Widget _bookingDeadlinePassed() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ArkadColors.lightRed.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: ArkadColors.lightRed.withValues(alpha: 0.3)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(Icons.event_busy_rounded, color: ArkadColors.lightRed, size: 28),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Booking closed',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'The booking deadline for this event has passed and it can no longer be booked.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Don't show any actions if registration is not required
     if (!event.isRegistrationRequired) {
       return const SizedBox.shrink();
+    }
+    if (event.bookingDeadlineClosed) {
+      return _bookingDeadlinePassed();
     }
 
     return Consumer<AuthViewModel>(
