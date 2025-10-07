@@ -110,27 +110,27 @@ class _StudentSessionTimeSelection
       _hasHandledBookingSuccess = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                bookCommand.successMessage ?? 'Timeslot booked successfully!',
-              ),
-              backgroundColor: ArkadColors.arkadGreen,
-            ),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(
+                const SnackBar(
+                  content: Text('Timeslot booked successfully!'),
+                  backgroundColor: ArkadColors.arkadGreen,
+                  duration: Duration(milliseconds: 500),
+                ),
+              )
+              .closed
+              .then((_) {
+                // Navigate back after SnackBar dismisses
+                if (mounted &&
+                    context.mounted &&
+                    context.canPop() &&
+                    bookCommand.isCompleted &&
+                    !bookCommand.hasError) {
+                  context.pop();
+                }
+              });
 
           bookCommand.clearSuccessMessage();
-
-          // Navigate back after success
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted &&
-                context.mounted &&
-                context.canPop() &&
-                bookCommand.isCompleted &&
-                !bookCommand.hasError) {
-              context.pop();
-            }
-          });
         }
       });
     } else if (!bookCommand.showSuccessMessage) {
@@ -142,15 +142,18 @@ class _StudentSessionTimeSelection
       _hasHandledBookingError = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                bookCommand.errorMessage ??
-                    'Failed to book timeslot. Please try again.',
+          // Skip SnackBar for conflicts - unified overlay handles them
+          if (!bookCommand.isBookingConflict) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  bookCommand.errorMessage ??
+                      'Failed to book timeslot. Please try again.',
+                ),
+                backgroundColor: ArkadColors.lightRed,
               ),
-              backgroundColor: ArkadColors.lightRed,
-            ),
-          );
+            );
+          }
 
           bookCommand.clearErrorMessage();
         }
@@ -164,28 +167,27 @@ class _StudentSessionTimeSelection
       _hasHandledUnbookingSuccess = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                unbookCommand.successMessage ??
-                    'Booking cancelled successfully!',
-              ),
-              backgroundColor: ArkadColors.arkadGreen,
-            ),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(
+                const SnackBar(
+                  content: Text('Booking cancelled successfully!'),
+                  backgroundColor: ArkadColors.arkadGreen,
+                  duration: Duration(milliseconds: 1500),
+                ),
+              )
+              .closed
+              .then((_) {
+                // Navigate back after SnackBar dismisses
+                if (mounted &&
+                    context.mounted &&
+                    context.canPop() &&
+                    unbookCommand.isCompleted &&
+                    !unbookCommand.hasError) {
+                  context.pop();
+                }
+              });
 
           unbookCommand.clearSuccessMessage();
-
-          // Navigate back after success (same as booking)
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted &&
-                context.mounted &&
-                context.canPop() &&
-                unbookCommand.isCompleted &&
-                !unbookCommand.hasError) {
-              context.pop();
-            }
-          });
         }
       });
     } else if (!unbookCommand.showSuccessMessage) {
@@ -219,28 +221,27 @@ class _StudentSessionTimeSelection
       _hasHandledSwitchSuccess = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                switchCommand.successMessage ??
-                    'Timeslot switched successfully!',
-              ),
-              backgroundColor: ArkadColors.arkadGreen,
-            ),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(
+                const SnackBar(
+                  content: Text('Timeslot switched successfully!'),
+                  backgroundColor: ArkadColors.arkadGreen,
+                  duration: Duration(milliseconds: 1500),
+                ),
+              )
+              .closed
+              .then((_) {
+                // Navigate back after SnackBar dismisses
+                if (mounted &&
+                    context.mounted &&
+                    context.canPop() &&
+                    switchCommand.isCompleted &&
+                    !switchCommand.hasError) {
+                  context.pop();
+                }
+              });
 
           switchCommand.clearSuccessMessage();
-
-          // Navigate back after success
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted &&
-                context.mounted &&
-                context.canPop() &&
-                switchCommand.isCompleted &&
-                !switchCommand.hasError) {
-              context.pop();
-            }
-          });
         }
       });
     } else if (!switchCommand.showSuccessMessage) {
@@ -252,15 +253,18 @@ class _StudentSessionTimeSelection
       _hasHandledSwitchError = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                switchCommand.errorMessage ??
-                    'Failed to switch timeslot. Please try again.',
+          // Skip SnackBar for conflicts - unified overlay handles them
+          if (!switchCommand.isTimeslotConflict) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  switchCommand.errorMessage ??
+                      'Failed to switch timeslot. Please try again.',
+                ),
+                backgroundColor: ArkadColors.lightRed,
               ),
-              backgroundColor: ArkadColors.lightRed,
-            ),
-          );
+            );
+          }
 
           switchCommand.clearErrorMessage();
         }

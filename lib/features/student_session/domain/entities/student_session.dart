@@ -267,7 +267,7 @@ class StudentSession {
 
   @override
   String toString() {
-    return 'StudentSession(id: $id, companyName: $companyName, type: ${sessionType.value}, status: $userStatus, available: $isAvailable)';
+    return 'StudentSession(id: $id, companyId: $companyId, type: ${sessionType.value})';
   }
 }
 
