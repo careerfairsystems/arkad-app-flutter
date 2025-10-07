@@ -17,6 +17,7 @@ import '../commands/book_timeslot_command.dart';
 import '../commands/get_my_applications_with_booking_state_command.dart';
 import '../commands/get_student_sessions_command.dart';
 import '../commands/get_timeslots_command.dart';
+import '../commands/switch_timeslot_command.dart';
 import '../commands/unbook_timeslot_command.dart';
 
 /// ViewModel for coordinating student session commands and managing UI state
@@ -25,6 +26,7 @@ class StudentSessionViewModel extends ChangeNotifier {
   final ApplyForSessionCommand _applyForSessionCommand;
   final BookTimeslotCommand _bookTimeslotCommand;
   final UnbookTimeslotCommand _unbookTimeslotCommand;
+  final SwitchTimeslotCommand _switchTimeslotCommand;
   final GetMyApplicationsWithBookingStateCommand
   _getMyApplicationsWithBookingStateCommand;
   final GetTimeslotsCommand _getTimeslotsCommand;
@@ -36,6 +38,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     required ApplyForSessionCommand applyForSessionCommand,
     required BookTimeslotCommand bookTimeslotCommand,
     required UnbookTimeslotCommand unbookTimeslotCommand,
+    required SwitchTimeslotCommand switchTimeslotCommand,
     required GetMyApplicationsWithBookingStateCommand
     getMyApplicationsWithBookingStateCommand,
     required GetTimeslotsCommand getTimeslotsCommand,
@@ -45,6 +48,7 @@ class StudentSessionViewModel extends ChangeNotifier {
        _applyForSessionCommand = applyForSessionCommand,
        _bookTimeslotCommand = bookTimeslotCommand,
        _unbookTimeslotCommand = unbookTimeslotCommand,
+       _switchTimeslotCommand = switchTimeslotCommand,
        _getMyApplicationsWithBookingStateCommand =
            getMyApplicationsWithBookingStateCommand,
        _getTimeslotsCommand = getTimeslotsCommand,
@@ -76,6 +80,7 @@ class StudentSessionViewModel extends ChangeNotifier {
   ApplyForSessionCommand get applyForSessionCommand => _applyForSessionCommand;
   BookTimeslotCommand get bookTimeslotCommand => _bookTimeslotCommand;
   UnbookTimeslotCommand get unbookTimeslotCommand => _unbookTimeslotCommand;
+  SwitchTimeslotCommand get switchTimeslotCommand => _switchTimeslotCommand;
   GetMyApplicationsWithBookingStateCommand
   get getMyApplicationsWithBookingStateCommand =>
       _getMyApplicationsWithBookingStateCommand;
@@ -372,6 +377,14 @@ class StudentSessionViewModel extends ChangeNotifier {
     await _unbookTimeslotCommand.unbookTimeslot(companyId);
   }
 
+  /// Switch from current booked timeslot to a new timeslot atomically
+  Future<void> switchTimeslot({
+    required int fromTimeslotId,
+    required int newTimeslotId,
+  }) async {
+    await _switchTimeslotCommand.switchTimeslot(fromTimeslotId, newTimeslotId);
+  }
+
   /// Search student sessions
   void searchStudentSessions(String query) {
     _searchQuery = query;
@@ -430,6 +443,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     _applyForSessionCommand.addListener(_onCommandStateChanged);
     _bookTimeslotCommand.addListener(_onBookTimeslotCommandChanged);
     _unbookTimeslotCommand.addListener(_onUnbookTimeslotCommandChanged);
+    _switchTimeslotCommand.addListener(_onSwitchTimeslotCommandChanged);
     _getMyApplicationsWithBookingStateCommand.addListener(
       _onCommandStateChanged,
     );
@@ -488,7 +502,36 @@ class StudentSessionViewModel extends ChangeNotifier {
     }
   }
 
-  /// Handle booking conflict with simple refresh
+  /// Handle switch timeslot command state changes
+  void _onSwitchTimeslotCommandChanged() {
+    // CRITICAL: Check errors FIRST to prevent success flow during error states
+    if (_switchTimeslotCommand.hasError) {
+      if (_switchTimeslotCommand.isTimeslotConflict) {
+        // Handle timeslot conflict with deferred async operations (same as booking)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _handleBookingConflict();
+        });
+      }
+      notifyListeners(); // Ensure all error states propagate to UI
+      return; // CRITICAL: Exit early to prevent success flow after error
+    }
+
+    // Success flow - only execute if NO errors exist
+    if (_switchTimeslotCommand.isCompleted &&
+        _switchTimeslotCommand.result != null) {
+      // Defer async operations to avoid setState during build
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // Refresh profile data to immediately reflect new booking state
+        await loadMyApplicationsWithBookingState(forceRefresh: true);
+        notifyListeners(); // Notify after async operation completes
+      });
+    } else {
+      // Immediate notify for non-async state changes
+      notifyListeners();
+    }
+  }
+
+  /// Handle booking and switching conflict with unified overlay and refresh
   Future<void> _handleBookingConflict() async {
     if (_isHandlingConflict) return; // Prevent concurrent conflict handling
 
@@ -552,6 +595,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     _applyForSessionCommand.reset();
     _bookTimeslotCommand.reset();
     _unbookTimeslotCommand.reset();
+    _switchTimeslotCommand.reset();
     _getMyApplicationsWithBookingStateCommand.reset();
     _getTimeslotsCommand.reset();
 
@@ -572,6 +616,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     _applyForSessionCommand.removeListener(_onCommandStateChanged);
     _bookTimeslotCommand.removeListener(_onBookTimeslotCommandChanged);
     _unbookTimeslotCommand.removeListener(_onUnbookTimeslotCommandChanged);
+    _switchTimeslotCommand.removeListener(_onSwitchTimeslotCommandChanged);
     _getMyApplicationsWithBookingStateCommand.removeListener(
       _onCommandStateChanged,
     );

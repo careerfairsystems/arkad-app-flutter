@@ -37,6 +37,8 @@ class _StudentSessionTimeSelection
   bool _hasHandledBookingError = false;
   bool _hasHandledUnbookingSuccess = false;
   bool _hasHandledUnbookingError = false;
+  bool _hasHandledSwitchSuccess = false;
+  bool _hasHandledSwitchError = false;
 
   /// Get selected timeslot from current timeslots list using ID
   Timeslot? _getSelectedTimeslot(List<Timeslot> timeslots) {
@@ -73,6 +75,7 @@ class _StudentSessionTimeSelection
 
         viewModel.bookTimeslotCommand.reset();
         viewModel.unbookTimeslotCommand.reset();
+        viewModel.switchTimeslotCommand.reset();
 
         final companyId = int.tryParse(widget.id);
         if (companyId != null) {
@@ -100,6 +103,7 @@ class _StudentSessionTimeSelection
   void _handleCommandMessages(StudentSessionViewModel viewModel) {
     final bookCommand = viewModel.bookTimeslotCommand;
     final unbookCommand = viewModel.unbookTimeslotCommand;
+    final switchCommand = viewModel.switchTimeslotCommand;
 
     // Handle booking success messages
     if (bookCommand.showSuccessMessage && !_hasHandledBookingSuccess) {
@@ -208,6 +212,61 @@ class _StudentSessionTimeSelection
       });
     } else if (!unbookCommand.showErrorMessage) {
       _hasHandledUnbookingError = false; // Reset when message is cleared
+    }
+
+    // Handle switch success messages
+    if (switchCommand.showSuccessMessage && !_hasHandledSwitchSuccess) {
+      _hasHandledSwitchSuccess = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                switchCommand.successMessage ??
+                    'Timeslot switched successfully!',
+              ),
+              backgroundColor: ArkadColors.arkadGreen,
+            ),
+          );
+
+          switchCommand.clearSuccessMessage();
+
+          // Navigate back after success
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted &&
+                context.mounted &&
+                context.canPop() &&
+                switchCommand.isCompleted &&
+                !switchCommand.hasError) {
+              context.pop();
+            }
+          });
+        }
+      });
+    } else if (!switchCommand.showSuccessMessage) {
+      _hasHandledSwitchSuccess = false; // Reset when message is cleared
+    }
+
+    // Handle switch error messages
+    if (switchCommand.showErrorMessage && !_hasHandledSwitchError) {
+      _hasHandledSwitchError = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                switchCommand.errorMessage ??
+                    'Failed to switch timeslot. Please try again.',
+              ),
+              backgroundColor: ArkadColors.lightRed,
+            ),
+          );
+
+          switchCommand.clearErrorMessage();
+        }
+      });
+    } else if (!switchCommand.showErrorMessage) {
+      _hasHandledSwitchError = false; // Reset when message is cleared
     }
   }
 
@@ -414,20 +473,28 @@ class _StudentSessionTimeSelection
     int companyId,
     int newTimeslotId,
   ) async {
-    // IMPROVED: Handle booking change flow with proper session management
+    // ATOMIC SWITCH: Use single API call to prevent race conditions
 
-    // First unbook the current slot (this will stop any active session)
-    await viewModel.unbookTimeslot(companyId);
+    // Get current booked timeslot ID
+    final currentBookedSlot = viewModel.timeslots
+        .where((slot) => slot.status.isBookedByCurrentUser)
+        .firstOrNull;
 
-    // Only proceed with new booking if unbook was successful
-    if (!viewModel.unbookTimeslotCommand.hasError) {
-      // Start new booking (this will create a new active session)
+    if (currentBookedSlot == null) {
+      // Should not happen, but handle gracefully
+      // Fall back to regular booking if no existing booking found
       await viewModel.bookTimeslot(
         companyId: companyId,
         timeslotId: newTimeslotId,
       );
+      return;
     }
-    // If unbooking failed, the active session is already stopped by the unbook handler
+
+    // Use atomic switch endpoint - prevents race conditions
+    await viewModel.switchTimeslot(
+      fromTimeslotId: currentBookedSlot.id,
+      newTimeslotId: newTimeslotId,
+    );
   }
 
   @override
@@ -472,11 +539,20 @@ class _StudentSessionTimeSelection
     );
   }
 
-  /// Build simple timeslot list
+  /// Build simple timeslot list with proper loading states
   Widget _buildTimeslotList(StudentSessionViewModel viewModel) {
     // Show loading for initial load
     if (viewModel.isInitialLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Loading timeslots...'),
+          ],
+        ),
+      );
     }
 
     // Show empty state if no timeslots
@@ -484,6 +560,11 @@ class _StudentSessionTimeSelection
       return _buildEmptyState();
     }
 
+    return _buildTimeslotListContent(viewModel);
+  }
+
+  /// Build the actual timeslot list content
+  Widget _buildTimeslotListContent(StudentSessionViewModel viewModel) {
     // Group timeslots by weekday
     final groupedSlots = _groupSlotsByWeekday(viewModel.timeslots);
     final sortedWeekdays = _getSortedWeekdays(groupedSlots);
@@ -733,7 +814,9 @@ class _StudentSessionTimeSelection
     // Determine if any command is executing
     final isAnyExecuting =
         viewModel.bookTimeslotCommand.isExecuting ||
-        viewModel.unbookTimeslotCommand.isExecuting;
+        viewModel.unbookTimeslotCommand.isExecuting ||
+        viewModel.switchTimeslotCommand.isExecuting ||
+        viewModel.getTimeslotsCommand.isExecuting;
 
     // Determine if button is enabled
     bool isEnabled = !isAnyExecuting;

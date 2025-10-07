@@ -413,6 +413,94 @@ class StudentSessionRepositoryImpl extends BaseRepository
   }
 
   @override
+  Future<Result<String>> switchTimeslot({
+    required int fromTimeslotId,
+    required int newTimeslotId,
+  }) async {
+    Sentry.logger.info(
+      'Attempting to switch timeslot',
+      attributes: {
+        'operation': SentryLogAttribute.string('switchTimeslot'),
+        'from_timeslot_id': SentryLogAttribute.string(
+          fromTimeslotId.toString(),
+        ),
+        'new_timeslot_id': SentryLogAttribute.string(newTimeslotId.toString()),
+      },
+    );
+
+    try {
+      final response = await _remoteDataSource.switchTimeslot(
+        fromTimeslotId: fromTimeslotId,
+        newTimeslotId: newTimeslotId,
+      );
+
+      Sentry.logger.info(
+        'Successfully switched timeslot',
+        attributes: {
+          'operation': SentryLogAttribute.string('switchTimeslot'),
+          'from_timeslot_id': SentryLogAttribute.string(
+            fromTimeslotId.toString(),
+          ),
+          'new_timeslot_id': SentryLogAttribute.string(
+            newTimeslotId.toString(),
+          ),
+        },
+      );
+
+      return Result.success(response.data ?? 'Timeslot switched successfully');
+    } catch (e) {
+      // ENHANCED: Handle timeslot conflicts directly from original exception
+      if (e is DioException) {
+        // Check HTTP status code for conflict (409) or not found (404)
+        if (e.response?.statusCode == 409 || e.response?.statusCode == 404) {
+          Sentry.logger.error(
+            'Switch timeslot conflict - timeslot not found or already taken',
+            attributes: {
+              'operation': SentryLogAttribute.string('switchTimeslot'),
+              'from_timeslot_id': SentryLogAttribute.string(
+                fromTimeslotId.toString(),
+              ),
+              'new_timeslot_id': SentryLogAttribute.string(
+                newTimeslotId.toString(),
+              ),
+              'status_code': SentryLogAttribute.string(
+                e.response?.statusCode.toString() ?? 'unknown',
+              ),
+              'conflict_reason': SentryLogAttribute.string(
+                'http_${e.response?.statusCode}',
+              ),
+            },
+          );
+
+          return Result.failure(
+            const StudentSessionBookingConflictError(
+              'Timeslot was just taken by someone else',
+            ),
+          );
+        }
+        // Check error message for other conflict indicators
+        final errorMessage = e.response?.data?.toString() ?? e.message ?? '';
+        if (errorMessage.contains('conflict') ||
+            errorMessage.contains('already taken') ||
+            errorMessage.contains('not found') ||
+            errorMessage.contains('unavailable')) {
+          return Result.failure(
+            const StudentSessionBookingConflictError(
+              'Timeslot was just taken by someone else',
+            ),
+          );
+        }
+      }
+
+      // For all other errors, use the base repository error handling
+      return executeOperation(
+        () => throw e, // Re-throw to trigger base error handling
+        'switch from timeslot $fromTimeslotId to $newTimeslotId',
+      );
+    }
+  }
+
+  @override
   Future<Result<StudentSessionApplication?>> getApplicationForCompany(
     int companyId,
   ) async {
