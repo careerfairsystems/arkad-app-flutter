@@ -501,7 +501,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   Widget _buildSection(String title, IconData icon, Widget content) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),

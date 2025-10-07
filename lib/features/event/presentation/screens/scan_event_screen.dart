@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
-import '../../data/data_sources/event_remote_data_source.dart';
 import '../../domain/entities/ticket_verification_result.dart';
 import '../view_models/event_view_model.dart';
 

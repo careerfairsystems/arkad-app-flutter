@@ -299,13 +299,10 @@ class EventRemoteDataSource {
         print('   UUID: ${response.data!.uuid}');
         print('   Event ID: ${response.data!.eventId}');
         print('   Used: ${response.data!.used}');
-        print('   Has User: ${response.data!.user != null}');
-        if (response.data!.user != null) {
-          print('   User ID: ${response.data!.user.id}');
-          print(
-            '   User Name: ${response.data!.user.firstName} ${response.data!.user.lastName}',
-          );
-        }
+        print('   User ID: ${response.data!.user.id}');
+        print(
+          '   User Name: ${response.data!.user.firstName} ${response.data!.user.lastName}',
+        );
 
         // Log to Sentry for tracking
         Sentry.logger.info(

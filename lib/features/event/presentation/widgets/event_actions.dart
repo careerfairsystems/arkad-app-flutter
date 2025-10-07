@@ -30,7 +30,6 @@ class EventActions extends StatelessWidget {
         border: Border.all(color: ArkadColors.lightRed.withValues(alpha: 0.3)),
       ),
       child: const Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(Icons.event_busy_rounded, color: ArkadColors.lightRed, size: 28),
           SizedBox(width: 12),
