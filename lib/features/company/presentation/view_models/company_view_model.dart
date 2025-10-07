@@ -308,12 +308,14 @@ class CompanyViewModel extends ChangeNotifier {
 
       // Log intersection of search AND filter
       if (kDebugMode) {
-        print('[CompanyViewModel] Search + Filter INTERSECTION: '
-            'total=$totalCompanies → result=${_displayedCompanies.length} | '
-            'query="$_currentSearchQuery", '
-            'filters: ${_currentFilter.positions.length} positions, '
-            '${_currentFilter.degrees.length} degrees, '
-            '${_currentFilter.industries.length} industries');
+        print(
+          '[CompanyViewModel] Search + Filter INTERSECTION: '
+          'total=$totalCompanies → result=${_displayedCompanies.length} | '
+          'query="$_currentSearchQuery", '
+          'filters: ${_currentFilter.positions.length} positions, '
+          '${_currentFilter.degrees.length} degrees, '
+          '${_currentFilter.industries.length} industries',
+        );
       }
     } else if (_searchCompaniesCommand.isCompleted &&
         _searchCompaniesCommandEpoch == _commandsEpoch) {
@@ -321,9 +323,11 @@ class CompanyViewModel extends ChangeNotifier {
 
       // Log search-only results
       if (kDebugMode) {
-        print('[CompanyViewModel] Search ONLY: '
-            'total=$totalCompanies → result=${_displayedCompanies.length} | '
-            'query="$_currentSearchQuery"');
+        print(
+          '[CompanyViewModel] Search ONLY: '
+          'total=$totalCompanies → result=${_displayedCompanies.length} | '
+          'query="$_currentSearchQuery"',
+        );
       }
     } else if (_filterCompaniesCommand.isCompleted &&
         _filterCompaniesCommandEpoch == _commandsEpoch) {
@@ -331,11 +335,13 @@ class CompanyViewModel extends ChangeNotifier {
 
       // Log filter-only results
       if (kDebugMode) {
-        print('[CompanyViewModel] Filter ONLY: '
-            'total=$totalCompanies → result=${_displayedCompanies.length} | '
-            'filters: ${_currentFilter.positions.length} positions, '
-            '${_currentFilter.degrees.length} degrees, '
-            '${_currentFilter.industries.length} industries');
+        print(
+          '[CompanyViewModel] Filter ONLY: '
+          'total=$totalCompanies → result=${_displayedCompanies.length} | '
+          'filters: ${_currentFilter.positions.length} positions, '
+          '${_currentFilter.degrees.length} degrees, '
+          '${_currentFilter.industries.length} industries',
+        );
       }
     } else if (_getCompaniesCommand.isCompleted &&
         _currentSearchQuery.isEmpty &&
@@ -344,7 +350,9 @@ class CompanyViewModel extends ChangeNotifier {
 
       // Log showing all companies (no filters)
       if (kDebugMode) {
-        print('[CompanyViewModel] Showing ALL companies (no filters): total=$totalCompanies');
+        print(
+          '[CompanyViewModel] Showing ALL companies (no filters): total=$totalCompanies',
+        );
       }
     }
 
