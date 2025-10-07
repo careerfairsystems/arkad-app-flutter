@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -69,16 +70,15 @@ class _MapScreenState extends State<MapScreen> {
         builder: (context, permissionsViewModel, child) {
           // Show permission flow if not all permissions granted
           if (!permissionsViewModel.allPermissionsGranted) {
-            return SafeArea(
-              child: _buildPermissionFlow(permissionsViewModel),
-            );
+            return SafeArea(child: _buildPermissionFlow(permissionsViewModel));
           }
 
           // Permissions granted, now wait for SDK to start
           return Consumer<CombainIntializer>(
             builder: (context, combainInitializer, child) {
               // Show loading while Combain SDK is starting
-              if (!combainInitializer.combainIntialized || permissionsViewModel.isStartingSDK) {
+              if (!combainInitializer.combainIntialized ||
+                  permissionsViewModel.isStartingSDK) {
                 return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -112,6 +112,7 @@ class _MapScreenState extends State<MapScreen> {
                       return GoogleMap(
                         onMapCreated: (GoogleMapController controller) {
                           _mapController = controller;
+                          _setMapStyle(controller);
                         },
                         initialCameraPosition: const CameraPosition(
                           target: _lundCenter,
@@ -188,21 +189,18 @@ class _MapScreenState extends State<MapScreen> {
           padding: const EdgeInsets.all(24.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              viewModel.steps.length,
-              (index) {
-                final isActive = index == viewModel.currentStepIndex;
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: isActive ? 12 : 8,
-                  height: isActive ? 12 : 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isActive ? ArkadColors.arkadTurkos : Colors.white38,
-                  ),
-                );
-              },
-            ),
+            children: List.generate(viewModel.steps.length, (index) {
+              final isActive = index == viewModel.currentStepIndex;
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: isActive ? 12 : 8,
+                height: isActive ? 12 : 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isActive ? ArkadColors.arkadTurkos : Colors.white38,
+                ),
+              );
+            }),
           ),
         ),
       ],
@@ -426,6 +424,18 @@ class _MapScreenState extends State<MapScreen> {
           CameraPosition(target: location, zoom: 16.0),
         ),
       );
+    }
+  }
+
+  Future<void> _setMapStyle(GoogleMapController controller) async {
+    try {
+      final String style = await rootBundle.loadString(
+        'assets/map_styles/arkad_dark_map_style.json',
+      );
+      await controller.setMapStyle(style);
+    } catch (e) {
+      // Map style loading failed, continue with default style
+      debugPrint('Failed to load map style: $e');
     }
   }
 
