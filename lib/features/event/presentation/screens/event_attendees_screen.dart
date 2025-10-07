@@ -480,6 +480,36 @@ class _EventAttendeesScreenState extends State<EventAttendeesScreen> {
                 ),
               )
             : null,
+        trailing: attendee.hasBeenScanned
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: ArkadColors.arkadGreen.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: ArkadColors.arkadGreen.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      size: 16,
+                      color: ArkadColors.arkadGreen,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Checked In',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: ArkadColors.arkadGreen,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : null,
       ),
     );
   }
