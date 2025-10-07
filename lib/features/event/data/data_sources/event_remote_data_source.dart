@@ -172,7 +172,7 @@ class EventRemoteDataSource {
       );
       throw exception;
     } catch (e) {
-      if (e is EventFullException) {
+      if (e is EventFullException || e is AppError) {
         rethrow;
       }
       await Sentry.captureException(e);
