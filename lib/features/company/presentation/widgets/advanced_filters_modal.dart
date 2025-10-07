@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -5,17 +6,24 @@ import '../../../../shared/infrastructure/debouncer.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../domain/entities/company.dart';
-import 'filter_options.dart';
 
 class AdvancedFiltersModal extends StatefulWidget {
   const AdvancedFiltersModal({
     super.key,
     required this.initialFilter,
     required this.onFiltersApplied,
+    required this.availablePositions,
+    required this.availableDegrees,
+    required this.availableIndustries,
+    required this.availableCompetences,
   });
 
   final CompanyFilter initialFilter;
   final ValueChanged<CompanyFilter> onFiltersApplied;
+  final List<String> availablePositions;
+  final List<String> availableDegrees;
+  final List<String> availableIndustries;
+  final List<String> availableCompetences;
 
   @override
   State<AdvancedFiltersModal> createState() => _AdvancedFiltersModalState();
@@ -45,11 +53,25 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _currentFilter = widget.initialFilter.copyWith();
+    // Use the initial filter directly - no copy needed
+    _currentFilter = widget.initialFilter;
 
-    _filteredDegrees = List.from(FilterOptions.degrees);
-    _filteredIndustries = List.from(FilterOptions.industries);
-    _filteredCompetences = List.from(FilterOptions.competences);
+    // Initialize with dynamic options from widget
+    _filteredDegrees = List.from(widget.availableDegrees);
+    _filteredIndustries = List.from(widget.availableIndustries);
+    _filteredCompetences = List.from(widget.availableCompetences);
+
+    // Log initial filter state when modal opens
+    if (kDebugMode) {
+      print(
+        '[AdvancedFiltersModal] Opened with initial state: '
+        'positions=[${_currentFilter.positions.join(", ")}], '
+        'degrees=[${_currentFilter.degrees.join(", ")}], '
+        'industries=[${_currentFilter.industries.join(", ")}], '
+        'competences=[${_currentFilter.competences.join(", ")}], '
+        'hasStudentSessions=${_currentFilter.hasStudentSessions}',
+      );
+    }
   }
 
   @override
@@ -152,25 +174,25 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                     tabs: [
                       _buildTab(
                         title: 'Positions',
-                        totalCount: FilterOptions.positions.length,
+                        totalCount: widget.availablePositions.length,
                         selectedCount: _currentFilter.positions.length,
                         icon: Icons.work_rounded,
                       ),
                       _buildTab(
                         title: 'Degrees',
-                        totalCount: FilterOptions.degrees.length,
+                        totalCount: widget.availableDegrees.length,
                         selectedCount: _currentFilter.degrees.length,
                         icon: Icons.school_rounded,
                       ),
                       _buildTab(
                         title: 'Industries',
-                        totalCount: FilterOptions.industries.length,
+                        totalCount: widget.availableIndustries.length,
                         selectedCount: _currentFilter.industries.length,
                         icon: Icons.domain_rounded,
                       ),
                       _buildTab(
                         title: 'Skills',
-                        totalCount: FilterOptions.competences.length,
+                        totalCount: widget.availableCompetences.length,
                         selectedCount: _currentFilter.competences.length,
                         icon: Icons.psychology_rounded,
                       ),
@@ -233,7 +255,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
 
   Widget _buildPositionsTab() {
     return _buildFilterSection(
-      options: FilterOptions.positions,
+      options: widget.availablePositions,
       selectedOptions: _currentFilter.positions.toSet(),
       onSelectionChanged: (selected) {
         setState(() {
@@ -638,6 +660,18 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                       // Keep label simple like in the screenshot
                       text: 'Apply',
                       onPressed: () {
+                        // Log final filter state before applying
+                        if (kDebugMode) {
+                          print(
+                            '[AdvancedFiltersModal] User clicked Apply with final state: '
+                            'positions=[${_currentFilter.positions.join(", ")}], '
+                            'degrees=[${_currentFilter.degrees.join(", ")}], '
+                            'industries=[${_currentFilter.industries.join(", ")}], '
+                            'competences=[${_currentFilter.competences.join(", ")}], '
+                            'hasStudentSessions=${_currentFilter.hasStudentSessions}',
+                          );
+                        }
+
                         widget.onFiltersApplied(_currentFilter);
                         context.pop();
                       },
@@ -684,7 +718,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     _filterItems(
       query: query,
       debouncer: _degreesDebouncer,
-      sourceOptions: FilterOptions.degrees,
+      sourceOptions: widget.availableDegrees,
       onUpdate: (filtered) => _filteredDegrees = filtered,
     );
   }
@@ -693,7 +727,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     _filterItems(
       query: query,
       debouncer: _industriesDebouncer,
-      sourceOptions: FilterOptions.industries,
+      sourceOptions: widget.availableIndustries,
       onUpdate: (filtered) => _filteredIndustries = filtered,
     );
   }
@@ -702,7 +736,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     _filterItems(
       query: query,
       debouncer: _competencesDebouncer,
-      sourceOptions: FilterOptions.competences,
+      sourceOptions: widget.availableCompetences,
       onUpdate: (filtered) => _filteredCompetences = filtered,
     );
   }

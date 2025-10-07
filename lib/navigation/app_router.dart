@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -184,21 +185,31 @@ class AppRouter {
                     path: 'detail/:id',
                     pageBuilder: _slide((context, s) {
                       final idStr = s.pathParameters['id'];
-                      print('🔍 [Router] Event detail route accessed');
-                      print('   Raw path parameter: "$idStr"');
+                      if (kDebugMode) {
+                        debugPrint('[Router] Event detail route accessed');
+                        debugPrint('   Raw path parameter: "$idStr"');
+                      }
 
                       final eventId = int.tryParse(idStr ?? '');
-                      print('   Parsed event ID: $eventId');
+                      if (kDebugMode) {
+                        debugPrint('   Parsed event ID: $eventId');
+                      }
 
                       if (eventId == null) {
-                        print(
-                          '   ❌ Failed to parse event ID - showing error screen',
-                        );
+                        if (kDebugMode) {
+                          debugPrint(
+                            '   Failed to parse event ID - showing error screen',
+                          );
+                        }
                         return const Scaffold(
                           body: Center(child: Text('Error: Invalid event ID')),
                         );
                       }
-                      print('   ✅ Creating EventDetailScreen with ID=$eventId');
+                      if (kDebugMode) {
+                        debugPrint(
+                          '   Creating EventDetailScreen with ID=$eventId',
+                        );
+                      }
                       return EventDetailScreen(eventId: eventId);
                     }),
                     routes: [
