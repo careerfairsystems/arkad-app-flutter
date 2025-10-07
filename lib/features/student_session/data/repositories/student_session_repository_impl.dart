@@ -382,18 +382,6 @@ class StudentSessionRepositoryImpl extends BaseRepository
             ),
           );
         }
-        // Check error message for other conflict indicators
-        final errorMessage = e.response?.data?.toString() ?? e.message ?? '';
-        if (errorMessage.contains('conflict') ||
-            errorMessage.contains('already booked') ||
-            errorMessage.contains('taken') ||
-            errorMessage.contains('unavailable')) {
-          return Result.failure(
-            const StudentSessionBookingConflictError(
-              'Timeslot was just booked by someone else',
-            ),
-          );
-        }
       }
 
       // For all other errors, use the base repository error handling
@@ -472,18 +460,6 @@ class StudentSessionRepositoryImpl extends BaseRepository
             },
           );
 
-          return Result.failure(
-            const StudentSessionBookingConflictError(
-              'Timeslot was just taken by someone else',
-            ),
-          );
-        }
-        // Check error message for other conflict indicators
-        final errorMessage = e.response?.data?.toString() ?? e.message ?? '';
-        if (errorMessage.contains('conflict') ||
-            errorMessage.contains('already taken') ||
-            errorMessage.contains('not found') ||
-            errorMessage.contains('unavailable')) {
           return Result.failure(
             const StudentSessionBookingConflictError(
               'Timeslot was just taken by someone else',
