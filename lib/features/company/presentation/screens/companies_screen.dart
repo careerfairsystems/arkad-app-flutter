@@ -245,8 +245,16 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   void _onSearchChanged(String value) {
-    // Apply search and filters together to avoid redundant state updates
-    _applyFilters();
+    // Use debounced search when no filters are active for better performance
+    // When filters are active, use immediate combined search+filter
+    if (_currentFilter.hasActiveFilters) {
+      // Filters active: bypass debouncing and apply immediately
+      _applyFilters();
+    } else {
+      // No filters: use debounced search for better UX
+      final viewModel = Provider.of<CompanyViewModel>(context, listen: false);
+      viewModel.searchCompanies(value);
+    }
   }
 
   void _clearSearch() {
