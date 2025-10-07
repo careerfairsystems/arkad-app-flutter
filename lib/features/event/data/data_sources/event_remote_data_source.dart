@@ -1,4 +1,3 @@
-import 'package:arkad/shared/errors/app_error.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -6,39 +5,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
 import '../../../../shared/data/api_error_handler.dart';
-
-/// Exception thrown when a ticket has already been used or user doesn't have a ticket
-class TicketAlreadyUsedException extends AppError {
-  final String token;
-  final int eventId;
-
-  const TicketAlreadyUsedException(this.token, this.eventId)
-    : super(
-        userMessage: 'Ticket has already been used or does not exist',
-        technicalDetails:
-            'Ticket $token for event $eventId has already been used or does not exist',
-        severity: ErrorSeverity.warning,
-      );
-
-  @override
-  String toString() =>
-      'TicketAlreadyUsedException: Ticket $token for event $eventId has already been used or does not exist';
-}
-
-/// Exception thrown when an event is at full capacity
-class EventFullException extends AppError {
-  final int eventId;
-
-  const EventFullException(this.eventId, String message)
-    : super(
-        userMessage: 'This event is full',
-        technicalDetails: 'Event $eventId is at full capacity: $message',
-        severity: ErrorSeverity.warning,
-      );
-
-  @override
-  String toString() => 'EventFullException: Event $eventId is full';
-}
+import '../../../../shared/errors/app_error.dart';
+import '../../../../shared/errors/event_errors.dart';
 
 /// Remote data source for event operations
 class EventRemoteDataSource {

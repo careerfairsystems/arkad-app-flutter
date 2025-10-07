@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/event/data/data_sources/event_remote_data_source.dart';
 import 'app_error.dart';
 import 'event_errors.dart';
 import 'student_session_errors.dart';

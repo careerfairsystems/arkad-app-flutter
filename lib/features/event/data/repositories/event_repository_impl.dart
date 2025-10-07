@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
+import '../../../../shared/errors/event_errors.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/event_attendee.dart';
 import '../../domain/entities/ticket_verification_result.dart';

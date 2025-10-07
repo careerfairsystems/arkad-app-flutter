@@ -2,6 +2,39 @@ import 'package:flutter/material.dart';
 
 import 'app_error.dart';
 
+/// Exception thrown when a ticket has already been used or user doesn't have a ticket
+class TicketAlreadyUsedException extends AppError {
+  const TicketAlreadyUsedException(this.token, this.eventId)
+    : super(
+        userMessage: 'Ticket has already been used or does not exist',
+        technicalDetails:
+            'Ticket $token for event $eventId has already been used or does not exist',
+        severity: ErrorSeverity.warning,
+      );
+
+  final String token;
+  final int eventId;
+
+  @override
+  String toString() =>
+      'TicketAlreadyUsedException: Ticket $token for event $eventId has already been used or does not exist';
+}
+
+/// Exception thrown when an event is at full capacity
+class EventFullException extends AppError {
+  const EventFullException(this.eventId, String message)
+    : super(
+        userMessage: 'This event is full',
+        technicalDetails: 'Event $eventId is at full capacity: $message',
+        severity: ErrorSeverity.warning,
+      );
+
+  final int eventId;
+
+  @override
+  String toString() => 'EventFullException: Event $eventId is full';
+}
+
 /// Event registration error for when event is at full capacity
 class EventFullError extends AppError {
   const EventFullError(this.eventTitle, {String? details})
