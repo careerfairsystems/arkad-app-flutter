@@ -9,7 +9,7 @@ class CompanyCard extends StatelessWidget {
     super.key,
     required this.company,
     this.onTap,
-    this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+    this.margin = const EdgeInsets.symmetric(horizontal: 10),
   });
 
   final Company company;
@@ -48,10 +48,6 @@ class CompanyCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       _buildIndustries(context),
-                      if (company.locations.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        _buildLocation(context),
-                      ],
                       if (company.hasStudentSessions) ...[
                         const SizedBox(height: 8),
                         _buildStudentSessions(context),
@@ -115,31 +111,6 @@ class CompanyCard extends StatelessWidget {
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
-    );
-  }
-
-  Widget _buildLocation(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          Icons.location_on_rounded,
-          size: 16,
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-        ),
-        const SizedBox(width: 4),
-        Expanded(
-          child: Text(
-            company.locations.join(', '),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.75),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
     );
   }
 

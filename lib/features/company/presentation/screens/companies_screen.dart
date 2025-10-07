@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -68,9 +69,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext buildContext) {
     return Consumer<CompanyViewModel>(
-      builder: (context, viewModel, child) {
+      builder: (buildContext, viewModel, child) {
         return Scaffold(
           appBar: AppBar(title: const Text('Companies')),
           body: Column(
@@ -84,8 +85,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
                 onAdvancedFiltersPressed: _showAdvancedFilters,
                 onClearAllPressed: _clearAllFilters,
                 totalActiveFilters: _getTotalActiveFilters(),
+                resultsCount: viewModel.companies.length,
+                totalCompanies: viewModel.allCompanies.length,
+                hasSearchQuery: _searchController.text.isNotEmpty,
               ),
-              _buildResultsCount(viewModel),
               Expanded(
                 child: CompanyList(
                   command: viewModel.getCompaniesCommand,
@@ -159,46 +162,6 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             onChanged: _onSearchChanged,
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildResultsCount(CompanyViewModel viewModel) {
-    final hasActiveFilters = _hasAnyFilters();
-    final hasSearchQuery = _searchController.text.isNotEmpty;
-
-    if (!hasActiveFilters && !hasSearchQuery) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.filter_list_rounded,
-            size: 16,
-            color: ArkadColors.arkadTurkos,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'Showing ${viewModel.companies.length} of ${viewModel.allCompanies.length} companies',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.7),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -282,9 +245,16 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   void _onSearchChanged(String value) {
-    final viewModel = Provider.of<CompanyViewModel>(context, listen: false);
-    viewModel.searchCompanies(value);
-    _applyFilters();
+    // Use debounced search when no filters are active for better performance
+    // When filters are active, use immediate combined search+filter
+    if (_currentFilter.hasActiveFilters) {
+      // Filters active: bypass debouncing and apply immediately
+      _applyFilters();
+    } else {
+      // No filters: use debounced search for better UX
+      final viewModel = Provider.of<CompanyViewModel>(context, listen: false);
+      viewModel.searchCompanies(value);
+    }
   }
 
   void _clearSearch() {
@@ -294,17 +264,48 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   void _showAdvancedFilters() {
+    final viewModel = Provider.of<CompanyViewModel>(context, listen: false);
+
+    // Get dynamic filter options from loaded company data
+    final availablePositions = viewModel.getAvailablePositions();
+    final availableDegrees = viewModel.getAvailableDegrees();
+    final availableIndustries = viewModel.getAvailableIndustries();
+    final availableCompetences = viewModel.getAvailableCompetences();
+
+    if (kDebugMode) {
+      print(
+        '[CompaniesScreen] Opening advanced filters with dynamic options: '
+        '${availablePositions.length} positions, '
+        '${availableDegrees.length} degrees, '
+        '${availableIndustries.length} industries, '
+        '${availableCompetences.length} competences',
+      );
+    }
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(
-        context,
-      ).colorScheme.surface.withValues(alpha: 0.0),
+      backgroundColor: Colors.transparent,
       builder: (context) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.9,
+        height: MediaQuery.of(context).size.height * 0.83,
         child: AdvancedFiltersModal(
           initialFilter: _currentFilter,
+          availablePositions: availablePositions,
+          availableDegrees: availableDegrees,
+          availableIndustries: availableIndustries,
+          availableCompetences: availableCompetences,
           onFiltersApplied: (filter) {
+            if (kDebugMode) {
+              print(
+                '[CompaniesScreen] Advanced filters applied: '
+                'positions=[${filter.positions.join(", ")}], '
+                'degrees=[${filter.degrees.join(", ")}], '
+                'industries=[${filter.industries.join(", ")}], '
+                'competences=[${filter.competences.join(", ")}], '
+                'hasStudentSessions=${filter.hasStudentSessions}',
+              );
+            }
+
             setState(() {
               _currentFilter = filter;
             });
@@ -316,6 +317,12 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   void _clearAllFilters() {
+    if (kDebugMode) {
+      print('[CompaniesScreen] Clearing all filters and search');
+    }
+
+    // Clear search first so _applyFilters() uses empty search text
+    _searchController.clear();
     setState(() {
       _currentFilter = const CompanyFilter();
     });
@@ -324,6 +331,21 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
 
   void _applyFilters() {
     final viewModel = Provider.of<CompanyViewModel>(context, listen: false);
+
+    // Log filter application for debugging
+    if (kDebugMode) {
+      print(
+        '[CompaniesScreen] Applying filters: '
+        'search="${_searchController.text}", '
+        'hasFilters=${_currentFilter.hasActiveFilters}, '
+        'positions=${_currentFilter.positions.length}, '
+        'degrees=${_currentFilter.degrees.length}, '
+        'industries=${_currentFilter.industries.length}, '
+        'competences=${_currentFilter.competences.length}, '
+        'hasStudentSessions=${_currentFilter.hasStudentSessions}',
+      );
+    }
+
     viewModel.searchAndFilterCompanies(_searchController.text, _currentFilter);
   }
 

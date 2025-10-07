@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../services/service_locator.dart';
-import '../../../../shared/domain/validation_service.dart';
+import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_form_field.dart';
@@ -934,9 +934,7 @@ class _StudentSessionApplicationFormScreenState
       controller: _masterTitleController,
       labelText: _formConfig!.getFieldLabel('Master\'s Title', 'masterTitle'),
       hintText: 'Your master\'s programme title',
-      validator: isOptional
-          ? null
-          : _formConfig!.getTextFieldValidator('masterTitle'),
+      validator: _formConfig!.getTextFieldValidator('masterTitle'),
     );
   }
 
@@ -944,10 +942,8 @@ class _StudentSessionApplicationFormScreenState
     return ArkadFormField(
       controller: _linkedinController,
       labelText: _formConfig!.getFieldLabel('LinkedIn Profile', 'linkedin'),
-      hintText: 'https://linkedin.com/in/yourprofile or just your username',
-      validator: isOptional
-          ? null
-          : _formConfig!.getTextFieldValidator('linkedin'),
+      hintText: 'e.g., https://www.linkedin.com/in/yourprofile',
+      validator: _formConfig!.getTextFieldValidator('linkedin'),
     );
   }
 

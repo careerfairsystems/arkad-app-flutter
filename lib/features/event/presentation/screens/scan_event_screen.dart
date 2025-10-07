@@ -66,6 +66,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
       failure: (error) {
         setState(() {
           isProcessingTicket = false;
+          ticketResult = null; // Clear stale success state
         });
         // Error will be shown through the EventViewModel's error state
       },
@@ -73,6 +74,10 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
   }
 
   void _scanAgain() {
+    // Clear EventViewModel error state
+    final eventViewModel = Provider.of<EventViewModel>(context, listen: false);
+    eventViewModel.clearError();
+
     setState(() {
       scannedData = null;
       isScanning = true;
@@ -87,17 +92,10 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
       builder: (context, eventViewModel, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text(
+            title: Text(
               'Scan Event QR Code',
-              style: TextStyle(
-                fontFamily: 'MyriadProCondensed',
-                fontWeight: FontWeight.w600,
-                color: ArkadColors.arkadNavy,
-              ),
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-            backgroundColor: ArkadColors.white,
-            iconTheme: const IconThemeData(color: ArkadColors.arkadNavy),
-            elevation: 0,
           ),
           body: Column(
             children: [
@@ -115,7 +113,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                         onPressed: _scanAgain,
                         variant: ArkadButtonVariant.secondary,
                         fullWidth: true,
-                        icon: Icons.qr_code_scanner,
+                        icon: Icons.qr_code_scanner_rounded,
                       ),
                       if (ticketResult != null) ...[
                         const SizedBox(height: 12),
@@ -217,7 +215,9 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
       padding: const EdgeInsets.all(24),
       child: Center(
         child: Card(
+          color: ArkadColors.arkadLightNavy,
           elevation: 4,
+          surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -237,7 +237,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
-                        Icons.check_circle,
+                        Icons.check_circle_rounded,
                         color: ArkadColors.arkadGreen,
                         size: 24,
                       ),
@@ -248,7 +248,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: ArkadColors.arkadNavy,
+                        color: Colors.white,
                         fontFamily: 'MyriadProCondensed',
                       ),
                     ),
@@ -262,17 +262,17 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: ArkadColors.arkadTurkos.withValues(alpha: 0.05),
+                    color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: ArkadColors.arkadTurkos.withValues(alpha: 0.2),
+                      color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Text(
                     scannedData ?? '',
                     style: const TextStyle(
                       fontSize: 16,
-                      color: ArkadColors.arkadNavy,
+                      color: Colors.white,
                       fontFamily: 'MyriadProCondensed',
                     ),
                   ),
@@ -290,7 +290,9 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
       padding: const EdgeInsets.all(24),
       child: Center(
         child: Card(
+          color: ArkadColors.arkadLightNavy,
           elevation: 4,
+          surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -306,7 +308,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: ArkadColors.arkadNavy,
+                    color: Colors.white,
                     fontFamily: 'MyriadProCondensed',
                   ),
                 ),
@@ -315,7 +317,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                   'Verifying: ${scannedData ?? ''}',
                   style: const TextStyle(
                     fontSize: 14,
-                    color: ArkadColors.arkadNavy,
+                    color: Colors.white70,
                     fontFamily: 'MyriadProCondensed',
                   ),
                   textAlign: TextAlign.center,
@@ -335,7 +337,9 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
       padding: const EdgeInsets.all(24),
       child: Center(
         child: Card(
+          color: ArkadColors.arkadLightNavy,
           elevation: 4,
+          surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -351,12 +355,14 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: ArkadColors.lightRed.withValues(alpha: 0.1),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.errorContainer.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
-                        Icons.error,
-                        color: ArkadColors.lightRed,
+                      child: Icon(
+                        Icons.error_rounded,
+                        color: Theme.of(context).colorScheme.error,
                         size: 24,
                       ),
                     ),
@@ -366,7 +372,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: ArkadColors.arkadNavy,
+                        color: Colors.white,
                         fontFamily: 'MyriadProCondensed',
                       ),
                     ),
@@ -380,17 +386,21 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: ArkadColors.lightRed.withValues(alpha: 0.05),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.errorContainer.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: ArkadColors.lightRed.withValues(alpha: 0.2),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.error.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Text(
                     error.userMessage,
                     style: const TextStyle(
                       fontSize: 16,
-                      color: ArkadColors.arkadNavy,
+                      color: Colors.white,
                       fontFamily: 'MyriadProCondensed',
                     ),
                   ),
@@ -410,7 +420,9 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
       padding: const EdgeInsets.all(24),
       child: Center(
         child: Card(
+          color: ArkadColors.arkadLightNavy,
           elevation: 4,
+          surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -430,7 +442,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
-                        Icons.check_circle,
+                        Icons.check_circle_rounded,
                         color: ArkadColors.arkadGreen,
                         size: 24,
                       ),
@@ -445,7 +457,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
-                              color: ArkadColors.arkadNavy,
+                              color: Colors.white,
                               fontFamily: 'MyriadProCondensed',
                             ),
                           ),
@@ -464,7 +476,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: ArkadColors.white,
+                                color: Colors.white,
                                 fontFamily: 'MyriadProCondensed',
                               ),
                             ),
@@ -511,10 +523,10 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ArkadColors.arkadTurkos.withValues(alpha: 0.05),
+        color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: ArkadColors.arkadTurkos.withValues(alpha: 0.2),
+          color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -525,7 +537,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: ArkadColors.arkadNavy,
+              color: ArkadColors.arkadTurkos,
               fontFamily: 'MyriadProCondensed',
             ),
           ),
@@ -534,7 +546,7 @@ class _ScanEventScreenState extends State<ScanEventScreen> {
             value,
             style: const TextStyle(
               fontSize: 16,
-              color: ArkadColors.arkadNavy,
+              color: Colors.white,
               fontFamily: 'MyriadProCondensed',
             ),
           ),

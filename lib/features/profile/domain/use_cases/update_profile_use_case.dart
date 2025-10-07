@@ -1,6 +1,6 @@
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/use_case.dart';
-import '../../../../shared/domain/validation_service.dart';
+import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../entities/profile.dart';
 import '../repositories/profile_repository.dart';
@@ -24,7 +24,9 @@ class UpdateProfileUseCase extends UseCase<Profile, UpdateProfileParams> {
         params.profile.linkedin!.isNotEmpty) {
       if (!ValidationService.isValidLinkedInUrl(params.profile.linkedin!)) {
         return Result.failure(
-          const ValidationError("Please enter a valid LinkedIn profile URL"),
+          const ValidationError(
+            "Please enter a valid LinkedIn URL (e.g., https://www.linkedin.com/in/yourname)",
+          ),
         );
       }
     }

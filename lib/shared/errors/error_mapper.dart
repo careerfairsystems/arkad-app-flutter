@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'app_error.dart';
+import 'event_errors.dart';
 import 'student_session_errors.dart';
 
 /// Maps HTTP errors and exceptions to user-friendly AppErrors
@@ -182,12 +183,20 @@ class ErrorMapper {
     String? operationContext,
   }) {
     // If it's a DioException, use the specialized mapper
+    if (exception is TicketAlreadyUsedException) {
+      return exception;
+    }
     if (exception is DioException) {
       return fromDioException(
         exception,
         context,
         operationContext: operationContext,
       );
+    }
+
+    // Handle custom event exceptions
+    if (exception is EventFullException) {
+      return EventFullError('Event', details: exception.userMessage);
     }
 
     // For all other exceptions, return a generic user-friendly error
@@ -478,6 +487,21 @@ class ErrorMapper {
             action: () => context.pop(),
             isPrimary: true,
             icon: Icons.edit,
+          ),
+        ];
+
+      case EventFullError _:
+        return [
+          RecoveryAction(
+            label: "Browse Other Events",
+            action: () => context.go('/events'),
+            isPrimary: true,
+            icon: Icons.event,
+          ),
+          RecoveryAction(
+            label: "Go Back",
+            action: () => context.pop(),
+            icon: Icons.arrow_back,
           ),
         ];
 

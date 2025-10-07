@@ -394,38 +394,58 @@ abstract class BaseRepository {
 }
 ```
 
-### Validation Services (`shared/domain/validation_service.dart`)
+### Validation Services (`shared/domain/validation/validation_service.dart`)
 
 ```dart
 // Centralized validation logic to prevent duplication
 class ValidationService {
+  // Email validation
+  static bool isValidEmail(String email) { /* ... */ }
+  static String? validateEmail(String? value) { /* ... */ }
+
+  // Password validation
+  static String? validateLoginPassword(String? value) { /* ... */ }
+  static Map<String, bool> checkPasswordStrength(String password) { /* ... */ }
+  static bool isStrongPassword(String password) { /* ... */ }
+  static bool doPasswordsMatch(String password, String confirmPassword) { /* ... */ }
+
+  // LinkedIn validation (STRICT - URLs only, no usernames)
   static bool isValidLinkedInUrl(String url) {
-    // Accepts usernames (john-smith) or full URLs
+    // Only accepts full LinkedIn URLs
     final patterns = [
       r'^https://www\.linkedin\.com/in/[a-zA-Z0-9_-]+/?$',
+      r'^https://linkedin\.com/in/[a-zA-Z0-9_-]+/?$',
       r'^www\.linkedin\.com/in/[a-zA-Z0-9_-]+/?$',
-      r'^[a-zA-Z0-9_-]+$', // Just username
+      r'^linkedin\.com/in/[a-zA-Z0-9_-]+/?$',
     ];
     return patterns.any((pattern) => RegExp(pattern, caseSensitive: false).hasMatch(url));
   }
-  
+
   static String buildLinkedInUrl(String input) {
-    // Converts usernames to full URLs for display/navigation
-    // 'john-smith' → 'https://www.linkedin.com/in/john-smith'
+    // Normalizes valid LinkedIn URLs to canonical form
     // 'www.linkedin.com/in/john' → 'https://www.linkedin.com/in/john'
-    if (input.startsWith('https://')) return input;
-    if (input.startsWith('www.') || input.startsWith('linkedin.com')) return 'https://$input';
-    if (RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(input)) return 'https://www.linkedin.com/in/$input';
-    return 'https://www.linkedin.com/in/$input';
+    // 'linkedin.com/in/john' → 'https://www.linkedin.com/in/john'
+    // Invalid formats returned unchanged (validation will fail)
+    if (input.startsWith('https://www.linkedin.com/in/') ||
+        input.startsWith('https://linkedin.com/in/')) {
+      return input.endsWith('/') ? input : '$input/';
+    }
+    if (input.startsWith('www.linkedin.com/in/') ||
+        input.startsWith('linkedin.com/in/')) {
+      final normalized = 'https://$input';
+      return normalized.endsWith('/') ? normalized : '$normalized/';
+    }
+    return input; // Return as-is, validation will fail
   }
-  
-  static bool isValidEmail(String email) { /* ... */ }
+
+  // Other validations
   static bool isValidStudyYear(int? studyYear) { /* ... */ }
+  static bool isRequiredFieldValid(String? value) { /* ... */ }
 }
 
 // Usage patterns
 // Validation: ValidationService.isValidLinkedInUrl(profile.linkedin!)
-// Display: ValidationService.buildLinkedInUrl(profile.linkedin!) // Shows full URL
+// Normalization: ValidationService.buildLinkedInUrl(profile.linkedin!)
 ```
 
 ### URL Utilities (`shared/data/url_utils.dart`)

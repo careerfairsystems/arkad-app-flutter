@@ -220,7 +220,7 @@ class EventViewModel extends ChangeNotifier {
     final result = await _eventRepository.useTicket(token, eventId);
 
     result.when(
-      success: (_) {
+      success: (verification) {
         _setLoading(false);
       },
       failure: (error) {
@@ -240,6 +240,11 @@ class EventViewModel extends ChangeNotifier {
 
   void _setError(AppError? error) {
     _error = error;
+    notifyListeners();
+  }
+
+  void clearError() {
+    _error = null;
     notifyListeners();
   }
 

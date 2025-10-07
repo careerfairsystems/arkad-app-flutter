@@ -180,67 +180,13 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
   }
 
   Widget _buildBookedEventsList(EventViewModel viewModel) {
-    final now = DateTime.now();
-    final upcomingBookedEvents =
-        viewModel.bookedEvents
-            .where((event) => !event.endTime.isBefore(now))
-            .toList()
-          ..sort((a, b) => a.startTime.compareTo(b.startTime));
-
-    final pastBookedEvents =
-        viewModel.bookedEvents
-            .where((event) => event.endTime.isBefore(now))
-            .toList()
-          ..sort((a, b) => b.startTime.compareTo(a.startTime));
+    final events = viewModel.bookedEvents.toList()
+      ..removeWhere((event) => event.endTime.isBefore(DateTime.now()))
+      ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: [
-        if (upcomingBookedEvents.isNotEmpty) ...[
-          _buildSectionHeader('Upcoming Events', upcomingBookedEvents.length),
-          const SizedBox(height: 8),
-          ...upcomingBookedEvents.map(
-            (event) => EventCard(event: event, status: EventStatus.booked),
-          ),
-          const SizedBox(height: 24),
-        ],
-        if (pastBookedEvents.isNotEmpty) ...[
-          _buildSectionHeader('Past Events', pastBookedEvents.length),
-          const SizedBox(height: 8),
-          ...pastBookedEvents.map(
-            (event) => EventCard(event: event, status: EventStatus.past),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader(String title, int count) {
-    return Row(
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: ArkadColors.arkadNavy,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            count.toString(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: ArkadColors.arkadTurkos,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
+      children: events.map((event) => EventCard(event: event)).toList(),
     );
   }
 }

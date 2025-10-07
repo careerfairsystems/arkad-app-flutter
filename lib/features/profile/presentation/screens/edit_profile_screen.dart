@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../services/service_locator.dart';
-import '../../../../shared/domain/validation_service.dart';
+import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../auth/presentation/widgets/auth_form_widgets.dart';
@@ -81,21 +81,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       text: profile?.programme?.name ?? '',
     );
 
-    // Extract LinkedIn username from URL if it exists
-    String linkedinUsername = '';
-    if (profile?.linkedin != null && profile!.linkedin!.isNotEmpty) {
-      final url = profile.linkedin!;
-      if (url.contains('linkedin.com/in/')) {
-        final parts = url.split('/in/');
-        if (parts.length > 1) {
-          linkedinUsername = parts[1].split('/').first.split('?').first;
-        }
-      } else {
-        linkedinUsername = profile.linkedin!;
-      }
-    }
-
-    _linkedinController = TextEditingController(text: linkedinUsername);
+    // LinkedIn is stored as full URL in backend, display it directly
+    _linkedinController = TextEditingController(text: profile?.linkedin ?? '');
 
     _masterTitleController = TextEditingController(
       text: profile?.masterTitle ?? '',

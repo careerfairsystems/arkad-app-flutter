@@ -48,6 +48,14 @@ class CompanyViewModel extends ChangeNotifier {
   CompanyFilter _currentFilter = const CompanyFilter();
   List<Company> _displayedCompanies = [];
 
+  // Epoch guard to prevent race conditions from stale command completions
+  int _commandsEpoch = 0;
+
+  // Track which epoch each command was started in
+  int _searchAndFilterCommandEpoch = 0;
+  int _searchCompaniesCommandEpoch = 0;
+  int _filterCompaniesCommandEpoch = 0;
+
   // Stream subscription for logout events
   StreamSubscription? _logoutSubscription;
 
@@ -249,19 +257,39 @@ class CompanyViewModel extends ChangeNotifier {
   }
 
   void _updateDisplayedCompanies() {
+    // Increment epoch to invalidate any in-flight command results
+    // This prevents stale completions from overwriting newer results
+    _commandsEpoch++;
+
     if (_currentSearchQuery.isEmpty && !_currentFilter.hasActiveFilters) {
+      // Reset all filter/search commands when showing all companies
+      _searchAndFilterCommand.reset(notify: false);
+      _searchCompaniesCommand.reset(notify: false);
+      _filterCompaniesCommand.reset(notify: false);
       _displayedCompanies = _getCompaniesCommand.result ?? [];
     } else if (_currentSearchQuery.isNotEmpty &&
         _currentFilter.hasActiveFilters) {
+      // Reset other commands when using search + filter
+      _searchCompaniesCommand.reset(notify: false);
+      _filterCompaniesCommand.reset(notify: false);
+      _searchAndFilterCommandEpoch = _commandsEpoch; // Record epoch
       _searchAndFilterCommand.searchAndFilterCompanies(
         _currentSearchQuery,
         _currentFilter,
       );
       return;
     } else if (_currentSearchQuery.isNotEmpty) {
+      // Reset other commands when using search only
+      _searchAndFilterCommand.reset(notify: false);
+      _filterCompaniesCommand.reset(notify: false);
+      _searchCompaniesCommandEpoch = _commandsEpoch; // Record epoch
       _searchCompaniesCommand.searchCompanies(_currentSearchQuery);
       return;
     } else if (_currentFilter.hasActiveFilters) {
+      // Reset other commands when using filter only
+      _searchAndFilterCommand.reset(notify: false);
+      _searchCompaniesCommand.reset(notify: false);
+      _filterCompaniesCommandEpoch = _commandsEpoch; // Record epoch
       _filterCompaniesCommand.filterCompanies(_currentFilter);
       return;
     }
@@ -270,16 +298,62 @@ class CompanyViewModel extends ChangeNotifier {
   }
 
   void _onCommandChanged() {
-    if (_searchAndFilterCommand.isCompleted) {
+    final totalCompanies = allCompanies.length;
+
+    // Check each command and only update if it's from the current epoch
+    // This prevents stale command completions from overwriting newer results
+    if (_searchAndFilterCommand.isCompleted &&
+        _searchAndFilterCommandEpoch == _commandsEpoch) {
       _displayedCompanies = _searchAndFilterCommand.result ?? [];
-    } else if (_searchCompaniesCommand.isCompleted) {
+
+      // Log intersection of search AND filter
+      if (kDebugMode) {
+        print(
+          '[CompanyViewModel] Search + Filter INTERSECTION: '
+          'total=$totalCompanies → result=${_displayedCompanies.length} | '
+          'query="$_currentSearchQuery", '
+          'filters: ${_currentFilter.positions.length} positions, '
+          '${_currentFilter.degrees.length} degrees, '
+          '${_currentFilter.industries.length} industries',
+        );
+      }
+    } else if (_searchCompaniesCommand.isCompleted &&
+        _searchCompaniesCommandEpoch == _commandsEpoch) {
       _displayedCompanies = _searchCompaniesCommand.result ?? [];
-    } else if (_filterCompaniesCommand.isCompleted) {
+
+      // Log search-only results
+      if (kDebugMode) {
+        print(
+          '[CompanyViewModel] Search ONLY: '
+          'total=$totalCompanies → result=${_displayedCompanies.length} | '
+          'query="$_currentSearchQuery"',
+        );
+      }
+    } else if (_filterCompaniesCommand.isCompleted &&
+        _filterCompaniesCommandEpoch == _commandsEpoch) {
       _displayedCompanies = _filterCompaniesCommand.result ?? [];
+
+      // Log filter-only results
+      if (kDebugMode) {
+        print(
+          '[CompanyViewModel] Filter ONLY: '
+          'total=$totalCompanies → result=${_displayedCompanies.length} | '
+          'filters: ${_currentFilter.positions.length} positions, '
+          '${_currentFilter.degrees.length} degrees, '
+          '${_currentFilter.industries.length} industries',
+        );
+      }
     } else if (_getCompaniesCommand.isCompleted &&
         _currentSearchQuery.isEmpty &&
         !_currentFilter.hasActiveFilters) {
       _displayedCompanies = _getCompaniesCommand.result ?? [];
+
+      // Log showing all companies (no filters)
+      if (kDebugMode) {
+        print(
+          '[CompanyViewModel] Showing ALL companies (no filters): total=$totalCompanies',
+        );
+      }
     }
 
     notifyListeners();

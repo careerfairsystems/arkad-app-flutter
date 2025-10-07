@@ -8,14 +8,18 @@ class TicketVerificationMapper {
   /// Convert TicketSchema to TicketVerificationResult
   /// This is used when the API call is successful and returns ticket data
   TicketVerificationResult fromSuccessfulTicketSchema(TicketSchema schema) {
-    return TicketVerificationResult(
-      status: schema.used
-          ? TicketVerificationStatus.alreadyUsed
-          : TicketVerificationStatus.consumed,
+    final status = schema.used
+        ? TicketVerificationStatus.alreadyUsed
+        : TicketVerificationStatus.consumed;
+
+    final result = TicketVerificationResult(
+      status: status,
       uuid: schema.uuid,
       eventId: schema.eventId,
       userInfo: _mapUserEventInfo(schema.user),
     );
+
+    return result;
   }
 
   /// Create TicketVerificationResult for "already used" case

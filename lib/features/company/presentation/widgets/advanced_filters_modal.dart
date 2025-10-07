@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -5,17 +6,24 @@ import '../../../../shared/infrastructure/debouncer.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../domain/entities/company.dart';
-import 'filter_options.dart';
 
 class AdvancedFiltersModal extends StatefulWidget {
   const AdvancedFiltersModal({
     super.key,
     required this.initialFilter,
     required this.onFiltersApplied,
+    required this.availablePositions,
+    required this.availableDegrees,
+    required this.availableIndustries,
+    required this.availableCompetences,
   });
 
   final CompanyFilter initialFilter;
   final ValueChanged<CompanyFilter> onFiltersApplied;
+  final List<String> availablePositions;
+  final List<String> availableDegrees;
+  final List<String> availableIndustries;
+  final List<String> availableCompetences;
 
   @override
   State<AdvancedFiltersModal> createState() => _AdvancedFiltersModalState();
@@ -37,7 +45,6 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
   List<String> _filteredIndustries = [];
   List<String> _filteredCompetences = [];
 
-  // Search debouncing
   final FilterDebouncer _degreesDebouncer = FilterDebouncer();
   final FilterDebouncer _industriesDebouncer = FilterDebouncer();
   final FilterDebouncer _competencesDebouncer = FilterDebouncer();
@@ -46,11 +53,25 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _currentFilter = widget.initialFilter.copyWith();
+    // Use the initial filter directly - no copy needed
+    _currentFilter = widget.initialFilter;
 
-    _filteredDegrees = List.from(FilterOptions.degrees);
-    _filteredIndustries = List.from(FilterOptions.industries);
-    _filteredCompetences = List.from(FilterOptions.competences);
+    // Initialize with dynamic options from widget
+    _filteredDegrees = List.from(widget.availableDegrees);
+    _filteredIndustries = List.from(widget.availableIndustries);
+    _filteredCompetences = List.from(widget.availableCompetences);
+
+    // Log initial filter state when modal opens
+    if (kDebugMode) {
+      print(
+        '[AdvancedFiltersModal] Opened with initial state: '
+        'positions=[${_currentFilter.positions.join(", ")}], '
+        'degrees=[${_currentFilter.degrees.join(", ")}], '
+        'industries=[${_currentFilter.industries.join(", ")}], '
+        'competences=[${_currentFilter.competences.join(", ")}], '
+        'hasStudentSessions=${_currentFilter.hasStudentSessions}',
+      );
+    }
   }
 
   @override
@@ -59,140 +80,182 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     _degreesSearchController.dispose();
     _industriesSearchController.dispose();
     _competencesSearchController.dispose();
-
-    // Dispose search debouncers
     _degreesDebouncer.dispose();
     _industriesDebouncer.dispose();
     _competencesDebouncer.dispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: ArkadColors.white,
-      appBar: AppBar(
-        title: const Text('Filter Companies'),
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () => context.pop(),
-        ),
-        backgroundColor: ArkadColors.white,
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: ArkadColors.lightGray.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(12),
+    // Card-like modal with rounded corners and dark surface
+    final surface = Theme.of(context).colorScheme.surface;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
+    return SafeArea(
+      top: false,
+      bottom: false,
+      child: Container(
+        margin: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.35),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
             ),
-            child: TabBar(
-              controller: _tabController,
-              tabs: [
-                _buildTab(
-                  'Positions',
-                  FilterOptions.positions.length,
-                  _currentFilter.positions.length,
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Column(
+            children: [
+              // Header: centered title + close button on the right
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Center(
+                      child: Text(
+                        'Filter Companies',
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: onSurface,
+                            ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        color: onSurface.withValues(alpha: 0.8),
+                        onPressed: () => context.pop(),
+                      ),
+                    ),
+                  ],
                 ),
-                _buildTab(
-                  'Degrees',
-                  FilterOptions.degrees.length,
-                  _currentFilter.degrees.length,
-                ),
-                _buildTab(
-                  'Industries',
-                  FilterOptions.industries.length,
-                  _currentFilter.industries.length,
-                ),
-                _buildTab(
-                  'Skills',
-                  FilterOptions.competences.length,
-                  _currentFilter.competences.length,
-                ),
-              ],
-              labelColor: Colors.white,
-              unselectedLabelColor: ArkadColors.gray.withValues(alpha: 0.7),
-              indicator: BoxDecoration(
-                color: ArkadColors.arkadTurkos,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+              ),
+              // Segmented Tabs
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+                child: Center(
+                  child: TabBar(
+                    controller: _tabController,
+                    // larger padding for nicer pill shape
+                    labelPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 12, // reduced from 12
+                    ),
+                    dividerHeight: 0,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(
+                      color: ArkadColors.arkadTurkos,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    indicatorPadding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    labelColor: Colors.white,
+                    // dim unselected items more, like in the mock
+                    unselectedLabelColor: Colors.white.withValues(alpha: 0.35),
+                    labelStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    unselectedLabelStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    tabs: [
+                      _buildTab(
+                        title: 'Positions',
+                        totalCount: widget.availablePositions.length,
+                        selectedCount: _currentFilter.positions.length,
+                        icon: Icons.work_rounded,
+                      ),
+                      _buildTab(
+                        title: 'Degrees',
+                        totalCount: widget.availableDegrees.length,
+                        selectedCount: _currentFilter.degrees.length,
+                        icon: Icons.school_rounded,
+                      ),
+                      _buildTab(
+                        title: 'Industries',
+                        totalCount: widget.availableIndustries.length,
+                        selectedCount: _currentFilter.industries.length,
+                        icon: Icons.domain_rounded,
+                      ),
+                      _buildTab(
+                        title: 'Skills',
+                        totalCount: widget.availableCompetences.length,
+                        selectedCount: _currentFilter.competences.length,
+                        icon: Icons.psychology_rounded,
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-              dividerHeight: 0,
-              labelStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+              // Replace fixed height with Expanded to avoid overflow
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildPositionsTab(),
+                    _buildDegreesTab(),
+                    _buildIndustriesTab(),
+                    _buildCompetencesTab(),
+                  ],
+                ),
               ),
-              unselectedLabelStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-              indicatorPadding: const EdgeInsets.symmetric(
-                horizontal: 2,
-                vertical: 2,
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-            ),
+              _buildBottomActions(),
+            ],
           ),
         ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildPositionsTab(),
-                _buildDegreesTab(),
-                _buildIndustriesTab(),
-                _buildCompetencesTab(),
-              ],
-            ),
-          ),
-          _buildBottomActions(),
-        ],
       ),
     );
   }
 
-  Widget _buildTab(String title, int totalCount, int selectedCount) {
+  // Redesigned pill tab with icon + text + count on separate rows
+  Widget _buildTab({
+    required String title,
+    required int totalCount,
+    required int selectedCount,
+    required IconData icon,
+  }) {
     return Tab(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(title),
-            const SizedBox(height: 2),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('$selectedCount'),
-                Text(
-                  '/$totalCount',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: ArkadColors.gray.withValues(alpha: 0.5),
-                  ),
-                ),
-              ],
+      height: 55,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18), // inherits selected/unselected color
+          const SizedBox(height: 6),
+          Text(
+            title,
+            // inherits selected/unselected text style from TabBar
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '$selectedCount/$totalCount',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              // keep slightly faint for readability on both states
+              color: Colors.white.withValues(alpha: 0.75),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildPositionsTab() {
     return _buildFilterSection(
-      options: FilterOptions.positions,
+      options: widget.availablePositions,
       selectedOptions: _currentFilter.positions.toSet(),
       onSelectionChanged: (selected) {
         setState(() {
@@ -218,7 +281,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
       },
       onSearchChanged: (query) => _filterDegrees(query),
       icon: Icons.school_rounded,
-      description: 'Filter companies by required academic degrees',
+      description: 'Select the degree levels you are pursuing',
       searchHint: 'Search degrees...',
     );
   }
@@ -237,7 +300,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
       },
       onSearchChanged: (query) => _filterIndustries(query),
       icon: Icons.domain_rounded,
-      description: 'Find companies in specific industry sectors',
+      description: 'Choose industries that match your interests',
       searchHint: 'Search industries...',
     );
   }
@@ -316,8 +379,8 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: ArkadColors.arkadTurkos.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: ArkadColors.arkadTurkos, size: 20),
           ),
@@ -326,7 +389,8 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
             child: Text(
               description,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: ArkadColors.gray.withValues(alpha: 0.7),
+                color: ArkadColors.white.withValues(alpha: 0.4),
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -341,15 +405,15 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     ValueChanged<String> onChanged,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), // Added bottom padding
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: ArkadColors.gray.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -358,14 +422,14 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: ArkadColors.gray.withValues(alpha: 0.5),
+              color: ArkadColors.white.withValues(alpha: 0.5),
             ),
             prefixIcon: Container(
               margin: const EdgeInsets.only(left: 12, right: 8),
               child: Icon(
                 Icons.search_rounded,
                 size: 20,
-                color: ArkadColors.arkadTurkos.withValues(alpha: 0.7),
+                color: ArkadColors.arkadTurkos.withValues(alpha: 0.85),
               ),
             ),
             prefixIconConstraints: const BoxConstraints(minWidth: 40),
@@ -376,7 +440,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
                       icon: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: ArkadColors.lightRed.withValues(alpha: 0.1),
+                          color: ArkadColors.lightRed.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -399,7 +463,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
-                color: ArkadColors.lightGray.withValues(alpha: 0.2),
+                color: ArkadColors.lightGray.withValues(alpha: 0.18),
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -410,7 +474,10 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
               ),
             ),
             filled: true,
-            fillColor: ArkadColors.white,
+            // Dark search field to match the modal
+            fillColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.20),
             contentPadding: const EdgeInsets.symmetric(vertical: 16),
           ),
           onChanged: onChanged,
@@ -419,6 +486,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     );
   }
 
+  // Circular multi-select item list
   Widget _buildOptionsList(
     List<String> options,
     Set<String> selectedOptions,
@@ -449,6 +517,10 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
       );
     }
 
+    final itemBg = Theme.of(
+      context,
+    ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.16);
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: options.length,
@@ -459,32 +531,30 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
-          margin: const EdgeInsets.only(bottom: 6),
+          margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
             color: isSelected
-                ? ArkadColors.arkadTurkos.withValues(alpha: 0.12)
-                : ArkadColors.white,
-            borderRadius: BorderRadius.circular(12),
+                ? ArkadColors.arkadTurkos.withValues(alpha: 0.10)
+                : itemBg,
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isSelected
-                  ? ArkadColors.arkadTurkos.withValues(alpha: 0.4)
-                  : ArkadColors.lightGray.withValues(alpha: 0.2),
+                  ? ArkadColors.arkadTurkos.withValues(alpha: 0.55)
+                  : ArkadColors.lightGray.withValues(alpha: 0.22),
               width: isSelected ? 2 : 1,
             ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isSelected ? 0.18 : 0.10),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Material(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.0),
+            color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(14),
               onTap: () {
                 final newSelection = Set<String>.from(selectedOptions);
                 if (isSelected) {
@@ -496,47 +566,25 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: 14,
+                  vertical: 12,
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? ArkadColors.arkadTurkos
-                            : Theme.of(
-                                context,
-                              ).colorScheme.surface.withValues(alpha: 0.0),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: isSelected
-                              ? ArkadColors.arkadTurkos
-                              : ArkadColors.lightGray.withValues(alpha: 0.5),
-                          width: 2,
-                        ),
-                      ),
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check_rounded,
-                              size: 14,
-                              color: Colors.white,
-                            )
-                          : null,
-                    ),
+                    _circularIndicator(isSelected),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         option,
                         style: TextStyle(
                           fontWeight: isSelected
-                              ? FontWeight.w600
+                              ? FontWeight.w700
                               : FontWeight.w500,
                           color: isSelected
                               ? ArkadColors.arkadTurkos
-                              : ArkadColors.gray,
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.90),
                         ),
                       ),
                     ),
@@ -550,90 +598,83 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     );
   }
 
-  Widget _buildBottomActions() {
-    final totalSelected =
-        _currentFilter.degrees.length +
-        _currentFilter.positions.length +
-        _currentFilter.industries.length +
-        _currentFilter.competences.length +
-        (_currentFilter.hasStudentSessions ? 1 : 0);
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+  Widget _circularIndicator(bool isSelected) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: 22,
+      height: 22,
       decoration: BoxDecoration(
-        color: ArkadColors.white,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isSelected
+              ? ArkadColors.arkadTurkos
+              : ArkadColors.lightGray.withValues(alpha: 0.5),
+          width: 2,
+        ),
+      ),
+      child: isSelected
+          ? Center(
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: ArkadColors.arkadTurkos,
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildBottomActions() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
         boxShadow: [
           BoxShadow(
-            color: ArkadColors.gray.withValues(alpha: 0.15),
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 12,
             offset: const Offset(0, -4),
           ),
         ],
       ),
       child: SafeArea(
+        top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (totalSelected > 0)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Text(
-                  '$totalSelected filter${totalSelected == 1 ? '' : 's'} will be applied',
-                  style: const TextStyle(
-                    color: ArkadColors.arkadTurkos,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            if (totalSelected > 0) const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: ArkadButton(
-                    text: 'Clear All',
-                    onPressed: totalSelected > 0 ? _clearAllFilters : null,
-                    variant: ArkadButtonVariant.secondary,
-                    icon: Icons.clear_all_rounded,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
                     ),
                     child: ArkadButton(
-                      text: totalSelected > 0
-                          ? 'Apply ($totalSelected)'
-                          : 'Apply Filters',
+                      // Keep label simple like in the screenshot
+                      text: 'Apply',
                       onPressed: () {
+                        // Log final filter state before applying
+                        if (kDebugMode) {
+                          print(
+                            '[AdvancedFiltersModal] User clicked Apply with final state: '
+                            'positions=[${_currentFilter.positions.join(", ")}], '
+                            'degrees=[${_currentFilter.degrees.join(", ")}], '
+                            'industries=[${_currentFilter.industries.join(", ")}], '
+                            'competences=[${_currentFilter.competences.join(", ")}], '
+                            'hasStudentSessions=${_currentFilter.hasStudentSessions}',
+                          );
+                        }
+
                         widget.onFiltersApplied(_currentFilter);
                         context.pop();
                       },
-                      icon: Icons.check_rounded,
                     ),
                   ),
                 ),
@@ -652,15 +693,12 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     required void Function(List<String>) onUpdate,
   }) {
     if (query.isEmpty) {
-      // Update immediately for empty queries
       debouncer.cancel();
       setState(() {
         onUpdate(List.from(sourceOptions));
       });
       return;
     }
-
-    // Debounce non-empty queries
     debouncer.call(() {
       if (mounted) {
         setState(() {
@@ -680,7 +718,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     _filterItems(
       query: query,
       debouncer: _degreesDebouncer,
-      sourceOptions: FilterOptions.degrees,
+      sourceOptions: widget.availableDegrees,
       onUpdate: (filtered) => _filteredDegrees = filtered,
     );
   }
@@ -689,7 +727,7 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     _filterItems(
       query: query,
       debouncer: _industriesDebouncer,
-      sourceOptions: FilterOptions.industries,
+      sourceOptions: widget.availableIndustries,
       onUpdate: (filtered) => _filteredIndustries = filtered,
     );
   }
@@ -698,14 +736,8 @@ class _AdvancedFiltersModalState extends State<AdvancedFiltersModal>
     _filterItems(
       query: query,
       debouncer: _competencesDebouncer,
-      sourceOptions: FilterOptions.competences,
+      sourceOptions: widget.availableCompetences,
       onUpdate: (filtered) => _filteredCompetences = filtered,
     );
-  }
-
-  void _clearAllFilters() {
-    setState(() {
-      _currentFilter = const CompanyFilter();
-    });
   }
 }

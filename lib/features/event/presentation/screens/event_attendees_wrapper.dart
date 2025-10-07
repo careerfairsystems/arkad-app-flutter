@@ -53,11 +53,7 @@ class _EventAttendeesWrapperState extends State<EventAttendeesWrapper> {
 
   Widget _buildLoadingState() {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Loading...'),
-        backgroundColor: ArkadColors.arkadTurkos,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Loading...')),
       body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -73,11 +69,7 @@ class _EventAttendeesWrapperState extends State<EventAttendeesWrapper> {
 
   Widget _buildErrorState(EventViewModel viewModel) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Error'),
-        backgroundColor: ArkadColors.arkadTurkos,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Error')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -120,11 +112,7 @@ class _EventAttendeesWrapperState extends State<EventAttendeesWrapper> {
 
   Widget _buildNotFoundState() {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Event Not Found'),
-        backgroundColor: ArkadColors.arkadTurkos,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Event Not Found')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
