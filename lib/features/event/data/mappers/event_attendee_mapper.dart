@@ -9,6 +9,7 @@ class EventAttendeeMapper {
     return EventAttendee(
       fullName: schema.fullName,
       foodPreferences: schema.foodPreferences,
+      hasBeenScanned: schema.ticketUsed,
     );
   }
 
@@ -17,7 +18,9 @@ class EventAttendeeMapper {
     return EventUserInformation(
       (builder) => builder
         ..fullName = attendee.fullName
-        ..foodPreferences = attendee.foodPreferences,
+        ..foodPreferences = attendee.foodPreferences
+        ..ticketUsed = attendee.hasBeenScanned
+        ..userId = 0, // userId is required by API but not used in this context
     );
   }
 }

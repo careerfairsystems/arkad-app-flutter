@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../view_models/event_view_model.dart';
 import '../widgets/event_card.dart';
@@ -74,18 +73,43 @@ class _EventScreenState extends State<EventScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const CustomScrollView(
-      physics: AlwaysScrollableScrollPhysics(),
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverFillRemaining(
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Loading events...'),
-              ],
+            child: Container(
+              margin: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Loading events...',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -99,37 +123,61 @@ class _EventScreenState extends State<EventScreen> {
       slivers: [
         SliverFillRemaining(
           child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
+            child: Container(
+              margin: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.errorContainer.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.error.withValues(alpha: 0.1),
+                ),
+              ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: ArkadColors.lightRed,
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.errorContainer.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.error_outline_rounded,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
                     'Failed to load events',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     viewModel.error?.userMessage ?? 'Something went wrong',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                     textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      height: 1.4,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   ArkadButton(
                     text: 'Try Again',
                     onPressed: _loadEvents,
-                    icon: Icons.refresh,
+                    icon: Icons.refresh_rounded,
                   ),
                 ],
               ),
@@ -146,44 +194,60 @@ class _EventScreenState extends State<EventScreen> {
       slivers: [
         SliverFillRemaining(
           child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
+            child: Container(
+              margin: const EdgeInsets.all(32),
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(
-                      Icons.event_available,
-                      size: 64,
-                      color: ArkadColors.arkadTurkos,
+                    child: Icon(
+                      Icons.event_available_rounded,
+                      size: 48,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.7),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   Text(
                     'No Events Available',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.8),
+                      fontWeight: FontWeight.w600,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
-                    'Check back later for upcoming ARKAD events',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                    'Check back later for ARKAD events',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   ArkadButton(
                     text: 'Refresh',
                     onPressed: _loadEvents,
-                    icon: Icons.refresh,
+                    icon: Icons.refresh_rounded,
                     variant: ArkadButtonVariant.secondary,
                   ),
                 ],
@@ -196,63 +260,13 @@ class _EventScreenState extends State<EventScreen> {
   }
 
   Widget _buildEventsList(EventViewModel viewModel) {
-    final now = DateTime.now();
-    final upcomingEvents =
-        viewModel.events.where((event) => event.endTime.isAfter(now)).toList()
-          ..sort((a, b) => a.startTime.compareTo(b.startTime));
-
-    final pastEvents =
-        viewModel.events.where((event) => event.endTime.isBefore(now)).toList()
-          ..sort((a, b) => b.startTime.compareTo(a.startTime));
+    final events = viewModel.events.toList()
+      ..removeWhere((event) => event.endTime.isBefore(DateTime.now()))
+      ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: [
-        if (upcomingEvents.isNotEmpty) ...[
-          _buildSectionHeader('Upcoming Events', upcomingEvents.length),
-          const SizedBox(height: 8),
-          ...upcomingEvents.map(
-            (event) => EventCard(event: event, status: EventStatus.upcoming),
-          ),
-          const SizedBox(height: 24),
-        ],
-        if (pastEvents.isNotEmpty) ...[
-          _buildSectionHeader('Past Events', pastEvents.length),
-          const SizedBox(height: 8),
-          ...pastEvents.map(
-            (event) => EventCard(event: event, status: EventStatus.past),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader(String title, int count) {
-    return Row(
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: ArkadColors.white,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            count.toString(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: ArkadColors.arkadTurkos,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
+      children: events.map((event) => EventCard(event: event)).toList(),
     );
   }
 }

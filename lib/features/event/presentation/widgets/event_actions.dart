@@ -20,11 +20,52 @@ class EventActions extends StatelessWidget {
     required this.onRegister,
   });
 
+  Widget _bookingDeadlinePassed() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ArkadColors.lightRed.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: ArkadColors.lightRed.withValues(alpha: 0.3)),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.event_busy_rounded, color: ArkadColors.lightRed, size: 28),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Booking closed',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'The booking deadline for this event has passed and it can no longer be booked.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Don't show any actions if registration is not required
     if (!event.isRegistrationRequired) {
       return const SizedBox.shrink();
+    }
+    if (event.bookingDeadlineClosed) {
+      return _bookingDeadlinePassed();
     }
 
     return Consumer<AuthViewModel>(
@@ -79,7 +120,7 @@ class EventActions extends StatelessWidget {
           child: Column(
             children: [
               const Icon(
-                Icons.check_circle_outline,
+                Icons.check_circle_outline_rounded,
                 color: ArkadColors.arkadGreen,
                 size: 32,
               ),
@@ -88,7 +129,7 @@ class EventActions extends StatelessWidget {
                 'You are registered for this event',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: ArkadColors.arkadNavy,
+                  color: Colors.white,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -97,7 +138,7 @@ class EventActions extends StatelessWidget {
                 'You will receive updates and reminders about this event',
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: ArkadColors.gray),
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -111,7 +152,7 @@ class EventActions extends StatelessWidget {
               child: ArkadButton(
                 text: 'Show Ticket',
                 onPressed: () => _showTicket(context),
-                icon: Icons.confirmation_number,
+                icon: Icons.confirmation_number_rounded,
                 variant: ArkadButtonVariant.secondary,
               ),
             ),
@@ -145,7 +186,9 @@ class EventActions extends StatelessWidget {
         text: canRegister ? 'Register for Event' : 'Registration Closed',
         onPressed: canRegister && !viewModel.isLoading ? onRegister : null,
         isLoading: viewModel.isLoading,
-        icon: canRegister ? Icons.event_available : Icons.event_busy,
+        icon: canRegister
+            ? Icons.event_available_rounded
+            : Icons.event_busy_rounded,
       ),
     );
   }
@@ -155,15 +198,17 @@ class EventActions extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ArkadColors.arkadNavy.withValues(alpha: 0.1),
+        color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: ArkadColors.arkadNavy.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         children: [
           const Icon(
-            Icons.event_available,
-            color: ArkadColors.arkadNavy,
+            Icons.event_available_rounded,
+            color: ArkadColors.arkadTurkos,
             size: 32,
           ),
           const SizedBox(height: 8),
@@ -171,7 +216,7 @@ class EventActions extends StatelessWidget {
             'You have attended this event',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: ArkadColors.arkadNavy,
+              color: Colors.white,
             ),
             textAlign: TextAlign.center,
           ),
@@ -180,7 +225,7 @@ class EventActions extends StatelessWidget {
             'Your ticket has been used and you have successfully attended this event',
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: ArkadColors.gray),
+            ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
             textAlign: TextAlign.center,
           ),
         ],
@@ -205,7 +250,7 @@ class EventActions extends StatelessWidget {
           child: Column(
             children: [
               const Icon(
-                Icons.lock_outline,
+                Icons.lock_outline_rounded,
                 color: ArkadColors.arkadTurkos,
                 size: 32,
               ),
@@ -214,7 +259,7 @@ class EventActions extends StatelessWidget {
                 'Sign in required',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: ArkadColors.arkadNavy,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 8),
@@ -222,7 +267,7 @@ class EventActions extends StatelessWidget {
                 'You need to sign in or create an account to register for this event',
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: ArkadColors.gray),
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -235,7 +280,7 @@ class EventActions extends StatelessWidget {
           child: ArkadButton(
             text: 'Sign In to Register',
             onPressed: () => _navigateToLoginTab(context),
-            icon: Icons.login,
+            icon: Icons.login_rounded,
           ),
         ),
       ],

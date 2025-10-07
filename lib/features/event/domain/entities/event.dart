@@ -1,10 +1,14 @@
+import '../../../../shared/infrastructure/services/timezone_service.dart';
+import '../services/event_timeline_validation_service.dart';
 import 'event_status.dart';
 
 /// Domain entity representing an event
+/// All DateTime fields are stored in Stockholm timezone for consistency
 class Event {
   final int id;
   final String title;
   final String description;
+  final DateTime? releaseTime;
   final DateTime startTime;
   final DateTime endTime;
   final String location;
@@ -14,11 +18,13 @@ class Event {
   final int? maxParticipants;
   final int currentParticipants;
   final EventStatus? status;
+  final DateTime bookingClosesAt;
 
   const Event({
     required this.id,
     required this.title,
     required this.description,
+    this.releaseTime,
     required this.startTime,
     required this.endTime,
     required this.location,
@@ -28,6 +34,7 @@ class Event {
     this.maxParticipants,
     this.currentParticipants = 0,
     this.status,
+    required this.bookingClosesAt,
   });
 
   /// Create a copy with updated values
@@ -35,6 +42,7 @@ class Event {
     int? id,
     String? title,
     String? description,
+    DateTime? releaseTime,
     DateTime? startTime,
     DateTime? endTime,
     String? location,
@@ -44,11 +52,13 @@ class Event {
     int? maxParticipants,
     int? currentParticipants,
     EventStatus? status,
+    DateTime? bookingClosesAt,
   }) {
     return Event(
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
+      releaseTime: releaseTime ?? this.releaseTime,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
       location: location ?? this.location,
@@ -59,28 +69,40 @@ class Event {
       maxParticipants: maxParticipants ?? this.maxParticipants,
       currentParticipants: currentParticipants ?? this.currentParticipants,
       status: status ?? this.status,
+      bookingClosesAt: bookingClosesAt ?? this.bookingClosesAt,
     );
   }
 
+  /// Check if event is visible (released)
+  /// Uses centralized timeline validation service with Stockholm timezone
+  bool get isVisible =>
+      EventTimelineValidationService.instance.isEventVisible(this);
+
+  /// Check if booking period is active
+  /// Uses centralized timeline validation service with Stockholm timezone
+  bool get isBookingPeriodActive =>
+      EventTimelineValidationService.instance.isBookingPeriodActive(this);
+
+  /// Check if booking deadline has passed
+  /// Uses centralized timeline validation service with Stockholm timezone
+  bool get bookingDeadlineClosed =>
+      EventTimelineValidationService.instance.hasBookingDeadlinePassed(this);
+
   /// Check if event has started
-  bool get hasStarted => DateTime.now().isAfter(startTime);
+  /// Uses Stockholm timezone via TimezoneService
+  bool get hasStarted => TimezoneService.isInPast(startTime);
 
   /// Check if event has ended
-  bool get hasEnded => DateTime.now().isAfter(endTime);
+  /// Uses Stockholm timezone via TimezoneService
+  bool get hasEnded => TimezoneService.isInPast(endTime);
 
   /// Check if event is currently happening
   bool get isOngoing => hasStarted && !hasEnded;
 
   /// Check if registration is still available
-  bool get canRegister {
-    if (!isRegistrationRequired) return false;
-    if (hasStarted) return false;
-    if (status?.isBooked == true) return false;
-    if (maxParticipants != null && currentParticipants >= maxParticipants!) {
-      return false;
-    }
-    return true;
-  }
+  /// Uses centralized timeline validation service with Stockholm timezone
+  bool get canRegister =>
+      EventTimelineValidationService.instance.canRegister(this);
 
   /// Check if user has booked this event
   bool get isBooked => status?.isBooked == true;
@@ -121,7 +143,7 @@ class Event {
 
   @override
   String toString() {
-    return 'Event(id: $id, title: $title, startTime: $startTime, status: $status)';
+    return 'Event(id: $id, title: $title, description: $description, startTime: $startTime, endTime: $endTime, location: $location, imageUrl: $imageUrl, type: $type, isRegistrationRequired: $isRegistrationRequired, maxParticipants: $maxParticipants, currentParticipants: $currentParticipants, status: $status, bookingClosesAt: $bookingClosesAt)';
   }
 }
 

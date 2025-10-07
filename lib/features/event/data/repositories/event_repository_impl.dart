@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
+import '../../../../shared/errors/event_errors.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/event_attendee.dart';
 import '../../domain/entities/ticket_verification_result.dart';
@@ -155,13 +156,20 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
     String token,
     int eventId,
   ) async {
+    print('🎫 [EventRepositoryImpl] useTicket called');
+    print('   Token: $token');
+    print('   Event ID: $eventId');
+
     return executeOperation(() async {
       try {
         final ticketSchema = await _remoteDataSource.useTicket(token, eventId);
-        return _ticketMapper.fromSuccessfulTicketSchema(ticketSchema);
-      } on TicketAlreadyUsedException catch (_) {
-        // Convert the exception to a domain result
-        return _ticketMapper.createAlreadyUsedResult(token, eventId);
+
+        final result = _ticketMapper.fromSuccessfulTicketSchema(ticketSchema);
+
+        return result;
+      } on TicketAlreadyUsedException {
+        // Rethrow to be handled by executeOperation's error mapping
+        rethrow;
       }
     }, 'use ticket');
   }

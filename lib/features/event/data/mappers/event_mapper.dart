@@ -1,27 +1,36 @@
 import 'package:arkad_api/arkad_api.dart';
+
+import '../../../../shared/infrastructure/services/timezone_service.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/event_status.dart';
 
 /// Mapper for converting between Event domain entity and EventSchema DTO
+/// Handles UTC to Stockholm timezone conversion for all DateTime fields
 class EventMapper {
   /// Convert EventSchema DTO to Event domain entity
+  /// All DateTime fields from API (UTC) are converted to Stockholm timezone
   Event fromApiSchema(EventSchema schema) {
     return Event(
       id: schema.id,
       title: schema.name,
       description: schema.description,
-      startTime: schema.startTime,
-      endTime: schema.endTime,
+      releaseTime: schema.releaseTime != null
+          ? TimezoneService.utcToStockholm(schema.releaseTime!)
+          : null,
+      startTime: TimezoneService.utcToStockholm(schema.startTime),
+      endTime: TimezoneService.utcToStockholm(schema.endTime),
       location: schema.location,
       type: _mapEventType(schema.type),
       isRegistrationRequired: schema.capacity > 0,
       maxParticipants: schema.capacity > 0 ? schema.capacity : null,
       currentParticipants: schema.numberBooked,
       status: _mapApiStatusToDomain(schema.status),
+      bookingClosesAt: TimezoneService.utcToStockholm(schema.bookingFreezesAt),
     );
   }
 
   /// Convert Event domain entity to EventSchema DTO
+  /// All DateTime fields are converted from Stockholm timezone back to UTC for API
   /// Note: This is mainly for creating new events (if supported in future)
   EventSchema toApiSchema(Event event) {
     return EventSchema(
@@ -32,12 +41,18 @@ class EventMapper {
         ..location = event.location
         ..language =
             'en' // Default language
-        ..startTime = event.startTime
-        ..endTime = event.endTime
+        ..releaseTime = event.releaseTime != null
+            ? TimezoneService.stockholmToUtc(event.releaseTime!)
+            : null
+        ..startTime = TimezoneService.stockholmToUtc(event.startTime)
+        ..endTime = TimezoneService.stockholmToUtc(event.endTime)
         ..capacity = event.maxParticipants ?? 0
         ..numberBooked = event.currentParticipants
         ..companyId = null
-        ..status = _mapDomainStatusToApi(event.status),
+        ..status = _mapDomainStatusToApi(event.status)
+        ..bookingFreezesAt = TimezoneService.stockholmToUtc(
+          event.bookingClosesAt,
+        ),
     );
   }
 

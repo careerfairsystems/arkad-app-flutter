@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
-import '../../../../shared/presentation/widgets/notification_status_card.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../../auth/presentation/widgets/auth_form_widgets.dart';
 import '../../../student_session/presentation/widgets/profile_student_sessions_tab.dart';
@@ -109,8 +108,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       children: [
         ProfileInfoWidget(profile: profile),
-        const SizedBox(height: 24),
-        const NotificationStatusCard(),
         const SizedBox(height: 16),
         Consumer<AuthViewModel>(
           builder: (context, authViewModel, _) {

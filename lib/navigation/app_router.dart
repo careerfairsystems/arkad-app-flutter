@@ -185,22 +185,13 @@ class AppRouter {
                     path: 'detail/:id',
                     pageBuilder: _slide((context, s) {
                       final idStr = s.pathParameters['id'];
-                      if (kDebugMode) {
-                        debugPrint('[Router] Event detail route accessed');
-                        debugPrint('   Raw path parameter: "$idStr"');
-                      }
 
                       final eventId = int.tryParse(idStr ?? '');
-                      if (kDebugMode) {
-                        debugPrint('   Parsed event ID: $eventId');
-                      }
 
                       if (eventId == null) {
-                        if (kDebugMode) {
-                          debugPrint(
-                            '   Failed to parse event ID - showing error screen',
-                          );
-                        }
+                        print(
+                          '   ❌ Failed to parse event ID - showing error screen',
+                        );
                         return const Scaffold(
                           body: Center(child: Text('Error: Invalid event ID')),
                         );

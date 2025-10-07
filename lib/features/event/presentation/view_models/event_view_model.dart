@@ -52,16 +52,13 @@ class EventViewModel extends ChangeNotifier {
 
   /// Get event by ID
   Future<bool> getEventById(int id) async {
-    print('🔍 [EventViewModel] getEventById called with id=$id');
     _setLoading(true);
     _clearError();
 
     final result = await _eventRepository.getEventById(id);
-    print('🔍 [EventViewModel] Repository result: success=${result.isSuccess}');
 
     result.when(
       success: (event) {
-        print('   ✅ Success: Got event "${event.title}" with ID=${event.id}');
         _selectedEvent = event;
         _setLoading(false);
       },
@@ -223,7 +220,7 @@ class EventViewModel extends ChangeNotifier {
     final result = await _eventRepository.useTicket(token, eventId);
 
     result.when(
-      success: (_) {
+      success: (verification) {
         _setLoading(false);
       },
       failure: (error) {
@@ -243,6 +240,11 @@ class EventViewModel extends ChangeNotifier {
 
   void _setError(AppError? error) {
     _error = error;
+    notifyListeners();
+  }
+
+  void clearError() {
+    _error = null;
     notifyListeners();
   }
 
