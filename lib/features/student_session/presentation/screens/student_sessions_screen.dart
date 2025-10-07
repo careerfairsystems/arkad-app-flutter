@@ -124,7 +124,7 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
                 unselectedLabelColor: ArkadColors.lightGray,
                 tabs: [
                   Tab(text: 'Student Sessions'),
-                  Tab(text: 'Company Events'),
+                  Tab(text: 'Company Visits'),
                 ],
               ),
             ),

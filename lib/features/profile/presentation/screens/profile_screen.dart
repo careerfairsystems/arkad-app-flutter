@@ -153,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 tabs: const [
                   Tab(text: "Info"),
                   Tab(text: "Events"),
-                  Tab(text: "Student Sessions"),
+                  Tab(text: "Sessions"),
                 ],
                 labelColor: ArkadColors.white,
                 unselectedLabelColor: ArkadColors.white.withValues(alpha: 0.7),
