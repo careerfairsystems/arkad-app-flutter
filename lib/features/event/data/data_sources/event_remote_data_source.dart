@@ -1,5 +1,6 @@
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
@@ -49,30 +50,38 @@ class EventRemoteDataSource {
 
   /// Get a specific event by ID
   Future<EventSchema> getEventById(int eventId) async {
-    print(
-      '🔍 [EventRemoteDataSource] Fetching event from API: eventId=$eventId',
-    );
-    print('   API endpoint: GET /api/events/$eventId/');
+    if (kDebugMode) {
+      debugPrint(
+        '[EventRemoteDataSource] Fetching event from API: eventId=$eventId',
+      );
+      debugPrint('   API endpoint: GET /api/events/$eventId/');
+    }
 
     try {
       final response = await _api.getEventsApi().eventBookingApiGetEvent(
         eventId: eventId,
       );
 
-      print('🔍 [EventRemoteDataSource] API response received');
-      print('   Status code: ${response.statusCode}');
-      print('   Success: ${response.isSuccess}');
-      print('   Has data: ${response.data != null}');
+      if (kDebugMode) {
+        debugPrint('[EventRemoteDataSource] API response received');
+        debugPrint('   Status code: ${response.statusCode}');
+        debugPrint('   Success: ${response.isSuccess}');
+        debugPrint('   Has data: ${response.data != null}');
+      }
 
       if (response.isSuccess && response.data != null) {
-        print(
-          '   ✅ Got event: id=${response.data!.id}, name="${response.data!.name}"',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            '   Got event: id=${response.data!.id}, name="${response.data!.name}"',
+          );
+        }
         return response.data!;
       } else {
         response.logResponse('getEventById');
         if (response.data == null) {
-          print('   ❌ Event not found (404)');
+          if (kDebugMode) {
+            debugPrint('   Event not found (404)');
+          }
           throw Exception('Event not found');
         }
         throw Exception(
@@ -80,7 +89,9 @@ class EventRemoteDataSource {
         );
       }
     } on DioException catch (e) {
-      print('   ❌ DioException: ${e.response?.statusCode} - ${e.message}');
+      if (kDebugMode) {
+        debugPrint('   DioException: ${e.response?.statusCode} - ${e.message}');
+      }
       final exception = await ApiErrorHandler.handleDioException(
         e,
         operationName: 'getEventById',
@@ -88,7 +99,9 @@ class EventRemoteDataSource {
       );
       throw exception;
     } catch (e) {
-      print('   ❌ Exception: $e');
+      if (kDebugMode) {
+        debugPrint('   Exception: $e');
+      }
       await Sentry.captureException(e);
       throw Exception('Failed to get event $eventId: $e');
     }
