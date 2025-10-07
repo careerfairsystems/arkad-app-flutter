@@ -145,7 +145,7 @@ class StudentSessionApplication {
 
   @override
   String toString() {
-    return 'StudentSessionApplication(id: $id, companyName: $companyName, status: $status)';
+    return 'StudentSessionApplication(id: $id, companyId: $companyId)';
   }
 }
 
@@ -181,7 +181,7 @@ class StudentSessionApplicationWithBookingState {
 
   @override
   String toString() {
-    return 'StudentSessionApplicationWithBookingState(application: ${application.companyName}, hasBooking: $hasBooking)';
+    return 'StudentSessionApplicationWithBookingState(applicationId: ${application.id}, companyId: ${application.companyId})';
   }
 }
 

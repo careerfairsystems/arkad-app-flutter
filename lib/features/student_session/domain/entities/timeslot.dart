@@ -182,6 +182,6 @@ class Timeslot {
 
   @override
   String toString() {
-    return 'Timeslot(id: $id, timeRange: $timeRangeDisplay, status: ${status.displayName})';
+    return 'Timeslot(id: $id, companyId: $companyId)';
   }
 }

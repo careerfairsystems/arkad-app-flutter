@@ -47,6 +47,14 @@ abstract class StudentSessionRepository {
   /// Maps to POST /api/student-session/unbook
   Future<Result<String>> unbookTimeslot(int companyId);
 
+  /// Switch from current booked timeslot to a new timeslot atomically
+  /// Prevents race conditions by handling unbook + book in single transaction
+  /// Maps to POST /api/student-session/switch-timeslot
+  Future<Result<String>> switchTimeslot({
+    required int fromTimeslotId,
+    required int newTimeslotId,
+  });
+
   /// Get application details for a specific company
   /// Maps to GET /api/student-session/application
   Future<Result<StudentSessionApplication?>> getApplicationForCompany(

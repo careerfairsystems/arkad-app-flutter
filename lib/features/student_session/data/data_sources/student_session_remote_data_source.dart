@@ -176,6 +176,46 @@ class StudentSessionRemoteDataSource {
     }
   }
 
+  /// Switch from current booked timeslot to a new timeslot atomically
+  /// Prevents race conditions by handling unbook + book in single transaction
+  Future<Response<String>> switchTimeslot({
+    required int fromTimeslotId,
+    required int newTimeslotId,
+  }) async {
+    try {
+      final requestBody = SwitchStudentSessionTimeslot(
+        (b) => b
+          ..fromTimeslotId = fromTimeslotId
+          ..newTimeslotId = newTimeslotId,
+      );
+
+      final response = await _api
+          .getStudentSessionsApi()
+          .studentSessionsApiSwitchStudentSessionTimeslot(
+            switchStudentSessionTimeslot: requestBody,
+            extra: {
+              'secure': [
+                {'type': 'http', 'scheme': 'bearer', 'name': 'AuthBearer'},
+              ],
+            },
+          );
+      return response;
+    } on DioException catch (e) {
+      // CRITICAL: Preserve original DioException for proper error handling
+      await ApiErrorHandler.handleDioException(
+        e,
+        operationName: 'switchTimeslot',
+        additionalContext: {
+          'from_timeslot_id': fromTimeslotId,
+          'new_timeslot_id': newTimeslotId,
+        },
+      );
+      rethrow; // Let repository handle the exception
+    } catch (e) {
+      throw Exception('Failed to switch timeslot');
+    }
+  }
+
   /// Get application for a specific company
   Future<Response<StudentSessionApplicationOutSchema?>>
   getApplicationForCompany(int companyId) async {

@@ -73,6 +73,7 @@ import '../features/student_session/domain/use_cases/book_timeslot_use_case.dart
 import '../features/student_session/domain/use_cases/get_my_applications_with_booking_state_use_case.dart';
 import '../features/student_session/domain/use_cases/get_student_sessions_use_case.dart';
 import '../features/student_session/domain/use_cases/get_timeslots_use_case.dart';
+import '../features/student_session/domain/use_cases/switch_timeslot_use_case.dart';
 import '../features/student_session/domain/use_cases/unbook_timeslot_use_case.dart';
 import '../features/student_session/domain/use_cases/upload_cv_use_case.dart';
 import '../features/student_session/presentation/commands/apply_for_session_command.dart';
@@ -80,6 +81,7 @@ import '../features/student_session/presentation/commands/book_timeslot_command.
 import '../features/student_session/presentation/commands/get_my_applications_with_booking_state_command.dart';
 import '../features/student_session/presentation/commands/get_student_sessions_command.dart';
 import '../features/student_session/presentation/commands/get_timeslots_command.dart';
+import '../features/student_session/presentation/commands/switch_timeslot_command.dart';
 import '../features/student_session/presentation/commands/unbook_timeslot_command.dart';
 import '../features/student_session/presentation/view_models/student_session_view_model.dart';
 import '../shared/infrastructure/app_environment.dart';
@@ -356,6 +358,9 @@ void _setupStudentSessionFeature() {
   serviceLocator.registerLazySingleton<UnbookTimeslotUseCase>(
     () => UnbookTimeslotUseCase(serviceLocator<StudentSessionRepository>()),
   );
+  serviceLocator.registerLazySingleton<SwitchTimeslotUseCase>(
+    () => SwitchTimeslotUseCase(serviceLocator<StudentSessionRepository>()),
+  );
   serviceLocator
       .registerLazySingleton<GetMyApplicationsWithBookingStateUseCase>(
         () => GetMyApplicationsWithBookingStateUseCase(
@@ -390,6 +395,9 @@ void _setupStudentSessionFeature() {
   serviceLocator.registerLazySingleton<UnbookTimeslotCommand>(
     () => UnbookTimeslotCommand(serviceLocator<UnbookTimeslotUseCase>()),
   );
+  serviceLocator.registerLazySingleton<SwitchTimeslotCommand>(
+    () => SwitchTimeslotCommand(serviceLocator<SwitchTimeslotUseCase>()),
+  );
   serviceLocator
       .registerLazySingleton<GetMyApplicationsWithBookingStateCommand>(
         () => GetMyApplicationsWithBookingStateCommand(
@@ -407,6 +415,7 @@ void _setupStudentSessionFeature() {
       applyForSessionCommand: serviceLocator<ApplyForSessionCommand>(),
       bookTimeslotCommand: serviceLocator<BookTimeslotCommand>(),
       unbookTimeslotCommand: serviceLocator<UnbookTimeslotCommand>(),
+      switchTimeslotCommand: serviceLocator<SwitchTimeslotCommand>(),
       getMyApplicationsWithBookingStateCommand:
           serviceLocator<GetMyApplicationsWithBookingStateCommand>(),
       getTimeslotsCommand: serviceLocator<GetTimeslotsCommand>(),

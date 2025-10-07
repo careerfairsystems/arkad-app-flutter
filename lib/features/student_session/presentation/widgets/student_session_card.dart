@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/infrastructure/services/timezone_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/optimized_image.dart';
 import '../../domain/entities/student_session.dart';
@@ -81,9 +82,15 @@ class StudentSessionCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(context, statusInfo),
+              const SizedBox(height: 8),
+              _buildSessionTypeBadge(context),
               const SizedBox(height: 12),
               if (session.description != null) ...[
                 _buildDescription(context),
+                const SizedBox(height: 12),
+              ],
+              if (session.isCompanyEvent && session.companyEventAt != null) ...[
+                _buildCompanyEventInfo(context),
                 const SizedBox(height: 12),
               ],
               _buildStatus(context),
@@ -151,6 +158,29 @@ class StudentSessionCard extends StatelessWidget {
     );
   }
 
+  Widget _buildSessionTypeBadge(BuildContext context) {
+    final badgeColor = session.isCompanyEvent
+        ? ArkadColors.arkadOrange
+        : ArkadColors.arkadTurkos;
+    final badgeText = session.sessionType.displayName;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        badgeText,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: badgeColor,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
   Widget _buildDescription(BuildContext context) {
     return Text(
       session.description!,
@@ -159,6 +189,65 @@ class StudentSessionCard extends StatelessWidget {
       ),
       maxLines: 3,
       overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildCompanyEventInfo(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: ArkadColors.arkadOrange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: ArkadColors.arkadOrange.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today_rounded,
+                size: 16,
+                color: ArkadColors.arkadOrange,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  TimezoneService.formatEventDateTime(session.companyEventAt!),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: ArkadColors.arkadOrange,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (session.location != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(
+                  Icons.location_on_rounded,
+                  size: 16,
+                  color: ArkadColors.arkadOrange,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    session.location!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: ArkadColors.arkadOrange,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 
