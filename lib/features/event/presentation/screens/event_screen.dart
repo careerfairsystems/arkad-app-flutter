@@ -260,8 +260,8 @@ class _EventScreenState extends State<EventScreen> {
   }
 
   Widget _buildEventsList(EventViewModel viewModel) {
-    final events = viewModel.bookedEvents.toList()
-      ..removeWhere((event) => event.endTime.isAfter(DateTime.now()))
+    final events = viewModel.events.toList()
+      ..removeWhere((event) => event.endTime.isBefore(DateTime.now()))
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
     return ListView(

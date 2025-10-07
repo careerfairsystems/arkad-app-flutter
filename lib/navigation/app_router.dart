@@ -198,7 +198,6 @@ class AppRouter {
                           body: Center(child: Text('Error: Invalid event ID')),
                         );
                       }
-                      print('   ✅ Creating EventDetailScreen with ID=$eventId');
                       return EventDetailScreen(eventId: eventId);
                     }),
                     routes: [
