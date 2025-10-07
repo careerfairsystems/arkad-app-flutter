@@ -116,7 +116,7 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
           length: 2,
           child: Scaffold(
             appBar: AppBar(
-              title: const Text('Student Sessions'),
+              title: const Text('Sessions'),
               elevation: 2,
               bottom: const TabBar(
                 indicatorColor: ArkadColors.arkadTurkos,
