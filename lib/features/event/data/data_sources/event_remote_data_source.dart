@@ -1,6 +1,7 @@
 import 'package:arkad/shared/errors/app_error.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../api/extensions.dart';
@@ -82,7 +83,9 @@ class EventRemoteDataSource {
       } else {
         response.logResponse('getEventById');
         if (response.data == null) {
-          print('   ❌ Event not found (404)');
+          if (kDebugMode) {
+            debugPrint('   Event not found (404)');
+          }
           throw Exception('Event not found');
         }
         throw Exception(
@@ -90,7 +93,9 @@ class EventRemoteDataSource {
         );
       }
     } on DioException catch (e) {
-      print('   ❌ DioException: ${e.response?.statusCode} - ${e.message}');
+      if (kDebugMode) {
+        debugPrint('   DioException: ${e.response?.statusCode} - ${e.message}');
+      }
       final exception = await ApiErrorHandler.handleDioException(
         e,
         operationName: 'getEventById',
@@ -98,7 +103,9 @@ class EventRemoteDataSource {
       );
       throw exception;
     } catch (e) {
-      print('   ❌ Exception: $e');
+      if (kDebugMode) {
+        debugPrint('   Exception: $e');
+      }
       await Sentry.captureException(e);
       throw Exception('Failed to get event $eventId: $e');
     }

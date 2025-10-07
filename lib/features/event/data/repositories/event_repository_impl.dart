@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../../../shared/data/repositories/base_repository.dart';
 import '../../../../shared/domain/result.dart';
 import '../../domain/entities/event.dart';
@@ -31,7 +33,9 @@ class EventRepositoryImpl extends BaseRepository implements EventRepository {
     return executeOperation(() async {
       // Fetch from remote
       final eventSchemas = await _remoteDataSource.getEvents();
-      print("Got ${eventSchemas} events from remote");
+      if (kDebugMode) {
+        debugPrint('Got ${eventSchemas.length} events from remote');
+      }
 
       // Convert to domain entities
       // Note: API doesn't provide IDs, so we'll use index as ID for now

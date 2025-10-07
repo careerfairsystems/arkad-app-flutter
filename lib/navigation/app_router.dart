@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -193,6 +194,11 @@ class AppRouter {
                         );
                         return const Scaffold(
                           body: Center(child: Text('Error: Invalid event ID')),
+                        );
+                      }
+                      if (kDebugMode) {
+                        debugPrint(
+                          '   Creating EventDetailScreen with ID=$eventId',
                         );
                       }
                       return EventDetailScreen(eventId: eventId);

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/domain/result.dart';
-import '../../../../shared/domain/validation_service.dart';
+import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/errors/app_error.dart';
 import '../../../../shared/errors/exception.dart';
 import '../../../../shared/infrastructure/services/file_validation_service.dart';
@@ -344,7 +344,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
     if (profile.linkedin != null && profile.linkedin!.isNotEmpty) {
       if (!ValidationService.isValidLinkedInUrl(profile.linkedin!)) {
         return Result.failure(
-          const ValidationError("Please enter a valid LinkedIn profile URL"),
+          const ValidationError(
+            "Please enter a valid LinkedIn URL (e.g., https://www.linkedin.com/in/yourname)",
+          ),
         );
       }
     }
@@ -352,7 +354,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     // Validate study year if provided
     if (!ValidationService.isValidStudyYear(profile.studyYear)) {
       return Result.failure(
-        const ValidationError("Study year must be between 1 and 5"),
+        const ValidationError("Study year must be between 1 and 5 (inclusive)"),
       );
     }
 
@@ -371,7 +373,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     }
     if (!profile.hasLinkedIn) {
       suggestions.add(
-        "Add your LinkedIn profile to showcase your professional network",
+        "Add your LinkedIn profile URL to showcase your professional network",
       );
     }
     if (profile.programme == null) {

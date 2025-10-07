@@ -1,3 +1,5 @@
+import '../../../../shared/domain/validation/validation_service.dart';
+
 /// Value object for signup data
 class SignupData {
   const SignupData({
@@ -18,13 +20,8 @@ class SignupData {
   bool get isValid =>
       email.isNotEmpty &&
       password.isNotEmpty &&
-      _isValidEmail(email) &&
+      ValidationService.isValidEmail(email) &&
       password.length >= 8;
-
-  /// Check if email format is valid
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
-  }
 
   /// Create a copy with updated values
   SignupData copyWith({

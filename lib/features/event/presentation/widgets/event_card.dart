@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -255,6 +256,12 @@ class EventCard extends StatelessWidget {
   }
 
   void _onEventTap(BuildContext context) {
+    if (kDebugMode) {
+      debugPrint(
+        '[EventCard] Navigating to event detail: ID=${event.id}, Title="${event.title}"',
+      );
+      debugPrint('   Navigation path: /events/detail/${event.id}');
+    }
     context.push('/events/detail/${event.id}');
   }
 }

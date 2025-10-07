@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -25,9 +26,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   @override
   void initState() {
     super.initState();
-    print(
-      '🔍 [EventDetailScreen] initState called with eventId=${widget.eventId}',
-    );
+    if (kDebugMode) {
+      debugPrint(
+        '[EventDetailScreen] initState called with eventId=${widget.eventId}',
+      );
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadEvent();

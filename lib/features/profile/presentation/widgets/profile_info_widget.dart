@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../shared/domain/validation_service.dart';
+import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../domain/entities/profile.dart';
