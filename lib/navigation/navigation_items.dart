@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 bool shouldShowMap() {
-  return !kIsWeb && kDebugMode;
+  return !kIsWeb;
 }
 
 /// Adds `branchIndex` so the BottomNavigationBar knows which **Navigator branch**

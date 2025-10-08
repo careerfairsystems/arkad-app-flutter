@@ -117,6 +117,9 @@ class CombainIntializer extends ChangeNotifier {
 
   /// Initialize SDK without starting it (config setup only)
   Future<void> initializeWithoutStart() async {
+    if (!shouldShowMap()) {
+      return;
+    }
     if (_combainSDK != null) {
       print("Combain SDK already initialized");
       return;
@@ -147,6 +150,9 @@ class CombainIntializer extends ChangeNotifier {
 
   /// Start the SDK after permissions are granted
   Future<void> startSDK() async {
+    if (!shouldShowMap()) {
+      return;
+    }
     if (_combainSDK == null) {
       print("Cannot start SDK - not initialized");
       return;
@@ -551,10 +557,6 @@ void _setupEventFeature() {
 
 /// Setup Map feature with permission-gated SDK initialization
 Future<void> _setupMapFeature() async {
-  if (!shouldShowMap()) {
-    return;
-  }
-
   // Initialize Combain SDK config WITHOUT starting it
   final combainInitializer = serviceLocator<CombainIntializer>();
   await combainInitializer.initializeWithoutStart();

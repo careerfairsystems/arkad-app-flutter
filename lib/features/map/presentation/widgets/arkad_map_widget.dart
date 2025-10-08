@@ -266,9 +266,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       onTap: widget.onTap,
       myLocationEnabled: false, // Always false, we use custom location marker
       onCameraMove: _onCameraMove,
-      cameraTargetBounds: _allowedBounds != null
-          ? CameraTargetBounds(_allowedBounds!)
-          : CameraTargetBounds.unbounded,
+      cameraTargetBounds: CameraTargetBounds(_allowedBounds),
     );
   }
 
