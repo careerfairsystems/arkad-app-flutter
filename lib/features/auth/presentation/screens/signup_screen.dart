@@ -57,7 +57,6 @@ class _SignupScreenState extends State<SignupScreen> {
     'hasUppercase': false,
     'hasLowercase': false,
     'hasNumber': false,
-    'hasSpecialChar': false,
   };
 
   @override
@@ -305,10 +304,6 @@ class _SignupScreenState extends State<SignupScreen> {
                 AuthFormWidgets.buildPasswordRequirementRow(
                   _passwordStrength['hasNumber']!,
                   'Contain a number',
-                ),
-                AuthFormWidgets.buildPasswordRequirementRow(
-                  _passwordStrength['hasSpecialChar']!,
-                  'Contain a special character',
                 ),
               ],
             ),
