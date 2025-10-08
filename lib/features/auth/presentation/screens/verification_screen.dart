@@ -90,18 +90,13 @@ class _VerificationScreenState extends State<VerificationScreen> {
     _startResendCooldown(); // start 30s cooldown immediately
 
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    final email = authViewModel.pendingSignupData?.email;
 
-    if (email == null) {
+    // Check if there's pending signup data before attempting resend
+    if (authViewModel.pendingSignupData == null) {
       return;
     }
 
-    await authViewModel.resendVerification(email);
-
-    // Start cooldown only on success
-    if (mounted && !authViewModel.resendVerificationCommand.hasError) {
-      _startResendCooldown();
-    }
+    await authViewModel.resendVerification();
   }
 
   void _goBackToSignup() {

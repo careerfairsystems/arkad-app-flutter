@@ -47,8 +47,8 @@ class ResendVerificationCommand
     }
   }
 
-  /// Resend verification code to email
-  Future<void> resendVerification(String email) async {
-    await executeWithParams(ResendVerificationParams(email: email));
+  /// Resend verification code with signup data
+  Future<void> resendVerification(ResendVerificationParams params) async {
+    await executeWithParams(params);
   }
 }

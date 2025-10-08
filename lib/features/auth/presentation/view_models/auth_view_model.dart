@@ -214,10 +214,18 @@ class AuthViewModel extends ChangeNotifier {
     await _resetPasswordCommand.resetPassword(email);
   }
 
-  /// Resend verification code for given email
-  Future<void> resendVerification(String email) async {
+  /// Resend verification code using pending signup data
+  Future<void> resendVerification() async {
     _clearGlobalError();
-    await _resendVerificationCommand.resendVerification(email);
+
+    if (_pendingSignupData == null) {
+      _setGlobalError(const ValidationError("No pending signup found"));
+      return;
+    }
+
+    await _resendVerificationCommand.resendVerification(
+      ResendVerificationParams(signupData: _pendingSignupData!),
+    );
   }
 
   /// Clear signup state
