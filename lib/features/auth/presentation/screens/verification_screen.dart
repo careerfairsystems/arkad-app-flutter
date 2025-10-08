@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../view_models/auth_view_model.dart';
@@ -20,6 +21,34 @@ class VerificationScreen extends StatefulWidget {
 class _VerificationScreenState extends State<VerificationScreen> {
   final TextEditingController _codeController = TextEditingController();
 
+  // Cooldown state for resend button
+  int _resendCooldownSeconds = 0;
+  Timer? _resendCooldownTimer;
+  bool get _isResendOnCooldown => _resendCooldownSeconds > 0;
+
+  void _startResendCooldown([int seconds = 30]) {
+    _resendCooldownTimer?.cancel();
+    setState(() {
+      _resendCooldownSeconds = seconds;
+    });
+    _resendCooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_resendCooldownSeconds <= 1) {
+        timer.cancel();
+        setState(() {
+          _resendCooldownSeconds = 0;
+        });
+      } else {
+        setState(() {
+          _resendCooldownSeconds--;
+        });
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +64,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
   @override
   void dispose() {
     _codeController.dispose();
+    _resendCooldownTimer?.cancel();
     super.dispose();
   }
 
@@ -56,6 +86,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
   }
 
   Future<void> _resendCode() async {
+    if (_isResendOnCooldown) return; // guard if still cooling down
+    _startResendCooldown(); // start 30s cooldown immediately
+
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     final email = authViewModel.pendingSignupData?.email;
 
@@ -64,6 +97,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
     }
 
     await authViewModel.resendVerification(email);
+
+    // Start cooldown only on success
+    if (mounted && !authViewModel.resendVerificationCommand.hasError) {
+      _startResendCooldown();
+    }
   }
 
   void _goBackToSignup() {
@@ -196,7 +234,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 Consumer<AuthViewModel>(
                   builder: (context, authViewModel, child) {
                     return TextButton(
-                      onPressed: authViewModel.isResendingVerification
+                      onPressed:
+                          authViewModel.isResendingVerification ||
+                              _isResendOnCooldown
                           ? null
                           : _resendCode,
                       style: TextButton.styleFrom(
@@ -204,7 +244,13 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       ),
                       child: authViewModel.isResendingVerification
                           ? const Text('Sending...')
-                          : const Text("Didn't receive the code? Send again"),
+                          : (_isResendOnCooldown
+                                ? Text(
+                                    'Resend again in $_resendCooldownSeconds',
+                                  )
+                                : const Text(
+                                    "Didn't receive the code? Send again",
+                                  )),
                     );
                   },
                 ),
