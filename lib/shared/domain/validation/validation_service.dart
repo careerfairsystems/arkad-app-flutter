@@ -7,7 +7,6 @@ class ValidationService {
   static final _upperCaseRegExp = RegExp(r'[A-Z]');
   static final _lowerCaseRegExp = RegExp(r'[a-z]');
   static final _numberRegExp = RegExp(r'[0-9]');
-  static final _specialCharRegExp = RegExp(r'[!@#$%^&*(),.?":{}|<>]');
 
   static const int passwordMinLength = 8;
 
@@ -45,7 +44,6 @@ class ValidationService {
       'hasUppercase': _upperCaseRegExp.hasMatch(password),
       'hasLowercase': _lowerCaseRegExp.hasMatch(password),
       'hasNumber': _numberRegExp.hasMatch(password),
-      'hasSpecialChar': _specialCharRegExp.hasMatch(password),
     };
   }
 
