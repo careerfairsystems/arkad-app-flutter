@@ -55,7 +55,6 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
         'Sign in successful',
         attributes: {
           'operation': SentryLogAttribute.string('signIn'),
-          'user_id': SentryLogAttribute.string(user.id.toString()),
         },
       );
 
@@ -239,7 +238,6 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
         'Session refreshed successfully',
         attributes: {
           'operation': SentryLogAttribute.string('refreshSession'),
-          'user_id': SentryLogAttribute.string(user.id.toString()),
         },
       );
 
