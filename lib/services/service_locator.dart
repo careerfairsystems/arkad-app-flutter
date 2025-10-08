@@ -158,7 +158,7 @@ class CombainIntializer extends ChangeNotifier {
     }
 
     print("Starting Combain SDK");
-    await _combainSDK!.start();
+    //await _combainSDK!.start();
     combainIntialized = true;
     notifyListeners();
   }

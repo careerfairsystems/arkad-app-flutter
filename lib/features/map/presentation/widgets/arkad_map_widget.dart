@@ -22,8 +22,8 @@ class ArkadMapWidget extends StatefulWidget {
     this.availableFloors = const [],
     this.onMapCreated,
     this.onTap,
-    this.minZoom = 12.0,
-    this.maxZoom = 18.0,
+    this.minZoom = 18.0,
+    this.maxZoom = 22.0,
     this.enableLocationTracking = false,
     this.showUserLocationMarker = false,
     this.centerOnUserLocation = false,
@@ -52,6 +52,10 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   String? _mapStyle;
   bool _hasRequestedPermission = false;
   int _selectedFloorIndex = 0;
+  LatLngBounds _allowedBounds = LatLngBounds(
+    southwest: const LatLng(55.709214600107245, 13.207789044872932),
+    northeast: const LatLng(55.713562876300905, 13.212897763941944),
+  );
 
   @override
   void initState() {
@@ -252,8 +256,8 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       groundOverlays: groundOverlays,
       scrollGesturesEnabled: true, // Enables panning
       zoomGesturesEnabled: true, // Enables pinch-to-zoom
-      tiltGesturesEnabled: true, // Enables tilt gestures
-      rotateGesturesEnabled: true, // Enables rotation
+      tiltGesturesEnabled: false, // Enables tilt gestures
+      rotateGesturesEnabled: false, // Enables rotation
 
       minMaxZoomPreference: MinMaxZoomPreference(
         widget.minZoom,
@@ -261,7 +265,43 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       ),
       onTap: widget.onTap,
       myLocationEnabled: false, // Always false, we use custom location marker
+      onCameraMove: _onCameraMove,
+      cameraTargetBounds: _allowedBounds != null
+          ? CameraTargetBounds(_allowedBounds!)
+          : CameraTargetBounds.unbounded,
     );
+  }
+
+  void _onCameraMove(CameraPosition position) {
+    if (_allowedBounds == null) return;
+
+    final target = position.target;
+
+    // Check if camera target is within bounds
+    if (!_isPointInBounds(target, _allowedBounds!)) {
+      // Clamp position to bounds
+      final clampedPosition = _clampToBounds(target, _allowedBounds!);
+      _mapController?.animateCamera(CameraUpdate.newLatLng(clampedPosition));
+    }
+  }
+
+  bool _isPointInBounds(LatLng point, LatLngBounds bounds) {
+    return point.latitude >= bounds.southwest.latitude &&
+        point.latitude <= bounds.northeast.latitude &&
+        point.longitude >= bounds.southwest.longitude &&
+        point.longitude <= bounds.northeast.longitude;
+  }
+
+  LatLng _clampToBounds(LatLng point, LatLngBounds bounds) {
+    final clampedLat = point.latitude.clamp(
+      bounds.southwest.latitude,
+      bounds.northeast.latitude,
+    );
+    final clampedLng = point.longitude.clamp(
+      bounds.southwest.longitude,
+      bounds.northeast.longitude,
+    );
+    return LatLng(clampedLat, clampedLng);
   }
 
   @override
