@@ -52,6 +52,7 @@ class _MapScreenState extends State<MapScreen> {
       mapViewModel.loadLocations().then((_) async {
         // Load ground overlays after buildings are loaded
         await mapViewModel.loadGroundOverlays(imageConfig);
+        _updateMarkers(mapViewModel.locations);
       });
 
       // Load companies if not already loaded (for company info cards)
@@ -74,11 +75,7 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  void _onLocationsChanged() async {
-    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
-    final imageConfig = createLocalImageConfiguration(context);
-    _updateMarkers(mapViewModel.locations);
-  }
+  void _onLocationsChanged() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -184,9 +181,24 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildPermissionFlow(MapPermissionsViewModel viewModel) {
-    if (viewModel.currentStep == null) {
+    // Show loading while checking existing permissions
+    if (viewModel.isCheckingPermissions || viewModel.currentStep == null) {
       return const Center(
-        child: CircularProgressIndicator(color: ArkadColors.arkadTurkos),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: ArkadColors.arkadTurkos),
+            SizedBox(height: 16),
+            Text(
+              'Checking permissions...',
+              style: TextStyle(
+                color: ArkadColors.white,
+                fontSize: 16,
+                fontFamily: 'MyriadProCondensed',
+              ),
+            ),
+          ],
+        ),
       );
     }
 

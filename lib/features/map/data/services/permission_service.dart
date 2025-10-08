@@ -5,6 +5,26 @@ import 'package:permission_handler/permission_handler.dart' as ph;
 import '../../domain/entities/permission_request.dart';
 
 class PermissionService {
+  /// Check current permission status without requesting
+  Future<PermissionStatus> checkPermissionStatus(PermissionType type) async {
+    switch (type) {
+      case PermissionType.location:
+        final permission = Platform.isIOS
+            ? ph.Permission.locationWhenInUse
+            : ph.Permission.location;
+        final status = await permission.status;
+        return _mapStatus(status);
+
+      case PermissionType.bluetoothScan:
+        if (Platform.isAndroid) {
+          final status = await ph.Permission.bluetoothScan.status;
+          return _mapStatus(status);
+        }
+        return PermissionStatus
+            .granted; // iOS doesn't need explicit Bluetooth scan permission
+    }
+  }
+
   Future<PermissionStatus> requestPermission(PermissionType type) async {
     switch (type) {
       case PermissionType.location:

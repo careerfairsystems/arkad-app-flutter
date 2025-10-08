@@ -41,6 +41,9 @@ class MapPermissionsViewModel extends ChangeNotifier {
   bool _isRequestingPermission = false;
   bool get isRequestingPermission => _isRequestingPermission;
 
+  bool _isCheckingPermissions = true;
+  bool get isCheckingPermissions => _isCheckingPermissions;
+
   void _initializeSteps() {
     _steps = [
       const PermissionRequest(
@@ -61,6 +64,43 @@ class MapPermissionsViewModel extends ChangeNotifier {
           status: PermissionStatus.notRequested,
         ),
     ];
+
+    // Check existing permissions after initialization
+    _checkExistingPermissions();
+  }
+
+  /// Check if permissions are already granted on app start
+  Future<void> _checkExistingPermissions() async {
+    _isCheckingPermissions = true;
+    notifyListeners();
+
+    try {
+      // Check each permission's current status
+      for (int i = 0; i < _steps.length; i++) {
+        final status = await _permissionService.checkPermissionStatus(
+          _steps[i].type,
+        );
+        _steps[i] = _steps[i].copyWith(status: status);
+      }
+
+      // Check if all permissions are already granted
+      await _checkAllPermissions();
+
+      // If not all granted, find first non-granted permission
+      if (!_allPermissionsGranted) {
+        _currentStepIndex = _steps.indexWhere(
+          (step) => step.status != PermissionStatus.granted,
+        );
+        if (_currentStepIndex == -1) {
+          _currentStepIndex = 0;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking existing permissions: $e');
+    } finally {
+      _isCheckingPermissions = false;
+      notifyListeners();
+    }
   }
 
   Future<void> requestCurrentPermission() async {
