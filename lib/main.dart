@@ -14,6 +14,7 @@ import 'features/student_session/presentation/view_models/student_session_view_m
 import 'navigation/app_router.dart';
 import 'navigation/router_notifier.dart';
 import 'services/service_locator.dart';
+import 'shared/infrastructure/services/server_time_service.dart';
 import 'shared/presentation/themes/arkad_theme.dart';
 
 void main() async {
@@ -41,6 +42,9 @@ void main() async {
 
       // Initialize timezone data for accurate timezone conversions
       tz.initializeTimeZones();
+
+      // Initialize NTP time synchronization to prevent device time manipulation
+      await ServerTimeService.instance.initialize();
 
       // Initialize the GetIt.instance, a singleton instance of the service locator
       setupServiceLocator();
