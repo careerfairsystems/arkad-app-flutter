@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
 import 'package:flutter_combainsdk/messages.g.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
@@ -95,5 +96,46 @@ class MapRepositoryImpl implements MapRepository {
   @override
   List<MapBuilding> getMapBuildings() {
     return [_getStudyC()];
+  }
+
+  @override
+  Future<Set<GroundOverlay>> getGroundOverlays(
+    ImageConfiguration imageConfig,
+  ) async {
+    final buildings = getMapBuildings();
+    final overlays = <GroundOverlay>{};
+
+    for (final building in buildings) {
+      // Use the default floor for each building
+      final defaultFloor = building.floors.firstWhere(
+        (floor) => floor.index == building.defaultFloorIndex,
+        orElse: () => building.floors.first,
+      );
+
+      final floorMap = defaultFloor.map;
+
+      // Create AssetMapBitmap for ground overlay with required bitmapScaling
+      final mapBitmap = await AssetMapBitmap.create(
+        imageConfig,
+        (floorMap.image as AssetImage).assetName,
+        bitmapScaling: MapBitmapScaling.none,
+      );
+
+      overlays.add(
+        GroundOverlay.fromBounds(
+          groundOverlayId: GroundOverlayId(
+            'building_${building.id}_floor_${defaultFloor.index}',
+          ),
+          image: mapBitmap,
+          bounds: LatLngBounds(
+            southwest: LatLng(floorMap.SW.lat, floorMap.SW.lon),
+            northeast: LatLng(floorMap.NE.lat, floorMap.NE.lon),
+          ),
+          transparency: 0,
+        ),
+      );
+    }
+
+    return overlays;
   }
 }

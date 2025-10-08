@@ -29,7 +29,6 @@ class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   Company? _selectedCompany;
   Set<Marker> _markers = {};
-  Set<GroundOverlay> _groundOverlays = {};
 
   // Lund University coordinates (center of map)
   static const LatLng _lundCenter = LatLng(55.7104, 13.2109);
@@ -48,11 +47,11 @@ class _MapScreenState extends State<MapScreen> {
       // Listen to map location changes and update markers
       mapViewModel.addListener(_onLocationsChanged);
 
-      // Load locations and buildings
+      // Load locations, buildings, and ground overlays
       final imageConfig = createLocalImageConfiguration(context);
       mapViewModel.loadLocations().then((_) async {
-        // Update ground overlays after buildings are loaded
-        await _updateGroundOverlays(imageConfig, mapViewModel.buildings);
+        // Load ground overlays after buildings are loaded
+        await mapViewModel.loadGroundOverlays(imageConfig);
       });
 
       // Load companies if not already loaded (for company info cards)
@@ -78,9 +77,10 @@ class _MapScreenState extends State<MapScreen> {
   void _onLocationsChanged() async {
     final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
     final imageConfig = createLocalImageConfiguration(context);
-    _updateMarkers(mapViewModel.locations);
-    await _updateGroundOverlays(imageConfig, mapViewModel.buildings);
+    _updateMarkers(mapViewModel.locations, mapViewModel.buildings);
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -128,56 +128,60 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildMapView() {
-    return Stack(
-      children: [
-        // Map
-        ArkadMapWidget(
-          initialCameraPosition: const CameraPosition(
-            target: _lundCenter,
-            zoom: 15.0,
-          ),
-          markers: _markers,
-          groundOverlays: _groundOverlays,
-          onMapCreated: (controller) {
-            _mapController = controller;
-          },
-          onTap: (_) {
-            // Deselect company when tapping map
-            if (_selectedCompany != null) {
-              setState(() {
-                _selectedCompany = null;
-              });
-            }
-          },
-        ),
-
-        // Search bar at top
-        Positioned(
-          top: MediaQuery.of(context).padding.top + 16,
-          left: 16,
-          right: 16,
-          child: MapSearchBar(
-            onTap: _showSearchView,
-            displayText: _selectedCompany?.name,
-          ),
-        ),
-
-        // Selected company info card at bottom
-        if (_selectedCompany != null)
-          Positioned(
-            bottom: 16,
-            left: 16,
-            right: 16,
-            child: CompanyInfoCard(
-              company: _selectedCompany!,
-              onClose: () {
-                setState(() {
-                  _selectedCompany = null;
-                });
+    return Consumer<MapViewModel>(
+      builder: (context, mapViewModel, child) {
+        return Stack(
+          children: [
+            // Map
+            ArkadMapWidget(
+              initialCameraPosition: const CameraPosition(
+                target: _lundCenter,
+                zoom: 15.0,
+              ),
+              markers: _markers,
+              groundOverlays: mapViewModel.groundOverlays,
+              onMapCreated: (controller) {
+                _mapController = controller;
+              },
+              onTap: (_) {
+                // Deselect company when tapping map
+                if (_selectedCompany != null) {
+                  setState(() {
+                    _selectedCompany = null;
+                  });
+                }
               },
             ),
-          ),
-      ],
+
+            // Search bar at top
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 16,
+              right: 16,
+              child: MapSearchBar(
+                onTap: _showSearchView,
+                displayText: _selectedCompany?.name,
+              ),
+            ),
+
+            // Selected company info card at bottom
+            if (_selectedCompany != null)
+              Positioned(
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: CompanyInfoCard(
+                  company: _selectedCompany!,
+                  onClose: () {
+                    setState(() {
+                      _selectedCompany = null;
+                    });
+                  },
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -227,52 +231,54 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Future<void> _updateGroundOverlays(
-    ImageConfiguration imageConfig,
+  void _updateMarkers(
+    List<MapLocation> locations,
     List<MapBuilding> buildings,
-  ) async {
-    final newOverlays = <GroundOverlay>{};
-
-    for (final building in buildings) {
-      // Use the default floor for each building
-      final defaultFloor = building.floors.firstWhere(
-        (floor) => floor.index == building.defaultFloorIndex,
-        orElse: () => building.floors.first,
-      );
-
-      final floorMap = defaultFloor.map;
-
-      // Create MapBitmap from AssetImage with proper configuration
-      final mapBitmap = await AssetMapBitmap.create(
-        imageConfig,
-        (floorMap.image as AssetImage).assetName,
-        bitmapScaling: MapBitmapScaling.none,
-      );
-
-      newOverlays.add(
-        GroundOverlay.fromBounds(
-          groundOverlayId: GroundOverlayId(
-            'building_${building.id}_floor_${defaultFloor.index}',
-          ),
-          image: mapBitmap,
-          bounds: LatLngBounds(
-            southwest: LatLng(floorMap.SW.lat, floorMap.SW.lon),
-            northeast: LatLng(floorMap.NE.lat, floorMap.NE.lon),
-          ),
-          transparency: 0.2,
-        ),
-      );
-    }
-
-    if (mounted) {
-      setState(() {
-        _groundOverlays = newOverlays;
-      });
-    }
-  }
-
-  void _updateMarkers(List<MapLocation> locations) {
+  ) {
     final newMarkers = <Marker>{};
+
+    // Add corner markers for each floor map
+    for (final building in buildings) {
+      for (final floor in building.floors) {
+        final floorMap = floor.map;
+        final buildingFloorId = '${building.id}_${floor.index}';
+
+        // Calculate all four corners
+        // topLeft is given
+        // NE (northeast) is top-right
+        // SW (southwest) is bottom-left
+        // Bottom-right = (SW.lat, NE.lon)
+        final corners = [
+          {
+            'name': 'TL',
+            'lat': floorMap.topLeft.lat,
+            'lon': floorMap.topLeft.lon,
+          },
+          {'name': 'TR', 'lat': floorMap.NE.lat, 'lon': floorMap.NE.lon},
+          {'name': 'BL', 'lat': floorMap.SW.lat, 'lon': floorMap.SW.lon},
+          {'name': 'BR', 'lat': floorMap.SW.lat, 'lon': floorMap.NE.lon},
+        ];
+
+        for (final corner in corners) {
+          newMarkers.add(
+            Marker(
+              markerId: MarkerId('corner_${buildingFloorId}_${corner['name']}'),
+              position: LatLng(
+                corner['lat'] as double,
+                corner['lon'] as double,
+              ),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueViolet,
+              ),
+              infoWindow: InfoWindow(
+                title: '${building.name} Floor ${floor.name}',
+                snippet: '${corner['name']} Corner',
+              ),
+            ),
+          );
+        }
+      }
+    }
     final companyViewModel = Provider.of<CompanyViewModel>(
       context,
       listen: false,
