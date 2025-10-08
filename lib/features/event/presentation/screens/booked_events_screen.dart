@@ -1,3 +1,4 @@
+import 'package:arkad/features/event/presentation/screens/event_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -166,7 +167,9 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
                   const SizedBox(height: 24),
                   ArkadButton(
                     text: 'Browse Events',
-                    onPressed: () => context.pop(),
+                    onPressed: () {
+                      context.go('/events');
+                    },
                     icon: Icons.explore,
                     variant: ArkadButtonVariant.secondary,
                   ),
