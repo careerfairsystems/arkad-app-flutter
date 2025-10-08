@@ -53,9 +53,7 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
 
       Sentry.logger.info(
         'Sign in successful',
-        attributes: {
-          'operation': SentryLogAttribute.string('signIn'),
-        },
+        attributes: {'operation': SentryLogAttribute.string('signIn')},
       );
 
       return Result.success(session);
@@ -236,9 +234,7 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
 
       Sentry.logger.info(
         'Session refreshed successfully',
-        attributes: {
-          'operation': SentryLogAttribute.string('refreshSession'),
-        },
+        attributes: {'operation': SentryLogAttribute.string('refreshSession')},
       );
 
       return Result.success(refreshedSession);

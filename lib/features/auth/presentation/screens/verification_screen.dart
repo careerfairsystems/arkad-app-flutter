@@ -1,8 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'dart:async';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../view_models/auth_view_model.dart';
@@ -25,6 +26,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
   int _resendCooldownSeconds = 0;
   Timer? _resendCooldownTimer;
   bool get _isResendOnCooldown => _resendCooldownSeconds > 0;
+
+  // Store ViewModel reference for safe access in dispose()
+  AuthViewModel? _authViewModel;
 
   void _startResendCooldown([int seconds = 30]) {
     _resendCooldownTimer?.cancel();
@@ -49,6 +53,26 @@ class _VerificationScreenState extends State<VerificationScreen> {
     });
   }
 
+  /// Command listener for resend verification - starts cooldown only on success
+  void _onResendCommandChanged() {
+    if (_authViewModel == null) return;
+
+    final cmd = _authViewModel!.resendVerificationCommand;
+
+    // Only start cooldown if resend completed successfully
+    if (cmd.isCompleted && !cmd.hasError && cmd.result != null) {
+      _startResendCooldown();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Safely capture ViewModel reference when widget is fully initialized
+    // This allows safe access in dispose() without context lookup
+    _authViewModel ??= Provider.of<AuthViewModel>(context, listen: false);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -57,9 +81,15 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
     // Reset command state to prevent stale state display
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-      authViewModel.completeSignupCommand.reset();
-      authViewModel.resendVerificationCommand.reset();
+      if (_authViewModel == null) return;
+
+      _authViewModel!.completeSignupCommand.reset();
+      _authViewModel!.resendVerificationCommand.reset();
+
+      // Listen to resend command to start cooldown only on success
+      _authViewModel!.resendVerificationCommand.addListener(
+        _onResendCommandChanged,
+      );
     });
   }
 
@@ -67,38 +97,41 @@ class _VerificationScreenState extends State<VerificationScreen> {
   void dispose() {
     _codeController.dispose();
     _resendCooldownTimer?.cancel();
+
+    // Remove command listener using stored reference (safe during disposal)
+    _authViewModel?.resendVerificationCommand.removeListener(
+      _onResendCommandChanged,
+    );
+
     super.dispose();
   }
 
   bool get _isCodeComplete => _codeController.text.length == 6;
 
   Future<void> _verifyCode() async {
-    if (!_isCodeComplete) return;
+    if (!_isCodeComplete || _authViewModel == null) return;
 
-    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    await authViewModel.completeSignUp(_codeController.text);
+    await _authViewModel!.completeSignUp(_codeController.text);
 
     // Only navigate on successful completion, not on error
     if (mounted &&
-        authViewModel.completeSignupCommand.isCompleted &&
-        authViewModel.completeSignupCommand.result != null &&
-        !authViewModel.completeSignupCommand.hasError) {
+        _authViewModel!.completeSignupCommand.isCompleted &&
+        _authViewModel!.completeSignupCommand.result != null &&
+        !_authViewModel!.completeSignupCommand.hasError) {
       context.go('/profile');
     }
   }
 
   Future<void> _resendCode() async {
-    if (_isResendOnCooldown) return; // guard if still cooling down
-    _startResendCooldown(); // start 30s cooldown immediately
-
-    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+    if (_isResendOnCooldown || _authViewModel == null) return;
 
     // Check if there's pending signup data before attempting resend
-    if (authViewModel.pendingSignupData == null) {
+    if (_authViewModel!.pendingSignupData == null) {
       return;
     }
 
-    await authViewModel.resendVerification();
+    await _authViewModel!.resendVerification();
+    // Cooldown will be started by _onResendCommandChanged listener on success
   }
 
   void _goBackToSignup() {
@@ -243,7 +276,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           ? const Text('Sending...')
                           : (_isResendOnCooldown
                                 ? Text(
-                                    'Resend again in $_resendCooldownSeconds',
+                                    'Resend in $_resendCooldownSeconds seconds',
                                   )
                                 : const Text(
                                     "Didn't receive the code? Send again",
