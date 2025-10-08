@@ -1,14 +1,6 @@
-enum PermissionType {
-  location,
-  bluetoothScan,
-}
+enum PermissionType { location, bluetoothScan }
 
-enum PermissionStatus {
-  notRequested,
-  granted,
-  denied,
-  permanentlyDenied,
-}
+enum PermissionStatus { notRequested, granted, denied, permanentlyDenied }
 
 class PermissionRequest {
   const PermissionRequest({

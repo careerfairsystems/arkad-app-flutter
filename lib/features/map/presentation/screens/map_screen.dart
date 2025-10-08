@@ -77,10 +77,8 @@ class _MapScreenState extends State<MapScreen> {
   void _onLocationsChanged() async {
     final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
     final imageConfig = createLocalImageConfiguration(context);
-    _updateMarkers(mapViewModel.locations, mapViewModel.buildings);
+    _updateMarkers(mapViewModel.locations);
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -231,54 +229,9 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  void _updateMarkers(
-    List<MapLocation> locations,
-    List<MapBuilding> buildings,
-  ) {
+  void _updateMarkers(List<MapLocation> locations) {
     final newMarkers = <Marker>{};
 
-    // Add corner markers for each floor map
-    for (final building in buildings) {
-      for (final floor in building.floors) {
-        final floorMap = floor.map;
-        final buildingFloorId = '${building.id}_${floor.index}';
-
-        // Calculate all four corners
-        // topLeft is given
-        // NE (northeast) is top-right
-        // SW (southwest) is bottom-left
-        // Bottom-right = (SW.lat, NE.lon)
-        final corners = [
-          {
-            'name': 'TL',
-            'lat': floorMap.topLeft.lat,
-            'lon': floorMap.topLeft.lon,
-          },
-          {'name': 'TR', 'lat': floorMap.NE.lat, 'lon': floorMap.NE.lon},
-          {'name': 'BL', 'lat': floorMap.SW.lat, 'lon': floorMap.SW.lon},
-          {'name': 'BR', 'lat': floorMap.SW.lat, 'lon': floorMap.NE.lon},
-        ];
-
-        for (final corner in corners) {
-          newMarkers.add(
-            Marker(
-              markerId: MarkerId('corner_${buildingFloorId}_${corner['name']}'),
-              position: LatLng(
-                corner['lat'] as double,
-                corner['lon'] as double,
-              ),
-              icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueViolet,
-              ),
-              infoWindow: InfoWindow(
-                title: '${building.name} Floor ${floor.name}',
-                snippet: '${corner['name']} Corner',
-              ),
-            ),
-          );
-        }
-      }
-    }
     final companyViewModel = Provider.of<CompanyViewModel>(
       context,
       listen: false,

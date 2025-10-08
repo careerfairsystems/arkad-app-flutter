@@ -19,7 +19,8 @@ class PermissionService {
           final status = await ph.Permission.bluetoothScan.request();
           return _mapStatus(status);
         }
-        return PermissionStatus.granted; // iOS doesn't need explicit Bluetooth scan permission
+        return PermissionStatus
+            .granted; // iOS doesn't need explicit Bluetooth scan permission
     }
   }
 

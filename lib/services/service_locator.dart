@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:arkad/navigation/navigation_items.dart';
 import 'package:arkad_api/arkad_api.dart';
-import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
-import 'package:flutter_combainsdk/messages.g.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
+import 'package:flutter_combainsdk/messages.g.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
@@ -50,9 +50,13 @@ import '../features/event/data/mappers/ticket_verification_mapper.dart';
 import '../features/event/data/repositories/event_repository_impl.dart';
 import '../features/event/domain/repositories/event_repository.dart';
 import '../features/event/presentation/view_models/event_view_model.dart';
+import '../features/map/data/data_sources/location_data_source.dart';
+import '../features/map/data/repositories/location_repository_impl.dart';
 import '../features/map/data/repositories/map_repository_impl.dart';
 import '../features/map/data/services/permission_service.dart';
+import '../features/map/domain/repositories/location_repository.dart';
 import '../features/map/domain/repositories/map_repository.dart';
+import '../features/map/presentation/providers/location_provider.dart';
 import '../features/map/presentation/view_models/map_permissions_view_model.dart';
 import '../features/map/presentation/view_models/map_view_model.dart';
 import '../features/notifications/data/data_sources/notification_local_data_source.dart';
@@ -558,6 +562,19 @@ Future<void> _setupMapFeature() async {
   // Setup permission service for map
   serviceLocator.registerLazySingleton<PermissionService>(
     () => PermissionService(),
+  );
+
+  // Location feature setup
+  serviceLocator.registerLazySingleton<LocationDataSource>(
+    () => LocationDataSource(),
+  );
+
+  serviceLocator.registerLazySingleton<LocationRepository>(
+    () => LocationRepositoryImpl(serviceLocator<LocationDataSource>()),
+  );
+
+  serviceLocator.registerLazySingleton<LocationProvider>(
+    () => LocationProvider(serviceLocator<LocationRepository>()),
   );
 
   // Repository (placeholder implementation)
