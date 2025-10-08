@@ -39,10 +39,16 @@ class MapRepositoryImpl implements MapRepository {
           .getAllRoutableTargetsWithPagination(
             FlutterPaginationOptions(page: 0, pageSize: 200),
           );
+      print("Locations are: $locations");
 
       // Map over locations and await all futures
       final mappedLocationsFutures = locations.map((location) async {
         final floorIndex = location.floors.keys.first;
+        final routableTargetCenter = location.centerPoints[floorIndex];
+        if (routableTargetCenter == null) {
+          return null; // Skip if no center point for the floor
+        }
+
         final company = await _companyFromRoutableTarget(location);
         return MapLocation(
           id: FlutterNodeFloorIndex(
@@ -60,7 +66,7 @@ class MapRepositoryImpl implements MapRepository {
 
       final mappedLocations = await Future.wait(mappedLocationsFutures);
 
-      return Result.success(mappedLocations);
+      return Result.success(mappedLocations.whereType<MapLocation>().toList());
     } catch (e) {
       return Result.failure(UnknownError('Failed to load locations: $e'));
     }
