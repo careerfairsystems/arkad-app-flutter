@@ -112,13 +112,41 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
   Widget build(BuildContext context) {
     return Consumer<StudentSessionViewModel>(
       builder: (context, viewModel, child) {
-        return Scaffold(
-          appBar: AppBar(title: const Text('Student Sessions'), elevation: 2),
-          body: Column(
-            children: [
-              _buildSearchBar(viewModel),
-              Expanded(child: _buildSessionsList(viewModel)),
-            ],
+        return DefaultTabController(
+          length: 2,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Sessions'),
+              elevation: 2,
+              bottom: const TabBar(
+                indicatorColor: ArkadColors.arkadTurkos,
+                labelColor: ArkadColors.arkadTurkos,
+                unselectedLabelColor: ArkadColors.lightGray,
+                tabs: [
+                  Tab(text: 'Student Sessions'),
+                  Tab(text: 'Company Visits'),
+                ],
+              ),
+            ),
+            body: Column(
+              children: [
+                _buildSearchBar(viewModel),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _buildSessionsList(
+                        viewModel,
+                        viewModel.filteredRegularSessions,
+                      ),
+                      _buildSessionsList(
+                        viewModel,
+                        viewModel.filteredCompanyEvents,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -175,7 +203,10 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
     );
   }
 
-  Widget _buildSessionsList(StudentSessionViewModel viewModel) {
+  Widget _buildSessionsList(
+    StudentSessionViewModel viewModel,
+    List<StudentSession> sessions,
+  ) {
     final command = viewModel.getStudentSessionsCommand;
 
     if (command.isExecuting) {
@@ -241,7 +272,6 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
       );
     }
 
-    final sessions = viewModel.filteredStudentSessions;
     final applicationsWithBookingState =
         viewModel.myApplicationsWithBookingState;
 

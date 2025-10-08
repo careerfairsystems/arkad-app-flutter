@@ -598,66 +598,27 @@ class _ProfileStudentSessionsTabState extends State<ProfileStudentSessionsTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Show timeline warning if needed
-        _buildTimelineWarning(context, applicationWithBookingState),
-
         const SizedBox(height: 8),
 
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: () {
                   context.push('/sessions/book/${application.companyId}');
                 },
                 icon: Icon(buttonIcon, size: 18),
                 label: Text(buttonText),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: ArkadColors.arkadTurkos,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ArkadColors.arkadTurkos,
+                  foregroundColor: ArkadColors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
             ),
           ],
         ),
       ],
-    );
-  }
-
-  /// Build timeline warning message for accepted applications
-  Widget _buildTimelineWarning(
-    BuildContext context,
-    StudentSessionApplicationWithBookingState applicationWithBookingState,
-  ) {
-    // For now, show general booking information
-    // This would be enhanced with actual session timeline data
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: ArkadColors.arkadTurkos.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.info_outline,
-            size: 16,
-            color: ArkadColors.arkadTurkos,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Individual timeslots may have their own booking deadlines',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: ArkadColors.arkadTurkos,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
