@@ -53,6 +53,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
   void initState() {
     super.initState();
 
+    _startResendCooldown();
+
     // Reset command state to prevent stale state display
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authViewModel = Provider.of<AuthViewModel>(context, listen: false);

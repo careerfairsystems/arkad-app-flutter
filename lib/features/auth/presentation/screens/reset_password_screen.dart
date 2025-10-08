@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -21,34 +20,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   String? _emailErrorText;
 
   final TextEditingController _emailController = TextEditingController();
-
-  // 30s resend cooldown
-  int _resendCooldownSeconds = 0;
-  Timer? _resendCooldownTimer;
-  bool get _isResendOnCooldown => _resendCooldownSeconds > 0;
-
-  void _startResendCooldown([int seconds = 30]) {
-    _resendCooldownTimer?.cancel();
-    setState(() {
-      _resendCooldownSeconds = seconds;
-    });
-    _resendCooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      if (_resendCooldownSeconds <= 1) {
-        timer.cancel();
-        setState(() {
-          _resendCooldownSeconds = 0;
-        });
-      } else {
-        setState(() {
-          _resendCooldownSeconds--;
-        });
-      }
-    });
-  }
 
   @override
   void initState() {
@@ -75,28 +46,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    if (_isResendOnCooldown) {
-      return;
-    }
 
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
     await authViewModel.resetPassword(_emailController.text.trim());
-
-    if (mounted && !authViewModel.resetPasswordCommand.hasError) {
-      _startResendCooldown();
-    }
-  }
-
-  // Resend from success view (no form validation)
-  Future<void> _resendResetEmail() async {
-    if (_isResendOnCooldown) return;
-
-    final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    await authViewModel.resetPassword(_emailController.text.trim());
-
-    if (mounted && !authViewModel.resetPasswordCommand.hasError) {
-      _startResendCooldown();
-    }
   }
 
   @override
@@ -132,24 +84,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         const Icon(Icons.check_circle, color: ArkadColors.arkadGreen, size: 80),
         AuthFormWidgets.buildSuccessMessage(
           'Password reset link sent to ${_emailController.text}',
-        ),
-        Consumer<AuthViewModel>(
-          builder: (context, authViewModel, child) {
-            return TextButton(
-              onPressed:
-                  authViewModel.isResettingPassword || _isResendOnCooldown
-                  ? null
-                  : _resendResetEmail,
-              style: TextButton.styleFrom(
-                foregroundColor: ArkadColors.arkadTurkos,
-              ),
-              child: authViewModel.isResettingPassword
-                  ? const Text('Sending...')
-                  : (_isResendOnCooldown
-                        ? Text('Resend again in $_resendCooldownSeconds')
-                        : const Text("Didn't receive the email? Send again")),
-            );
-          },
         ),
         const SizedBox(height: 10),
         SizedBox(
@@ -199,11 +133,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           Consumer<AuthViewModel>(
             builder: (context, authViewModel, child) {
               return AuthFormWidgets.buildSubmitButton(
-                text: _isResendOnCooldown
-                    ? 'Resend again in $_resendCooldownSeconds'
-                    : "Submit",
-                onPressed:
-                    authViewModel.isResettingPassword || _isResendOnCooldown
+                text: "Submit",
+                onPressed: authViewModel.isResettingPassword
                     ? null
                     : _submitEmailResetPassword,
                 isLoading: authViewModel.isResettingPassword,
@@ -231,7 +162,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   void dispose() {
     _emailController.removeListener(_validateEmail);
     _emailController.dispose();
-    _resendCooldownTimer?.cancel();
     super.dispose();
   }
 }
