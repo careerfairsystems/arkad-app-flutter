@@ -9,11 +9,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 /// - Configurable markers and camera position
 /// - Zoom restrictions
 /// - My location support
+/// - Ground overlays for floor maps
 class ArkadMapWidget extends StatefulWidget {
   const ArkadMapWidget({
     super.key,
     required this.initialCameraPosition,
     required this.markers,
+    this.groundOverlays = const {},
     this.onMapCreated,
     this.onTap,
     this.minZoom = 12.0,
@@ -24,6 +26,7 @@ class ArkadMapWidget extends StatefulWidget {
 
   final CameraPosition initialCameraPosition;
   final Set<Marker> markers;
+  final Set<GroundOverlay> groundOverlays;
   final void Function(GoogleMapController)? onMapCreated;
   final void Function(LatLng)? onTap;
   final double minZoom;
@@ -61,6 +64,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
 
   @override
   Widget build(BuildContext context) {
+    print("Ground layers: ${widget.groundOverlays}");
     return GoogleMap(
       onMapCreated: (GoogleMapController controller) {
         _mapController = controller;
@@ -69,6 +73,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       style: _mapStyle,
       initialCameraPosition: widget.initialCameraPosition,
       markers: widget.markers,
+      groundOverlays: widget.groundOverlays,
       scrollGesturesEnabled: true, // Enables panning
       zoomGesturesEnabled: true, // Enables pinch-to-zoom
       tiltGesturesEnabled: true, // Enables tilt gestures

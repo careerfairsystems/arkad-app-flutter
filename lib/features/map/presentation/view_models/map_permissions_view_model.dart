@@ -11,8 +11,8 @@ class MapPermissionsViewModel extends ChangeNotifier {
   MapPermissionsViewModel({
     required PermissionService permissionService,
     required CombainIntializer combainInitializer,
-  })  : _permissionService = permissionService,
-        _combainInitializer = combainInitializer {
+  }) : _permissionService = permissionService,
+       _combainInitializer = combainInitializer {
     _initializeSteps();
   }
 
@@ -70,7 +70,9 @@ class MapPermissionsViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final status = await _permissionService.requestPermission(currentStep!.type);
+      final status = await _permissionService.requestPermission(
+        currentStep!.type,
+      );
       _updateStepStatus(currentStep!.type, status);
 
       // Automatically advance if permission was granted
@@ -111,7 +113,9 @@ class MapPermissionsViewModel extends ChangeNotifier {
 
       try {
         await _combainInitializer.startSDK();
-        debugPrint('Combain SDK started successfully after permissions granted');
+        debugPrint(
+          'Combain SDK started successfully after permissions granted',
+        );
       } catch (e) {
         debugPrint('Error starting Combain SDK: $e');
       } finally {

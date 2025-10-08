@@ -9,12 +9,5 @@ abstract class MapRepository {
   /// Get locations by type
   Future<Result<List<MapLocation>>> getLocationsByType(LocationType type);
 
-  /// Get location by ID
-  Future<Result<MapLocation>> getLocationById(int id);
-
-  /// Search locations by name or description
-  Future<Result<List<MapLocation>>> searchLocations(String query);
-
-  /// Refresh cached map data
-  Future<Result<void>> refreshMapData();
+  List<MapBuilding> getMapBuildings();
 }

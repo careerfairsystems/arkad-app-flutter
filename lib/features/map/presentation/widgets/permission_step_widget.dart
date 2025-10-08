@@ -62,7 +62,8 @@ class PermissionStepWidget extends StatelessWidget {
                   children: [
                     Text(
                       step.title,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
@@ -72,9 +73,9 @@ class PermissionStepWidget extends StatelessWidget {
                     Text(
                       step.description,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.white70,
-                            height: 1.5,
-                          ),
+                        color: Colors.white70,
+                        height: 1.5,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -87,8 +88,8 @@ class PermissionStepWidget extends StatelessWidget {
                     child: Text(
                       'Please enable this permission in your device settings.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: ArkadColors.lightRed,
-                          ),
+                        color: ArkadColors.lightRed,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),

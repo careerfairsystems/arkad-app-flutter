@@ -7,7 +7,9 @@ import '../../../../services/service_locator.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../company/domain/entities/company.dart';
 import '../../../company/presentation/view_models/company_view_model.dart';
+import '../../domain/entities/map_location.dart';
 import '../view_models/map_permissions_view_model.dart';
+import '../view_models/map_view_model.dart';
 import '../widgets/arkad_map_widget.dart';
 import '../widgets/company_info_card.dart';
 import '../widgets/map_search_bar.dart';
@@ -27,6 +29,7 @@ class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   Company? _selectedCompany;
   Set<Marker> _markers = {};
+  Set<GroundOverlay> _groundOverlays = {};
 
   // Lund University coordinates (center of map)
   static const LatLng _lundCenter = LatLng(55.7104, 13.2109);
@@ -36,20 +39,25 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
       final companyViewModel = Provider.of<CompanyViewModel>(
         context,
         listen: false,
       );
 
-      // Listen to company changes and update markers
-      companyViewModel.addListener(_onCompaniesChanged);
+      // Listen to map location changes and update markers
+      mapViewModel.addListener(_onLocationsChanged);
 
-      // Load companies if not already loaded
+      // Load locations and buildings
+      final imageConfig = createLocalImageConfiguration(context);
+      mapViewModel.loadLocations().then((_) async {
+        // Update ground overlays after buildings are loaded
+        await _updateGroundOverlays(imageConfig, mapViewModel.buildings);
+      });
+
+      // Load companies if not already loaded (for company info cards)
       if (!companyViewModel.isInitialized) {
         companyViewModel.loadCompanies();
-      } else {
-        // Build markers immediately if already loaded
-        _updateMarkers(companyViewModel.allCompanies);
       }
 
       // Select and center on company if companyId is provided
@@ -67,12 +75,11 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  void _onCompaniesChanged() {
-    final companyViewModel = Provider.of<CompanyViewModel>(
-      context,
-      listen: false,
-    );
-    _updateMarkers(companyViewModel.allCompanies);
+  void _onLocationsChanged() async {
+    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+    final imageConfig = createLocalImageConfiguration(context);
+    _updateMarkers(mapViewModel.locations);
+    await _updateGroundOverlays(imageConfig, mapViewModel.buildings);
   }
 
   @override
@@ -130,6 +137,7 @@ class _MapScreenState extends State<MapScreen> {
             zoom: 15.0,
           ),
           markers: _markers,
+          groundOverlays: _groundOverlays,
           onMapCreated: (controller) {
             _mapController = controller;
           },
@@ -219,33 +227,91 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  void _updateMarkers(List<Company> companies) {
-    final newMarkers = <Marker>{};
+  Future<void> _updateGroundOverlays(
+    ImageConfiguration imageConfig,
+    List<MapBuilding> buildings,
+  ) async {
+    final newOverlays = <GroundOverlay>{};
 
-    for (int i = 0; i < companies.length; i++) {
-      final company = companies[i];
-      final location = _getMockLocation(i, companies.length);
+    for (final building in buildings) {
+      // Use the default floor for each building
+      final defaultFloor = building.floors.firstWhere(
+        (floor) => floor.index == building.defaultFloorIndex,
+        orElse: () => building.floors.first,
+      );
+
+      final floorMap = defaultFloor.map;
+
+      // Create MapBitmap from AssetImage with proper configuration
+      final mapBitmap = await AssetMapBitmap.create(
+        imageConfig,
+        (floorMap.image as AssetImage).assetName,
+        bitmapScaling: MapBitmapScaling.none,
+      );
+
+      newOverlays.add(
+        GroundOverlay.fromBounds(
+          groundOverlayId: GroundOverlayId(
+            'building_${building.id}_floor_${defaultFloor.index}',
+          ),
+          image: mapBitmap,
+          bounds: LatLngBounds(
+            southwest: LatLng(floorMap.SW.lat, floorMap.SW.lon),
+            northeast: LatLng(floorMap.NE.lat, floorMap.NE.lon),
+          ),
+          transparency: 0.2,
+        ),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        _groundOverlays = newOverlays;
+      });
+    }
+  }
+
+  void _updateMarkers(List<MapLocation> locations) {
+    final newMarkers = <Marker>{};
+    final companyViewModel = Provider.of<CompanyViewModel>(
+      context,
+      listen: false,
+    );
+
+    for (final location in locations) {
+      // Get company for this location if it has a companyId
+      Company? company;
+      if (location.companyId != null) {
+        company = companyViewModel.getCompanyById(location.companyId!);
+      }
+
+      final position = LatLng(location.latitude, location.longitude);
+      final isSelected = company != null && _selectedCompany?.id == company.id;
 
       newMarkers.add(
         Marker(
-          markerId: MarkerId(company.id.toString()),
-          position: location,
+          markerId: MarkerId(location.id.toString()),
+          position: position,
           onTap: () {
-            setState(() {
-              _selectedCompany = company;
-            });
-            _centerOnCompany(company);
+            if (company != null) {
+              setState(() {
+                _selectedCompany = company;
+              });
+              _centerOnLocation(location);
+            }
           },
-          icon: _selectedCompany?.id == company.id
+          icon: isSelected
               ? BitmapDescriptor.defaultMarkerWithHue(
                   BitmapDescriptor.hueOrange,
                 )
-              : BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+              : location.type == LocationType.booth
+              ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan)
+              : BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueGreen,
+                ),
           infoWindow: InfoWindow(
-            title: company.name,
-            snippet: company.industries.isNotEmpty
-                ? company.industries.first
-                : null,
+            title: location.name,
+            snippet: location.type.displayName,
           ),
         ),
       );
@@ -258,42 +324,26 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  /// Generate mock locations in a grid pattern around Lund center
-  LatLng _getMockLocation(int index, int total) {
-    // Create a grid pattern
-    const double gridSize = 0.004; // ~400m spacing
-    const int cols = 5;
-
-    final row = index ~/ cols;
-    final col = index % cols;
-
-    // Offset from center
-    final latOffset = (row - 2) * gridSize;
-    final lngOffset = (col - 2) * gridSize;
-
-    return LatLng(
-      _lundCenter.latitude + latOffset,
-      _lundCenter.longitude + lngOffset,
-    );
-  }
-
-  void _centerOnCompany(Company company) {
-    // Find the company index to get its location
-    final companyViewModel = Provider.of<CompanyViewModel>(
-      context,
-      listen: false,
-    );
-    final companies = companyViewModel.allCompanies;
-    final index = companies.indexWhere((c) => c.id == company.id);
-
-    if (index != -1 && _mapController != null) {
-      final location = _getMockLocation(index, companies.length);
+  void _centerOnLocation(MapLocation location) {
+    if (_mapController != null) {
+      final position = LatLng(location.latitude, location.longitude);
       _mapController!.animateCamera(
         CameraUpdate.newCameraPosition(
-          CameraPosition(target: location, zoom: 16.0),
+          CameraPosition(target: position, zoom: 16.0),
         ),
       );
     }
+  }
+
+  void _centerOnCompany(Company company) {
+    // Find the location for this company
+    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+    final location = mapViewModel.locations.firstWhere(
+      (loc) => loc.companyId == company.id,
+      orElse: () => mapViewModel.locations.first,
+    );
+
+    _centerOnLocation(location);
   }
 
   void _showSearchView() {
@@ -313,11 +363,8 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
-    final companyViewModel = Provider.of<CompanyViewModel>(
-      context,
-      listen: false,
-    );
-    companyViewModel.removeListener(_onCompaniesChanged);
+    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+    mapViewModel.removeListener(_onLocationsChanged);
     _mapController?.dispose();
     super.dispose();
   }

@@ -17,6 +17,7 @@ class MapViewModel extends ChangeNotifier {
   List<MapLocation> _locations = [];
   MapLocation? _selectedLocation;
   LocationType? _filterType;
+  List<MapBuilding> _buildings = [];
 
   // Getters
   bool get isLoading => _isLoading;
@@ -24,11 +25,15 @@ class MapViewModel extends ChangeNotifier {
   List<MapLocation> get locations => _locations;
   MapLocation? get selectedLocation => _selectedLocation;
   LocationType? get filterType => _filterType;
+  List<MapBuilding> get buildings => _buildings;
 
-  /// Load all locations
+  /// Load all locations and buildings
   Future<bool> loadLocations() async {
     _setLoading(true);
     _clearError();
+
+    // Load buildings
+    _buildings = _mapRepository.getMapBuildings();
 
     final result = await _mapRepository.getLocations();
 
@@ -44,56 +49,6 @@ class MapViewModel extends ChangeNotifier {
     );
 
     return result.isSuccess;
-  }
-
-  /// Filter locations by type
-  Future<void> filterByType(LocationType? type) async {
-    _filterType = type;
-
-    if (type == null) {
-      await loadLocations();
-      return;
-    }
-
-    _setLoading(true);
-    _clearError();
-
-    final result = await _mapRepository.getLocationsByType(type);
-
-    result.when(
-      success: (locations) {
-        _locations = locations;
-        _setLoading(false);
-      },
-      failure: (error) {
-        _setError(error);
-        _setLoading(false);
-      },
-    );
-  }
-
-  /// Search locations
-  Future<void> searchLocations(String query) async {
-    if (query.isEmpty) {
-      await loadLocations();
-      return;
-    }
-
-    _setLoading(true);
-    _clearError();
-
-    final result = await _mapRepository.searchLocations(query);
-
-    result.when(
-      success: (locations) {
-        _locations = locations;
-        _setLoading(false);
-      },
-      failure: (error) {
-        _setError(error);
-        _setLoading(false);
-      },
-    );
   }
 
   /// Select a location

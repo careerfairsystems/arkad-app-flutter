@@ -12,10 +12,7 @@ import '../../../company/presentation/view_models/company_view_model.dart';
 /// - List of companies matching the search query
 /// - Loading and empty states
 class CompanySearchSheet extends StatefulWidget {
-  const CompanySearchSheet({
-    super.key,
-    required this.onCompanySelected,
-  });
+  const CompanySearchSheet({super.key, required this.onCompanySelected});
 
   final void Function(Company) onCompanySelected;
 
@@ -54,9 +51,7 @@ class _CompanySearchSheetState extends State<CompanySearchSheet> {
               _buildSearchField(),
 
               // Company list
-              Expanded(
-                child: _buildCompanyList(scrollController),
-              ),
+              Expanded(child: _buildCompanyList(scrollController)),
             ],
           ),
         );
@@ -92,16 +87,10 @@ class _CompanySearchSheetState extends State<CompanySearchSheet> {
             color: ArkadColors.lightGray,
             fontFamily: 'MyriadProCondensed',
           ),
-          prefixIcon: const Icon(
-            Icons.search,
-            color: ArkadColors.arkadTurkos,
-          ),
+          prefixIcon: const Icon(Icons.search, color: ArkadColors.arkadTurkos),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
-                  icon: const Icon(
-                    Icons.clear,
-                    color: ArkadColors.arkadTurkos,
-                  ),
+                  icon: const Icon(Icons.clear, color: ArkadColors.arkadTurkos),
                   onPressed: () {
                     _searchController.clear();
                     setState(() {
@@ -135,9 +124,7 @@ class _CompanySearchSheetState extends State<CompanySearchSheet> {
 
         if (companyViewModel.isLoading) {
           return const Center(
-            child: CircularProgressIndicator(
-              color: ArkadColors.arkadTurkos,
-            ),
+            child: CircularProgressIndicator(color: ArkadColors.arkadTurkos),
           );
         }
 
@@ -207,16 +194,11 @@ class _CompanySearchSheetState extends State<CompanySearchSheet> {
               child: Image.network(
                 company.logoUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.business,
-                  color: ArkadColors.arkadTurkos,
-                ),
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.business, color: ArkadColors.arkadTurkos),
               ),
             )
-          : const Icon(
-              Icons.business,
-              color: ArkadColors.arkadTurkos,
-            ),
+          : const Icon(Icons.business, color: ArkadColors.arkadTurkos),
     );
   }
 }

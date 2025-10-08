@@ -46,7 +46,9 @@ class MapSearchBar extends StatelessWidget {
               child: Text(
                 hasSelection ? displayText! : placeholderText,
                 style: TextStyle(
-                  color: hasSelection ? ArkadColors.arkadNavy : ArkadColors.gray,
+                  color: hasSelection
+                      ? ArkadColors.arkadNavy
+                      : ArkadColors.gray,
                   fontSize: 16,
                   fontFamily: 'MyriadProCondensed',
                 ),

@@ -106,16 +106,11 @@ class CompanyInfoCard extends StatelessWidget {
               child: Image.network(
                 company.logoUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.business,
-                  color: ArkadColors.arkadTurkos,
-                ),
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.business, color: ArkadColors.arkadTurkos),
               ),
             )
-          : const Icon(
-              Icons.business,
-              color: ArkadColors.arkadTurkos,
-            ),
+          : const Icon(Icons.business, color: ArkadColors.arkadTurkos),
     );
   }
 }

@@ -1,3 +1,6 @@
+import 'package:arkad/features/company/domain/entities/company.dart';
+import 'package:arkad/features/company/domain/repositories/company_repository.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
 import 'package:flutter_combainsdk/messages.g.dart';
 import 'package:get_it/get_it.dart';
@@ -7,40 +10,59 @@ import '../../../../shared/errors/app_error.dart';
 import '../../domain/entities/map_location.dart';
 import '../../domain/repositories/map_repository.dart';
 
-/// Implementation of map repository (placeholder for future implementation)
 class MapRepositoryImpl implements MapRepository {
   final combainSDK = GetIt.I<FlutterCombainSDK>();
+  final CompanyRepository companyRepository = GetIt.I<CompanyRepository>();
+
+  Future<Company?> _companyFromRoutableTarget(
+    FlutterRoutableTarget target,
+  ) async {
+    final companies = await companyRepository.getCompanies();
+    if (companies.isFailure) return null;
+
+    final companyList = companies.valueOrNull;
+    if (companyList == null) return null;
+
+    try {
+      return companyList.firstWhere((company) => company.name == target.name);
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Future<Result<List<MapLocation>>> getLocations() async {
-    final locations = await combainSDK
-        .getRoutingProvider()
-        .getAllRoutableTargetsWithPagination(
-          FlutterPaginationOptions(page: 0, pageSize: 200),
-        );
-    // Map over locations
-    final mappedLocations = locations.map((location) {
-      return location.floors.keys.map((floorIndex) {
+    try {
+      final locations = await combainSDK
+          .getRoutingProvider()
+          .getAllRoutableTargetsWithPagination(
+            FlutterPaginationOptions(page: 0, pageSize: 200),
+          );
+
+      // Map over locations and await all futures
+      final mappedLocationsFutures = locations.map((location) async {
+        final floorIndex = location.floors.keys.first;
+        final company = await _companyFromRoutableTarget(location);
         return MapLocation(
           id: FlutterNodeFloorIndex(
             nodeId: location.nodeId,
             floorIndex: floorIndex!,
           ),
           name: location.name,
-          latitude: location.latitude,
-          longitude: location.longitude,
-          type:
-              location.metadata != null && location.metadata!['type'] == 'food'
-              ? LocationType.food
-              : LocationType.booth,
-          imageUrl: location.imageUrl,
-          companyId: location.companyId,
+          latitude: location.centerPoints[floorIndex]!.lat,
+          longitude: location.centerPoints[floorIndex]!.lon,
+          type: company == null ? LocationType.food : LocationType.booth,
+          imageUrl: company?.fullLogoUrl,
+          companyId: company?.id,
         );
       }).toList();
-    }).toList();
 
-    // Placeholder implementation - return empty list for now
-    // In the future, this would call a remote data source
-    return Result.success(<MapLocation>[]);
+      final mappedLocations = await Future.wait(mappedLocationsFutures);
+
+      return Result.success(mappedLocations);
+    } catch (e) {
+      return Result.failure(UnknownError('Failed to load locations: $e'));
+    }
   }
 
   @override
@@ -51,21 +73,27 @@ class MapRepositoryImpl implements MapRepository {
     return Result.success(<MapLocation>[]);
   }
 
-  @override
-  Future<Result<MapLocation>> getLocationById(int id) async {
-    // Placeholder implementation
-    return Result.failure(const UnknownError('Location not found'));
+  MapBuilding _getStudyC() {
+    final floor2 = MapFloor(
+      index: 0,
+      name: '0',
+      map: FloorMap(
+        topLeft: FlutterPointLLA(lat: 55.711841, lon: 13.208909),
+        NE: FlutterPointLLA(lat: 55.711841, lon: 13.209939),
+        SW: FlutterPointLLA(lat: 55.711239, lon: 13.208909),
+        image: const AssetImage('assets/images/map/sc_2.png'),
+      ),
+    );
+    return MapBuilding(
+      id: 1,
+      name: 'Studie C',
+      floors: [floor2],
+      defaultFloorIndex: 0,
+    );
   }
 
   @override
-  Future<Result<List<MapLocation>>> searchLocations(String query) async {
-    // Placeholder implementation
-    return Result.success(<MapLocation>[]);
-  }
-
-  @override
-  Future<Result<void>> refreshMapData() async {
-    // Placeholder implementation
-    return Result.success(null);
+  List<MapBuilding> getMapBuildings() {
+    return [_getStudyC()];
   }
 }
