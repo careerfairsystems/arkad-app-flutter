@@ -85,10 +85,61 @@ class MapRepositoryImpl implements MapRepository {
         image: const AssetImage('assets/images/map/sc_2.png'),
       ),
     );
+
+    final floor1 = MapFloor(
+      index: 1,
+      name: '1',
+      map: FloorMap(
+        topLeft: FlutterPointLLA(lat: 55.711847, lon: 13.208934),
+        NE: FlutterPointLLA(lat: 55.711847, lon: 13.210018),
+        SW: FlutterPointLLA(lat: 55.711213, lon: 13.208934),
+        image: const AssetImage('assets/images/map/sc_1.png'),
+      ),
+    );
     return MapBuilding(
       id: 1,
       name: 'Studie C',
       floors: [floor2],
+      defaultFloorIndex: 0,
+    );
+  }
+
+  MapBuilding _getGuildHouse() {
+    final floorBasement = MapFloor(
+      index: -1,
+      name: 'B',
+      map: FloorMap(
+        topLeft: FlutterPointLLA(lat: 55.711004, lon: 13.210634),
+        NE: FlutterPointLLA(lat: 55.711004, lon: 13.211712),
+        SW: FlutterPointLLA(lat: 55.710942, lon: 13.210634),
+        image: const AssetImage('assets/images/map/gh_b.png'),
+      ),
+    );
+    final floor1 = MapFloor(
+      index: 0,
+      name: '0',
+      map: FloorMap(
+        topLeft: FlutterPointLLA(lat: 55.711569, lon: 13.210634),
+        NE: FlutterPointLLA(lat: 55.711569, lon: 13.211712),
+        SW: FlutterPointLLA(lat: 55.710942, lon: 13.210634),
+        image: const AssetImage('assets/images/map/gh_1.png'),
+      ),
+    );
+    final floor2 = MapFloor(
+      index: 1,
+      name: '1',
+      map: FloorMap(
+        topLeft: FlutterPointLLA(lat: 55.711569, lon: 13.210634),
+        NE: FlutterPointLLA(lat: 55.711569, lon: 13.211712),
+        SW: FlutterPointLLA(lat: 55.710942, lon: 13.210634),
+        image: const AssetImage('assets/images/map/gh_2.png'),
+      ),
+    );
+
+    return MapBuilding(
+      id: 2,
+      name: 'Guild House',
+      floors: [floorBasement, floor1, floor2],
       defaultFloorIndex: 0,
     );
   }
