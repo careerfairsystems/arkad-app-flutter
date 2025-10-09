@@ -943,14 +943,14 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                     onTap: () => openExternal(websiteUri, 'website'),
                   ),
                 ),
-                // const SizedBox(width: 12),
-                // Expanded(
-                //   child: pillButton(
-                //     icon: Icons.map_outlined,
-                //     label: 'View on Map',
-                //     onTap: () => context.push('/map/${company.id}'),
-                //   ),
-                // ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: pillButton(
+                    icon: Icons.map_outlined,
+                    label: 'View on Map',
+                    onTap: () => context.push('/map/${company.id}'),
+                  ),
+                ),
               ],
             )
           : Row(
