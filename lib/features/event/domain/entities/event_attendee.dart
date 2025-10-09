@@ -10,7 +10,6 @@ class EventAttendee {
   final String? foodPreferences;
 
   /// Whether the attendee's ticket has been scanned at the event
-  /// TODO: This field will be populated once backend is updated with scan tracking
   /// Currently defaults to false
   final bool hasBeenScanned;
 

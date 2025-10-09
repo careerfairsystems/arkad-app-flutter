@@ -21,6 +21,14 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
 
   @override
   Future<Result<AuthSession>> signIn(String email, String password) async {
+    Sentry.logger.info(
+      'Starting sign in',
+      attributes: {
+        'operation': SentryLogAttribute.string('signIn'),
+        'email_domain': SentryLogAttribute.string(email.split('@').last),
+      },
+    );
+
     try {
       // Attempt sign in via remote API
       final token = await _remoteDataSource.signIn(email, password);
@@ -43,49 +51,23 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       // Save session locally
       await _localDataSource.saveSession(session);
 
+      Sentry.logger.info(
+        'Sign in successful',
+        attributes: {
+          'operation': SentryLogAttribute.string('signIn'),
+        },
+      );
+
       return Result.success(session);
     } on AuthException catch (e) {
-      // Auth errors are expected domain errors - log as warning
-      await Sentry.captureMessage(
-        'Sign in failed - invalid credentials',
-        level: SentryLevel.warning,
-      );
-      await Sentry.addBreadcrumb(
-        Breadcrumb(
-          message: 'Auth exception in signIn: ${e.message}',
-          level: SentryLevel.info,
-        ),
-      );
+      // Auth errors are expected - already logged in data source
       return Result.failure(SignInError(details: e.message));
     } on ValidationException catch (e) {
-      // Validation errors are expected domain errors - record as breadcrumb
-      await Sentry.addBreadcrumb(
-        Breadcrumb(
-          message: 'Validation error in signIn: ${e.message}',
-          level: SentryLevel.info,
-        ),
-      );
+      // Validation errors are expected - already logged in data source
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e) {
-      // Network errors are expected - log as warning
-      await Sentry.captureMessage(
-        'Sign in failed - network unavailable',
-        level: SentryLevel.warning,
-      );
-      await Sentry.addBreadcrumb(
-        Breadcrumb(
-          message: 'Network exception in signIn: ${e.message}',
-          level: SentryLevel.info,
-        ),
-      );
+      // Network errors are expected - already logged in data source
       return Result.failure(NetworkError(details: e.message));
-    } on ApiException catch (e, stackTrace) {
-      if (e.message.contains('429')) {
-        await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(const RateLimitError(Duration(minutes: 5)));
-      }
-      await Sentry.captureException(e, stackTrace: stackTrace);
-      return Result.failure(UnknownError(e.message));
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.toString()));
@@ -94,52 +76,54 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
 
   @override
   Future<Result<String>> beginSignup(SignupData data) async {
+    Sentry.logger.info(
+      'Starting signup',
+      attributes: {
+        'operation': SentryLogAttribute.string('beginSignup'),
+        'email_domain': SentryLogAttribute.string(data.email.split('@').last),
+      },
+    );
+
     try {
       final token = await _remoteDataSource.beginSignup(data);
 
-      // Save signup data and token for later use
+      // Save signup data (excluding password for security) and token to secure storage
       await _localDataSource.saveSignupData(data, token);
 
+      Sentry.logger.info(
+        'Signup verification email sent',
+        attributes: {'operation': SentryLogAttribute.string('beginSignup')},
+      );
+
       return Result.success(token);
-    } on ValidationException catch (e) {
-      if (e.message.contains('already exists')) {
-        // Email exists is expected validation error - record as breadcrumb
-        await Sentry.addBreadcrumb(
-          Breadcrumb(
-            message: 'Email already exists in beginSignup: ${data.email}',
-            level: SentryLevel.info,
+    } on ApiException catch (e, stackTrace) {
+      // Check status code for specific error types
+      if (e.statusCode == 409) {
+        // Email already exists (per API spec)
+        return Result.failure(EmailExistsError(data.email));
+      } else if (e.statusCode == 406) {
+        // Password validation failed (per API spec)
+        return Result.failure(
+          ValidationError(
+            e.message.isEmpty
+                ? 'Password does not meet requirements'
+                : e.message,
           ),
         );
-        return Result.failure(EmailExistsError(data.email));
-      }
-      // Other validation errors are expected - record as breadcrumb
-      await Sentry.addBreadcrumb(
-        Breadcrumb(
-          message: 'Validation error in beginSignup: ${e.message}',
-          level: SentryLevel.info,
-        ),
-      );
-      return Result.failure(ValidationError(e.message));
-    } on NetworkException catch (e) {
-      // Network errors are expected - log as warning
-      await Sentry.captureMessage(
-        'Signup begin failed - network unavailable',
-        level: SentryLevel.warning,
-      );
-      await Sentry.addBreadcrumb(
-        Breadcrumb(
-          message: 'Network exception in beginSignup: ${e.message}',
-          level: SentryLevel.info,
-        ),
-      );
-      return Result.failure(NetworkError(details: e.message));
-    } on ApiException catch (e, stackTrace) {
-      if (e.message.contains('429')) {
+      } else if (e.statusCode == 429) {
+        // Rate limiting
         await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(const RateLimitError(Duration(minutes: 5)));
       }
+      // Other API errors
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
+    } on ValidationException catch (e) {
+      // Validation errors
+      return Result.failure(ValidationError(e.message));
+    } on NetworkException catch (e) {
+      // Network errors are expected - already logged in data source
+      return Result.failure(NetworkError(details: e.message));
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.toString()));
@@ -152,6 +136,14 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
     String code,
     SignupData data,
   ) async {
+    Sentry.logger.info(
+      'Completing signup verification',
+      attributes: {
+        'operation': SentryLogAttribute.string('completeSignup'),
+        'has_code': SentryLogAttribute.string(code.isNotEmpty.toString()),
+      },
+    );
+
     try {
       // Complete signup via remote API
       await _remoteDataSource.completeSignup(token, code, data);
@@ -159,32 +151,20 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       // Clear signup data as it's no longer needed
       await _localDataSource.clearSignupData();
 
+      Sentry.logger.info(
+        'Signup verification successful, signing in',
+        attributes: {'operation': SentryLogAttribute.string('completeSignup')},
+      );
+
       // Now sign in to get the auth token
       final signInResult = await signIn(data.email, data.password);
       return signInResult;
     } on ValidationException catch (e) {
-      // Validation errors are expected domain errors - record as breadcrumb
-      await Sentry.addBreadcrumb(
-        Breadcrumb(
-          message: 'Validation error: ${e.message}',
-          level: SentryLevel.info,
-        ),
-      );
+      // Validation errors are expected - already logged in data source
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e) {
-      // Network errors are expected - log as warning
-      await Sentry.captureMessage(
-        'Network unavailable',
-        level: SentryLevel.warning,
-      );
+      // Network errors are expected - already logged in data source
       return Result.failure(NetworkError(details: e.message));
-    } on ApiException catch (e, stackTrace) {
-      if (e.message.contains('429')) {
-        await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(const RateLimitError(Duration(minutes: 5)));
-      }
-      await Sentry.captureException(e, stackTrace: stackTrace);
-      return Result.failure(UnknownError(e.message));
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.toString()));
@@ -193,27 +173,32 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
 
   @override
   Future<Result<void>> resetPassword(String email) async {
+    Sentry.logger.info(
+      'Starting password reset',
+      attributes: {
+        'operation': SentryLogAttribute.string('resetPassword'),
+        'email_domain': SentryLogAttribute.string(email.split('@').last),
+      },
+    );
+
     try {
       await _remoteDataSource.resetPassword(email);
+
+      Sentry.logger.info(
+        'Password reset email sent',
+        attributes: {'operation': SentryLogAttribute.string('resetPassword')},
+      );
+
       return Result.success(null);
     } on ValidationException catch (e) {
-      // Validation errors are expected domain errors - record as breadcrumb
-      await Sentry.addBreadcrumb(
-        Breadcrumb(
-          message: 'Validation error: ${e.message}',
-          level: SentryLevel.info,
-        ),
-      );
+      // Validation errors are expected - already logged in data source
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e) {
-      // Network errors are expected - log as warning
-      await Sentry.captureMessage(
-        'Network unavailable',
-        level: SentryLevel.warning,
-      );
+      // Network errors are expected - already logged in data source
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e, stackTrace) {
-      if (e.message.contains('429')) {
+      // Check status code instead of string matching
+      if (e.statusCode == 429) {
         await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(const RateLimitError(Duration(minutes: 5)));
       }
@@ -227,6 +212,11 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
 
   @override
   Future<Result<AuthSession>> refreshSession() async {
+    Sentry.logger.info(
+      'Refreshing session',
+      attributes: {'operation': SentryLogAttribute.string('refreshSession')},
+    );
+
     try {
       final session = await getCurrentSession();
       if (session == null) {
@@ -244,22 +234,20 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       final refreshedSession = session.copyWith(user: user);
       await _localDataSource.saveSession(refreshedSession);
 
+      Sentry.logger.info(
+        'Session refreshed successfully',
+        attributes: {
+          'operation': SentryLogAttribute.string('refreshSession'),
+        },
+      );
+
       return Result.success(refreshedSession);
     } on AuthException catch (e) {
-      // Auth errors are expected domain errors - log as warning
-      await Sentry.captureMessage(
-        'Session refresh failed - authentication required',
-        level: SentryLevel.warning,
-      );
-      // If refresh fails due to auth, clear local session
+      // Auth errors are expected - clear session and require re-login
       await _localDataSource.clearSession();
       return Result.failure(ProfileLoadingError(details: e.message));
     } on NetworkException catch (e) {
-      // Network errors are expected - log as warning
-      await Sentry.captureMessage(
-        'Session refresh failed - network unavailable',
-        level: SentryLevel.warning,
-      );
+      // Network errors are expected - already logged in data source
       return Result.failure(NetworkError(details: e.message));
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -323,34 +311,42 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
   }
 
   @override
-  Future<Result<String>> requestVerificationCode(String email) async {
-    try {
-      // Get stored signup data to resend verification
-      final signupData = await _localDataSource.getSignupData();
-      if (signupData == null || signupData.email != email) {
-        return Result.failure(
-          const ValidationError("No pending signup found for this email"),
-        );
-      }
+  Future<Result<String>> requestVerificationCode(SignupData signupData) async {
+    Sentry.logger.info(
+      'Requesting new verification code',
+      attributes: {
+        'operation': SentryLogAttribute.string('requestVerificationCode'),
+        'email_domain': SentryLogAttribute.string(
+          signupData.email.split('@').last,
+        ),
+      },
+    );
 
-      // Request new verification code by re-initiating signup
+    try {
+      // Request new verification code by re-initiating signup with full signup data
+      // This uses the SignupData passed from the ViewModel which has the password in memory
       final newToken = await _remoteDataSource.beginSignup(signupData);
 
       // Update stored token with the new one
       await _localDataSource.saveSignupData(signupData, newToken);
 
+      Sentry.logger.info(
+        'New verification code sent',
+        attributes: {
+          'operation': SentryLogAttribute.string('requestVerificationCode'),
+        },
+      );
+
       return Result.success(newToken);
     } on ValidationException catch (e) {
+      // Validation errors are expected - already logged in data source
       return Result.failure(ValidationError(e.message));
     } on NetworkException catch (e) {
-      // Network errors are expected - log as warning
-      await Sentry.captureMessage(
-        'Network unavailable',
-        level: SentryLevel.warning,
-      );
+      // Network errors are expected - already logged in data source
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e, stackTrace) {
-      if (e.message.contains('429')) {
+      // Handle rate limiting errors
+      if (e.statusCode == 429) {
         await Sentry.captureException(e, stackTrace: stackTrace);
         return Result.failure(const RateLimitError(Duration(minutes: 5)));
       }
