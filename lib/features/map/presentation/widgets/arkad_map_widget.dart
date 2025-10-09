@@ -4,15 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
-/// Reusable Google Maps widget with Arkad dark theme styling and location tracking
-///
-/// Provides a pre-configured Google Maps instance with:
-/// - Custom dark theme map style
-/// - Configurable markers and camera position
-/// - Zoom restrictions
-/// - Custom location provider integration
-/// - Ground overlays for floor maps
-/// - Automatic location tracking with floor information
+
+const studieCCluster = ClusterManager(clusterManagerId: ClusterManagerId("261376248"));
+const eHouseCluster = ClusterManager(clusterManagerId: ClusterManagerId("261376246"));
+const khCluster = ClusterManager(clusterManagerId: ClusterManagerId("1834"));
 class ArkadMapWidget extends StatefulWidget {
   const ArkadMapWidget({
     super.key,
@@ -246,6 +241,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     Set<GroundOverlay> groundOverlays,
   ) {
     return GoogleMap(
+      clusterManagers: {studieCCluster, eHouseCluster, khCluster},
       onMapCreated: (GoogleMapController controller) {
         _mapController = controller;
         widget.onMapCreated?.call(controller);

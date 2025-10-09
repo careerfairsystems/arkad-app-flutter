@@ -280,6 +280,7 @@ class _MapScreenState extends State<MapScreen> {
 
     return Marker(
       markerId: MarkerId(location.companyId.toString()),
+      clusterManagerId: ClusterManagerId(location.building),
       position: position,
       onTap: () {
         setState(() {
