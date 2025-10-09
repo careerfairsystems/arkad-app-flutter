@@ -50,3 +50,7 @@
 - Reorganize validation service and refactor LinkedIn URL validation and construction
 - Remove block snackbar flow and adopted event-driven navigation pattern (#27)
 - Update user data handling in student session application form to use profile view model (#32)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.0.2+323
