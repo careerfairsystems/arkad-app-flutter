@@ -10,6 +10,7 @@ class MapLocation {
   final LocationType type;
   final String? imageUrl;
   final int? companyId;
+  final int featureModelId;
 
   const MapLocation({
     required this.id,
@@ -17,6 +18,7 @@ class MapLocation {
     required this.latitude,
     required this.longitude,
     required this.type,
+    required this.featureModelId,
     this.imageUrl,
     this.companyId,
   });

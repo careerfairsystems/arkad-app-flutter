@@ -133,6 +133,8 @@ class Company {
 
   @override
   String toString() => 'Company(id: $id, name: $name)';
+
+
 }
 
 /// Domain entity representing a job position at a company

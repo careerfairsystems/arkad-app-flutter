@@ -12,10 +12,12 @@ class CompanyInfoCard extends StatelessWidget {
     super.key,
     required this.company,
     required this.onClose,
+    required this.featureModelId,
   });
 
   final Company company;
   final VoidCallback onClose;
+  final int featureModelId;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +86,17 @@ class CompanyInfoCard extends StatelessWidget {
                   foregroundColor: ArkadColors.white,
                 ),
                 child: const Text('View Details'),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Feature model ID (muted text)
+            Text(
+              'Booth: $featureModelId',
+              style: const TextStyle(
+                color: ArkadColors.gray,
+                fontSize: 12,
+                fontFamily: 'MyriadProCondensed',
               ),
             ),
           ],

@@ -4,12 +4,14 @@ import 'package:arkad/navigation/navigation_items.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_combainsdk/combain_logger.dart';
 import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
 import 'package:flutter_combainsdk/messages.g.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -105,6 +107,52 @@ final GetIt serviceLocator = GetIt.instance;
 
 /// Centrialized initialization of all the services and providers. An alternative to Flutter's inherited widgets and provides a more decoupled way to access services and providers throughout the app. This abstracts the complexity from lower-level components and avoids the need to pass dependencies down the widget tree.
 
+class ArkadCombainLogger implements CombainLogger {
+  @override
+  void d(String tag, String message) {
+    Sentry.logger.debug(
+      message,
+      attributes: {
+        'origin': SentryLogAttribute.string('combain_sdk'),
+        'tag': SentryLogAttribute.string(tag),
+      },
+    );
+  }
+
+  @override
+  void e(String tag, String message) {
+    Sentry.logger.error(
+      message,
+      attributes: {
+        'origin': SentryLogAttribute.string('combain_sdk'),
+        'tag': SentryLogAttribute.string(tag),
+      },
+    );
+  }
+
+  @override
+  void i(String tag, String message) {
+    Sentry.logger.info(
+      message,
+      attributes: {
+        'origin': SentryLogAttribute.string('combain_sdk'),
+        'tag': SentryLogAttribute.string(tag),
+      },
+    );
+  }
+
+  @override
+  void w(String tag, String message) {
+    Sentry.logger.warn(
+      message,
+      attributes: {
+        'origin': SentryLogAttribute.string('combain_sdk'),
+        'tag': SentryLogAttribute.string(tag),
+      },
+    );
+  }
+}
+
 class CombainIntializer extends ChangeNotifier {
   var combainIntialized = false;
   FlutterCombainSDK? _combainSDK;
@@ -133,7 +181,18 @@ class CombainIntializer extends ChangeNotifier {
       apiKey: "848bb5dadbcba210e0ad",
       settingsKey: "848bb5dadbcba210e0ad",
       locationProvider: FlutterLocationProvider.aiNavigation,
+      routingConfig: FlutterRoutingConfig(
+        routableNodesOptions: FlutterRoutableNodesOptions.allExceptDefaultName,
+      ),
       deviceIdentifier: deviceId,
+
+      syncingInterval: FlutterSyncingInterval(
+        type: FlutterSyncingIntervalType.interval,
+        intervalMilliseconds: 60 * 1000 * 60,
+      ),
+      wifiEnabled: true,
+      bluetoothEnabled: true,
+      beaconUUIDs: ["E2C56DB5-DFFB-48D2-B060-D0F5A71096E0"],
     );
 
     // Step 1: Create the SDK instance

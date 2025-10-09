@@ -65,6 +65,7 @@ flutter:
     - assets/icons/
     - assets/map_styles/
     - assets/images/map/
+    - assets/images/companies/
     - .well-known/
 
   fonts:

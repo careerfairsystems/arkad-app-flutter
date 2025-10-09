@@ -6,7 +6,7 @@
 set -e
 
 # Configuration
-USE_STAGING=true  # Set to true for staging, false for production
+USE_STAGING=false  # Set to true for staging, false for production
 
 if [[ "$USE_STAGING" == "true" ]]; then
     OPENAPI_URL="https://staging.backend.arkadtlth.se/api/openapi.json"

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -28,6 +29,7 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   Company? _selectedCompany;
+  int _selectedFeatureModelId = 0;
   Set<Marker> _markers = {};
 
   // Lund University coordinates (center of map)
@@ -52,7 +54,7 @@ class _MapScreenState extends State<MapScreen> {
       mapViewModel.loadLocations().then((_) async {
         // Load ground overlays after buildings are loaded
         await mapViewModel.loadGroundOverlays(imageConfig);
-        _updateMarkers(mapViewModel.locations);
+        await _updateMarkers(mapViewModel.locations);
       });
 
       // Load companies if not already loaded (for company info cards)
@@ -167,6 +169,7 @@ class _MapScreenState extends State<MapScreen> {
                 right: 16,
                 child: CompanyInfoCard(
                   company: _selectedCompany!,
+                  featureModelId: _selectedFeatureModelId,
                   onClose: () {
                     setState(() {
                       _selectedCompany = null;
@@ -240,52 +243,79 @@ class _MapScreenState extends State<MapScreen> {
       ],
     );
   }
-
-  void _updateMarkers(List<MapLocation> locations) {
-    final newMarkers = <Marker>{};
-
+  Future<Marker> _companyMarker(MapLocation location) async {
     final companyViewModel = Provider.of<CompanyViewModel>(
       context,
       listen: false,
     );
+    Company company = companyViewModel.getCompanyById(location.companyId!)!;
+    final position = LatLng(location.latitude, location.longitude);
+    BitmapDescriptor icon;
+
+
+    if (company.fullLogoUrl == null) {
+      icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
+    } else {
+      try{
+
+        // Check if asset exists before attempting to load it
+        final assetPath = "assets/images/companies/${company.id}.png";
+        final assetExists = await _assetExists(assetPath) ;
+
+        if (assetExists ) {
+          icon = await BitmapDescriptor.asset(
+            const ImageConfiguration(size: Size(48, 48)),
+            assetPath,
+          );
+        } else {
+          // The following company id fails 216, 264
+          // Fallback to default marker if asset doesn't exist
+          icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
+        }
+      }
+      catch(e){
+        icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
+      }
+    }
+
+    return Marker(
+      markerId: MarkerId(location.companyId.toString()),
+      position: position,
+      onTap: () {
+        setState(() {
+          _selectedCompany = company;
+          _selectedFeatureModelId = location.featureModelId;
+        });
+        _centerOnLocation(location);
+      },
+      icon: icon,
+/*
+      infoWindow: InfoWindow(
+        title: location.name,
+        snippet: location.type.displayName,
+      ),
+*/
+    );
+  }
+
+  /// Checks if an asset exists in the asset bundle
+  Future<bool> _assetExists(String assetPath) async {
+    try {
+      await rootBundle.load(assetPath);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _updateMarkers(List<MapLocation> locations) async {
+    final newMarkers = <Marker>{};
 
     for (final location in locations) {
-      // Get company for this location if it has a companyId
-      Company? company;
-      if (location.companyId != null) {
-        company = companyViewModel.getCompanyById(location.companyId!);
+      if(location.companyId != null){
+        final marker = await _companyMarker(location);
+        newMarkers.add(marker);
       }
-
-      final position = LatLng(location.latitude, location.longitude);
-      final isSelected = company != null && _selectedCompany?.id == company.id;
-
-      newMarkers.add(
-        Marker(
-          markerId: MarkerId(location.id.toString()),
-          position: position,
-          onTap: () {
-            if (company != null) {
-              setState(() {
-                _selectedCompany = company;
-              });
-              _centerOnLocation(location);
-            }
-          },
-          icon: isSelected
-              ? BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueOrange,
-                )
-              : location.type == LocationType.booth
-              ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan)
-              : BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueGreen,
-                ),
-          infoWindow: InfoWindow(
-            title: location.name,
-            snippet: location.type.displayName,
-          ),
-        ),
-      );
     }
 
     if (mounted) {

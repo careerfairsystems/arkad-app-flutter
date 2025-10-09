@@ -8,7 +8,7 @@ class AppEnvironment {
   /// Get the appropriate backend base URL
   static String get baseUrl {
     return isStaging
-        ? 'https://staging.backend.arkadtlth.se'
+        ? 'https://backend.arkadtlth.se'
         : 'https://backend.arkadtlth.se';
   }
 
