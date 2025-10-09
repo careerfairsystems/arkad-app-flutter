@@ -166,7 +166,9 @@ class _BookedEventsScreenState extends State<BookedEventsScreen> {
                   const SizedBox(height: 24),
                   ArkadButton(
                     text: 'Browse Events',
-                    onPressed: () => context.pop(),
+                    onPressed: () {
+                      context.go('/events');
+                    },
                     icon: Icons.explore,
                     variant: ArkadButtonVariant.secondary,
                   ),
