@@ -92,7 +92,7 @@ class CompanyInfoCard extends StatelessWidget {
 
             // Feature model ID (muted text)
             Text(
-              'Booth: $featureModelId',
+              'Feature Model: $featureModelId',
               style: const TextStyle(
                 color: ArkadColors.gray,
                 fontSize: 12,
