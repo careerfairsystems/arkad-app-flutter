@@ -340,9 +340,7 @@ class AuthViewModel extends ChangeNotifier {
 
   /// Clear Sentry user context on sign out
   void _clearSentryUser() {
-    Sentry.configureScope(
-      (scope) => scope.setUser(null),
-    );
+    Sentry.configureScope((scope) => scope.setUser(null));
   }
 
   void _setGlobalError(AppError error) {

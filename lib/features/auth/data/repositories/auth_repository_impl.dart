@@ -53,9 +53,7 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
 
       Sentry.logger.info(
         'Sign in successful',
-        attributes: {
-          'operation': SentryLogAttribute.string('signIn'),
-        },
+        attributes: {'operation': SentryLogAttribute.string('signIn')},
       );
 
       return Result.success(session);
@@ -113,7 +111,7 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       } else if (e.statusCode == 429) {
         // Rate limiting
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(const RateLimitError(Duration(minutes: 5)));
+        return Result.failure(const RateLimitError(Duration(seconds: 30)));
       }
       // Other API errors
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -200,7 +198,7 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       // Check status code instead of string matching
       if (e.statusCode == 429) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(const RateLimitError(Duration(minutes: 5)));
+        return Result.failure(const RateLimitError(Duration(seconds: 30)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
@@ -236,9 +234,7 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
 
       Sentry.logger.info(
         'Session refreshed successfully',
-        attributes: {
-          'operation': SentryLogAttribute.string('refreshSession'),
-        },
+        attributes: {'operation': SentryLogAttribute.string('refreshSession')},
       );
 
       return Result.success(refreshedSession);
@@ -348,7 +344,7 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       // Handle rate limiting errors
       if (e.statusCode == 429) {
         await Sentry.captureException(e, stackTrace: stackTrace);
-        return Result.failure(const RateLimitError(Duration(minutes: 5)));
+        return Result.failure(const RateLimitError(Duration(seconds: 30)));
       }
       await Sentry.captureException(e, stackTrace: stackTrace);
       return Result.failure(UnknownError(e.message));
