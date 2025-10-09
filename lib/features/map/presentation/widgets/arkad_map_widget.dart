@@ -4,6 +4,19 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
+/*
+* final studieCCluster = Cluster( ClusterManagerId("261376248"),
+  bounds: LatLngBounds(
+    southwest: LatLng(55.711213, 13.208934),
+    northeast: LatLng(55.711847, 13.210018),
+  ),
+  position: LatLng(
+ 55.711532,
+13.209428,
+  )
+);
+
+* */
 
 const studieCCluster = ClusterManager(clusterManagerId: ClusterManagerId("261376248"));
 const eHouseCluster = ClusterManager(clusterManagerId: ClusterManagerId("261376246"));
