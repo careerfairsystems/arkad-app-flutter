@@ -685,10 +685,10 @@ if (mounted && authViewModel.signInCommand.isCompleted && !authViewModel.signInC
 ```dart
 sealed class Result<T> {
   const Result();
-  
+
   factory Result.success(T value) = Success<T>;
   factory Result.failure(AppError error) = Failure<T>;
-  
+
   R when<R>({
     required R Function(T value) success,
     required R Function(AppError error) failure,
@@ -700,6 +700,56 @@ sealed class Result<T> {
   }
 }
 ```
+
+## API Timeout Configuration
+
+### Custom Dio Timeouts
+
+The app uses custom timeout configuration to prevent false positives and improve UX:
+
+```dart
+// In service_locator.dart
+final dio = Dio(BaseOptions(
+  baseUrl: AppEnvironment.baseUrl,
+  connectTimeout: const Duration(seconds: 10),   // Connection establishment
+  receiveTimeout: const Duration(seconds: 15),   // Receiving response data
+  sendTimeout: const Duration(seconds: 10),      // Sending request data
+));
+```
+
+**Timeout Guidelines:**
+- `connectTimeout` (10s): Time to establish connection with server
+- `receiveTimeout` (15s): Time for server to respond with data
+- `sendTimeout` (10s): Time to upload data to server
+
+**⚠️ These timeouts are configured once in `service_locator.dart` and apply to all API calls.**
+
+### Error Differentiation: Network vs Server Timeout
+
+The app distinguishes between **network connectivity issues** and **server performance issues**:
+
+```dart
+// Network connectivity errors (user's internet problem)
+class NetworkError extends AppError {
+  const NetworkError(); // "Connection problem. Please check your internet..."
+}
+
+// Server timeout errors (backend is slow/overloaded)
+class ServerSlowError extends AppError {
+  const ServerSlowError(); // "The server is taking longer than expected..."
+}
+```
+
+**Error Mapping:**
+- `DioExceptionType.receiveTimeout` → **ServerSlowError** (server too slow to respond)
+- `DioExceptionType.sendTimeout` → **ServerSlowError** (server too slow to receive upload)
+- `DioExceptionType.connectionTimeout` → **NetworkError** (can't establish connection)
+- `DioExceptionType.connectionError` → **NetworkError** (network unavailable)
+
+**Why This Matters:**
+- Users understand if it's **their internet** or **our server**
+- Prevents false "check your internet" messages when backend is slow
+- Better UX and fewer support requests
 
 ## Development Commands
 
