@@ -6,7 +6,6 @@ import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/reset_password_screen.dart';
 import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/screens/verification_screen.dart';
-import '../features/company/domain/entities/company.dart';
 import '../features/company/presentation/screens/companies_screen.dart';
 import '../features/company/presentation/screens/company_detail_screen.dart';
 import '../features/event/presentation/screens/event_attendees_wrapper.dart';
@@ -113,26 +112,8 @@ class AppRouter {
                   GoRoute(
                     path: 'search',
                     pageBuilder: _slide((context, state) {
-                      final onCompanySelected =
-                          state.extra as void Function(Company)?;
-                      return CompanySearchScreen(
-                        onCompanySelected:
-                            onCompanySelected ??
-                            (company) {
-                              context.go('/map/${company.id}');
-                            },
-                      );
+                      return const CompanySearchScreen();
                     }),
-                  ),
-                  GoRoute(
-                    path: ':companyId',
-                    pageBuilder: (context, state) {
-                      final companyIdStr = state.pathParameters['companyId'];
-                      final companyId = int.tryParse(companyIdStr ?? '');
-                      return NoTransitionPage(
-                        child: MapScreen(selectedCompanyId: companyId),
-                      );
-                    },
                   ),
                 ],
               ),

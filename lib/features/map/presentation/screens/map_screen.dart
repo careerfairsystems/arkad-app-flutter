@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -18,9 +21,7 @@ import '../widgets/permission_step_widget.dart';
 
 /// Displays an interactive map of companies at ARKAD event
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key, this.selectedCompanyId});
-
-  final int? selectedCompanyId;
+  const MapScreen({super.key});
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -28,8 +29,6 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
-  Company? _selectedCompany;
-  int _selectedFeatureModelId = 0;
   Set<Marker> _markers = {};
 
   // Lund University coordinates (center of map)
@@ -60,19 +59,6 @@ class _MapScreenState extends State<MapScreen> {
       // Load companies if not already loaded (for company info cards)
       if (!companyViewModel.isInitialized) {
         companyViewModel.loadCompanies();
-      }
-
-      // Select and center on company if companyId is provided
-      if (widget.selectedCompanyId != null) {
-        final company = companyViewModel.getCompanyById(
-          widget.selectedCompanyId!,
-        );
-        if (company != null) {
-          setState(() {
-            _selectedCompany = company;
-          });
-          _centerOnCompany(company);
-        }
       }
     });
   }
@@ -125,8 +111,13 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildMapView() {
-    return Consumer<MapViewModel>(
-      builder: (context, mapViewModel, child) {
+    return Consumer2<MapViewModel, CompanyViewModel>(
+      builder: (context, mapViewModel, companyViewModel, child) {
+        // Get selected company from ViewModel
+        final selectedCompany = mapViewModel.selectedCompanyId != null
+            ? companyViewModel.getCompanyById(mapViewModel.selectedCompanyId!)
+            : null;
+
         return Stack(
           children: [
             // Map
@@ -142,10 +133,8 @@ class _MapScreenState extends State<MapScreen> {
               },
               onTap: (_) {
                 // Deselect company when tapping map
-                if (_selectedCompany != null) {
-                  setState(() {
-                    _selectedCompany = null;
-                  });
+                if (selectedCompany != null) {
+                  mapViewModel.clearSelection();
                 }
               },
             ),
@@ -157,23 +146,21 @@ class _MapScreenState extends State<MapScreen> {
               right: 16,
               child: MapSearchBar(
                 onTap: _showSearchView,
-                displayText: _selectedCompany?.name,
+                displayText: selectedCompany?.name,
               ),
             ),
 
             // Selected company info card at bottom
-            if (_selectedCompany != null)
+            if (selectedCompany != null)
               Positioned(
                 bottom: 16,
                 left: 16,
                 right: 16,
                 child: CompanyInfoCard(
-                  company: _selectedCompany!,
-                  featureModelId: _selectedFeatureModelId,
+                  company: selectedCompany,
+                  featureModelId: mapViewModel.selectedFeatureModelId,
                   onClose: () {
-                    setState(() {
-                      _selectedCompany = null;
-                    });
+                    mapViewModel.clearSelection();
                   },
                 ),
               ),
@@ -243,6 +230,7 @@ class _MapScreenState extends State<MapScreen> {
       ],
     );
   }
+
   Future<Marker> _companyMarker(MapLocation location) async {
     final companyViewModel = Provider.of<CompanyViewModel>(
       context,
@@ -252,17 +240,15 @@ class _MapScreenState extends State<MapScreen> {
     final position = LatLng(location.latitude, location.longitude);
     BitmapDescriptor icon;
 
-
     if (company.fullLogoUrl == null) {
       icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
     } else {
-      try{
-
+      try {
         // Check if asset exists before attempting to load it
         final assetPath = "assets/images/companies/${company.id}.png";
-        final assetExists = await _assetExists(assetPath) ;
+        final assetExists = await _assetExists(assetPath);
 
-        if (assetExists ) {
+        if (assetExists) {
           icon = await BitmapDescriptor.asset(
             const ImageConfiguration(size: Size(48, 48)),
             assetPath,
@@ -270,10 +256,11 @@ class _MapScreenState extends State<MapScreen> {
         } else {
           // The following company id fails 216, 264
           // Fallback to default marker if asset doesn't exist
-          icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
+          icon = BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueCyan,
+          );
         }
-      }
-      catch(e){
+      } catch (e) {
         icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
       }
     }
@@ -283,14 +270,15 @@ class _MapScreenState extends State<MapScreen> {
       clusterManagerId: ClusterManagerId(location.building),
       position: position,
       onTap: () {
-        setState(() {
-          _selectedCompany = company;
-          _selectedFeatureModelId = location.featureModelId;
-        });
+        final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+        mapViewModel.selectCompany(
+          company.id,
+          featureModelId: location.featureModelId,
+        );
         _centerOnLocation(location);
       },
       icon: icon,
-/*
+      /*
       infoWindow: InfoWindow(
         title: location.name,
         snippet: location.type.displayName,
@@ -313,7 +301,7 @@ class _MapScreenState extends State<MapScreen> {
     final newMarkers = <Marker>{};
 
     for (final location in locations) {
-      if(location.companyId != null){
+      if (location.companyId != null) {
         final marker = await _companyMarker(location);
         newMarkers.add(marker);
       }
@@ -337,30 +325,8 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  void _centerOnCompany(Company company) {
-    // Find the location for this company
-    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
-    final location = mapViewModel.locations.firstWhere(
-      (loc) => loc.companyId == company.id,
-      orElse: () => mapViewModel.locations.first,
-    );
-
-    _centerOnLocation(location);
-  }
-
   void _showSearchView() {
-    context.push(
-      '/map/search',
-      extra: (Company company) {
-        setState(() {
-          _selectedCompany = company;
-        });
-        _centerOnCompany(company);
-
-        // Navigate back and update URL to reflect selected company
-        context.go('/map/${company.id}');
-      },
-    );
+    context.push('/map/search');
   }
 
   @override

@@ -5,12 +5,11 @@ import 'package:provider/provider.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../company/domain/entities/company.dart';
 import '../../../company/presentation/view_models/company_view_model.dart';
+import '../view_models/map_view_model.dart';
 
 /// Full-screen company search for the map feature
 class CompanySearchScreen extends StatefulWidget {
-  const CompanySearchScreen({super.key, required this.onCompanySelected});
-
-  final void Function(Company) onCompanySelected;
+  const CompanySearchScreen({super.key});
 
   @override
   State<CompanySearchScreen> createState() => _CompanySearchScreenState();
@@ -160,7 +159,12 @@ class _CompanySearchScreenState extends State<CompanySearchScreen> {
             )
           : null,
       onTap: () {
-        widget.onCompanySelected(company);
+        // Use MapViewModel to select the company
+        final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+        mapViewModel.selectCompany(company.id);
+
+        // Navigate back to map
+        context.pop();
       },
     );
   }

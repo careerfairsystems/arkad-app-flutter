@@ -8,6 +8,7 @@ import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/async_state_builder.dart';
 import '../../../../shared/presentation/widgets/optimized_image.dart';
+import '../../../map/presentation/view_models/map_view_model.dart';
 import '../../domain/entities/company.dart';
 import '../view_models/company_detail_view_model.dart';
 
@@ -931,6 +932,18 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
 
     final websiteUri = normalizeWeb(company.websiteUrl);
 
+    void navigateToMap() {
+      // Select company in MapViewModel
+      final mapViewModel = Provider.of<MapViewModel>(
+        buildContext,
+        listen: false,
+      );
+      mapViewModel.selectCompany(company.id);
+
+      // Navigate to map tab
+      context.go('/map');
+    }
+
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: websiteUri != null
@@ -948,7 +961,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                   child: pillButton(
                     icon: Icons.map_outlined,
                     label: 'View on Map',
-                    onTap: () => context.push('/map/${company.id}'),
+                    onTap: navigateToMap,
                   ),
                 ),
               ],
@@ -959,7 +972,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 pillButton(
                   icon: Icons.map_outlined,
                   label: 'View on Map',
-                  onTap: () => context.push('/map/${company.id}'),
+                  onTap: navigateToMap,
                 ),
               ],
             ),
