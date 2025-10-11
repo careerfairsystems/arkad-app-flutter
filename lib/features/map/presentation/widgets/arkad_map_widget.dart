@@ -37,7 +37,6 @@ class ArkadMapWidget extends StatefulWidget {
     this.onTap,
     this.minZoom = 18.0,
     this.maxZoom = 22.0,
-    this.centerOnUserLocation = false,
     this.mapStylePath = 'assets/map_styles/arkad_dark_map_style.json',
   });
 
@@ -49,7 +48,6 @@ class ArkadMapWidget extends StatefulWidget {
   final void Function(LatLng)? onTap;
   final double minZoom;
   final double maxZoom;
-  final bool centerOnUserLocation;
   final String mapStylePath;
 
   @override
@@ -111,8 +109,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
           await locationProvider.startTracking();
 
           // Center on user location if requested
-          if (widget.centerOnUserLocation &&
-              locationProvider.currentLocation != null) {
+          if (locationProvider.currentLocation != null) {
             _centerOnUserLocation(locationProvider.currentLocation!.latLng);
           }
         }
