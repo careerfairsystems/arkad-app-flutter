@@ -38,7 +38,6 @@ class ArkadMapWidget extends StatefulWidget {
     required this.initialCameraPosition,
     this.markers = const {},
     this.groundOverlays = const {},
-    this.availableFloors = const [],
     this.onMapCreated,
     this.onTap,
     this.minZoom = 18.0,
@@ -49,7 +48,6 @@ class ArkadMapWidget extends StatefulWidget {
   final CameraPosition initialCameraPosition;
   final Set<Marker> markers;
   final Set<GroundOverlay> groundOverlays;
-  final List<(int floorIndex, String floorLabel)> availableFloors;
   final void Function(GoogleMapController)? onMapCreated;
   final void Function(LatLng)? onTap;
   final double minZoom;
@@ -79,11 +77,6 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     _loadMapStyle();
     _createUserLocationIcon();
     _initializeLocationTracking();
-
-    // Set initial floor to first available floor
-    if (widget.availableFloors.isNotEmpty) {
-      _selectedFloorIndex = widget.availableFloors.first.$1;
-    }
   }
 
   Future<void> _createUserLocationIcon() async {
@@ -211,70 +204,86 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Use Consumer if location tracking is enabled, otherwise build directly
-    final mapWidget = Consumer<LocationProvider>(
+    // Use Consumer to get location data for markers and available floors
+    return Consumer<LocationProvider>(
       builder: (context, locationProvider, child) {
-        return _buildGoogleMap(
-          _buildMarkers(locationProvider),
-          widget.groundOverlays,
+        final availableFloors =
+            locationProvider.currentLocation?.availableFloors ?? [];
+
+        return Stack(
+          children: [
+            _buildGoogleMap(
+              _buildMarkers(locationProvider),
+              widget.groundOverlays,
+            ),
+            // Floor selector if floors are available
+            if (availableFloors.length > 1)
+              Positioned(
+                top: 16,
+                left: 16,
+                right: 16,
+                child: _buildFloorSelector(availableFloors),
+              ),
+            // Location snap button
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: _buildLocationSnapButton(),
+            ),
+          ],
         );
       },
     );
-
-    return Stack(
-      children: [
-        mapWidget,
-        // Floor selector if floors are available
-        if (widget.availableFloors.length > 1)
-          Positioned(
-            top: 16,
-            left: 16,
-            right: 16,
-            child: _buildFloorSelector(),
-          ),
-        // Location snap button
-        Positioned(bottom: 16, right: 16, child: _buildLocationSnapButton()),
-      ],
-    );
   }
 
-  Widget _buildFloorSelector() {
+  Widget _buildFloorSelector(
+    List<(int floorIndex, String floorLabel)> availableFloors,
+  ) {
+    // Set initial floor to first available floor if not already set
+    if (_selectedFloorIndex == 0 && availableFloors.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _selectedFloorIndex = availableFloors.first.$1;
+          });
+        }
+      });
+    }
+
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1F2E),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: widget.availableFloors.map((floor) {
+        children: availableFloors.map((floor) {
           final isSelected = floor.$1 == _selectedFloorIndex;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedFloorIndex = floor.$1;
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF00D9FF)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  floor.$2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: isSelected ? Colors.black : Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedFloorIndex = floor.$1;
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF00D9FF)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(17),
+              ),
+              child: Text(
+                floor.$2,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isSelected ? Colors.black : Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
