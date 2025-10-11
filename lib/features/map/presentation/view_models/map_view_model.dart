@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/errors/app_error.dart';
@@ -19,6 +20,7 @@ class MapViewModel extends ChangeNotifier {
   MapLocation? _selectedLocation;
   LocationType? _filterType;
   List<MapBuilding> _buildings = [];
+  Set<GroundOverlay> _groundOverlays = {};
   int? _selectedCompanyId;
   int _selectedFeatureModelId = 0;
 
@@ -29,6 +31,7 @@ class MapViewModel extends ChangeNotifier {
   MapLocation? get selectedLocation => _selectedLocation;
   LocationType? get filterType => _filterType;
   List<MapBuilding> get buildings => _buildings;
+  Set<GroundOverlay> get groundOverlays => _groundOverlays;
   int? get selectedCompanyId => _selectedCompanyId;
   int get selectedFeatureModelId => _selectedFeatureModelId;
 
@@ -131,6 +134,12 @@ class MapViewModel extends ChangeNotifier {
     _selectedCompanyId = null;
     _selectedFeatureModelId = 0;
     _selectedLocation = null;
+    notifyListeners();
+  }
+
+  /// Load ground overlays for map buildings
+  Future<void> loadGroundOverlays(ImageConfiguration imageConfig) async {
+    _groundOverlays = await _mapRepository.getGroundOverlays(imageConfig);
     notifyListeners();
   }
 

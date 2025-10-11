@@ -220,6 +220,7 @@ class MapRepositoryImpl implements MapRepository {
             southwest: LatLng(floorMap.SW.lat, floorMap.SW.lon),
             northeast: LatLng(floorMap.NE.lat, floorMap.NE.lon),
           ),
+          transparency: 0,
         ),
       );
     }

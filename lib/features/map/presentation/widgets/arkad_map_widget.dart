@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 
-import 'package:arkad/features/map/domain/repositories/map_repository.dart';
 import 'package:arkad/features/map/presentation/providers/location_provider.dart';
 import 'package:arkad/shared/presentation/themes/arkad_theme.dart';
 import 'package:flutter/material.dart';
@@ -37,20 +36,22 @@ class ArkadMapWidget extends StatefulWidget {
   const ArkadMapWidget({
     super.key,
     required this.initialCameraPosition,
-    required this.mapRepository,
     this.markers = const {},
+    this.groundOverlays = const {},
     this.onMapCreated,
     this.onTap,
+    this.onVisibleRegionChanged,
     this.minZoom = 18.0,
     this.maxZoom = 22.0,
     this.mapStylePath = 'assets/map_styles/arkad_dark_map_style.json',
   });
 
   final CameraPosition initialCameraPosition;
-  final MapRepository mapRepository;
   final Set<Marker> markers;
+  final Set<GroundOverlay> groundOverlays;
   final void Function(GoogleMapController)? onMapCreated;
   final void Function(LatLng)? onTap;
+  final void Function(LatLngBounds, double zoom)? onVisibleRegionChanged;
   final double minZoom;
   final double maxZoom;
   final String mapStylePath;
@@ -65,9 +66,11 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   bool _hasRequestedPermission = false;
   int _selectedFloorIndex = 0;
   BitmapDescriptor? _userLocationIcon;
-  bool _isSnappedToLocation = true;
+  bool _isSnappedToLocation =
+      false; // Will be set to true only if location is in bounds
   bool _isProgrammaticMove = false;
   Set<GroundOverlay> _groundOverlays = {};
+  CameraPosition? _currentCameraPosition;
   LatLngBounds _allowedBounds = LatLngBounds(
     southwest: const LatLng(55.709214600107245, 13.207789044872932),
     northeast: const LatLng(55.713562876300905, 13.212897763941944),
@@ -76,9 +79,9 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   @override
   void initState() {
     super.initState();
+    _currentCameraPosition = widget.initialCameraPosition;
     _loadMapStyle();
     _createUserLocationIcon();
-    _loadGroundOverlays();
     _initializeLocationTracking();
   }
 
@@ -133,23 +136,6 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     }
   }
 
-  Future<void> _loadGroundOverlays() async {
-    try {
-      final imageConfig = createLocalImageConfiguration(context);
-      final overlays = await widget.mapRepository.getGroundOverlays(
-        imageConfig,
-      );
-      if (mounted) {
-        setState(() {
-          _groundOverlays = overlays;
-        });
-      }
-    } catch (e) {
-      // Ground overlay loading failed, continue without overlays
-      debugPrint('Failed to load ground overlays: $e');
-    }
-  }
-
   void _initializeLocationTracking() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final locationProvider = Provider.of<LocationProvider>(
@@ -171,13 +157,29 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
         if (granted) {
           await locationProvider.startTracking();
 
-          // Center on user location if requested
+          // Center on user location and enable snapping only if within bounds
           if (locationProvider.currentLocation != null) {
-            _centerOnUserLocation(locationProvider.currentLocation!.latLng);
+            final location = locationProvider.currentLocation!.latLng;
+            if (_isLocationInBounds(location)) {
+              setState(() {
+                _isSnappedToLocation = true;
+              });
+              _centerOnUserLocation(location);
+            }
           }
         }
       } else if (locationProvider.hasPermission) {
         await locationProvider.startTracking();
+
+        // Enable snapping if location is available and within bounds
+        if (locationProvider.currentLocation != null) {
+          final location = locationProvider.currentLocation!.latLng;
+          if (_isLocationInBounds(location)) {
+            setState(() {
+              _isSnappedToLocation = true;
+            });
+          }
+        }
       }
     });
   }
@@ -190,8 +192,17 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       listen: false,
     );
 
+    // Only follow location if it's within bounds
     if (locationProvider.currentLocation != null) {
-      _centerOnUserLocation(locationProvider.currentLocation!.latLng);
+      final location = locationProvider.currentLocation!.latLng;
+      if (_isLocationInBounds(location)) {
+        _centerOnUserLocation(location);
+      } else {
+        // Location moved out of bounds, disable snapping
+        setState(() {
+          _isSnappedToLocation = false;
+        });
+      }
     }
   }
 
@@ -222,6 +233,13 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     return markers;
   }
 
+  bool _isLocationInBounds(LatLng location) {
+    return location.latitude >= _allowedBounds.southwest.latitude &&
+        location.latitude <= _allowedBounds.northeast.latitude &&
+        location.longitude >= _allowedBounds.southwest.longitude &&
+        location.longitude <= _allowedBounds.northeast.longitude;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Use Consumer to get location data for markers and available floors
@@ -232,7 +250,10 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
 
         return Stack(
           children: [
-            _buildGoogleMap(_buildMarkers(locationProvider), _groundOverlays),
+            _buildGoogleMap(
+              _buildMarkers(locationProvider),
+              widget.groundOverlays,
+            ),
             // Floor selector if floors are available
             if (availableFloors.length > 1)
               Positioned(
@@ -240,12 +261,14 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
                 left: 16,
                 child: _buildFloorSelector(availableFloors),
               ),
-            // Location snap button
-            Positioned(
-              bottom: 16,
-              right: 16,
-              child: _buildLocationSnapButton(),
-            ),
+            // Location snap button - only show if location exists and is in bounds
+            if (locationProvider.currentLocation != null &&
+                _isLocationInBounds(locationProvider.currentLocation!.latLng))
+              Positioned(
+                bottom: 16,
+                right: 16,
+                child: _buildLocationSnapButton(),
+              ),
           ],
         );
       },
@@ -340,20 +363,23 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   }
 
   void _toggleSnapToLocation() {
-    setState(() {
-      _isSnappedToLocation = !_isSnappedToLocation;
-    });
+    final locationProvider = Provider.of<LocationProvider>(
+      context,
+      listen: false,
+    );
 
-    if (_isSnappedToLocation) {
-      // Snap to current location immediately
-      final locationProvider = Provider.of<LocationProvider>(
-        context,
-        listen: false,
-      );
-
-      if (locationProvider.currentLocation != null) {
-        _centerOnUserLocation(locationProvider.currentLocation!.latLng);
-      }
+    // Only allow snapping if location exists and is within bounds
+    if (!_isSnappedToLocation &&
+        locationProvider.currentLocation != null &&
+        _isLocationInBounds(locationProvider.currentLocation!.latLng)) {
+      setState(() {
+        _isSnappedToLocation = true;
+      });
+      _centerOnUserLocation(locationProvider.currentLocation!.latLng);
+    } else {
+      setState(() {
+        _isSnappedToLocation = false;
+      });
     }
   }
 
@@ -363,9 +389,23 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   ) {
     return GoogleMap(
       clusterManagers: {studieCCluster, eHouseCluster, khCluster},
-      onMapCreated: (GoogleMapController controller) {
+      onMapCreated: (GoogleMapController controller) async {
         _mapController = controller;
         widget.onMapCreated?.call(controller);
+
+        // Notify parent of initial visible region
+        if (widget.onVisibleRegionChanged != null &&
+            _currentCameraPosition != null) {
+          try {
+            final visibleRegion = await controller.getVisibleRegion();
+            widget.onVisibleRegionChanged!(
+              visibleRegion,
+              _currentCameraPosition!.zoom,
+            );
+          } catch (e) {
+            debugPrint('Failed to get initial visible region: $e');
+          }
+        }
       },
       style: _mapStyle,
       initialCameraPosition: widget.initialCameraPosition,
@@ -396,11 +436,28 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     }
   }
 
-  void _onCameraMove(CameraPosition position) {}
+  void _onCameraMove(CameraPosition position) {
+    _currentCameraPosition = position;
+  }
 
-  void _onCameraIdle() {
+  void _onCameraIdle() async {
     // Reset programmatic move flag after camera movement completes
     _isProgrammaticMove = false;
+
+    // Notify parent of visible region change
+    if (widget.onVisibleRegionChanged != null &&
+        _mapController != null &&
+        _currentCameraPosition != null) {
+      try {
+        final visibleRegion = await _mapController!.getVisibleRegion();
+        widget.onVisibleRegionChanged!(
+          visibleRegion,
+          _currentCameraPosition!.zoom,
+        );
+      } catch (e) {
+        debugPrint('Failed to get visible region: $e');
+      }
+    }
   }
 
   @override

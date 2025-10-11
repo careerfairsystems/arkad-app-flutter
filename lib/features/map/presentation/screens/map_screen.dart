@@ -1,3 +1,4 @@
+import 'package:arkad/features/map/domain/repositories/map_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -9,7 +10,6 @@ import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../company/domain/entities/company.dart';
 import '../../../company/presentation/view_models/company_view_model.dart';
 import '../../domain/entities/map_location.dart';
-import '../../domain/repositories/map_repository.dart';
 import '../view_models/map_permissions_view_model.dart';
 import '../view_models/map_view_model.dart';
 import '../widgets/arkad_map_widget.dart';
@@ -29,9 +29,7 @@ class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
   MapLocation? _pendingZoomLocation;
-
-  // Lund University coordinates (center of map)
-  static const LatLng _lundCenter = LatLng(55.7104, 13.2109);
+  MapBuilding? currentFocusedBuilding;
 
   @override
   void initState() {
@@ -47,8 +45,11 @@ class _MapScreenState extends State<MapScreen> {
       // Listen to map location changes and update markers
       mapViewModel.addListener(_onLocationsChanged);
 
-      // Load locations and update markers
+      // Load locations, buildings, and ground overlays
+      final imageConfig = createLocalImageConfiguration(context);
       mapViewModel.loadLocations().then((_) async {
+        // Load ground overlays after buildings are loaded
+        await mapViewModel.loadGroundOverlays(imageConfig);
         await _updateMarkers(mapViewModel.locations);
       });
 
@@ -124,6 +125,20 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ArkadColors.arkadNavy,
+      appBar: AppBar(
+        backgroundColor: ArkadColors.arkadNavy,
+        elevation: 0,
+        title: Text(
+          currentFocusedBuilding?.name ?? 'Map',
+          style: const TextStyle(
+            color: ArkadColors.white,
+            fontSize: 18,
+            fontFamily: 'MyriadProCondensed',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: Consumer<MapPermissionsViewModel>(
         builder: (context, permissionsViewModel, child) {
           // Show permission flow if not all permissions granted
@@ -178,11 +193,14 @@ class _MapScreenState extends State<MapScreen> {
             // Map
             ArkadMapWidget(
               initialCameraPosition: const CameraPosition(
-                target: _lundCenter,
-                zoom: 15.0,
+                target: LatLng(
+                  55.711469341726016,
+                  13.209497337446173,
+                ), // StudieC
+                zoom: 18.0,
               ),
-              mapRepository: serviceLocator<MapRepository>(),
               markers: _markers,
+              groundOverlays: mapViewModel.groundOverlays,
               onMapCreated: (controller) {
                 _mapController = controller;
 
@@ -209,6 +227,7 @@ class _MapScreenState extends State<MapScreen> {
                   mapViewModel.clearSelection();
                 }
               },
+              onVisibleRegionChanged: _onVisibleRegionChanged,
             ),
 
             // Search bar at top
@@ -371,6 +390,37 @@ class _MapScreenState extends State<MapScreen> {
           CameraPosition(target: position, zoom: 22.0),
         ),
       );
+    }
+  }
+
+  void _onVisibleRegionChanged(LatLngBounds bounds, double zoom) {
+    final mapRepository = serviceLocator<MapRepository>();
+
+    MapBuilding? building;
+    if (zoom > 19) {
+      building = mapRepository.mostLikelyBuilding(bounds);
+    }
+
+    if (building != currentFocusedBuilding) {
+      setState(() {
+        currentFocusedBuilding = building;
+      });
+
+      if (building != null) {
+        Sentry.logger.info(
+          'Focused building changed',
+          attributes: {
+            'building_id': SentryLogAttribute.string(building.id.toString()),
+            'building_name': SentryLogAttribute.string(building.name),
+            'zoom': SentryLogAttribute.string(zoom.toString()),
+          },
+        );
+      } else if (currentFocusedBuilding == null) {
+        Sentry.logger.debug(
+          'Focused building cleared',
+          attributes: {'zoom': SentryLogAttribute.string(zoom.toString())},
+        );
+      }
     }
   }
 
