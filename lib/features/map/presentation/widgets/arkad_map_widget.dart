@@ -219,9 +219,8 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
             // Floor selector if floors are available
             if (availableFloors.length > 1)
               Positioned(
-                top: 16,
+                top: 130,
                 left: 16,
-                right: 16,
                 child: _buildFloorSelector(availableFloors),
               ),
             // Location snap button
@@ -267,10 +266,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
               });
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
                     ? const Color(0xFF00D9FF)
