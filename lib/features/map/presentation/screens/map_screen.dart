@@ -1,11 +1,9 @@
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../services/service_locator.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
@@ -30,6 +28,7 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
+  MapLocation? _pendingZoomLocation;
 
   // Lund University coordinates (center of map)
   static const LatLng _lundCenter = LatLng(55.7104, 13.2109);
@@ -63,7 +62,66 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  void _onLocationsChanged() async {}
+  void _onLocationsChanged() async {
+    // React to MapViewModel changes (company selection from search, etc.)
+    if (!mounted) return;
+
+    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+
+    // When a company is selected, zoom to its location
+    if (mapViewModel.selectedLocation != null) {
+      final location = mapViewModel.selectedLocation!;
+
+      // Validate location has valid coordinates before zooming
+      if (location.latitude != 0 && location.longitude != 0) {
+        if (_mapController != null) {
+          _centerOnLocation(location);
+          _pendingZoomLocation = null;
+
+          Sentry.logger.info(
+            'Zoomed to company location',
+            attributes: {
+              'company_id': SentryLogAttribute.string(
+                mapViewModel.selectedCompanyId!.toString(),
+              ),
+              'latitude': SentryLogAttribute.string(
+                location.latitude.toString(),
+              ),
+              'longitude': SentryLogAttribute.string(
+                location.longitude.toString(),
+              ),
+            },
+          );
+        } else {
+          // Map controller not ready yet, queue the zoom for when it's ready
+          _pendingZoomLocation = location;
+          debugPrint('Map controller not ready, queuing zoom for later');
+
+          Sentry.logger.debug(
+            'Map controller not ready, queuing zoom',
+            attributes: {
+              'company_id': SentryLogAttribute.string(
+                mapViewModel.selectedCompanyId!.toString(),
+              ),
+            },
+          );
+        }
+      } else {
+        Sentry.logger.error(
+          'Invalid location coordinates for company',
+          attributes: {
+            'company_id': SentryLogAttribute.string(
+              mapViewModel.selectedCompanyId!.toString(),
+            ),
+            'latitude': SentryLogAttribute.string(location.latitude.toString()),
+            'longitude': SentryLogAttribute.string(
+              location.longitude.toString(),
+            ),
+          },
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +188,23 @@ class _MapScreenState extends State<MapScreen> {
               groundOverlays: mapViewModel.groundOverlays,
               onMapCreated: (controller) {
                 _mapController = controller;
+
+                // Process any pending zoom operation
+                if (_pendingZoomLocation != null) {
+                  debugPrint('Processing pending zoom after map creation');
+                  _centerOnLocation(_pendingZoomLocation!);
+
+                  Sentry.logger.info(
+                    'Processed pending zoom after map creation',
+                    attributes: {
+                      'company_id': SentryLogAttribute.string(
+                        mapViewModel.selectedCompanyId!.toString(),
+                      ),
+                    },
+                  );
+
+                  _pendingZoomLocation = null;
+                }
               },
               onTap: (_) {
                 // Deselect company when tapping map

@@ -42,9 +42,6 @@ class MapRepositoryImpl implements MapRepository {
       // Map over locations and await all futures
       final mappedLocationsFutures = locations.map((location) async {
         final floorIndex = location.floors.keys.first;
-        print(
-          "Routable center has keys ${location.centerPoints.keys} and values ${location.centerPoints.values}",
-        );
         final routableTargetCenter = location.centerPoints[floorIndex];
         if (routableTargetCenter == null) {
           return null; // Skip if no center point for the floor
