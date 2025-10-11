@@ -43,21 +43,31 @@ class LocationProvider extends ChangeNotifier {
     }
   }
 
+  void _handleCombainLocation() async {
+    final loc = combainSDK.currentLocation.value;
+
+    if (loc != null) {
+      final snappedLocation = (await combainSDK.snapToFeatureModel(loc));
+      print("Snapped location: $snappedLocation");
+      final lat = snappedLocation?.lat ?? loc.latitude;
+      final lon = snappedLocation?.lon ?? loc.longitude;
+
+      _currentLocation = UserLocation(
+        latLng: LatLng(lat, lon),
+        accuracy: loc.accuracy,
+        timestamp: DateTime.fromMillisecondsSinceEpoch(loc.fetchedTimeMillis),
+        floorIndex: loc.indoor?.floorIndex,
+        availableFloors: _availableFloorsFromLocation(loc.indoor),
+      );
+      notifyListeners();
+    }
+  }
+
   /// Initialize location provider (check permissions and service)
   Future<void> initialize() async {
     _hasPermission = await _repository.hasLocationPermission();
     combainSDK.currentLocation.addListener(() {
-      final loc = combainSDK.currentLocation.value;
-      if (loc != null) {
-        _currentLocation = UserLocation(
-          latLng: LatLng(loc.latitude, loc.longitude),
-          accuracy: loc.accuracy,
-          timestamp: DateTime.fromMillisecondsSinceEpoch(loc.fetchedTimeMillis),
-          floorIndex: loc.indoor?.floorIndex,
-          availableFloors: _availableFloorsFromLocation(loc.indoor),
-        );
-        notifyListeners();
-      }
+      _handleCombainLocation();
     });
     notifyListeners();
   }

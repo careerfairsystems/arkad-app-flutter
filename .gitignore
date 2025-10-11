@@ -79,3 +79,4 @@ fastlane/AuthKey_Z668K9MPRU.p8
 android/kls_database.db
 assets/data/places.json
 assets/images/companies/*.png
+featuremodel.json

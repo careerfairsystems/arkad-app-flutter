@@ -350,6 +350,14 @@ class _MapScreenState extends State<MapScreen> {
       }
     }
 
+    // Add static red marker at specified coordinates
+    final staticMarker = Marker(
+      markerId: const MarkerId('static_marker'),
+      position: const LatLng(55.7123956, 13.2087787),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+    );
+    newMarkers.add(staticMarker);
+
     if (mounted) {
       setState(() {
         _markers = newMarkers;
