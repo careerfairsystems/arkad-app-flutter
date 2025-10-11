@@ -11,6 +11,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -154,6 +155,10 @@ class ArkadCombainLogger implements CombainLogger {
 }
 
 class CombainIntializer extends ChangeNotifier {
+  final PackageInfo _packageInfo;
+
+  CombainIntializer(this._packageInfo);
+
   var combainIntialized = false;
   FlutterCombainSDK? _combainSDK;
 
@@ -185,7 +190,11 @@ class CombainIntializer extends ChangeNotifier {
         routableNodesOptions: FlutterRoutableNodesOptions.allExceptDefaultName,
       ),
       deviceIdentifier: deviceId,
-
+      appInfo: FlutterAppInfo(
+        packageName: _packageInfo.packageName,
+        versionName: _packageInfo.version,
+        versionCode: int.tryParse(_packageInfo.buildNumber) ?? 0,
+      ),
       syncingInterval: FlutterSyncingInterval(
         type: FlutterSyncingIntervalType.interval,
         intervalMilliseconds: 60 * 1000 * 60,
@@ -231,7 +240,10 @@ class CombainIntializer extends ChangeNotifier {
 
 // We could have used InheritedWidget or riverpod package to handle state, but GetIt with provider is a solid combo to my understanding.
 Future<void> setupServiceLocator() async {
-  // Core services
+  // Core services - PackageInfo must be first as other services depend on it
+  final packageInfo = await PackageInfo.fromPlatform();
+  serviceLocator.registerSingleton<PackageInfo>(packageInfo);
+
   _setupApiClient();
   serviceLocator.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
@@ -244,8 +256,10 @@ Future<void> setupServiceLocator() async {
     () => FileService(serviceLocator<ImagePicker>()),
   );
 
-  // Register Combain initializer
-  serviceLocator.registerSingleton<CombainIntializer>(CombainIntializer());
+  // Register Combain initializer with injected PackageInfo
+  serviceLocator.registerSingleton<CombainIntializer>(
+    CombainIntializer(serviceLocator<PackageInfo>()),
+  );
 
   // Clean architecture features
   _setupAuthFeature();
