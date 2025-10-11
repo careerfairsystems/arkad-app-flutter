@@ -69,6 +69,7 @@ class LocationProvider extends ChangeNotifier {
     combainSDK.currentLocation.addListener(() {
       _handleCombainLocation();
     });
+    _handleCombainLocation();
     notifyListeners();
   }
 

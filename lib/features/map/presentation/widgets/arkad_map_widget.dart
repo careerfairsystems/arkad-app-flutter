@@ -67,6 +67,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   int _selectedFloorIndex = 0;
   BitmapDescriptor? _userLocationIcon;
   bool _isSnappedToLocation = true;
+  bool _isProgrammaticMove = false;
   LatLngBounds _allowedBounds = LatLngBounds(
     southwest: const LatLng(55.709214600107245, 13.207789044872932),
     northeast: const LatLng(55.713562876300905, 13.212897763941944),
@@ -182,6 +183,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   }
 
   void _centerOnUserLocation(LatLng position) {
+    _isProgrammaticMove = true;
     _mapController?.animateCamera(CameraUpdate.newLatLngZoom(position, 20.0));
   }
 
@@ -357,11 +359,27 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       ),
       onTap: widget.onTap,
       onCameraMove: _onCameraMove,
+      onCameraMoveStarted: _onCameraMoveStarted,
+      onCameraIdle: _onCameraIdle,
       cameraTargetBounds: CameraTargetBounds(_allowedBounds),
     );
   }
 
+  void _onCameraMoveStarted() {
+    // If camera moves and it's not from our code, user is interacting
+    if (!_isProgrammaticMove && _isSnappedToLocation) {
+      setState(() {
+        _isSnappedToLocation = false;
+      });
+    }
+  }
+
   void _onCameraMove(CameraPosition position) {}
+
+  void _onCameraIdle() {
+    // Reset programmatic move flag after camera movement completes
+    _isProgrammaticMove = false;
+  }
 
   @override
   void dispose() {
