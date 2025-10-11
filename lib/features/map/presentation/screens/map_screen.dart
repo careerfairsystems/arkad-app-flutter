@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -313,32 +312,11 @@ class _MapScreenState extends State<MapScreen> {
     );
     Company company = companyViewModel.getCompanyById(location.companyId!)!;
     final position = LatLng(location.latitude, location.longitude);
-    BitmapDescriptor icon;
 
-    if (company.fullLogoUrl == null) {
-      icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
-    } else {
-      try {
-        // Check if asset exists before attempting to load it
-        final assetPath = "assets/images/companies/${company.id}.png";
-        final assetExists = await _assetExists(assetPath);
-
-        if (assetExists) {
-          icon = await BitmapDescriptor.asset(
-            const ImageConfiguration(size: Size(48, 48)),
-            assetPath,
-          );
-        } else {
-          // The following company id fails 216, 264
-          // Fallback to default marker if asset doesn't exist
-          icon = BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueCyan,
-          );
-        }
-      } catch (e) {
-        icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
-      }
-    }
+    // Try to get the company's logo, fallback to default marker if not available
+    final icon =
+        await company.getCompanyLogo() ??
+        BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
 
     return Marker(
       markerId: MarkerId(location.companyId.toString()),
@@ -360,16 +338,6 @@ class _MapScreenState extends State<MapScreen> {
       ),
 */
     );
-  }
-
-  /// Checks if an asset exists in the asset bundle
-  Future<bool> _assetExists(String assetPath) async {
-    try {
-      await rootBundle.load(assetPath);
-      return true;
-    } catch (_) {
-      return false;
-    }
   }
 
   Future<void> _updateMarkers(List<MapLocation> locations) async {

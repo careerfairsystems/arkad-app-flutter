@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../company/domain/entities/company.dart';
+import '../../../company/presentation/widgets/company_logo_widget.dart';
 
 /// Company information card displayed on map when a marker is selected
 ///
@@ -106,24 +107,6 @@ class CompanyInfoCard extends StatelessWidget {
   }
 
   Widget _buildCompanyLogo() {
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: ArkadColors.arkadLightNavy,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: company.logoUrl != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                company.logoUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.business, color: ArkadColors.arkadTurkos),
-              ),
-            )
-          : const Icon(Icons.business, color: ArkadColors.arkadTurkos),
-    );
+    return CompanyLogoWidget(company: company, size: 48, borderRadius: 8);
   }
 }

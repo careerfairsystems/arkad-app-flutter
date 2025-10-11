@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../company/domain/entities/company.dart';
 import '../../../company/presentation/view_models/company_view_model.dart';
+import '../../../company/presentation/widgets/company_logo_widget.dart';
 
 /// Bottom sheet for searching and selecting companies on the map
 ///
@@ -181,24 +182,6 @@ class _CompanySearchSheetState extends State<CompanySearchSheet> {
   }
 
   Widget _buildCompanyLogo(Company company) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: ArkadColors.arkadLightNavy,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: company.logoUrl != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                company.logoUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.business, color: ArkadColors.arkadTurkos),
-              ),
-            )
-          : const Icon(Icons.business, color: ArkadColors.arkadTurkos),
-    );
+    return CompanyLogoWidget(company: company, size: 40, borderRadius: 8);
   }
 }
