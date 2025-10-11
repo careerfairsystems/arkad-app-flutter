@@ -16,4 +16,9 @@ abstract class MapRepository {
 
   /// Get ground overlays for map buildings
   Future<Set<GroundOverlay>> getGroundOverlays(ImageConfiguration imageConfig);
+
+  ///   Gets the most likely building for a given area
+  /// If position is no building inside, returns null
+  /// Otherwise return the building that has the largest area inside the given position
+  MapBuilding? mostLikelyBuilding(LatLngBounds position);
 }

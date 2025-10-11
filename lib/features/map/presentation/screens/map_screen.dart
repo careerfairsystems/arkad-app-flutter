@@ -9,6 +9,7 @@ import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../company/domain/entities/company.dart';
 import '../../../company/presentation/view_models/company_view_model.dart';
 import '../../domain/entities/map_location.dart';
+import '../../domain/repositories/map_repository.dart';
 import '../view_models/map_permissions_view_model.dart';
 import '../view_models/map_view_model.dart';
 import '../widgets/arkad_map_widget.dart';
@@ -46,11 +47,8 @@ class _MapScreenState extends State<MapScreen> {
       // Listen to map location changes and update markers
       mapViewModel.addListener(_onLocationsChanged);
 
-      // Load locations, buildings, and ground overlays
-      final imageConfig = createLocalImageConfiguration(context);
+      // Load locations and update markers
       mapViewModel.loadLocations().then((_) async {
-        // Load ground overlays after buildings are loaded
-        await mapViewModel.loadGroundOverlays(imageConfig);
         await _updateMarkers(mapViewModel.locations);
       });
 
@@ -183,8 +181,8 @@ class _MapScreenState extends State<MapScreen> {
                 target: _lundCenter,
                 zoom: 15.0,
               ),
+              mapRepository: serviceLocator<MapRepository>(),
               markers: _markers,
-              groundOverlays: mapViewModel.groundOverlays,
               onMapCreated: (controller) {
                 _mapController = controller;
 

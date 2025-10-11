@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:arkad/features/map/domain/repositories/map_repository.dart';
 import 'package:arkad/features/map/presentation/providers/location_provider.dart';
 import 'package:arkad/shared/presentation/themes/arkad_theme.dart';
 import 'package:flutter/material.dart';
@@ -36,8 +37,8 @@ class ArkadMapWidget extends StatefulWidget {
   const ArkadMapWidget({
     super.key,
     required this.initialCameraPosition,
+    required this.mapRepository,
     this.markers = const {},
-    this.groundOverlays = const {},
     this.onMapCreated,
     this.onTap,
     this.minZoom = 18.0,
@@ -46,8 +47,8 @@ class ArkadMapWidget extends StatefulWidget {
   });
 
   final CameraPosition initialCameraPosition;
+  final MapRepository mapRepository;
   final Set<Marker> markers;
-  final Set<GroundOverlay> groundOverlays;
   final void Function(GoogleMapController)? onMapCreated;
   final void Function(LatLng)? onTap;
   final double minZoom;
@@ -66,6 +67,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   BitmapDescriptor? _userLocationIcon;
   bool _isSnappedToLocation = true;
   bool _isProgrammaticMove = false;
+  Set<GroundOverlay> _groundOverlays = {};
   LatLngBounds _allowedBounds = LatLngBounds(
     southwest: const LatLng(55.709214600107245, 13.207789044872932),
     northeast: const LatLng(55.713562876300905, 13.212897763941944),
@@ -76,6 +78,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     super.initState();
     _loadMapStyle();
     _createUserLocationIcon();
+    _loadGroundOverlays();
     _initializeLocationTracking();
   }
 
@@ -127,6 +130,23 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     } catch (e) {
       // Map style loading failed, continue with default style
       debugPrint('Failed to load map style from ${widget.mapStylePath}: $e');
+    }
+  }
+
+  Future<void> _loadGroundOverlays() async {
+    try {
+      final imageConfig = createLocalImageConfiguration(context);
+      final overlays = await widget.mapRepository.getGroundOverlays(
+        imageConfig,
+      );
+      if (mounted) {
+        setState(() {
+          _groundOverlays = overlays;
+        });
+      }
+    } catch (e) {
+      // Ground overlay loading failed, continue without overlays
+      debugPrint('Failed to load ground overlays: $e');
     }
   }
 
@@ -212,10 +232,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
 
         return Stack(
           children: [
-            _buildGoogleMap(
-              _buildMarkers(locationProvider),
-              widget.groundOverlays,
-            ),
+            _buildGoogleMap(_buildMarkers(locationProvider), _groundOverlays),
             // Floor selector if floors are available
             if (availableFloors.length > 1)
               Positioned(

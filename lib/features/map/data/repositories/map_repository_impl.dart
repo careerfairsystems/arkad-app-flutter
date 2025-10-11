@@ -145,7 +145,7 @@ class MapRepositoryImpl implements MapRepository {
       id: guildHouseBuildingId,
       name: 'Kårhuset',
       floors: [floorBasement, floor1],
-      defaultFloorIndex: 0,
+      defaultFloorIndex: 1,
     );
   }
 
@@ -206,7 +206,6 @@ class MapRepositoryImpl implements MapRepository {
             southwest: LatLng(floorMap.SW.lat, floorMap.SW.lon),
             northeast: LatLng(floorMap.NE.lat, floorMap.NE.lon),
           ),
-          transparency: 0,
         ),
       );
     }

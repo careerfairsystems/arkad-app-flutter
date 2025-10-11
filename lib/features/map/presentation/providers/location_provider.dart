@@ -48,7 +48,9 @@ class LocationProvider extends ChangeNotifier {
 
     if (loc != null) {
       final snappedLocation = (await combainSDK.snapToFeatureModel(loc));
-      print("Snapped location: $snappedLocation");
+      print(
+        "Snapped location: $snappedLocation current floor index is ${loc.indoor?.floorIndex}",
+      );
       final lat = snappedLocation?.lat ?? loc.latitude;
       final lon = snappedLocation?.lon ?? loc.longitude;
 
