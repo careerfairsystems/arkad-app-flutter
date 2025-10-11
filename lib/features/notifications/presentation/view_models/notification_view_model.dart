@@ -175,12 +175,14 @@ class NotificationViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _logoutSubscription = AppEvents.on<UserLoggedOutEvent>().listen((_) async {
       await Sentry.addBreadcrumb(
         Breadcrumb(
-          message: 'User logged out - clearing FCM state',
+          message: 'User logged out - clearing FCM token on backend',
           level: SentryLevel.info,
         ),
       );
-      // Reset command state
-      _syncFcmTokenCommand.reset();
+
+      // Send empty string to backend to clear FCM token registration
+      await _syncFcmTokenCommand.syncToken('');
+
       notifyListeners();
     });
   }
