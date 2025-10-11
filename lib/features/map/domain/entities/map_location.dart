@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_combainsdk/messages.g.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// Domain entity representing a location on the map
 class MapLocation {
@@ -85,11 +86,13 @@ class MapBuilding {
   final String name;
   final List<MapFloor> floors;
   final int defaultFloorIndex;
+  final LatLngBounds bounds;
 
   MapBuilding({
     required this.id,
     required this.name,
     required this.floors,
     required this.defaultFloorIndex,
+    required this.bounds,
   });
 }

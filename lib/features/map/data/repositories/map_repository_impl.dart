@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:arkad/features/company/domain/entities/company.dart';
 import 'package:arkad/features/company/domain/repositories/company_repository.dart';
 import 'package:flutter/material.dart';
@@ -114,6 +116,10 @@ class MapRepositoryImpl implements MapRepository {
     return MapBuilding(
       id: studyCBuildingId,
       name: 'Studie C',
+      bounds: LatLngBounds(
+        southwest: const LatLng(55.711319040663575, 13.208967394827487),
+        northeast: const LatLng(55.711756843405276, 13.210104089933266),
+      ),
       floors: [floor2],
       defaultFloorIndex: 0,
     );
@@ -146,6 +152,10 @@ class MapRepositoryImpl implements MapRepository {
       name: 'Kårhuset',
       floors: [floorBasement, floor1],
       defaultFloorIndex: 1,
+      bounds: LatLngBounds(
+        southwest: const LatLng(55.71211949637107, 13.20841646190142),
+        northeast: const LatLng(55.71278598926637, 13.210156283172068),
+      ),
     );
   }
 
@@ -165,6 +175,10 @@ class MapRepositoryImpl implements MapRepository {
       name: 'E-huset',
       floors: [floor1],
       defaultFloorIndex: 0,
+      bounds: LatLngBounds(
+        southwest: const LatLng(55.710345404059495, 13.209773518477117),
+        northeast: const LatLng(55.711093602785276, 13.21030127260777),
+      ),
     );
   }
 
@@ -211,5 +225,57 @@ class MapRepositoryImpl implements MapRepository {
     }
 
     return overlays;
+  }
+
+  @override
+  MapBuilding? mostLikelyBuilding(LatLngBounds position) {
+    final buildings = getMapBuildings();
+
+    MapBuilding? mostLikelyBuilding;
+    double maxOverlapArea = 0.0;
+
+    for (final building in buildings) {
+      final overlapArea = _calculateOverlapArea(position, building.bounds);
+
+      if (overlapArea > maxOverlapArea) {
+        maxOverlapArea = overlapArea;
+        mostLikelyBuilding = building;
+      }
+    }
+
+    return mostLikelyBuilding;
+  }
+
+  /// Calculates the area of overlap between two LatLngBounds
+  /// Returns 0.0 if there is no overlap
+  double _calculateOverlapArea(LatLngBounds bounds1, LatLngBounds bounds2) {
+    // Calculate the intersection rectangle
+    final overlapSouth = math.max(
+      bounds1.southwest.latitude,
+      bounds2.southwest.latitude,
+    );
+    final overlapWest = math.max(
+      bounds1.southwest.longitude,
+      bounds2.southwest.longitude,
+    );
+    final overlapNorth = math.min(
+      bounds1.northeast.latitude,
+      bounds2.northeast.latitude,
+    );
+    final overlapEast = math.min(
+      bounds1.northeast.longitude,
+      bounds2.northeast.longitude,
+    );
+
+    // Check if there's actual overlap (valid rectangle)
+    if (overlapNorth <= overlapSouth || overlapEast <= overlapWest) {
+      return 0.0; // No overlap
+    }
+
+    // Calculate area (simplified as rectangle area in degrees)
+    final latDiff = overlapNorth - overlapSouth;
+    final lonDiff = overlapEast - overlapWest;
+
+    return latDiff * lonDiff;
   }
 }
