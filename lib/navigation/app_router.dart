@@ -13,6 +13,7 @@ import '../features/event/presentation/screens/event_detail_screen.dart';
 import '../features/event/presentation/screens/event_screen.dart';
 import '../features/event/presentation/screens/event_ticket_screen.dart';
 import '../features/event/presentation/screens/scan_event_screen.dart';
+import '../features/map/presentation/screens/company_navigation_screen.dart';
 import '../features/map/presentation/screens/company_search_screen.dart';
 import '../features/map/presentation/screens/map_screen.dart';
 import '../features/profile/presentation/screens/edit_profile_screen.dart';
@@ -47,6 +48,7 @@ class AppRouter {
       '/auth',
       '/sessions',
       '/events',
+      '/navigate',
     ];
 
     bool isPublic(String path) =>
@@ -298,6 +300,22 @@ class AppRouter {
             ],
           ),
         ],
+      ),
+      // Navigation route (outside bottom nav shell)
+      GoRoute(
+        path: '/navigate/:companyId',
+        pageBuilder: _slide((context, state) {
+          final companyIdStr = state.pathParameters['companyId'];
+          final companyId = int.tryParse(companyIdStr ?? '');
+          if (companyId == null) {
+            return const Scaffold(
+              body: Center(
+                child: Text('Error: Invalid company ID'),
+              ),
+            );
+          }
+          return CompanyNavigationScreen(companyId: companyId);
+        }),
       ),
       GoRoute(
         path: '/:_(.*)',

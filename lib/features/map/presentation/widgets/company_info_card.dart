@@ -75,19 +75,35 @@ class CompanyInfoCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // View details button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  context.push('/companies/detail/${company.id}');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ArkadColors.arkadTurkos,
-                  foregroundColor: ArkadColors.white,
+            // Action buttons
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      context.push('/companies/detail/${company.id}');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ArkadColors.arkadTurkos,
+                      foregroundColor: ArkadColors.white,
+                    ),
+                    child: const Text('View Details'),
+                  ),
                 ),
-                child: const Text('View Details'),
-              ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      context.push('/navigate/${company.id}');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ArkadColors.arkadGreen,
+                      foregroundColor: ArkadColors.white,
+                    ),
+                    child: const Text('Navigate to'),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
 

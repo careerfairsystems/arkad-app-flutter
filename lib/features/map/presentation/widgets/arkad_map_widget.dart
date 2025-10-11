@@ -1,4 +1,7 @@
+import 'dart:ui' as ui;
+
 import 'package:arkad/features/map/presentation/providers/location_provider.dart';
+import 'package:arkad/shared/presentation/themes/arkad_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -25,6 +28,9 @@ const eHouseCluster = ClusterManager(
   clusterManagerId: ClusterManagerId("261376246"),
 );
 const khCluster = ClusterManager(clusterManagerId: ClusterManagerId("1834"));
+
+// User location dot size in pixels
+const double _userLocationDotSize = 20.0;
 
 class ArkadMapWidget extends StatefulWidget {
   const ArkadMapWidget({
@@ -59,6 +65,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   String? _mapStyle;
   bool _hasRequestedPermission = false;
   int _selectedFloorIndex = 0;
+  BitmapDescriptor? _userLocationIcon;
   LatLngBounds _allowedBounds = LatLngBounds(
     southwest: const LatLng(55.709214600107245, 13.207789044872932),
     northeast: const LatLng(55.713562876300905, 13.212897763941944),
@@ -68,11 +75,49 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   void initState() {
     super.initState();
     _loadMapStyle();
+    _createUserLocationIcon();
     _initializeLocationTracking();
 
     // Set initial floor to first available floor
     if (widget.availableFloors.isNotEmpty) {
       _selectedFloorIndex = widget.availableFloors.first.$1;
+    }
+  }
+
+  Future<void> _createUserLocationIcon() async {
+    const size = _userLocationDotSize;
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+
+    // Draw white border circle
+    final borderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      const Offset(_userLocationDotSize / 2, _userLocationDotSize / 2),
+      size / 2,
+      borderPaint,
+    );
+
+    // Draw inner blue circle
+    final fillPaint = Paint()
+      ..color = ArkadColors.arkadLightTurkos
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      const Offset(_userLocationDotSize / 2, _userLocationDotSize / 2),
+      (size / 2) - 2, // 2px white border
+      fillPaint,
+    );
+
+    final picture = pictureRecorder.endRecording();
+    final image = await picture.toImage(size.toInt(), size.toInt());
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    if (bytes != null && mounted) {
+      final icon = BitmapDescriptor.bytes(bytes.buffer.asUint8List());
+      setState(() {
+        _userLocationIcon = icon;
+      });
     }
   }
 
@@ -126,35 +171,18 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   Set<Marker> _buildMarkers(LocationProvider? locationProvider) {
     final markers = Set<Marker>.from(widget.markers);
 
-    // Add user location marker if enabled and location is available
-    if (locationProvider != null && locationProvider.currentLocation != null) {
+    // Add user location marker if icon is loaded and location is available
+    if (_userLocationIcon != null &&
+        locationProvider != null &&
+        locationProvider.currentLocation != null) {
       final userLocation = locationProvider.currentLocation!;
-
-      // Find floor label from available floors
-      String? floorLabel;
-      if (userLocation.floorIndex != null &&
-          userLocation.availableFloors.isNotEmpty) {
-        final floor = userLocation.availableFloors.firstWhere(
-          (f) => f.$1 == userLocation.floorIndex,
-          orElse: () =>
-              (userLocation.floorIndex!, 'Floor ${userLocation.floorIndex}'),
-        );
-        floorLabel = floor.$2;
-      }
 
       markers.add(
         Marker(
           markerId: const MarkerId('user_location'),
           position: userLocation.latLng,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueAzure,
-          ),
-          infoWindow: InfoWindow(
-            title: 'Your Location',
-            snippet: floorLabel != null
-                ? 'Floor: $floorLabel'
-                : 'Accuracy: ${userLocation.accuracy.toStringAsFixed(1)}m',
-          ),
+          icon: _userLocationIcon!,
+          anchor: const Offset(0.5, 0.5),
         ),
       );
     }
@@ -254,6 +282,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       groundOverlays: groundOverlays,
       tiltGesturesEnabled: false, // Enables tilt gestures
       rotateGesturesEnabled: false, // Enables rotation
+      zoomControlsEnabled: false,
 
       minMaxZoomPreference: MinMaxZoomPreference(
         widget.minZoom,
