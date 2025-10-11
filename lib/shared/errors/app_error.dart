@@ -69,6 +69,17 @@ class NetworkError extends AppError {
       );
 }
 
+/// Server response timeout error (server is slow or overloaded)
+class ServerSlowError extends AppError {
+  const ServerSlowError({String? details, super.recoveryActions})
+    : super(
+        userMessage:
+            "The server is taking longer than expected. Please try again.",
+        severity: ErrorSeverity.warning,
+        technicalDetails: details,
+      );
+}
+
 /// Authentication/authorization error
 class AuthenticationError extends AppError {
   const AuthenticationError({String? details})
