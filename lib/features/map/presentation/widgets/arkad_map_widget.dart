@@ -66,6 +66,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   bool _hasRequestedPermission = false;
   int _selectedFloorIndex = 0;
   BitmapDescriptor? _userLocationIcon;
+  bool _isSnappedToLocation = true;
   LatLngBounds _allowedBounds = LatLngBounds(
     southwest: const LatLng(55.709214600107245, 13.207789044872932),
     northeast: const LatLng(55.713562876300905, 13.212897763941944),
@@ -145,6 +146,9 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       // Initialize location provider
       await locationProvider.initialize();
 
+      // Listen to location changes to follow when snapped
+      locationProvider.addListener(_onLocationChanged);
+
       // Request permission if needed
       if (!locationProvider.hasPermission && !_hasRequestedPermission) {
         _hasRequestedPermission = true;
@@ -164,8 +168,21 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     });
   }
 
+  void _onLocationChanged() {
+    if (!_isSnappedToLocation) return;
+
+    final locationProvider = Provider.of<LocationProvider>(
+      context,
+      listen: false,
+    );
+
+    if (locationProvider.currentLocation != null) {
+      _centerOnUserLocation(locationProvider.currentLocation!.latLng);
+    }
+  }
+
   void _centerOnUserLocation(LatLng position) {
-    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(position, 16.0));
+    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(position, 20.0));
   }
 
   Set<Marker> _buildMarkers(LocationProvider? locationProvider) {
@@ -202,22 +219,21 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       },
     );
 
-    // Show floor selector if floors are available
-    if (widget.availableFloors.length > 1) {
-      return Stack(
-        children: [
-          mapWidget,
+    return Stack(
+      children: [
+        mapWidget,
+        // Floor selector if floors are available
+        if (widget.availableFloors.length > 1)
           Positioned(
             top: 16,
             left: 16,
             right: 16,
             child: _buildFloorSelector(),
           ),
-        ],
-      );
-    }
-
-    return mapWidget;
+        // Location snap button
+        Positioned(bottom: 16, right: 16, child: _buildLocationSnapButton()),
+      ],
+    );
   }
 
   Widget _buildFloorSelector() {
@@ -266,6 +282,57 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     );
   }
 
+  Widget _buildLocationSnapButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _toggleSnapToLocation,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Icon(
+              Icons.location_on,
+              color: _isSnappedToLocation
+                  ? ArkadColors.arkadLightTurkos
+                  : Colors.grey,
+              size: 28,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _toggleSnapToLocation() {
+    setState(() {
+      _isSnappedToLocation = !_isSnappedToLocation;
+    });
+
+    if (_isSnappedToLocation) {
+      // Snap to current location immediately
+      final locationProvider = Provider.of<LocationProvider>(
+        context,
+        listen: false,
+      );
+
+      if (locationProvider.currentLocation != null) {
+        _centerOnUserLocation(locationProvider.currentLocation!.latLng);
+      }
+    }
+  }
+
   Widget _buildGoogleMap(
     Set<Marker> markers,
     Set<GroundOverlay> groundOverlays,
@@ -294,35 +361,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     );
   }
 
-  void _onCameraMove(CameraPosition position) {
-    final target = position.target;
-
-    // Check if camera target is within bounds
-    if (!_isPointInBounds(target, _allowedBounds)) {
-      // Clamp position to bounds
-      final clampedPosition = _clampToBounds(target, _allowedBounds);
-      _mapController?.animateCamera(CameraUpdate.newLatLng(clampedPosition));
-    }
-  }
-
-  bool _isPointInBounds(LatLng point, LatLngBounds bounds) {
-    return point.latitude >= bounds.southwest.latitude &&
-        point.latitude <= bounds.northeast.latitude &&
-        point.longitude >= bounds.southwest.longitude &&
-        point.longitude <= bounds.northeast.longitude;
-  }
-
-  LatLng _clampToBounds(LatLng point, LatLngBounds bounds) {
-    final clampedLat = point.latitude.clamp(
-      bounds.southwest.latitude,
-      bounds.northeast.latitude,
-    );
-    final clampedLng = point.longitude.clamp(
-      bounds.southwest.longitude,
-      bounds.northeast.longitude,
-    );
-    return LatLng(clampedLat, clampedLng);
-  }
+  void _onCameraMove(CameraPosition position) {}
 
   @override
   void dispose() {
@@ -330,6 +369,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       context,
       listen: false,
     );
+    locationProvider.removeListener(_onLocationChanged);
     locationProvider.stopTracking();
     _mapController?.dispose();
     super.dispose();
