@@ -1,9 +1,12 @@
 import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'server_time_service.dart';
+
 /// Central timezone service for handling Europe/Stockholm timezone operations
 /// Provides consistent timezone conversion and formatting across the app
 /// Uses the timezone package for accurate DST handling
+/// Uses NTP time from ServerTimeService to prevent device time manipulation
 class TimezoneService {
   const TimezoneService._();
 
@@ -13,11 +16,14 @@ class TimezoneService {
   /// Private instance for consistent access
   static const TimezoneService instance = TimezoneService._();
 
-  /// Get current time in Stockholm timezone
+  /// Get current time in Stockholm timezone using NTP servers
   /// Use this instead of DateTime.now() for all timeline validations
+  /// This prevents users from bypassing validation by changing device time
+  /// Uses cached NTP offset for fast, synchronous access
   static DateTime stockholmNow() {
+    final accurateUtcTime = ServerTimeService.instance.getAccurateNow();
     final stockholm = tz.getLocation(stockholmTimezone);
-    return tz.TZDateTime.now(stockholm);
+    return tz.TZDateTime.from(accurateUtcTime.toUtc(), stockholm);
   }
 
   /// Convert UTC DateTime to Stockholm timezone
