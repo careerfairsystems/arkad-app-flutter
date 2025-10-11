@@ -104,8 +104,6 @@ class PermissionStepWidget extends StatelessWidget {
                             text: buttonText,
                             onPressed: isLoading ? null : buttonAction,
                             isLoading: isLoading,
-                            variant: ArkadButtonVariant.primary,
-                            size: ArkadButtonSize.large,
                           ),
                         ),
                       ],

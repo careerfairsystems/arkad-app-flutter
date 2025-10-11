@@ -107,6 +107,6 @@ class CompanyInfoCard extends StatelessWidget {
   }
 
   Widget _buildCompanyLogo() {
-    return CompanyLogoWidget(company: company, size: 48, borderRadius: 8);
+    return CompanyLogoWidget(company: company);
   }
 }

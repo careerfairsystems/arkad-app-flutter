@@ -53,7 +53,6 @@ import '../features/event/data/mappers/ticket_verification_mapper.dart';
 import '../features/event/data/repositories/event_repository_impl.dart';
 import '../features/event/domain/repositories/event_repository.dart';
 import '../features/event/presentation/view_models/event_view_model.dart';
-import '../features/map/data/data_sources/location_data_source.dart';
 import '../features/map/data/repositories/location_repository_impl.dart';
 import '../features/map/data/repositories/map_repository_impl.dart';
 import '../features/map/data/services/permission_service.dart';
@@ -639,13 +638,9 @@ Future<void> _setupMapFeature() async {
     () => PermissionService(),
   );
 
-  // Location feature setup
-  serviceLocator.registerLazySingleton<LocationDataSource>(
-    () => LocationDataSource(),
-  );
 
   serviceLocator.registerLazySingleton<LocationRepository>(
-    () => LocationRepositoryImpl(serviceLocator<LocationDataSource>()),
+    () => LocationRepositoryImpl(),
   );
 
   serviceLocator.registerLazySingleton<LocationProvider>(

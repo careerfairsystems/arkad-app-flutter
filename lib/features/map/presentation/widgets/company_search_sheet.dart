@@ -182,6 +182,6 @@ class _CompanySearchSheetState extends State<CompanySearchSheet> {
   }
 
   Widget _buildCompanyLogo(Company company) {
-    return CompanyLogoWidget(company: company, size: 40, borderRadius: 8);
+    return CompanyLogoWidget(company: company, size: 40);
   }
 }

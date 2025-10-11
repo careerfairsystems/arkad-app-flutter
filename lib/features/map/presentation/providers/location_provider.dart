@@ -1,8 +1,14 @@
 import 'dart:async';
 
+import 'package:arkad/features/map/data/repositories/map_repository_impl.dart';
 import 'package:arkad/features/map/domain/entities/user_location.dart';
 import 'package:arkad/features/map/domain/repositories/location_repository.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
+import 'package:flutter_combainsdk/messages.g.dart';
+import 'package:get_it/get_it.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// Provider for managing user location state
 class LocationProvider extends ChangeNotifier {
@@ -10,23 +16,49 @@ class LocationProvider extends ChangeNotifier {
 
   final LocationRepository _repository;
 
+  final combainSDK = GetIt.I<FlutterCombainSDK>();
+
   UserLocation? _currentLocation;
-  bool _isTracking = false;
   bool _hasPermission = false;
-  bool _isServiceEnabled = false;
   String? _error;
   StreamSubscription<UserLocation>? _locationSubscription;
 
   UserLocation? get currentLocation => _currentLocation;
-  bool get isTracking => _isTracking;
   bool get hasPermission => _hasPermission;
-  bool get isServiceEnabled => _isServiceEnabled;
   String? get error => _error;
+
+  List<(int floorIndex, String floorLabel)> _availableFloorsFromLocation(
+    FlutterCombainIndoorLocation? loc,
+  ) {
+    if (loc == null) return [];
+    switch (loc.buildingId) {
+      case MapRepositoryImpl.eHouseBuildingId:
+        return [(0, '1')];
+      case MapRepositoryImpl.studyCBuildingId:
+        return [(0, '0')];
+      case MapRepositoryImpl.guildHouseBuildingId:
+        return [(0, 'Gasque'), (1, 'Entrance')];
+      default:
+        return [];
+    }
+  }
 
   /// Initialize location provider (check permissions and service)
   Future<void> initialize() async {
     _hasPermission = await _repository.hasLocationPermission();
-    _isServiceEnabled = await _repository.isLocationServiceEnabled();
+    combainSDK.currentLocation.addListener(() {
+      final loc = combainSDK.currentLocation.value;
+      if (loc != null) {
+        _currentLocation = UserLocation(
+          latLng: LatLng(loc.latitude, loc.longitude),
+          accuracy: loc.accuracy,
+          timestamp: DateTime.fromMillisecondsSinceEpoch(loc.fetchedTimeMillis),
+          floorIndex: loc.indoor?.floorIndex,
+          availableFloors: _availableFloorsFromLocation(loc.indoor),
+        );
+        notifyListeners();
+      }
+    });
     notifyListeners();
   }
 
@@ -44,111 +76,28 @@ class LocationProvider extends ChangeNotifier {
     return granted;
   }
 
-  /// Get current location once
-  Future<void> getCurrentLocation() async {
-    _error = null;
-
-    if (!_hasPermission) {
-      _error = 'Location permission not granted';
-      notifyListeners();
-      return;
-    }
-
-    if (!_isServiceEnabled) {
-      _error = 'Location service is disabled';
-      notifyListeners();
-      return;
-    }
-
-    final result = await _repository.getCurrentLocation();
-    result.when(
-      success: (location) {
-        _currentLocation = location;
-        _error = null;
-      },
-      failure: (error) {
-        _error = error.toString();
-      },
-    );
-
-    notifyListeners();
-  }
-
   /// Start tracking location updates
   Future<void> startTracking() async {
-    if (_isTracking) return;
-
     if (!_hasPermission) {
       _error = 'Location permission not granted';
       notifyListeners();
       return;
     }
 
-    if (!_isServiceEnabled) {
-      _error = 'Location service is disabled';
-      notifyListeners();
-      return;
-    }
-
-    _isTracking = true;
-    _error = null;
-    notifyListeners();
-
-    _locationSubscription = _repository.locationStream.listen(
-      (location) {
-        _currentLocation = location;
-        _error = null;
-        notifyListeners();
-      },
-      onError: (error) {
-        _error = error.toString();
-        _isTracking = false;
-        notifyListeners();
-      },
-    );
+    await combainSDK.start();
   }
 
   /// Stop tracking location updates
   void stopTracking() {
-    if (!_isTracking) return;
-
-    _locationSubscription?.cancel();
-    _locationSubscription = null;
-    _isTracking = false;
-    notifyListeners();
+    combainSDK.stop();
   }
 
   /// Update floor information manually (for indoor positioning)
   void updateFloor(int floorIndex) {
-    if (_currentLocation == null) return;
-
-    _currentLocation = UserLocation(
-      latLng: _currentLocation!.latLng,
-      accuracy: _currentLocation!.accuracy,
-      timestamp: _currentLocation!.timestamp,
-      heading: _currentLocation!.heading,
-      speed: _currentLocation!.speed,
-      floorIndex: floorIndex,
-      availableFloors: _currentLocation!.availableFloors,
-    );
-
-    notifyListeners();
-  }
-
-  /// Update available floors for current location
-  void updateAvailableFloors(List<(int floorIndex, String floorLabel)> floors) {
-    if (_currentLocation == null) return;
-
-    _currentLocation = UserLocation(
-      latLng: _currentLocation!.latLng,
-      accuracy: _currentLocation!.accuracy,
-      timestamp: _currentLocation!.timestamp,
-      heading: _currentLocation!.heading,
-      speed: _currentLocation!.speed,
-      floorIndex: _currentLocation!.floorIndex,
-      availableFloors: floors,
-    );
-
+    /**
+     * TODO: Implement logic to switch floor
+     * When switching the new floor should be used until building changes
+     */
     notifyListeners();
   }
 

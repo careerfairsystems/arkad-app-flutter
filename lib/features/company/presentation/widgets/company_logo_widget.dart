@@ -32,7 +32,7 @@ class CompanyLogoWidget extends StatelessWidget {
         future: _loadLogo(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
+            return const Center(
               child: SizedBox(
                 width: 16,
                 height: 16,

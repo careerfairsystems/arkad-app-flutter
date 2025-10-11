@@ -6,8 +6,6 @@ class UserLocation {
     required this.latLng,
     required this.accuracy,
     required this.timestamp,
-    this.heading,
-    this.speed,
     this.floorIndex,
     this.availableFloors = const [],
   });
@@ -15,8 +13,6 @@ class UserLocation {
   final LatLng latLng;
   final double accuracy; // In meters
   final DateTime timestamp;
-  final double? heading; // Direction in degrees
-  final double? speed; // Speed in m/s
   final int? floorIndex;
   final List<(int floorIndex, String floorLabel)>
   availableFloors; // List of available floors at this location

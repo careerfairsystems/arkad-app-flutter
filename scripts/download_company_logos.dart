@@ -1,7 +1,8 @@
 #!/usr/bin/env dart
 
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
@@ -20,7 +21,9 @@ Future<void> main() async {
     final response = await http.get(Uri.parse(apiUrl));
 
     if (response.statusCode != 200) {
-      print('Error: Failed to fetch companies. Status code: ${response.statusCode}');
+      print(
+        'Error: Failed to fetch companies. Status code: ${response.statusCode}',
+      );
       exit(1);
     }
 
@@ -46,7 +49,9 @@ Future<void> main() async {
       final companyName = company['name'] ?? 'Unknown';
       final logoUrl = company['logoUrl'];
 
-      print('[${ i + 1}/${companies.length}] Processing: $companyName (ID: $companyId)');
+      print(
+        '[${i + 1}/${companies.length}] Processing: $companyName (ID: $companyId)',
+      );
 
       if (companyId == null) {
         print('  ⚠ Skipped: No company ID available');
@@ -75,7 +80,9 @@ Future<void> main() async {
         final logoResponse = await http.get(Uri.parse(fullLogoUrl));
 
         if (logoResponse.statusCode != 200) {
-          print('  ❌ Error: Failed to download (status ${logoResponse.statusCode})');
+          print(
+            '  ❌ Error: Failed to download (status ${logoResponse.statusCode})',
+          );
           errorCount++;
           continue;
         }
@@ -87,7 +94,8 @@ Future<void> main() async {
           final contentType = logoResponse.headers['content-type'] ?? '';
           if (contentType.contains('png')) {
             extension = '.png';
-          } else if (contentType.contains('jpg') || contentType.contains('jpeg')) {
+          } else if (contentType.contains('jpg') ||
+              contentType.contains('jpeg')) {
             extension = '.jpg';
           } else if (contentType.contains('svg')) {
             extension = '.svg';
@@ -111,13 +119,16 @@ Future<void> main() async {
 
         // Verify file was written successfully
         if (await file.exists()) {
-          print('  ✅ Saved: $fileName (${(logoResponse.bodyBytes.length / 1024).toStringAsFixed(1)} KB)');
+          print(
+            '  ✅ Saved: $fileName (${(logoResponse.bodyBytes.length / 1024).toStringAsFixed(1)} KB)',
+          );
           downloadedCount++;
         } else {
-          print('  ⚠️  WARNING: Logo URL exists but file was not saved: $fileName');
+          print(
+            '  ⚠️  WARNING: Logo URL exists but file was not saved: $fileName',
+          );
           errorCount++;
         }
-
       } catch (e) {
         print('  ❌ Error: $e');
         errorCount++;
@@ -133,7 +144,6 @@ Future<void> main() async {
     print('  ❌ Errors: $errorCount');
     print('  📊 Total companies: ${companies.length}');
     print('═══════════════════════════════════════');
-
   } catch (e) {
     print('Fatal error: $e');
     exit(1);

@@ -12,6 +12,11 @@ import '../../domain/entities/map_location.dart';
 import '../../domain/repositories/map_repository.dart';
 
 class MapRepositoryImpl implements MapRepository {
+  // Building ID constants
+  static const int studyCBuildingId = 261376248;
+  static const int guildHouseBuildingId = 1834;
+  static const int eHouseBuildingId = 261376246;
+
   final combainSDK = GetIt.I<FlutterCombainSDK>();
   final CompanyRepository companyRepository = GetIt.I<CompanyRepository>();
 
@@ -107,7 +112,7 @@ class MapRepositoryImpl implements MapRepository {
       ),
     );
     return MapBuilding(
-      id: 261376248,
+      id: studyCBuildingId,
       name: 'Studie C',
       floors: [floor2],
       defaultFloorIndex: 0,
@@ -137,7 +142,7 @@ class MapRepositoryImpl implements MapRepository {
     );
 
     return MapBuilding(
-      id: 1834,
+      id: guildHouseBuildingId,
       name: 'Kårhuset',
       floors: [floorBasement, floor1],
       defaultFloorIndex: 0,
@@ -156,7 +161,7 @@ class MapRepositoryImpl implements MapRepository {
       ),
     );
     return MapBuilding(
-      id: 261376246,
+      id: eHouseBuildingId,
       name: 'E-huset',
       floors: [floor1],
       defaultFloorIndex: 0,

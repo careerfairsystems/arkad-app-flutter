@@ -18,9 +18,14 @@ import 'package:provider/provider.dart';
 
 * */
 
-const studieCCluster = ClusterManager(clusterManagerId: ClusterManagerId("261376248"));
-const eHouseCluster = ClusterManager(clusterManagerId: ClusterManagerId("261376246"));
+const studieCCluster = ClusterManager(
+  clusterManagerId: ClusterManagerId("261376248"),
+);
+const eHouseCluster = ClusterManager(
+  clusterManagerId: ClusterManagerId("261376246"),
+);
 const khCluster = ClusterManager(clusterManagerId: ClusterManagerId("1834"));
+
 class ArkadMapWidget extends StatefulWidget {
   const ArkadMapWidget({
     super.key,
@@ -32,8 +37,6 @@ class ArkadMapWidget extends StatefulWidget {
     this.onTap,
     this.minZoom = 18.0,
     this.maxZoom = 22.0,
-    this.enableLocationTracking = false,
-    this.showUserLocationMarker = false,
     this.centerOnUserLocation = false,
     this.mapStylePath = 'assets/map_styles/arkad_dark_map_style.json',
   });
@@ -46,8 +49,6 @@ class ArkadMapWidget extends StatefulWidget {
   final void Function(LatLng)? onTap;
   final double minZoom;
   final double maxZoom;
-  final bool enableLocationTracking;
-  final bool showUserLocationMarker;
   final bool centerOnUserLocation;
   final String mapStylePath;
 
@@ -92,8 +93,6 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   }
 
   void _initializeLocationTracking() {
-    if (!widget.enableLocationTracking) return;
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final locationProvider = Provider.of<LocationProvider>(
         context,
@@ -103,24 +102,22 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       // Initialize location provider
       await locationProvider.initialize();
 
-      if (widget.enableLocationTracking) {
-        // Request permission if needed
-        if (!locationProvider.hasPermission && !_hasRequestedPermission) {
-          _hasRequestedPermission = true;
-          final granted = await locationProvider.requestPermission();
+      // Request permission if needed
+      if (!locationProvider.hasPermission && !_hasRequestedPermission) {
+        _hasRequestedPermission = true;
+        final granted = await locationProvider.requestPermission();
 
-          if (granted) {
-            await locationProvider.startTracking();
-
-            // Center on user location if requested
-            if (widget.centerOnUserLocation &&
-                locationProvider.currentLocation != null) {
-              _centerOnUserLocation(locationProvider.currentLocation!.latLng);
-            }
-          }
-        } else if (locationProvider.hasPermission) {
+        if (granted) {
           await locationProvider.startTracking();
+
+          // Center on user location if requested
+          if (widget.centerOnUserLocation &&
+              locationProvider.currentLocation != null) {
+            _centerOnUserLocation(locationProvider.currentLocation!.latLng);
+          }
         }
+      } else if (locationProvider.hasPermission) {
+        await locationProvider.startTracking();
       }
     });
   }
@@ -133,9 +130,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     final markers = Set<Marker>.from(widget.markers);
 
     // Add user location marker if enabled and location is available
-    if (widget.showUserLocationMarker &&
-        locationProvider != null &&
-        locationProvider.currentLocation != null) {
+    if (locationProvider != null && locationProvider.currentLocation != null) {
       final userLocation = locationProvider.currentLocation!;
 
       // Find floor label from available floors
@@ -173,17 +168,14 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   @override
   Widget build(BuildContext context) {
     // Use Consumer if location tracking is enabled, otherwise build directly
-    final mapWidget =
-        widget.enableLocationTracking || widget.showUserLocationMarker
-        ? Consumer<LocationProvider>(
-            builder: (context, locationProvider, child) {
-              return _buildGoogleMap(
-                _buildMarkers(locationProvider),
-                widget.groundOverlays,
-              );
-            },
-          )
-        : _buildGoogleMap(widget.markers, widget.groundOverlays);
+    final mapWidget = Consumer<LocationProvider>(
+      builder: (context, locationProvider, child) {
+        return _buildGoogleMap(
+          _buildMarkers(locationProvider),
+          widget.groundOverlays,
+        );
+      },
+    );
 
     // Show floor selector if floors are available
     if (widget.availableFloors.length > 1) {
@@ -263,8 +255,6 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       initialCameraPosition: widget.initialCameraPosition,
       markers: markers,
       groundOverlays: groundOverlays,
-      scrollGesturesEnabled: true, // Enables panning
-      zoomGesturesEnabled: true, // Enables pinch-to-zoom
       tiltGesturesEnabled: false, // Enables tilt gestures
       rotateGesturesEnabled: false, // Enables rotation
 
@@ -273,21 +263,18 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
         widget.maxZoom,
       ),
       onTap: widget.onTap,
-      myLocationEnabled: false, // Always false, we use custom location marker
       onCameraMove: _onCameraMove,
       cameraTargetBounds: CameraTargetBounds(_allowedBounds),
     );
   }
 
   void _onCameraMove(CameraPosition position) {
-    if (_allowedBounds == null) return;
-
     final target = position.target;
 
     // Check if camera target is within bounds
-    if (!_isPointInBounds(target, _allowedBounds!)) {
+    if (!_isPointInBounds(target, _allowedBounds)) {
       // Clamp position to bounds
-      final clampedPosition = _clampToBounds(target, _allowedBounds!);
+      final clampedPosition = _clampToBounds(target, _allowedBounds);
       _mapController?.animateCamera(CameraUpdate.newLatLng(clampedPosition));
     }
   }
@@ -313,13 +300,11 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
 
   @override
   void dispose() {
-    if (widget.enableLocationTracking) {
-      final locationProvider = Provider.of<LocationProvider>(
-        context,
-        listen: false,
-      );
-      locationProvider.stopTracking();
-    }
+    final locationProvider = Provider.of<LocationProvider>(
+      context,
+      listen: false,
+    );
+    locationProvider.stopTracking();
     _mapController?.dispose();
     super.dispose();
   }
