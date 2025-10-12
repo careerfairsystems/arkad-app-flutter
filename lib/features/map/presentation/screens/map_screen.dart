@@ -65,6 +65,9 @@ class _MapScreenState extends State<MapScreen> {
 
     final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
 
+    // Update markers when locations change
+    await _updateMarkers(mapViewModel.locations);
+
     // When a company is selected, zoom to its location
     if (mapViewModel.selectedLocation != null) {
       final location = mapViewModel.selectedLocation!;

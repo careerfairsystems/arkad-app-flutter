@@ -155,8 +155,8 @@ class MapViewModel extends ChangeNotifier {
 
   void updateBuildingFloor(int buildingId, int floorIndex) async {
     buildingIdToFloorIndex[buildingId] = floorIndex;
-    await loadLocations();
     await loadGroundOverlays(_imageConfig);
+    await loadLocations();
     notifyListeners();
   }
 

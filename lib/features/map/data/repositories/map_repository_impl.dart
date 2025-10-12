@@ -22,6 +22,9 @@ class MapRepositoryImpl implements MapRepository {
   final combainSDK = GetIt.I<FlutterCombainSDK>();
   final CompanyRepository companyRepository = GetIt.I<CompanyRepository>();
 
+  // Cache for locations grouped by (buildingId, floorIndex)
+  Map<({int buildingId, int floorIndex}), List<MapLocation>>? _locationsCache;
+
   Future<Company?> _companyFromRoutableTarget(
     FlutterRoutableTarget target,
   ) async {
@@ -38,64 +41,88 @@ class MapRepositoryImpl implements MapRepository {
     }
   }
 
+  /// Builds the locations cache on first call by fetching all routable targets
+  /// and grouping them by (buildingId, floorIndex)
+  Future<void> _ensureLocationsCache() async {
+    if (_locationsCache != null) return;
+
+    final locations = await combainSDK
+        .getRoutingProvider()
+        .getAllRoutableTargetsWithPagination(
+          FlutterPaginationOptions(page: 0, pageSize: 1000),
+        );
+
+    final cache = <({int buildingId, int floorIndex}), List<MapLocation>>{};
+
+    // Map over locations and await all futures
+    final mappedLocationsFutures = locations.map((location) async {
+      final floorIndex = location.floors.keys.first;
+      final routableTargetCenter = location.centerPoints[floorIndex];
+      if (routableTargetCenter == null) {
+        return null; // Skip if no center point for the floor
+      }
+
+      final company = await _companyFromRoutableTarget(location);
+
+      final mapLocation = MapLocation(
+        id: FlutterNodeFloorIndex(
+          nodeId: location.nodeId,
+          floorIndex: floorIndex!,
+        ),
+        name: location.name,
+        latitude: location.centerPoints[floorIndex]!.lat,
+        longitude: location.centerPoints[floorIndex]!.lon,
+        type: company == null ? LocationType.food : LocationType.booth,
+        featureModelId: location.featureModelId,
+        imageUrl: company?.fullLogoUrl,
+        companyId: company?.id,
+        building: location.buildingId.toString(),
+      );
+
+      return (location.buildingId, floorIndex, mapLocation);
+    }).toList();
+
+    final mappedLocations = await Future.wait(mappedLocationsFutures);
+
+    // Group locations by (buildingId, floorIndex)
+    for (final entry in mappedLocations.whereType<(int, int, MapLocation)>()) {
+      final (buildingId, floorIndex, mapLocation) = entry;
+      final key = (buildingId: buildingId, floorIndex: floorIndex);
+      cache.putIfAbsent(key, () => []).add(mapLocation);
+    }
+
+    _locationsCache = cache;
+  }
+
   @override
   Future<Result<List<MapLocation>>> getLocations(
     Map<int, int> buildingIdToFloorIndex,
   ) async {
     try {
-      final locations = await combainSDK
-          .getRoutingProvider()
-          .getAllRoutableTargetsWithPagination(
-            FlutterPaginationOptions(page: 0, pageSize: 1000),
-          );
-      // Map over locations and await all futures
-      final mappedLocationsFutures = locations.map((location) async {
-        final floorIndex = location.floors.keys.first;
-        final routableTargetCenter = location.centerPoints[floorIndex];
-        if (routableTargetCenter == null) {
-          return null; // Skip if no center point for the floor
-        }
+      await _ensureLocationsCache();
 
-        final company = await _companyFromRoutableTarget(location);
-        if (company != null) {
-          final okFloorIndex = buildingIdToFloorIndex[location.buildingId];
-          if (okFloorIndex != null && okFloorIndex != floorIndex) {
-            return null; // Skip if floor index does not match
+      final result = <MapLocation>[];
+
+      // Iterate over specific building IDs and their selected floor indices
+      for (final buildingId in [
+        studyCBuildingId,
+        guildHouseBuildingId,
+        eHouseBuildingId,
+      ]) {
+        final floorIndex = buildingIdToFloorIndex[buildingId];
+        if (floorIndex != null) {
+          final key = (buildingId: buildingId, floorIndex: floorIndex);
+          final locationsForFloor = _locationsCache![key];
+          if (locationsForFloor != null) {
+            result.addAll(locationsForFloor);
           }
         }
-        // Use buildingId from location for clustering
-        final buildingId = location.buildingId.toString();
+      }
 
-        return MapLocation(
-          id: FlutterNodeFloorIndex(
-            nodeId: location.nodeId,
-            floorIndex: floorIndex!,
-          ),
-          name: location.name,
-          latitude: location.centerPoints[floorIndex]!.lat,
-          longitude: location.centerPoints[floorIndex]!.lon,
-          type: company == null ? LocationType.food : LocationType.booth,
-          featureModelId: location.featureModelId,
-          imageUrl: company?.fullLogoUrl,
-          companyId: company?.id,
-          building: buildingId,
-        );
-      }).toList();
-
-      final mappedLocations = await Future.wait(mappedLocationsFutures);
-
-      return Result.success(mappedLocations.whereType<MapLocation>().toList());
+      return Result.success(result);
     } catch (e) {
       return Result.failure(UnknownError('Failed to load locations: $e'));
     }
-  }
-
-  @override
-  Future<Result<List<MapLocation>>> getLocationsByType(
-    LocationType type,
-  ) async {
-    // Placeholder implementation
-    return Result.success(<MapLocation>[]);
   }
 
   MapBuilding _getStudyC() {

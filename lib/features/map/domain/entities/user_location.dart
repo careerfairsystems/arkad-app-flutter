@@ -6,12 +6,14 @@ class UserLocation {
     required this.latLng,
     required this.accuracy,
     required this.timestamp,
+    required this.buildingId,
     this.floorIndex,
     this.floorLabel,
     this.buildingName,
   });
 
   final LatLng latLng;
+  final int? buildingId;
   final double accuracy; // In meters
   final DateTime timestamp;
   final int? floorIndex;

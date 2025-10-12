@@ -170,7 +170,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
               setState(() {
                 _isSnappedToLocation = true;
               });
-              _centerOnUserLocation(location);
+              _centerOnUserLocation(locationProvider.currentLocation!);
             }
           }
         }
@@ -202,7 +202,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     if (locationProvider.currentLocation != null) {
       final location = locationProvider.currentLocation!.latLng;
       if (_isLocationInBounds(location)) {
-        _centerOnUserLocation(location);
+        _centerOnUserLocation(locationProvider.currentLocation!);
       } else {
         // Location moved out of bounds, disable snapping
         setState(() {
@@ -212,9 +212,16 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     }
   }
 
-  void _centerOnUserLocation(LatLng position) {
+  void _centerOnUserLocation(UserLocation position) {
     _isProgrammaticMove = true;
-    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(position, 20.0));
+    final buildingId = position.buildingId;
+    final floorIndex = position.floorIndex;
+    if (buildingId != null && floorIndex != null) {
+      _mapViewModel.updateBuildingFloor(buildingId, floorIndex);
+    }
+    _mapController?.animateCamera(
+      CameraUpdate.newLatLngZoom(position.latLng, 20.0),
+    );
   }
 
   Set<Marker> _buildMarkers(LocationProvider? locationProvider) {
@@ -225,6 +232,17 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
         locationProvider != null &&
         locationProvider.currentLocation != null) {
       final userLocation = locationProvider.currentLocation!;
+      final floorIndex = userLocation.floorIndex;
+      final buildingId = userLocation.buildingId;
+      if (buildingId == null) {
+        // Don't show user location if building is unknown
+        return markers;
+      }
+      final okFloorIndex = _mapViewModel.getBuildingFloor(buildingId);
+      if (floorIndex != okFloorIndex) {
+        // Don't show user location if floor index doesn't match selected floor
+        return markers;
+      }
 
       markers.add(
         Marker(
@@ -389,7 +407,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       setState(() {
         _isSnappedToLocation = true;
       });
-      _centerOnUserLocation(locationProvider.currentLocation!.latLng);
+      _centerOnUserLocation(locationProvider.currentLocation!);
     } else {
       setState(() {
         _isSnappedToLocation = false;

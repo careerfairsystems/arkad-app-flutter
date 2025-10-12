@@ -49,6 +49,7 @@ class LocationProvider extends ChangeNotifier {
       _currentLocation = UserLocation(
         latLng: LatLng(lat, lon),
         accuracy: loc.accuracy,
+        buildingId: loc.indoor?.buildingId,
         timestamp: DateTime.fromMillisecondsSinceEpoch(loc.fetchedTimeMillis),
         floorIndex: loc.indoor?.floorIndex,
         floorLabel: _floorLabelFromLocation(loc.indoor),
