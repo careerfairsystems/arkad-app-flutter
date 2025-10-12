@@ -128,16 +128,21 @@ class AuthViewModel extends ChangeNotifier {
       result.when(
         success: (session) {
           _currentSession = session;
+          if (session != null) {
+            _setSentryUser(session);
+          }
           _globalError = null;
         },
         failure: (error) {
           _currentSession = null;
+          _clearSentryUser();
           // Don't set global error for missing session - this is normal
         },
       );
     } catch (e) {
       await Sentry.captureException(e);
       _currentSession = null;
+      _clearSentryUser();
     }
 
     _isInitializing = false;
@@ -193,6 +198,7 @@ class AuthViewModel extends ChangeNotifier {
         success: (_) {
           _currentSession = null;
           _clearSignupState();
+          _clearSentryUser();
 
           _fireAuthEvent(const UserLoggedOutEvent());
 
@@ -214,10 +220,18 @@ class AuthViewModel extends ChangeNotifier {
     await _resetPasswordCommand.resetPassword(email);
   }
 
-  /// Resend verification code for given email
-  Future<void> resendVerification(String email) async {
+  /// Resend verification code using pending signup data
+  Future<void> resendVerification() async {
     _clearGlobalError();
-    await _resendVerificationCommand.resendVerification(email);
+
+    if (_pendingSignupData == null) {
+      _setGlobalError(const ValidationError("No pending signup found"));
+      return;
+    }
+
+    await _resendVerificationCommand.resendVerification(
+      ResendVerificationParams(signupData: _pendingSignupData!),
+    );
   }
 
   /// Clear signup state
@@ -243,6 +257,7 @@ class AuthViewModel extends ChangeNotifier {
       result.when(
         success: (session) {
           _currentSession = session;
+          _setSentryUser(session);
           _fireAuthEvent(AuthSessionChangedEvent(session));
           notifyListeners();
         },
@@ -264,6 +279,7 @@ class AuthViewModel extends ChangeNotifier {
   void _onSignInCommandChanged() {
     if (_signInCommand.isCompleted && _signInCommand.result != null) {
       _currentSession = _signInCommand.result;
+      _setSentryUser(_signInCommand.result!);
       _clearSignupState();
 
       _fireAuthEvent(AuthSessionChangedEvent(_signInCommand.result!));
@@ -282,6 +298,7 @@ class AuthViewModel extends ChangeNotifier {
     if (_completeSignupCommand.isCompleted &&
         _completeSignupCommand.result != null) {
       _currentSession = _completeSignupCommand.result;
+      _setSentryUser(_completeSignupCommand.result!);
       _clearSignupState();
 
       _fireAuthEvent(AuthSessionChangedEvent(_completeSignupCommand.result!));
@@ -305,6 +322,25 @@ class AuthViewModel extends ChangeNotifier {
   void _clearSignupState() {
     _pendingSignupData = null;
     _signupToken = null;
+  }
+
+  /// Set Sentry user context from auth session
+  /// This ensures all Sentry events (logs, errors, breadcrumbs) include user information
+  void _setSentryUser(AuthSession session) {
+    Sentry.configureScope(
+      (scope) => scope.setUser(
+        SentryUser(
+          id: session.user.id.toString(),
+          email: session.user.email,
+          username: '${session.user.firstName} ${session.user.lastName}',
+        ),
+      ),
+    );
+  }
+
+  /// Clear Sentry user context on sign out
+  void _clearSentryUser() {
+    Sentry.configureScope((scope) => scope.setUser(null));
   }
 
   void _setGlobalError(AppError error) {

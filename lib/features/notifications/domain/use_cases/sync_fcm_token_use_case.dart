@@ -12,15 +12,13 @@ class SyncFcmTokenUseCase extends UseCase<void, SyncFcmTokenParams> {
 
   @override
   Future<Result<void>> call(SyncFcmTokenParams params) async {
-    if (params.token.isEmpty) {
-      return Result.success(null);
-    }
-
     // Get stored token info
     final storedInfo = await _repository.getStoredTokenInfo();
 
-    // Check if we need to send the token
+    // If token is empty, always send it to clear backend registration (logout case)
+    // Otherwise, check if we need to send the token
     final shouldSend =
+        params.token.isEmpty ||
         storedInfo == null ||
         storedInfo.token != params.token ||
         storedInfo.needsRefresh;
@@ -29,21 +27,30 @@ class SyncFcmTokenUseCase extends UseCase<void, SyncFcmTokenParams> {
       return Result.success(null);
     }
 
-    // Send token to backend
+    // Send token to backend (can be empty string to clear registration)
     final result = await _repository.sendFcmToken(params.token);
 
     return result.when(
       success: (_) async {
-        // Save token info locally on success
-        final tokenInfo = FcmTokenInfo(
-          token: params.token,
-          lastSentAt: DateTime.now(),
-        );
-        final saveResult = await _repository.saveTokenInfo(tokenInfo);
-        return saveResult.when(
-          success: (_) => Result.success(null),
-          failure: Result.failure,
-        );
+        if (params.token.isEmpty) {
+          // Clear local token info on successful logout
+          final clearResult = await _repository.clearTokenInfo();
+          return clearResult.when(
+            success: (_) => Result.success(null),
+            failure: Result.failure,
+          );
+        } else {
+          // Save token info locally on success
+          final tokenInfo = FcmTokenInfo(
+            token: params.token,
+            lastSentAt: DateTime.now(),
+          );
+          final saveResult = await _repository.saveTokenInfo(tokenInfo);
+          return saveResult.when(
+            success: (_) => Result.success(null),
+            failure: Result.failure,
+          );
+        }
       },
       failure: (error) => Result.failure(error),
     );

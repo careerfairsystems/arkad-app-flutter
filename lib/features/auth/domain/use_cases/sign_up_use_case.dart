@@ -24,7 +24,7 @@ class SignUpUseCase extends UseCase<String, SignupData> {
     if (!ValidationService.isStrongPassword(params.password)) {
       return Result.failure(
         const ValidationError(
-          "Password must be at least 8 characters with uppercase, lowercase, number, and special character",
+          "Password must be at least 8 characters with uppercase, lowercase and numbers",
         ),
       );
     }

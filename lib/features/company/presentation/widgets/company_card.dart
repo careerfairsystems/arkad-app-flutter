@@ -48,7 +48,7 @@ class CompanyCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       _buildIndustries(context),
-                      if (company.hasStudentSessions) ...[
+                      if (company.hasStudentSession) ...[
                         const SizedBox(height: 8),
                         _buildStudentSessions(context),
                       ],

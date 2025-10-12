@@ -118,7 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: ArkadButton(
                   text: "Log Out",
                   onPressed: () => _handleLogout(context, authViewModel),
-                  variant: ArkadButtonVariant.secondary,
+                  variant: ArkadButtonVariant.danger,
                   size: ArkadButtonSize.medium,
                   icon: Icons.logout,
                   fullWidth: true,

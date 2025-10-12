@@ -1,7 +1,7 @@
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/use_case.dart';
-import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/errors/app_error.dart';
+import '../entities/signup_data.dart';
 import '../repositories/auth_repository.dart';
 
 /// Use case for resending verification code
@@ -13,35 +13,29 @@ class ResendVerificationUseCase
 
   @override
   Future<Result<String>> call(ResendVerificationParams params) async {
-    // Validate email
-    if (params.email.isEmpty) {
-      return Result.failure(const ValidationError("Email is required"));
-    }
-
-    if (!ValidationService.isValidEmail(params.email)) {
-      return Result.failure(
-        const ValidationError("Please enter a valid email address"),
-      );
+    // Validate signup data
+    if (!params.signupData.isValid) {
+      return Result.failure(const ValidationError("Invalid signup data"));
     }
 
     // Request new verification code and get new token
-    return await _repository.requestVerificationCode(params.email.trim());
+    return await _repository.requestVerificationCode(params.signupData);
   }
 }
 
 /// Parameters for resend verification use case
 class ResendVerificationParams {
-  const ResendVerificationParams({required this.email});
+  const ResendVerificationParams({required this.signupData});
 
-  final String email;
+  final SignupData signupData;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ResendVerificationParams &&
           runtimeType == other.runtimeType &&
-          email == other.email;
+          signupData == other.signupData;
 
   @override
-  int get hashCode => email.hashCode;
+  int get hashCode => signupData.hashCode;
 }

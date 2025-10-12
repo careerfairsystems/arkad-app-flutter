@@ -5,6 +5,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import '../../../../api/extensions.dart';
 import '../../../../shared/errors/exception.dart';
 import '../../domain/entities/signup_data.dart';
+import '../handlers/auth_error_handler.dart';
 import '../mappers/signup_mapper.dart';
 
 /// Abstract interface for auth remote data source
@@ -49,21 +50,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           response.statusCode,
         );
       }
+    } on DioException catch (e) {
+      // Use AuthErrorHandler for consistent error mapping and logging
+      final exception = await AuthErrorHandler.handleDioException(
+        e,
+        operation: 'signIn',
+      );
+      throw exception;
     } catch (e) {
+      // Unexpected non-Dio errors
       await Sentry.captureException(e);
-      if (e is DioException) {
-        final statusCode = e.response?.statusCode;
-        if (statusCode == 401) {
-          throw const AuthException('Incorrect email or password');
-        } else if (statusCode == 429) {
-          throw const ApiException(
-            'Too many attempts. Please wait before trying again.',
-            429,
-          );
-        }
-        throw NetworkException('Network error: ${e.message}');
-      }
-      throw ApiException('Sign in failed: ${e.toString()}');
+      throw ApiException('Unexpected error during sign in: ${e.toString()}');
     }
   }
 
@@ -84,23 +81,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           response.statusCode,
         );
       }
+    } on DioException catch (e) {
+      // Use AuthErrorHandler for consistent error mapping and logging
+      final exception = await AuthErrorHandler.handleDioException(
+        e,
+        operation: 'beginSignup',
+        additionalContext: {'email_domain': data.email.split('@').last},
+      );
+      throw exception;
     } catch (e) {
+      // Unexpected non-Dio errors
       await Sentry.captureException(e);
-      if (e is DioException) {
-        final statusCode = e.response?.statusCode;
-        if (statusCode == 415) {
-          throw const ValidationException(
-            'An account with this email already exists',
-          );
-        } else if (statusCode == 429) {
-          throw const ApiException(
-            'Too many attempts. Please wait before trying again.',
-            429,
-          );
-        }
-        throw NetworkException('Network error: ${e.message}');
-      }
-      throw ApiException('Signup failed: ${e.toString()}');
+      throw ApiException('Unexpected error during signup: ${e.toString()}');
     }
   }
 
@@ -129,21 +121,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           response.statusCode,
         );
       }
+    } on DioException catch (e) {
+      // Use AuthErrorHandler for consistent error mapping and logging
+      final exception = await AuthErrorHandler.handleDioException(
+        e,
+        operation: 'completeSignup',
+        additionalContext: {'has_code': code.isNotEmpty.toString()},
+      );
+      throw exception;
     } catch (e) {
+      // Unexpected non-Dio errors
       await Sentry.captureException(e);
-      if (e is DioException) {
-        final statusCode = e.response?.statusCode;
-        if (statusCode == 400) {
-          throw const ValidationException('Invalid verification code');
-        } else if (statusCode == 429) {
-          throw const ApiException(
-            'Too many attempts. Please wait before trying again.',
-            429,
-          );
-        }
-        throw NetworkException('Network error: ${e.message}');
-      }
-      throw ApiException('Signup completion failed: ${e.toString()}');
+      throw ApiException(
+        'Unexpected error during signup completion: ${e.toString()}',
+      );
     }
   }
 
@@ -162,16 +153,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           response.statusCode,
         );
       }
+    } on DioException catch (e) {
+      // Use AuthErrorHandler for consistent error mapping and logging
+      final exception = await AuthErrorHandler.handleDioException(
+        e,
+        operation: 'getUserProfile',
+      );
+      throw exception;
     } catch (e) {
+      // Unexpected non-Dio errors
       await Sentry.captureException(e);
-      if (e is DioException) {
-        final statusCode = e.response?.statusCode;
-        if (statusCode == 401) {
-          throw const AuthException('Authentication required');
-        }
-        throw NetworkException('Network error: ${e.message}');
-      }
-      throw ApiException('Profile loading failed: ${e.toString()}');
+      throw ApiException('Unexpected error loading profile: ${e.toString()}');
     }
   }
 
@@ -190,23 +182,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           response.statusCode,
         );
       }
+    } on DioException catch (e) {
+      // Use AuthErrorHandler for consistent error mapping and logging
+      final exception = await AuthErrorHandler.handleDioException(
+        e,
+        operation: 'resetPassword',
+        additionalContext: {'email_domain': email.split('@').last},
+      );
+      throw exception;
     } catch (e) {
+      // Unexpected non-Dio errors
       await Sentry.captureException(e);
-      if (e is DioException) {
-        final statusCode = e.response?.statusCode;
-        if (statusCode == 404) {
-          throw const ValidationException(
-            'No account found with this email address',
-          );
-        } else if (statusCode == 429) {
-          throw const ApiException(
-            'Too many attempts. Please wait before trying again.',
-            429,
-          );
-        }
-        throw NetworkException('Network error: ${e.message}');
-      }
-      throw ApiException('Password reset failed: ${e.toString()}');
+      throw ApiException(
+        'Unexpected error during password reset: ${e.toString()}',
+      );
     }
   }
 

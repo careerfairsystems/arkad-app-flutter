@@ -17,7 +17,7 @@ class Company {
     required this.positions,
     required this.desiredCompetences,
     required this.jobs,
-    required this.daysWithStudentSession,
+    required this.hasStudentSession,
     required this.studentSessionMotivation,
     required this.urlLinkedin,
     required this.urlInstagram,
@@ -37,16 +37,13 @@ class Company {
   final List<String> positions;
   final List<String> desiredCompetences;
   final List<CompanyJob> jobs;
-  final int daysWithStudentSession;
+  final bool hasStudentSession;
   final String? studentSessionMotivation;
   final String? urlLinkedin;
   final String? urlInstagram;
   final String? urlFacebook;
   final String? urlTwitter;
   final String? urlYoutube;
-
-  /// Check if company has student sessions available
-  bool get hasStudentSessions => daysWithStudentSession > 0;
 
   /// Get full logo URL (for now just returns logoUrl, but could add base URL logic)
   String? get fullLogoUrl => logoUrl;
@@ -118,7 +115,7 @@ class Company {
     }
 
     // Filter by student sessions availability
-    if (filter.hasStudentSessions && !hasStudentSessions) {
+    if (filter.hasStudentSessions && !hasStudentSession) {
       return false;
     }
 

@@ -17,7 +17,7 @@ class CompanyMapper {
       positions: dto.positions?.toList() ?? [],
       desiredCompetences: dto.desiredCompetences?.toList() ?? [],
       jobs: dto.jobs?.map(_mapJobSchema).toList() ?? [],
-      daysWithStudentSession: dto.daysWithStudentsession,
+      hasStudentSession: dto.hasStudentSession ?? false,
       urlLinkedin: dto.urlLinkedin,
       urlInstagram: dto.urlInstagram,
       urlFacebook: dto.urlFacebook,

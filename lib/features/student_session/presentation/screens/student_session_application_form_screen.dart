@@ -7,9 +7,10 @@ import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_form_field.dart';
-import '../../../auth/domain/entities/user.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
+import '../../../profile/domain/entities/profile.dart';
 import '../../../profile/domain/entities/programme.dart';
+import '../../../profile/presentation/view_models/profile_view_model.dart';
 import '../../domain/entities/student_session.dart';
 import '../../domain/services/student_session_form_config_service.dart';
 import '../view_models/student_session_view_model.dart';
@@ -70,7 +71,10 @@ class _StudentSessionApplicationFormScreenState
         context,
         listen: false,
       );
-      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+      final profileViewModel = Provider.of<ProfileViewModel>(
+        context,
+        listen: false,
+      );
 
       // Reset command state
       viewModel.applyForSessionCommand.reset();
@@ -82,7 +86,7 @@ class _StudentSessionApplicationFormScreenState
       }
 
       // Prepopulate form with user profile data (except motivation text)
-      _prepopulateFormWithUserData(authViewModel.currentUser);
+      _prepopulateFormWithUserData(profileViewModel.currentProfile);
     });
   }
 
@@ -106,36 +110,37 @@ class _StudentSessionApplicationFormScreenState
 
   /// Prepopulate form fields with user profile data (except motivation text)
   /// Only prepopulates visible fields to respect form configuration
-  void _prepopulateFormWithUserData(User? user) {
-    if (user == null || _formConfig == null) return;
+  void _prepopulateFormWithUserData(Profile? profile) {
+    if (profile == null || _formConfig == null) return;
 
     setState(() {
-      // Convert string programme to Programme enum (only if field is visible)
-      if (_formConfig!.shouldShowField('programme') && user.programme != null) {
-        _selectedProgramme = ProgrammeUtils.labelToProgramme(user.programme!);
+      // Set programme (only if field is visible)
+      if (_formConfig!.shouldShowField('programme') &&
+          profile.programme != null) {
+        _selectedProgramme = profile.programme;
       }
 
       // Set study year (only if field is visible and valid)
       if (_formConfig!.shouldShowField('studyYear')) {
         // Only set study year if it's within valid range [1-5]
         _studyYear =
-            (user.studyYear != null &&
-                user.studyYear! >= 1 &&
-                user.studyYear! <= 5)
-            ? user.studyYear
+            (profile.studyYear != null &&
+                profile.studyYear! >= 1 &&
+                profile.studyYear! <= 5)
+            ? profile.studyYear
             : null;
       }
 
       // Set master's title (only if field is visible)
       if (_formConfig!.shouldShowField('masterTitle') &&
-          user.masterTitle?.isNotEmpty == true) {
-        _masterTitleController.text = user.masterTitle!;
+          profile.masterTitle?.isNotEmpty == true) {
+        _masterTitleController.text = profile.masterTitle!;
       }
 
       // Set LinkedIn profile (only if field is visible)
       if (_formConfig!.shouldShowField('linkedin') &&
-          user.linkedin?.isNotEmpty == true) {
-        _linkedinController.text = user.linkedin!;
+          profile.linkedin?.isNotEmpty == true) {
+        _linkedinController.text = profile.linkedin!;
       }
 
       // Note: Motivation text is intentionally not prepopulated as it should be unique per application

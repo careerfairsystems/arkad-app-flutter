@@ -296,12 +296,20 @@ void _setupApiClient() {
 
 /// Register API client
 void _registerApiClientConditionally() {
-  serviceLocator.registerLazySingleton<ArkadApi>(
-    () => ArkadApi(
-      // Let ArkadApi create its own Dio with interceptors
-      basePathOverride: AppEnvironment.baseUrl,
-    ),
-  );
+  serviceLocator.registerLazySingleton<ArkadApi>(() {
+    // Create custom Dio instance with reasonable timeout configuration
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: AppEnvironment.baseUrl,
+        connectTimeout: const Duration(seconds: 10), // Connection establishment
+        receiveTimeout: const Duration(seconds: 15), // Receiving response data
+        sendTimeout: const Duration(seconds: 10), // Sending request data
+      ),
+    );
+
+    // Pass custom Dio to ArkadApi (interceptors will be added by ArkadApi)
+    return ArkadApi(dio: dio, basePathOverride: AppEnvironment.baseUrl);
+  });
 
   // Register the Dio instance from ArkadApi for other services that need it
   serviceLocator.registerLazySingleton<Dio>(

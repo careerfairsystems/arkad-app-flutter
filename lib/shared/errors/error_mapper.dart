@@ -160,13 +160,16 @@ class ErrorMapper {
         return const ServerError();
 
       default:
-        if (exception.type == DioExceptionType.connectionTimeout ||
-            exception.type == DioExceptionType.receiveTimeout ||
+        // Differentiate between server timeout and network connectivity issues
+        if (exception.type == DioExceptionType.receiveTimeout ||
             exception.type == DioExceptionType.sendTimeout) {
-          return const NetworkError();
+          // Server is too slow to respond/receive data
+          return const ServerSlowError();
         }
 
-        if (exception.type == DioExceptionType.connectionError) {
+        if (exception.type == DioExceptionType.connectionTimeout ||
+            exception.type == DioExceptionType.connectionError) {
+          // Actual network connectivity problem
           return const NetworkError();
         }
 
@@ -282,6 +285,22 @@ class ErrorMapper {
             label: "Check Connection",
             action: () => _showNetworkSettings(context),
             icon: Icons.settings,
+          ),
+        ];
+
+      case ServerSlowError _:
+        return [
+          if (onRetry != null)
+            RecoveryAction(
+              label: "Try Again",
+              action: onRetry,
+              isPrimary: true,
+              icon: Icons.refresh,
+            ),
+          RecoveryAction(
+            label: "Contact Support",
+            action: () => _contactSupport(context),
+            icon: Icons.help_outline,
           ),
         ];
 
@@ -594,10 +613,8 @@ class ErrorMapper {
   }
 
   static void _contactSupport(BuildContext context) {
-    //
-
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Contact support at support@arkadtlth.se')),
+      const SnackBar(content: Text('Contact support at it.arkad@box.tlth.se')),
     );
   }
 
@@ -606,8 +623,6 @@ class ErrorMapper {
       const SnackBar(content: Text('Please check your internet connection')),
     );
   }
-
-  // Timeline info method removed - not needed in data-driven approach
 
   static void _showFileCompressionHelp(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
