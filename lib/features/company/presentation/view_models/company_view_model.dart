@@ -225,8 +225,6 @@ class CompanyViewModel extends ChangeNotifier {
   }
 
   /// Filter companies by visibility in company list
-  /// This ensures hidden companies are excluded from main display
-  /// but still available via getCompanyById (for student sessions)
   List<Company> _filterByVisibility(List<Company> companies) {
     return companies.where((company) => company.visibleInCompanyList).toList();
   }
