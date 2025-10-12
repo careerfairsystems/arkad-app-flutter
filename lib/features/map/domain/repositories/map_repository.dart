@@ -14,6 +14,18 @@ abstract class MapRepository {
 
   List<MapBuilding> getMapBuildings();
 
+  /// Get building name by building ID
+  /// Returns null if building is not found
+  String? getBuildingName(int buildingId);
+
+  /// Get available floors for a building by building ID
+  /// Returns empty list if building is not found
+  List<(int floorIndex, String floorLabel)> getAvailableFloors(int buildingId);
+
+  /// Get floor label for a specific building and floor index
+  /// Returns null if building or floor is not found
+  String? getFloorLabel(int buildingId, int floorIndex);
+
   /// Get ground overlays for map buildings
   Future<Set<GroundOverlay>> getGroundOverlays(
     ImageConfiguration imageConfig,

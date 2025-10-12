@@ -120,7 +120,7 @@ class MapRepositoryImpl implements MapRepository {
         southwest: const LatLng(55.711319040663575, 13.208967394827487),
         northeast: const LatLng(55.711756843405276, 13.210104089933266),
       ),
-      floors: [floor2],
+      floors: [floor1, floor2],
       defaultFloorIndex: 0,
     );
   }
@@ -128,7 +128,7 @@ class MapRepositoryImpl implements MapRepository {
   MapBuilding _getGuildHouse() {
     final floorBasement = MapFloor(
       index: 0,
-      name: '1',
+      name: 'Gasque',
       map: FloorMap(
         topLeft: FlutterPointLLA(lat: 55.712775, lon: 13.208627),
         NE: FlutterPointLLA(lat: 55.712775, lon: 13.209831),
@@ -138,7 +138,7 @@ class MapRepositoryImpl implements MapRepository {
     );
     final floor1 = MapFloor(
       index: 1,
-      name: '1',
+      name: 'Entrance floor',
       map: FloorMap(
         topLeft: FlutterPointLLA(lat: 55.712706, lon: 13.208546),
         NE: FlutterPointLLA(lat: 55.71271, lon: 13.20969),
@@ -150,7 +150,7 @@ class MapRepositoryImpl implements MapRepository {
     return MapBuilding(
       id: guildHouseBuildingId,
       name: 'Kårhuset',
-      floors: [floorBasement, floor1],
+      floors: [floor1, floorBasement],
       defaultFloorIndex: 1,
       bounds: LatLngBounds(
         southwest: const LatLng(55.71211949637107, 13.20841646190142),
@@ -185,6 +185,36 @@ class MapRepositoryImpl implements MapRepository {
   @override
   List<MapBuilding> getMapBuildings() {
     return [_getStudyC(), _getGuildHouse(), _getEHouse()];
+  }
+
+  @override
+  String? getBuildingName(int buildingId) {
+    final buildings = getMapBuildings();
+    final building = buildings.where((b) => b.id == buildingId).firstOrNull;
+    return building?.name;
+  }
+
+  @override
+  List<(int, String)> getAvailableFloors(int buildingId) {
+    final buildings = getMapBuildings();
+    final building = buildings.where((b) => b.id == buildingId).firstOrNull;
+
+    if (building == null) return [];
+
+    return building.floors.map((floor) => (floor.index, floor.name)).toList();
+  }
+
+  @override
+  String? getFloorLabel(int buildingId, int floorIndex) {
+    final buildings = getMapBuildings();
+    final building = buildings.where((b) => b.id == buildingId).firstOrNull;
+
+    if (building == null) return null;
+
+    final floor = building.floors
+        .where((f) => f.index == floorIndex)
+        .firstOrNull;
+    return floor?.name;
   }
 
   @override

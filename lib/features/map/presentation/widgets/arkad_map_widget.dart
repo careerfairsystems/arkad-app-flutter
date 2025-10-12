@@ -251,19 +251,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     // Use Consumer to get location data for markers and available floors
     return Consumer<LocationProvider>(
       builder: (context, locationProvider, child) {
-        final availableFloors =
-            locationProvider.currentLocation?.availableFloors ?? [];
-
-        // Find the building ID by matching the building name
-        final buildingName = locationProvider.currentLocation?.buildingName;
-        final buildingId = buildingName != null
-            ? _mapViewModel.buildings
-                  .firstWhere(
-                    (building) => building.name == buildingName,
-                    orElse: () => _mapViewModel.buildings.first,
-                  )
-                  .id
-            : null;
+        final building = _currentFocusedBuilding;
 
         return Stack(
           children: [
@@ -272,14 +260,11 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
               _mapViewModel.groundOverlays,
             ),
             // Floor selector if floors are available and building is identified
-            if (availableFloors.length > 1 && buildingId != null)
+            if (building != null && building.floors.length > 1)
               Positioned(
                 top: _searchBarOffset,
                 left: 16,
-                child: FloorSelectorWidget(
-                  availableFloors: availableFloors,
-                  buildingId: buildingId,
-                ),
+                child: FloorSelectorWidget(building: building),
               ),
             // Current location widget - show if location exists
             if (locationProvider.currentLocation != null)
@@ -306,16 +291,6 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
 
   Widget _buildCurrentLocationWidget(UserLocation location) {
     final bool isInBounds = _isLocationInBounds(location.latLng);
-
-    // Get current floor label if available
-    String? currentFloorLabel;
-    if (location.floorIndex != null && location.availableFloors.isNotEmpty) {
-      final currentFloor = location.availableFloors.firstWhere(
-        (floor) => floor.$1 == location.floorIndex,
-        orElse: () => location.availableFloors.first,
-      );
-      currentFloorLabel = currentFloor.$2;
-    }
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -345,9 +320,9 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
           const SizedBox(height: 4),
           if (isInBounds &&
               location.buildingName != null &&
-              currentFloorLabel != null)
+              location.floorLabel != null)
             Text(
-              '${location.buildingName} - $currentFloorLabel',
+              '${location.buildingName} - ${location.floorLabel}',
               style: const TextStyle(
                 color: ArkadColors.white,
                 fontSize: 11,

@@ -1,3 +1,4 @@
+import 'package:arkad/features/map/domain/entities/map_location.dart';
 import 'package:arkad/features/map/presentation/view_models/map_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,17 +8,10 @@ import 'package:provider/provider.dart';
 /// Displays a horizontal list of floor labels and allows the user to select
 /// a floor. The selected floor is managed by [MapViewModel].
 class FloorSelectorWidget extends StatelessWidget {
-  const FloorSelectorWidget({
-    super.key,
-    required this.availableFloors,
-    required this.buildingId,
-  });
-
-  /// List of available floors as (floorIndex, floorLabel) tuples
-  final List<(int floorIndex, String floorLabel)> availableFloors;
+  const FloorSelectorWidget({super.key, required this.building});
 
   /// The building ID to track floor selection for
-  final int buildingId;
+  final MapBuilding building;
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +19,8 @@ class FloorSelectorWidget extends StatelessWidget {
       builder: (context, mapViewModel, child) {
         // Get the currently selected floor for this building
         final selectedFloorIndex =
-            mapViewModel.buildingIdToFloorIndex[buildingId] ??
-            availableFloors.firstOrNull?.$1 ??
-            0;
+            mapViewModel.buildingIdToFloorIndex[building.id] ??
+            building.defaultFloorIndex;
 
         return Container(
           padding: const EdgeInsets.all(3),
@@ -37,12 +30,12 @@ class FloorSelectorWidget extends StatelessWidget {
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: availableFloors.map((floor) {
-              final isSelected = floor.$1 == selectedFloorIndex;
+            children: building.floors.map((floor) {
+              final isSelected = floor.index == selectedFloorIndex;
               return GestureDetector(
                 onTap: () {
                   // Update the floor selection in the view model
-                  mapViewModel.updateBuildingFloor(buildingId, floor.$1);
+                  mapViewModel.updateBuildingFloor(building.id, floor.index);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -56,7 +49,7 @@ class FloorSelectorWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(17),
                   ),
                   child: Text(
-                    floor.$2,
+                    floor.name,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: isSelected ? Colors.black : Colors.white,

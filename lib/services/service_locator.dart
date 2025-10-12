@@ -642,13 +642,16 @@ Future<void> _setupMapFeature() async {
     () => LocationRepositoryImpl(),
   );
 
-  serviceLocator.registerLazySingleton<LocationProvider>(
-    () => LocationProvider(serviceLocator<LocationRepository>()),
-  );
-
   // Repository (placeholder implementation)
   serviceLocator.registerLazySingleton<MapRepository>(
     () => MapRepositoryImpl(),
+  );
+
+  serviceLocator.registerLazySingleton<LocationProvider>(
+    () => LocationProvider(
+      serviceLocator<LocationRepository>(),
+      serviceLocator<MapRepository>(),
+    ),
   );
 
   // View models

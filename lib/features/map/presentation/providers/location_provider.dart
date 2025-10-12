@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:arkad/features/map/data/repositories/map_repository_impl.dart';
 import 'package:arkad/features/map/domain/entities/user_location.dart';
 import 'package:arkad/features/map/domain/repositories/location_repository.dart';
+import 'package:arkad/features/map/domain/repositories/map_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
 import 'package:flutter_combainsdk/messages.g.dart';
@@ -11,9 +11,10 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// Provider for managing user location state
 class LocationProvider extends ChangeNotifier {
-  LocationProvider(this._repository);
+  LocationProvider(this._repository, this._mapRepository);
 
   final LocationRepository _repository;
+  final MapRepository _mapRepository;
 
   final combainSDK = GetIt.I<FlutterCombainSDK>();
 
@@ -26,34 +27,14 @@ class LocationProvider extends ChangeNotifier {
   bool get hasPermission => _hasPermission;
   String? get error => _error;
 
-  List<(int floorIndex, String floorLabel)> _availableFloorsFromLocation(
-    FlutterCombainIndoorLocation? loc,
-  ) {
-    if (loc == null) return [];
-    switch (loc.buildingId) {
-      case MapRepositoryImpl.eHouseBuildingId:
-        return [(0, '1')];
-      case MapRepositoryImpl.studyCBuildingId:
-        return [(0, '0')];
-      case MapRepositoryImpl.guildHouseBuildingId:
-        return [(0, 'Gasque'), (1, 'Entrance')];
-      default:
-        return [];
-    }
-  }
-
   String? _buildingNameFromLocation(FlutterCombainIndoorLocation? loc) {
     if (loc == null) return null;
-    switch (loc.buildingId) {
-      case MapRepositoryImpl.eHouseBuildingId:
-        return 'E-huset';
-      case MapRepositoryImpl.studyCBuildingId:
-        return 'Studie C';
-      case MapRepositoryImpl.guildHouseBuildingId:
-        return 'Kårhuset';
-      default:
-        return null;
-    }
+    return _mapRepository.getBuildingName(loc.buildingId);
+  }
+
+  String? _floorLabelFromLocation(FlutterCombainIndoorLocation? loc) {
+    if (loc == null || loc.floorIndex == null) return null;
+    return _mapRepository.getFloorLabel(loc.buildingId, loc.floorIndex!);
   }
 
   void _handleCombainLocation() async {
@@ -70,7 +51,7 @@ class LocationProvider extends ChangeNotifier {
         accuracy: loc.accuracy,
         timestamp: DateTime.fromMillisecondsSinceEpoch(loc.fetchedTimeMillis),
         floorIndex: loc.indoor?.floorIndex,
-        availableFloors: _availableFloorsFromLocation(loc.indoor),
+        floorLabel: _floorLabelFromLocation(loc.indoor),
         buildingName: _buildingNameFromLocation(loc.indoor),
       );
       notifyListeners();
