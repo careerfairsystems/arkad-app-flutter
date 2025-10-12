@@ -2,7 +2,6 @@ import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import '../features/auth/data/data_sources/auth_local_data_source.dart';
@@ -98,7 +97,6 @@ void setupServiceLocator() {
   serviceLocator.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
   );
-  serviceLocator.registerLazySingleton<http.Client>(() => http.Client());
 
   // Shared services
   serviceLocator.registerLazySingleton<ImagePicker>(() => ImagePicker());
