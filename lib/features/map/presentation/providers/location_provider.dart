@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:arkad/features/map/data/repositories/map_repository_impl.dart';
 import 'package:arkad/features/map/domain/entities/user_location.dart';
 import 'package:arkad/features/map/domain/repositories/location_repository.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
 import 'package:flutter_combainsdk/messages.g.dart';
@@ -43,6 +42,20 @@ class LocationProvider extends ChangeNotifier {
     }
   }
 
+  String? _buildingNameFromLocation(FlutterCombainIndoorLocation? loc) {
+    if (loc == null) return null;
+    switch (loc.buildingId) {
+      case MapRepositoryImpl.eHouseBuildingId:
+        return 'E-huset';
+      case MapRepositoryImpl.studyCBuildingId:
+        return 'Studie C';
+      case MapRepositoryImpl.guildHouseBuildingId:
+        return 'Kårhuset';
+      default:
+        return null;
+    }
+  }
+
   void _handleCombainLocation() async {
     final loc = combainSDK.currentLocation.value;
 
@@ -58,6 +71,7 @@ class LocationProvider extends ChangeNotifier {
         timestamp: DateTime.fromMillisecondsSinceEpoch(loc.fetchedTimeMillis),
         floorIndex: loc.indoor?.floorIndex,
         availableFloors: _availableFloorsFromLocation(loc.indoor),
+        buildingName: _buildingNameFromLocation(loc.indoor),
       );
       notifyListeners();
     }

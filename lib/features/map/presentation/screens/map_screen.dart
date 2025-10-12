@@ -1,11 +1,10 @@
-import 'package:arkad/features/map/domain/repositories/map_repository.dart';
+import 'package:arkad/services/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import '../../../../services/service_locator.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../company/domain/entities/company.dart';
 import '../../../company/presentation/view_models/company_view_model.dart';
@@ -227,7 +226,11 @@ class _MapScreenState extends State<MapScreen> {
                   mapViewModel.clearSelection();
                 }
               },
-              onVisibleRegionChanged: _onVisibleRegionChanged,
+              onBuildingChanged: (building) {
+                setState(() {
+                  currentFocusedBuilding = building;
+                });
+              },
             ),
 
             // Search bar at top
@@ -390,37 +393,6 @@ class _MapScreenState extends State<MapScreen> {
           CameraPosition(target: position, zoom: 22.0),
         ),
       );
-    }
-  }
-
-  void _onVisibleRegionChanged(LatLngBounds bounds, double zoom) {
-    final mapRepository = serviceLocator<MapRepository>();
-
-    MapBuilding? building;
-    if (zoom > 19) {
-      building = mapRepository.mostLikelyBuilding(bounds);
-    }
-
-    if (building != currentFocusedBuilding) {
-      setState(() {
-        currentFocusedBuilding = building;
-      });
-
-      if (building != null) {
-        Sentry.logger.info(
-          'Focused building changed',
-          attributes: {
-            'building_id': SentryLogAttribute.string(building.id.toString()),
-            'building_name': SentryLogAttribute.string(building.name),
-            'zoom': SentryLogAttribute.string(zoom.toString()),
-          },
-        );
-      } else if (currentFocusedBuilding == null) {
-        Sentry.logger.debug(
-          'Focused building cleared',
-          attributes: {'zoom': SentryLogAttribute.string(zoom.toString())},
-        );
-      }
     }
   }
 

@@ -1,11 +1,16 @@
 import 'dart:ui' as ui;
 
+import 'package:arkad/features/map/domain/entities/map_location.dart';
+import 'package:arkad/features/map/domain/entities/user_location.dart';
+import 'package:arkad/features/map/domain/repositories/map_repository.dart';
 import 'package:arkad/features/map/presentation/providers/location_provider.dart';
+import 'package:arkad/services/service_locator.dart';
 import 'package:arkad/shared/presentation/themes/arkad_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 /*
 * final studieCCluster = Cluster( ClusterManagerId("261376248"),
@@ -31,6 +36,7 @@ const khCluster = ClusterManager(clusterManagerId: ClusterManagerId("1834"));
 
 // User location dot size in pixels
 const double _userLocationDotSize = 20.0;
+const double _searchBarOffset = 100.0;
 
 class ArkadMapWidget extends StatefulWidget {
   const ArkadMapWidget({
@@ -40,7 +46,7 @@ class ArkadMapWidget extends StatefulWidget {
     this.groundOverlays = const {},
     this.onMapCreated,
     this.onTap,
-    this.onVisibleRegionChanged,
+    this.onBuildingChanged,
     this.minZoom = 18.0,
     this.maxZoom = 22.0,
     this.mapStylePath = 'assets/map_styles/arkad_dark_map_style.json',
@@ -51,7 +57,7 @@ class ArkadMapWidget extends StatefulWidget {
   final Set<GroundOverlay> groundOverlays;
   final void Function(GoogleMapController)? onMapCreated;
   final void Function(LatLng)? onTap;
-  final void Function(LatLngBounds, double zoom)? onVisibleRegionChanged;
+  final void Function(MapBuilding? building)? onBuildingChanged;
   final double minZoom;
   final double maxZoom;
   final String mapStylePath;
@@ -71,6 +77,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   bool _isProgrammaticMove = false;
   Set<GroundOverlay> _groundOverlays = {};
   CameraPosition? _currentCameraPosition;
+  MapBuilding? _currentFocusedBuilding;
   LatLngBounds _allowedBounds = LatLngBounds(
     southwest: const LatLng(55.709214600107245, 13.207789044872932),
     northeast: const LatLng(55.713562876300905, 13.212897763941944),
@@ -257,9 +264,18 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
             // Floor selector if floors are available
             if (availableFloors.length > 1)
               Positioned(
-                top: 130,
+                top: _searchBarOffset,
                 left: 16,
                 child: _buildFloorSelector(availableFloors),
+              ),
+            // Current location widget - show if location exists
+            if (locationProvider.currentLocation != null)
+              Positioned(
+                top: _searchBarOffset,
+                right: 16,
+                child: _buildCurrentLocationWidget(
+                  locationProvider.currentLocation!,
+                ),
               ),
             // Location snap button - only show if location exists and is in bounds
             if (locationProvider.currentLocation != null &&
@@ -272,6 +288,70 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildCurrentLocationWidget(UserLocation location) {
+    final bool isInBounds = _isLocationInBounds(location.latLng);
+
+    // Get current floor label if available
+    String? currentFloorLabel;
+    if (location.floorIndex != null && location.availableFloors.isNotEmpty) {
+      final currentFloor = location.availableFloors.firstWhere(
+        (floor) => floor.$1 == location.floorIndex,
+        orElse: () => location.availableFloors.first,
+      );
+      currentFloorLabel = currentFloor.$2;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F2E),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Current Location',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          if (isInBounds &&
+              location.buildingName != null &&
+              currentFloorLabel != null)
+            Text(
+              '${location.buildingName} - $currentFloorLabel',
+              style: const TextStyle(
+                color: ArkadColors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            )
+          else
+            const Text(
+              'Not on campus',
+              style: TextStyle(
+                color: ArkadColors.lightRed,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -393,15 +473,11 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
         _mapController = controller;
         widget.onMapCreated?.call(controller);
 
-        // Notify parent of initial visible region
-        if (widget.onVisibleRegionChanged != null &&
-            _currentCameraPosition != null) {
+        // Determine initial focused building
+        if (_currentCameraPosition != null) {
           try {
             final visibleRegion = await controller.getVisibleRegion();
-            widget.onVisibleRegionChanged!(
-              visibleRegion,
-              _currentCameraPosition!.zoom,
-            );
+            _updateFocusedBuilding(visibleRegion, _currentCameraPosition!.zoom);
           } catch (e) {
             debugPrint('Failed to get initial visible region: $e');
           }
@@ -444,18 +520,45 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     // Reset programmatic move flag after camera movement completes
     _isProgrammaticMove = false;
 
-    // Notify parent of visible region change
-    if (widget.onVisibleRegionChanged != null &&
-        _mapController != null &&
-        _currentCameraPosition != null) {
+    // Update focused building based on camera position and zoom
+    if (_mapController != null && _currentCameraPosition != null) {
       try {
         final visibleRegion = await _mapController!.getVisibleRegion();
-        widget.onVisibleRegionChanged!(
-          visibleRegion,
-          _currentCameraPosition!.zoom,
-        );
+        _updateFocusedBuilding(visibleRegion, _currentCameraPosition!.zoom);
       } catch (e) {
         debugPrint('Failed to get visible region: $e');
+      }
+    }
+  }
+
+  void _updateFocusedBuilding(LatLngBounds bounds, double zoom) {
+    final mapRepository = serviceLocator<MapRepository>();
+
+    MapBuilding? building;
+    if (zoom > 19) {
+      building = mapRepository.mostLikelyBuilding(bounds);
+    }
+
+    // Only update and notify if the focused building changed
+    if (building != _currentFocusedBuilding) {
+      _currentFocusedBuilding = building;
+      widget.onBuildingChanged?.call(_currentFocusedBuilding);
+
+      // Log the building change
+      if (building != null) {
+        Sentry.logger.info(
+          'Focused building changed',
+          attributes: {
+            'building_id': SentryLogAttribute.string(building.id.toString()),
+            'building_name': SentryLogAttribute.string(building.name),
+            'zoom': SentryLogAttribute.string(zoom.toString()),
+          },
+        );
+      } else if (_currentFocusedBuilding == null) {
+        Sentry.logger.debug(
+          'Focused building cleared',
+          attributes: {'zoom': SentryLogAttribute.string(zoom.toString())},
+        );
       }
     }
   }
