@@ -21,8 +21,8 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
     try {
       final response = await _api
           .getNotificationsApi()
-          .notificationsApiGetFcmToken(
-            notificationTokenSchema: NotificationTokenSchema(
+          .notificationsApiUpdateFcmToken(
+            updateFCMTokenSchema: UpdateFCMTokenSchema(
               (b) => b..fcmToken = token,
             ),
           );
