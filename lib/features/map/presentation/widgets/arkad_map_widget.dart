@@ -309,6 +309,12 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
 
   Widget _buildCurrentLocationWidget(UserLocation location) {
     final bool isInBounds = _isLocationInBounds(location.latLng);
+    if (!isInBounds ||
+        location.buildingName == null ||
+        location.floorLabel == null) {
+      // If out of bounds and no building info, don't show the widget
+      return const SizedBox.shrink();
+    }
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -336,26 +342,14 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
             ),
           ),
           const SizedBox(height: 4),
-          if (isInBounds &&
-              location.buildingName != null &&
-              location.floorLabel != null)
-            Text(
-              '${location.buildingName} - ${location.floorLabel}',
-              style: const TextStyle(
-                color: ArkadColors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            )
-          else
-            const Text(
-              'Not on campus',
-              style: TextStyle(
-                color: ArkadColors.lightRed,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
+          Text(
+            '${location.buildingName} - ${location.floorLabel}',
+            style: const TextStyle(
+              color: ArkadColors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
             ),
+          ),
         ],
       ),
     );

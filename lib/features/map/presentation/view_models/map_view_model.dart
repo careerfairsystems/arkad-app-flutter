@@ -23,6 +23,7 @@ class MapViewModel extends ChangeNotifier {
   Set<GroundOverlay> _groundOverlays = {};
   int? _selectedCompanyId;
   int _selectedFeatureModelId = 0;
+  bool _suppressNotifications = false;
 
   // Getters
   bool get isLoading => _isLoading;
@@ -74,6 +75,7 @@ class MapViewModel extends ChangeNotifier {
 
   /// Select a company by ID and feature model ID
   void selectCompany(int? companyId, {int featureModelId = 0}) {
+    // Batch state updates to avoid multiple rebuilds
     _selectedCompanyId = companyId;
     _selectedFeatureModelId = featureModelId;
 
@@ -133,6 +135,7 @@ class MapViewModel extends ChangeNotifier {
       _selectedLocation = null;
     }
 
+    // Single notification after all state updates
     notifyListeners();
   }
 
@@ -153,11 +156,28 @@ class MapViewModel extends ChangeNotifier {
     );
   }
 
-  void updateBuildingFloor(int buildingId, int floorIndex) async {
+  Future<void> updateBuildingFloor(int buildingId, int floorIndex) async {
     buildingIdToFloorIndex[buildingId] = floorIndex;
-    await loadGroundOverlays(_imageConfig);
-    await loadLocations();
-    notifyListeners();
+    final t1 = DateTime.now();
+
+    // Batch all updates - suppress intermediate notifications
+    _suppressNotifications = true;
+
+    try {
+      await loadGroundOverlays(_imageConfig);
+      final t2 = DateTime.now();
+      print(
+        "Loading ground overlays took: ${t2.difference(t1).inMilliseconds} ms",
+      );
+
+      await loadLocations();
+      final t3 = DateTime.now();
+      print("Loading locations took: ${t3.difference(t2).inMilliseconds} ms");
+    } finally {
+      // Re-enable notifications and notify once
+      _suppressNotifications = false;
+      notifyListeners();
+    }
   }
 
   int? getBuildingFloor(int buildingId) {
@@ -167,12 +187,16 @@ class MapViewModel extends ChangeNotifier {
   // State management helpers
   void _setLoading(bool loading) {
     _isLoading = loading;
-    notifyListeners();
+    if (!_suppressNotifications) {
+      notifyListeners();
+    }
   }
 
   void _setError(AppError? error) {
     _error = error;
-    notifyListeners();
+    if (!_suppressNotifications) {
+      notifyListeners();
+    }
   }
 
   void _clearError() {
