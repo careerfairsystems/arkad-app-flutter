@@ -613,10 +613,8 @@ class ErrorMapper {
   }
 
   static void _contactSupport(BuildContext context) {
-    //
-
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Contact support at support@arkadtlth.se')),
+      const SnackBar(content: Text('Contact support at it.arkad@box.tlth.se')),
     );
   }
 
@@ -625,8 +623,6 @@ class ErrorMapper {
       const SnackBar(content: Text('Please check your internet connection')),
     );
   }
-
-  // Timeline info method removed - not needed in data-driven approach
 
   static void _showFileCompressionHelp(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
