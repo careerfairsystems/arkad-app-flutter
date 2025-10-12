@@ -4,6 +4,7 @@ import 'package:arkad/features/map/domain/entities/map_location.dart';
 import 'package:arkad/features/map/domain/entities/user_location.dart';
 import 'package:arkad/features/map/domain/repositories/map_repository.dart';
 import 'package:arkad/features/map/presentation/providers/location_provider.dart';
+import 'package:arkad/features/map/presentation/view_models/map_view_model.dart';
 import 'package:arkad/services/service_locator.dart';
 import 'package:arkad/shared/presentation/themes/arkad_theme.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +44,6 @@ class ArkadMapWidget extends StatefulWidget {
     super.key,
     required this.initialCameraPosition,
     this.markers = const {},
-    this.groundOverlays = const {},
     this.onMapCreated,
     this.onTap,
     this.onBuildingChanged,
@@ -54,7 +54,6 @@ class ArkadMapWidget extends StatefulWidget {
 
   final CameraPosition initialCameraPosition;
   final Set<Marker> markers;
-  final Set<GroundOverlay> groundOverlays;
   final void Function(GoogleMapController)? onMapCreated;
   final void Function(LatLng)? onTap;
   final void Function(MapBuilding? building)? onBuildingChanged;
@@ -75,9 +74,9 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   bool _isSnappedToLocation =
       false; // Will be set to true only if location is in bounds
   bool _isProgrammaticMove = false;
-  Set<GroundOverlay> _groundOverlays = {};
   CameraPosition? _currentCameraPosition;
   MapBuilding? _currentFocusedBuilding;
+  MapViewModel _mapViewModel = serviceLocator<MapViewModel>();
   LatLngBounds _allowedBounds = LatLngBounds(
     southwest: const LatLng(55.709214600107245, 13.207789044872932),
     northeast: const LatLng(55.713562876300905, 13.212897763941944),
@@ -259,7 +258,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
           children: [
             _buildGoogleMap(
               _buildMarkers(locationProvider),
-              widget.groundOverlays,
+              _mapViewModel.groundOverlays,
             ),
             // Floor selector if floors are available
             if (availableFloors.length > 1)

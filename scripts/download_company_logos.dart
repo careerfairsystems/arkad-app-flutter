@@ -2,12 +2,81 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as path;
 
 const String apiUrl = 'https://backend.arkadtlth.se/api/company/';
 const String assetsDir = 'assets/images/companies';
+
+/// Creates a circular version of an image
+Future<bool> createCircularImage(String inputPath, String outputPath) async {
+  try {
+    // Read the original image
+    final bytes = await File(inputPath).readAsBytes();
+    final image = img.decodeImage(bytes);
+
+    if (image == null) {
+      print('  ⚠️  Failed to decode image for circular version');
+      return false;
+    }
+
+    // Determine the size for the circular image (use the smaller dimension)
+    final size = math.min(image.width, image.height);
+
+    // Create a new square image with RGBA format for transparency
+    final circularImage = img.Image(
+      width: size,
+      height: size,
+      numChannels: 4, // RGBA
+    );
+
+    final radius = size / 2;
+    final center = size / 2;
+
+    // Calculate source offsets to center-crop the original image
+    final srcOffsetX = (image.width - size) ~/ 2;
+    final srcOffsetY = (image.height - size) ~/ 2;
+
+    // Process each pixel
+    for (var y = 0; y < size; y++) {
+      for (var x = 0; x < size; x++) {
+        // Calculate distance from center
+        final dx = x - center + 0.5;
+        final dy = y - center + 0.5;
+        final distance = math.sqrt(dx * dx + dy * dy);
+
+        // Only copy pixels within the circle, leave rest transparent
+        if (distance <= radius) {
+          final srcX = x + srcOffsetX;
+          final srcY = y + srcOffsetY;
+
+          if (srcX >= 0 && srcX < image.width && srcY >= 0 && srcY < image.height) {
+            final pixel = image.getPixel(srcX, srcY);
+            circularImage.setPixel(x, y, pixel);
+          } else {
+            // Outside source bounds but inside circle - set transparent
+            circularImage.setPixelRgba(x, y, 0, 0, 0, 0);
+          }
+        } else {
+          // Outside circle - set transparent
+          circularImage.setPixelRgba(x, y, 0, 0, 0, 0);
+        }
+      }
+    }
+
+    // Encode and save the circular image as PNG (PNG supports transparency)
+    final circularBytes = img.encodePng(circularImage);
+    await File(outputPath).writeAsBytes(circularBytes);
+
+    return true;
+  } catch (e) {
+    print('  ❌ Error creating circular image: $e');
+    return false;
+  }
+}
 
 Future<void> main() async {
   print('Starting company logo download...');
@@ -39,6 +108,7 @@ Future<void> main() async {
     }
 
     int downloadedCount = 0;
+    int circularCreatedCount = 0;
     int skippedCount = 0;
     int errorCount = 0;
 
@@ -123,6 +193,25 @@ Future<void> main() async {
             '  ✅ Saved: $fileName (${(logoResponse.bodyBytes.length / 1024).toStringAsFixed(1)} KB)',
           );
           downloadedCount++;
+
+          // Create circular version
+          print('  🔄 Creating circular version...');
+          final circularFileName = '$companyId-circle.png';
+          final circularFilePath = path.join(assetsDir, circularFileName);
+
+          final circularSuccess =
+              await createCircularImage(filePath, circularFilePath);
+
+          if (circularSuccess) {
+            final circularFile = File(circularFilePath);
+            final circularSize = await circularFile.length();
+            print(
+              '  ✅ Created circular: $circularFileName (${(circularSize / 1024).toStringAsFixed(1)} KB)',
+            );
+            circularCreatedCount++;
+          } else {
+            print('  ⚠️  Failed to create circular version');
+          }
         } else {
           print(
             '  ⚠️  WARNING: Logo URL exists but file was not saved: $fileName',
@@ -140,6 +229,7 @@ Future<void> main() async {
     print('═══════════════════════════════════════');
     print('Download Summary:');
     print('  ✅ Successfully downloaded: $downloadedCount');
+    print('  🔵 Circular versions created: $circularCreatedCount');
     print('  ⚠  Skipped (no logo): $skippedCount');
     print('  ❌ Errors: $errorCount');
     print('  📊 Total companies: ${companies.length}');

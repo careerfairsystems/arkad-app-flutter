@@ -199,7 +199,6 @@ class _MapScreenState extends State<MapScreen> {
                 zoom: 18.0,
               ),
               markers: _markers,
-              groundOverlays: mapViewModel.groundOverlays,
               onMapCreated: (controller) {
                 _mapController = controller;
 
@@ -335,7 +334,7 @@ class _MapScreenState extends State<MapScreen> {
 
     // Try to get the company's logo, fallback to default marker if not available
     final icon =
-        await company.getCompanyLogo() ??
+        await company.getCompanyLogo(circular: true) ??
         BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
 
     return Marker(

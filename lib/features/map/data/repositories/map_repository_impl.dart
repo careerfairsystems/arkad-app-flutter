@@ -190,14 +190,17 @@ class MapRepositoryImpl implements MapRepository {
   @override
   Future<Set<GroundOverlay>> getGroundOverlays(
     ImageConfiguration imageConfig,
+    Map<int, int> buildingIdToFloorIndex,
   ) async {
     final buildings = getMapBuildings();
     final overlays = <GroundOverlay>{};
 
     for (final building in buildings) {
       // Use the default floor for each building
+      final floorIndex =
+          buildingIdToFloorIndex[building.id] ?? building.defaultFloorIndex;
       final defaultFloor = building.floors.firstWhere(
-        (floor) => floor.index == building.defaultFloorIndex,
+        (floor) => floor.index == floorIndex,
         orElse: () => building.floors.first,
       );
 

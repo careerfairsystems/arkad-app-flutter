@@ -32,6 +32,7 @@ class MapViewModel extends ChangeNotifier {
   LocationType? get filterType => _filterType;
   List<MapBuilding> get buildings => _buildings;
   Set<GroundOverlay> get groundOverlays => _groundOverlays;
+  Map<int, int> buildingIdToFloorIndex = {};
   int? get selectedCompanyId => _selectedCompanyId;
   int get selectedFeatureModelId => _selectedFeatureModelId;
 
@@ -42,6 +43,9 @@ class MapViewModel extends ChangeNotifier {
 
     // Load buildings
     _buildings = _mapRepository.getMapBuildings();
+    for (var building in buildings) {
+      buildingIdToFloorIndex[building.id] = building.defaultFloorIndex;
+    }
 
     final result = await _mapRepository.getLocations();
 
@@ -139,7 +143,10 @@ class MapViewModel extends ChangeNotifier {
 
   /// Load ground overlays for map buildings
   Future<void> loadGroundOverlays(ImageConfiguration imageConfig) async {
-    _groundOverlays = await _mapRepository.getGroundOverlays(imageConfig);
+    _groundOverlays = await _mapRepository.getGroundOverlays(
+      imageConfig,
+      buildingIdToFloorIndex,
+    );
     notifyListeners();
   }
 

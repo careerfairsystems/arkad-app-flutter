@@ -133,18 +133,18 @@ class Company {
   /// [checkAssetExists] - Optional function to check if an asset path exists.
   /// Defaults to [AssetUtils.assetExists] for production use.
   /// Can be overridden for testing purposes.
-  Future<BitmapDescriptor?> getCompanyLogo({
-    Future<bool> Function(String assetPath) checkAssetExists =
-        AssetUtils.assetExists,
-  }) async {
+  Future<BitmapDescriptor?> getCompanyLogo({circular = false}) async {
     if (logoUrl == null) {
       return null;
     }
 
     try {
       // Check if asset exists before attempting to load it
-      final assetPath = "assets/images/companies/$id.png";
-      final assetExists = await checkAssetExists(assetPath);
+      var assetPath = "assets/images/companies/$id.png";
+      if (circular) {
+        assetPath = "assets/images/companies/${id}-circle.png";
+      }
+      final assetExists = await AssetUtils.assetExists(assetPath);
 
       if (assetExists) {
         return await BitmapDescriptor.asset(

@@ -15,7 +15,10 @@ abstract class MapRepository {
   List<MapBuilding> getMapBuildings();
 
   /// Get ground overlays for map buildings
-  Future<Set<GroundOverlay>> getGroundOverlays(ImageConfiguration imageConfig);
+  Future<Set<GroundOverlay>> getGroundOverlays(
+    ImageConfiguration imageConfig,
+    Map<int, int> buildingIdToFloorIndex,
+  );
 
   ///   Gets the most likely building for a given area
   /// If position is no building inside, returns null
