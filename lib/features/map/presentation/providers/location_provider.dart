@@ -3,11 +3,25 @@ import 'dart:async';
 import 'package:arkad/features/map/domain/entities/user_location.dart';
 import 'package:arkad/features/map/domain/repositories/location_repository.dart';
 import 'package:arkad/features/map/domain/repositories/map_repository.dart';
+import 'package:arkad/services/env.dart';
+import 'package:arkad/services/service_locator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
 import 'package:flutter_combainsdk/messages.g.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+LatLngBounds allowedBounds = LatLngBounds(
+  southwest: const LatLng(55.709214600107245, 13.207789044872932),
+  northeast: const LatLng(55.713562876300905, 13.212897763941944),
+);
+
+bool isLocationInBounds(LatLng location) {
+  return location.latitude >= allowedBounds.southwest.latitude &&
+      location.latitude <= allowedBounds.northeast.latitude &&
+      location.longitude >= allowedBounds.southwest.longitude &&
+      location.longitude <= allowedBounds.northeast.longitude;
+}
 
 /// Provider for managing user location state
 class LocationProvider extends ChangeNotifier {
@@ -17,6 +31,7 @@ class LocationProvider extends ChangeNotifier {
   final MapRepository _mapRepository;
 
   final combainSDK = GetIt.I<FlutterCombainSDK>();
+  final env = GetIt.I<Env>();
 
   UserLocation? _currentLocation;
   bool _hasPermission = false;
@@ -45,9 +60,16 @@ class LocationProvider extends ChangeNotifier {
       print("Snapped location: $snappedLocation");
       final lat = snappedLocation?.lat ?? loc.latitude;
       final lon = snappedLocation?.lon ?? loc.longitude;
+      final latLng = LatLng(lat, lon);
+      if (!isLocationInBounds(latLng)) {
+        print("Location out of bounds: $latLng");
+        _currentLocation = null;
+        notifyListeners();
+        return;
+      }
 
       _currentLocation = UserLocation(
-        latLng: LatLng(lat, lon),
+        latLng: latLng,
         accuracy: loc.accuracy,
         buildingId: loc.indoor?.buildingId,
         timestamp: DateTime.fromMillisecondsSinceEpoch(loc.fetchedTimeMillis),
@@ -55,6 +77,7 @@ class LocationProvider extends ChangeNotifier {
         floorLabel: _floorLabelFromLocation(loc.indoor),
         buildingName: _buildingNameFromLocation(loc.indoor),
       );
+      await _repository.captureLocation(loc);
       notifyListeners();
     }
   }

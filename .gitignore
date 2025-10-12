@@ -80,3 +80,4 @@ android/kls_database.db
 assets/data/places.json
 assets/images/companies/*.png
 featuremodel.json
+env/prod.json

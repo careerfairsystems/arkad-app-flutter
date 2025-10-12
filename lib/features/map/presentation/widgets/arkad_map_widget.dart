@@ -57,10 +57,6 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   CameraPosition? _currentCameraPosition;
   MapBuilding? _currentFocusedBuilding;
   MapViewModel _mapViewModel = serviceLocator<MapViewModel>();
-  LatLngBounds _allowedBounds = LatLngBounds(
-    southwest: const LatLng(55.709214600107245, 13.207789044872932),
-    northeast: const LatLng(55.713562876300905, 13.212897763941944),
-  );
 
   @override
   void initState() {
@@ -145,13 +141,10 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
 
           // Center on user location and enable snapping only if within bounds
           if (locationProvider.currentLocation != null) {
-            final location = locationProvider.currentLocation!.latLng;
-            if (_isLocationInBounds(location)) {
-              setState(() {
-                _isSnappedToLocation = true;
-              });
-              _centerOnUserLocation(locationProvider.currentLocation!);
-            }
+            setState(() {
+              _isSnappedToLocation = true;
+            });
+            _centerOnUserLocation(locationProvider.currentLocation!);
           }
         }
       } else if (locationProvider.hasPermission) {
@@ -159,12 +152,9 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
 
         // Enable snapping if location is available and within bounds
         if (locationProvider.currentLocation != null) {
-          final location = locationProvider.currentLocation!.latLng;
-          if (_isLocationInBounds(location)) {
-            setState(() {
-              _isSnappedToLocation = true;
-            });
-          }
+          setState(() {
+            _isSnappedToLocation = true;
+          });
         }
       }
     });
@@ -180,15 +170,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
 
     // Only follow location if it's within bounds
     if (locationProvider.currentLocation != null) {
-      final location = locationProvider.currentLocation!.latLng;
-      if (_isLocationInBounds(location)) {
-        _centerOnUserLocation(locationProvider.currentLocation!);
-      } else {
-        // Location moved out of bounds, disable snapping
-        setState(() {
-          _isSnappedToLocation = false;
-        });
-      }
+      _centerOnUserLocation(locationProvider.currentLocation!);
     }
   }
 
@@ -237,13 +219,6 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     return markers;
   }
 
-  bool _isLocationInBounds(LatLng location) {
-    return location.latitude >= _allowedBounds.southwest.latitude &&
-        location.latitude <= _allowedBounds.northeast.latitude &&
-        location.longitude >= _allowedBounds.southwest.longitude &&
-        location.longitude <= _allowedBounds.northeast.longitude;
-  }
-
   @override
   Widget build(BuildContext context) {
     // Use Consumer to get location data for markers and available floors
@@ -274,8 +249,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
                 ),
               ),
             // Location snap button - only show if location exists and is in bounds
-            if (locationProvider.currentLocation != null &&
-                _isLocationInBounds(locationProvider.currentLocation!.latLng))
+            if (locationProvider.currentLocation != null)
               Positioned(
                 bottom: 16,
                 right: 16,
@@ -288,14 +262,6 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   }
 
   Widget _buildCurrentLocationWidget(UserLocation location) {
-    final bool isInBounds = _isLocationInBounds(location.latLng);
-    if (!isInBounds ||
-        location.buildingName == null ||
-        location.floorLabel == null) {
-      // If out of bounds and no building info, don't show the widget
-      return const SizedBox.shrink();
-    }
-
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -375,9 +341,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     );
 
     // Only allow snapping if location exists and is within bounds
-    if (!_isSnappedToLocation &&
-        locationProvider.currentLocation != null &&
-        _isLocationInBounds(locationProvider.currentLocation!.latLng)) {
+    if (!_isSnappedToLocation && locationProvider.currentLocation != null) {
       setState(() {
         _isSnappedToLocation = true;
       });
@@ -424,7 +388,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       onCameraMove: _onCameraMove,
       onCameraMoveStarted: _onCameraMoveStarted,
       onCameraIdle: _onCameraIdle,
-      cameraTargetBounds: CameraTargetBounds(_allowedBounds),
+      cameraTargetBounds: CameraTargetBounds(allowedBounds),
     );
   }
 

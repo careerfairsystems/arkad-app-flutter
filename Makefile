@@ -1,3 +1,6 @@
+.PHONY: build run lint icons company-images fmt format-check fix
+run: 
+	flutter run  --dart-define-from-file=env/prod.json
 lint:
 	flutter analyze --no-fatal-infos
 
@@ -24,3 +27,6 @@ fix:
 	make lint
 	make fmt
 
+prepare:
+	make icons
+	make company-images

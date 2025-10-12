@@ -11,6 +11,8 @@ class MapLocation {
   final LocationType type;
   final String? imageUrl;
   final int? companyId;
+  final int floorIndex;
+  final int buildingId;
   final int featureModelId;
   final String building;
 
@@ -22,6 +24,8 @@ class MapLocation {
     required this.type,
     required this.featureModelId,
     required this.building,
+    required this.floorIndex,
+    required this.buildingId,
     this.imageUrl,
     this.companyId,
   });

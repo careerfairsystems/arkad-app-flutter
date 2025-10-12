@@ -76,6 +76,8 @@ class MapRepositoryImpl implements MapRepository {
         featureModelId: location.featureModelId,
         imageUrl: company?.fullLogoUrl,
         companyId: company?.id,
+        floorIndex: floorIndex,
+        buildingId: location.buildingId,
         building: location.buildingId.toString(),
       );
 

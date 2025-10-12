@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:arkad/navigation/navigation_items.dart';
+import 'package:arkad/services/env.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -180,10 +181,11 @@ class CombainIntializer extends ChangeNotifier {
     print("Running combain SDK configuration");
 
     // Combain SDK initialization with persistent device UUID
-    final deviceId = await _getOrCreateDeviceId();
+    final deviceId = await getOrCreateDeviceId();
+    final env = GetIt.I<Env>();
     final combainConfig = CombainSDKConfig(
-      apiKey: "848bb5dadbcba210e0ad",
-      settingsKey: "848bb5dadbcba210e0ad",
+      apiKey: env.combainApiKey,
+      settingsKey: env.combainApiKey,
       locationProvider: FlutterLocationProvider.aiNavigation,
       routingConfig: FlutterRoutingConfig(
         routableNodesOptions: FlutterRoutableNodesOptions.allExceptDefaultName,
@@ -259,6 +261,7 @@ Future<void> setupServiceLocator() async {
   serviceLocator.registerSingleton<CombainIntializer>(
     CombainIntializer(serviceLocator<PackageInfo>()),
   );
+  serviceLocator.registerSingleton(Env());
 
   // Clean architecture features
   _setupAuthFeature();
@@ -270,7 +273,7 @@ Future<void> setupServiceLocator() async {
 }
 
 /// Get or create a persistent device UUID for Combain SDK
-Future<String> _getOrCreateDeviceId() async {
+Future<String> getOrCreateDeviceId() async {
   const String deviceIdKey = 'combain_device_id';
   final prefs = await SharedPreferences.getInstance();
 

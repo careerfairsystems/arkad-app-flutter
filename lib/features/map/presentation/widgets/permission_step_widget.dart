@@ -33,14 +33,14 @@ class PermissionStepWidget extends StatelessWidget {
           child: Center(
             child: Image.asset(
               step.iconPath,
-              height: 300,
-              width: 300,
+              height: 200,
+              width: 200,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 // Fallback icon if image not found
                 return const Icon(
                   Icons.location_on,
-                  size: 120,
+                  size: 80,
                   color: ArkadColors.arkadTurkos,
                 );
               },
@@ -69,46 +69,35 @@ class PermissionStepWidget extends StatelessWidget {
                           ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     Text(
                       step.description,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Colors.white70,
-                        height: 1.5,
+                        height: 1.4,
                       ),
                       textAlign: TextAlign.center,
                     ),
+                    // Warning for permanently denied
+                    if (needsSettings)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          'Please enable this permission in your device settings.',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: ArkadColors.lightRed,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                   ],
                 ),
 
-                // Warning for permanently denied
-                if (needsSettings)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(
-                      'Please enable this permission in your device settings.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: ArkadColors.lightRed,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-
-                // Buttons
-                Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ArkadButton(
-                            text: buttonText,
-                            onPressed: isLoading ? null : buttonAction,
-                            isLoading: isLoading,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                // Button
+                ArkadButton(
+                  text: buttonText,
+                  onPressed: isLoading ? null : buttonAction,
+                  isLoading: isLoading,
                 ),
               ],
             ),

@@ -25,12 +25,10 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  GoogleMapController? _mapController;
   Set<Marker> _markers = {};
-  MapLocation? _pendingZoomLocation;
   MapBuilding? currentFocusedBuilding;
-  double _currentZoom = 18.0;
   bool _shouldShowMarkers = false;
+  double _currentZoom = 18.0;
 
   @override
   void initState() {
@@ -42,9 +40,6 @@ class _MapScreenState extends State<MapScreen> {
         context,
         listen: false,
       );
-
-      // Listen to map location changes and update markers
-      mapViewModel.addListener(_onLocationsChanged);
 
       // Load locations, buildings, and ground overlays
       final imageConfig = createLocalImageConfiguration(context);
@@ -59,70 +54,6 @@ class _MapScreenState extends State<MapScreen> {
         companyViewModel.loadCompanies();
       }
     });
-  }
-
-  void _onLocationsChanged() async {
-    // React to MapViewModel changes (company selection from search, etc.)
-    if (!mounted) return;
-
-    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
-
-    // Update markers when locations change
-    await _updateMarkers(mapViewModel.locations);
-
-    // When a company is selected, zoom to its location
-    if (mapViewModel.selectedLocation != null) {
-      final location = mapViewModel.selectedLocation!;
-
-      // Validate location has valid coordinates before zooming
-      if (location.latitude != 0 && location.longitude != 0) {
-        if (_mapController != null) {
-          _centerOnLocation(location);
-          _pendingZoomLocation = null;
-
-          Sentry.logger.info(
-            'Zoomed to company location',
-            attributes: {
-              'company_id': SentryLogAttribute.string(
-                mapViewModel.selectedCompanyId!.toString(),
-              ),
-              'latitude': SentryLogAttribute.string(
-                location.latitude.toString(),
-              ),
-              'longitude': SentryLogAttribute.string(
-                location.longitude.toString(),
-              ),
-            },
-          );
-        } else {
-          // Map controller not ready yet, queue the zoom for when it's ready
-          _pendingZoomLocation = location;
-          debugPrint('Map controller not ready, queuing zoom for later');
-
-          Sentry.logger.debug(
-            'Map controller not ready, queuing zoom',
-            attributes: {
-              'company_id': SentryLogAttribute.string(
-                mapViewModel.selectedCompanyId!.toString(),
-              ),
-            },
-          );
-        }
-      } else {
-        Sentry.logger.error(
-          'Invalid location coordinates for company',
-          attributes: {
-            'company_id': SentryLogAttribute.string(
-              mapViewModel.selectedCompanyId!.toString(),
-            ),
-            'latitude': SentryLogAttribute.string(location.latitude.toString()),
-            'longitude': SentryLogAttribute.string(
-              location.longitude.toString(),
-            ),
-          },
-        );
-      }
-    }
   }
 
   @override
@@ -203,27 +134,7 @@ class _MapScreenState extends State<MapScreen> {
                 ), // StudieC
                 zoom: 18.0,
               ),
-              markers: _markers,
-              onMapCreated: (controller) {
-                _mapController = controller;
-
-                // Process any pending zoom operation
-                if (_pendingZoomLocation != null) {
-                  debugPrint('Processing pending zoom after map creation');
-                  _centerOnLocation(_pendingZoomLocation!);
-
-                  Sentry.logger.info(
-                    'Processed pending zoom after map creation',
-                    attributes: {
-                      'company_id': SentryLogAttribute.string(
-                        mapViewModel.selectedCompanyId!.toString(),
-                      ),
-                    },
-                  );
-
-                  _pendingZoomLocation = null;
-                }
-              },
+              markers: _currentZoom > 20.0 ? _markers : {},
               onTap: (_) {
                 // Deselect company when tapping map
                 if (selectedCompany != null) {
@@ -354,7 +265,6 @@ class _MapScreenState extends State<MapScreen> {
           company.id,
           featureModelId: location.featureModelId,
         );
-        _centerOnLocation(location);
       },
       icon: icon,
       /*
@@ -383,17 +293,6 @@ class _MapScreenState extends State<MapScreen> {
       setState(() {
         _markers = newMarkers;
       });
-    }
-  }
-
-  void _centerOnLocation(MapLocation location) {
-    if (_mapController != null) {
-      final position = LatLng(location.latitude, location.longitude);
-      _mapController!.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(target: position, zoom: 22.0),
-        ),
-      );
     }
   }
 
@@ -426,9 +325,6 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
-    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
-    mapViewModel.removeListener(_onLocationsChanged);
-    _mapController?.dispose();
     super.dispose();
   }
 }

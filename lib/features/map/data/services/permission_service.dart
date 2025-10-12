@@ -32,6 +32,7 @@ class PermissionService {
             ? ph.Permission.locationWhenInUse
             : ph.Permission.location;
         final status = await permission.request();
+        print("Requested location permission: $status");
         return _mapStatus(status);
 
       case PermissionType.bluetoothScan:
@@ -39,8 +40,8 @@ class PermissionService {
           final status = await ph.Permission.bluetoothScan.request();
           return _mapStatus(status);
         }
-        return PermissionStatus
-            .granted; // iOS doesn't need explicit Bluetooth scan permission
+        final status = await ph.Permission.bluetooth.request();
+        return _mapStatus(status);
     }
   }
 
