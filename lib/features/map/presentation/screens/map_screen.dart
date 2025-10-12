@@ -29,6 +29,8 @@ class _MapScreenState extends State<MapScreen> {
   Set<Marker> _markers = {};
   MapLocation? _pendingZoomLocation;
   MapBuilding? currentFocusedBuilding;
+  double _currentZoom = 18.0;
+  bool _shouldShowMarkers = false;
 
   @override
   void initState() {
@@ -233,6 +235,9 @@ class _MapScreenState extends State<MapScreen> {
                   currentFocusedBuilding = building;
                 });
               },
+              onCameraMove: (position) {
+                _onCameraMove(position);
+              },
             ),
 
             // Search bar at top
@@ -342,7 +347,6 @@ class _MapScreenState extends State<MapScreen> {
 
     return Marker(
       markerId: MarkerId(location.companyId.toString()),
-      clusterManagerId: ClusterManagerId(location.building),
       position: position,
       onTap: () {
         final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
@@ -365,10 +369,13 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _updateMarkers(List<MapLocation> locations) async {
     final newMarkers = <Marker>{};
 
-    for (final location in locations) {
-      if (location.companyId != null) {
-        final marker = await _companyMarker(location);
-        newMarkers.add(marker);
+    // Only show company markers if zoom > 20
+    if (_shouldShowMarkers) {
+      for (final location in locations) {
+        if (location.companyId != null) {
+          final marker = await _companyMarker(location);
+          newMarkers.add(marker);
+        }
       }
     }
 
@@ -392,6 +399,29 @@ class _MapScreenState extends State<MapScreen> {
 
   void _showSearchView() {
     context.push('/map/search');
+  }
+
+  void _onCameraMove(CameraPosition position) async {
+    final newZoom = position.zoom;
+    final shouldShowMarkers = newZoom > 20;
+
+    // Only update if the visibility state changes
+    if (shouldShowMarkers != _shouldShowMarkers) {
+      _currentZoom = newZoom;
+      _shouldShowMarkers = shouldShowMarkers;
+
+      // Update markers based on new zoom level
+      final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+      await _updateMarkers(mapViewModel.locations);
+
+      Sentry.logger.debug(
+        'Marker visibility changed',
+        attributes: {
+          'zoom': SentryLogAttribute.string(newZoom.toString()),
+          'visible': SentryLogAttribute.string(shouldShowMarkers.toString()),
+        },
+      );
+    }
   }
 
   @override

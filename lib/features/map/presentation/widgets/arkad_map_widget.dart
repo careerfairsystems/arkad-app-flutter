@@ -14,28 +14,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-/*
-* final studieCCluster = Cluster( ClusterManagerId("261376248"),
-  bounds: LatLngBounds(
-    southwest: LatLng(55.711213, 13.208934),
-    northeast: LatLng(55.711847, 13.210018),
-  ),
-  position: LatLng(
- 55.711532,
-13.209428,
-  )
-);
-
-* */
-
-const studieCCluster = ClusterManager(
-  clusterManagerId: ClusterManagerId("261376248"),
-);
-const eHouseCluster = ClusterManager(
-  clusterManagerId: ClusterManagerId("261376246"),
-);
-const khCluster = ClusterManager(clusterManagerId: ClusterManagerId("1834"));
-
 // User location dot size in pixels
 const double _userLocationDotSize = 20.0;
 const double _searchBarOffset = 100.0;
@@ -48,6 +26,7 @@ class ArkadMapWidget extends StatefulWidget {
     this.onMapCreated,
     this.onTap,
     this.onBuildingChanged,
+    this.onCameraMove,
     this.minZoom = 18.0,
     this.maxZoom = 22.0,
     this.mapStylePath = 'assets/map_styles/arkad_dark_map_style.json',
@@ -58,6 +37,7 @@ class ArkadMapWidget extends StatefulWidget {
   final void Function(GoogleMapController)? onMapCreated;
   final void Function(LatLng)? onTap;
   final void Function(MapBuilding? building)? onBuildingChanged;
+  final void Function(CameraPosition)? onCameraMove;
   final double minZoom;
   final double maxZoom;
   final String mapStylePath;
@@ -414,7 +394,6 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
     Set<GroundOverlay> groundOverlays,
   ) {
     return GoogleMap(
-      clusterManagers: {studieCCluster, eHouseCluster, khCluster},
       onMapCreated: (GoogleMapController controller) async {
         _mapController = controller;
         widget.onMapCreated?.call(controller);
@@ -460,6 +439,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
 
   void _onCameraMove(CameraPosition position) {
     _currentCameraPosition = position;
+    widget.onCameraMove?.call(position);
   }
 
   void _onCameraIdle() async {
