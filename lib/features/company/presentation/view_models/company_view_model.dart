@@ -224,6 +224,13 @@ class CompanyViewModel extends ChangeNotifier {
     return degrees.toList()..sort();
   }
 
+  /// Filter companies by visibility in company list
+  /// This ensures hidden companies are excluded from main display
+  /// but still available via getCompanyById (for student sessions)
+  List<Company> _filterByVisibility(List<Company> companies) {
+    return companies.where((company) => company.visibleInCompanyList).toList();
+  }
+
   /// Clear any errors
   void clearError() {
     _getCompaniesCommand.clearError();
@@ -266,7 +273,9 @@ class CompanyViewModel extends ChangeNotifier {
       _searchAndFilterCommand.reset(notify: false);
       _searchCompaniesCommand.reset(notify: false);
       _filterCompaniesCommand.reset(notify: false);
-      _displayedCompanies = _getCompaniesCommand.result ?? [];
+      _displayedCompanies = _filterByVisibility(
+        _getCompaniesCommand.result ?? [],
+      );
     } else if (_currentSearchQuery.isNotEmpty &&
         _currentFilter.hasActiveFilters) {
       // Reset other commands when using search + filter
@@ -304,7 +313,9 @@ class CompanyViewModel extends ChangeNotifier {
     // This prevents stale command completions from overwriting newer results
     if (_searchAndFilterCommand.isCompleted &&
         _searchAndFilterCommandEpoch == _commandsEpoch) {
-      _displayedCompanies = _searchAndFilterCommand.result ?? [];
+      _displayedCompanies = _filterByVisibility(
+        _searchAndFilterCommand.result ?? [],
+      );
 
       // Log intersection of search AND filter
       if (kDebugMode) {
@@ -319,7 +330,9 @@ class CompanyViewModel extends ChangeNotifier {
       }
     } else if (_searchCompaniesCommand.isCompleted &&
         _searchCompaniesCommandEpoch == _commandsEpoch) {
-      _displayedCompanies = _searchCompaniesCommand.result ?? [];
+      _displayedCompanies = _filterByVisibility(
+        _searchCompaniesCommand.result ?? [],
+      );
 
       // Log search-only results
       if (kDebugMode) {
@@ -331,7 +344,9 @@ class CompanyViewModel extends ChangeNotifier {
       }
     } else if (_filterCompaniesCommand.isCompleted &&
         _filterCompaniesCommandEpoch == _commandsEpoch) {
-      _displayedCompanies = _filterCompaniesCommand.result ?? [];
+      _displayedCompanies = _filterByVisibility(
+        _filterCompaniesCommand.result ?? [],
+      );
 
       // Log filter-only results
       if (kDebugMode) {
@@ -346,7 +361,9 @@ class CompanyViewModel extends ChangeNotifier {
     } else if (_getCompaniesCommand.isCompleted &&
         _currentSearchQuery.isEmpty &&
         !_currentFilter.hasActiveFilters) {
-      _displayedCompanies = _getCompaniesCommand.result ?? [];
+      _displayedCompanies = _filterByVisibility(
+        _getCompaniesCommand.result ?? [],
+      );
 
       // Log showing all companies (no filters)
       if (kDebugMode) {
