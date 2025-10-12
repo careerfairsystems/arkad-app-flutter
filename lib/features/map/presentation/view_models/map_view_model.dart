@@ -35,6 +35,7 @@ class MapViewModel extends ChangeNotifier {
   Map<int, int> buildingIdToFloorIndex = {};
   int? get selectedCompanyId => _selectedCompanyId;
   int get selectedFeatureModelId => _selectedFeatureModelId;
+  late ImageConfiguration _imageConfig;
 
   /// Load all locations and buildings
   Future<bool> loadLocations() async {
@@ -143,11 +144,21 @@ class MapViewModel extends ChangeNotifier {
 
   /// Load ground overlays for map buildings
   Future<void> loadGroundOverlays(ImageConfiguration imageConfig) async {
+    _imageConfig = imageConfig;
     _groundOverlays = await _mapRepository.getGroundOverlays(
       imageConfig,
       buildingIdToFloorIndex,
     );
     notifyListeners();
+  }
+
+  void updateBuildingFloor(int buildingId, int floorIndex) {
+    buildingIdToFloorIndex[buildingId] = floorIndex;
+    loadGroundOverlays(_imageConfig);
+  }
+
+  int? getBuildingFloor(int buildingId) {
+    return buildingIdToFloorIndex[buildingId];
   }
 
   /// Refresh map data

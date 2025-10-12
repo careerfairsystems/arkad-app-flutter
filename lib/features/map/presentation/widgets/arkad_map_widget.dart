@@ -5,6 +5,7 @@ import 'package:arkad/features/map/domain/entities/user_location.dart';
 import 'package:arkad/features/map/domain/repositories/map_repository.dart';
 import 'package:arkad/features/map/presentation/providers/location_provider.dart';
 import 'package:arkad/features/map/presentation/view_models/map_view_model.dart';
+import 'package:arkad/features/map/presentation/widgets/floor_selector_widget.dart';
 import 'package:arkad/services/service_locator.dart';
 import 'package:arkad/shared/presentation/themes/arkad_theme.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +70,6 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
   GoogleMapController? _mapController;
   String? _mapStyle;
   bool _hasRequestedPermission = false;
-  int _selectedFloorIndex = 0;
   BitmapDescriptor? _userLocationIcon;
   bool _isSnappedToLocation =
       false; // Will be set to true only if location is in bounds
@@ -254,18 +254,32 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
         final availableFloors =
             locationProvider.currentLocation?.availableFloors ?? [];
 
+        // Find the building ID by matching the building name
+        final buildingName = locationProvider.currentLocation?.buildingName;
+        final buildingId = buildingName != null
+            ? _mapViewModel.buildings
+                  .firstWhere(
+                    (building) => building.name == buildingName,
+                    orElse: () => _mapViewModel.buildings.first,
+                  )
+                  .id
+            : null;
+
         return Stack(
           children: [
             _buildGoogleMap(
               _buildMarkers(locationProvider),
               _mapViewModel.groundOverlays,
             ),
-            // Floor selector if floors are available
-            if (availableFloors.length > 1)
+            // Floor selector if floors are available and building is identified
+            if (availableFloors.length > 1 && buildingId != null)
               Positioned(
                 top: _searchBarOffset,
                 left: 16,
-                child: _buildFloorSelector(availableFloors),
+                child: FloorSelectorWidget(
+                  availableFloors: availableFloors,
+                  buildingId: buildingId,
+                ),
               ),
             // Current location widget - show if location exists
             if (locationProvider.currentLocation != null)
@@ -350,60 +364,6 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFloorSelector(
-    List<(int floorIndex, String floorLabel)> availableFloors,
-  ) {
-    // Set initial floor to first available floor if not already set
-    if (_selectedFloorIndex == 0 && availableFloors.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {
-            _selectedFloorIndex = availableFloors.first.$1;
-          });
-        }
-      });
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1F2E),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: availableFloors.map((floor) {
-          final isSelected = floor.$1 == _selectedFloorIndex;
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedFloorIndex = floor.$1;
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF00D9FF)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(17),
-              ),
-              child: Text(
-                floor.$2,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: isSelected ? Colors.black : Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          );
-        }).toList(),
       ),
     );
   }
