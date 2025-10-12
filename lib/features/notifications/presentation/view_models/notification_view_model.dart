@@ -62,6 +62,9 @@ class NotificationViewModel extends ChangeNotifier with WidgetsBindingObserver {
         ),
       );
 
+      // Subscribe to broadcast topic
+      await _subscribeToBroadcast();
+
       // Sync token on app start if authenticated (after FCM is ready)
       await _syncTokenOnStartup();
     } catch (e, stackTrace) {
@@ -151,11 +154,76 @@ class NotificationViewModel extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  /// Subscribe to broadcast topic
+  Future<void> _subscribeToBroadcast() async {
+    try {
+      if (!_isInitialized) {
+        await Sentry.addBreadcrumb(
+          Breadcrumb(
+            message: 'Cannot subscribe to broadcast - FCM not initialized',
+            level: SentryLevel.warning,
+          ),
+        );
+        return;
+      }
+
+      final success = await _fcmService.subscribeToTopic('broadcast');
+
+      if (success) {
+        Sentry.logger.info('Successfully subscribed to broadcast topic');
+      } else {
+        Sentry.logger.info(
+          'Failed to subscribe to broadcast topic',
+          attributes: {'success': SentryLogAttribute.bool(false)},
+        );
+      }
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Unsubscribe from broadcast topic
+  Future<void> _unsubscribeFromBroadcast() async {
+    try {
+      if (!_isInitialized) {
+        await Sentry.addBreadcrumb(
+          Breadcrumb(
+            message: 'Cannot unsubscribe from broadcast - FCM not initialized',
+            level: SentryLevel.warning,
+          ),
+        );
+        return;
+      }
+
+      final success = await _fcmService.unsubscribeFromTopic('broadcast');
+
+      if (success) {
+        Sentry.logger.info('Successfully unsubscribed from broadcast topic');
+      } else {
+        Sentry.logger.info(
+          'Failed to unsubscribe from broadcast topic',
+          attributes: {'success': SentryLogAttribute.bool(false)},
+        );
+      }
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
+    }
+  }
+
   /// Subscribe to authentication events
   void _subscribeToAuthEvents() {
     // Listen to sign in/sign up events
     _authSessionChangedSubscription = AppEvents.on<AuthSessionChangedEvent>()
-        .listen((_) async {
+        .listen((event) async {
+          Sentry.logger.info(
+            'ViewModel: User authenticated event received - initiating FCM token sync',
+            attributes: {
+              'permissions_granted': SentryLogAttribute.bool(
+                _permissionGranted,
+              ),
+            },
+          );
+
           await Sentry.addBreadcrumb(
             Breadcrumb(
               message: 'User authenticated - syncing FCM token',
@@ -163,16 +231,29 @@ class NotificationViewModel extends ChangeNotifier with WidgetsBindingObserver {
             ),
           );
 
+          // Subscribe to broadcast topic on sign in
+          await _subscribeToBroadcast();
+
           // Check if permissions are granted, if not request them
           if (!_permissionGranted) {
+            Sentry.logger.info(
+              'ViewModel: FCM permissions not granted - requesting permission',
+            );
             await requestPermissionAndSync();
           } else {
+            Sentry.logger.info(
+              'ViewModel: FCM permissions already granted - syncing token',
+            );
             await syncFcmToken();
           }
         });
 
     // Listen to logout events
     _logoutSubscription = AppEvents.on<UserLoggedOutEvent>().listen((_) async {
+      Sentry.logger.info(
+        'ViewModel: User logged out event received - clearing FCM token from backend',
+      );
+
       await Sentry.addBreadcrumb(
         Breadcrumb(
           message: 'User logged out - clearing FCM token on backend',

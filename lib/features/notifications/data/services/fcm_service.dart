@@ -97,12 +97,35 @@ class FcmService {
   /// Get current FCM token
   Future<String?> getToken() async {
     try {
-      if (_messaging == null) return null;
-      if (kIsWeb) return null;
+      if (_messaging == null) {
+        Sentry.logger.info('FCM Service: Messaging instance is null');
+        return null;
+      }
+      if (kIsWeb) {
+        Sentry.logger.info('FCM Service: Web platform - token not available');
+        return null;
+      }
 
       _currentToken ??= await _messaging!.getToken();
+
+      if (_currentToken != null) {
+        Sentry.logger.info(
+          'FCM Service: Token retrieved successfully',
+          attributes: {
+            'token_length': SentryLogAttribute.int(_currentToken!.length),
+            'was_cached': SentryLogAttribute.bool(_currentToken != null),
+          },
+        );
+      } else {
+        Sentry.logger.info('FCM Service: Token is null after retrieval');
+      }
+
       return _currentToken;
     } catch (e, stackTrace) {
+      Sentry.logger.fmt.error(
+        'FCM Service: Exception while getting token: %s',
+        [e.toString()],
+      );
       await Sentry.captureException(e, stackTrace: stackTrace);
       return null;
     }
@@ -145,6 +168,88 @@ class FcmService {
       );
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Subscribe to a topic
+  Future<bool> subscribeToTopic(String topic) async {
+    try {
+      if (_messaging == null) {
+        Sentry.logger.info(
+          'FCM Service: Cannot subscribe - messaging instance is null',
+        );
+        return false;
+      }
+      if (kIsWeb) {
+        Sentry.logger.info(
+          'FCM Service: Web platform - topic subscription not available',
+        );
+        return false;
+      }
+
+      await _messaging!.subscribeToTopic(topic);
+
+      Sentry.logger.info(
+        'FCM Service: Successfully subscribed to topic',
+        attributes: {'topic': SentryLogAttribute.string(topic)},
+      );
+
+      await Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Subscribed to FCM topic: $topic',
+          level: SentryLevel.info,
+        ),
+      );
+
+      return true;
+    } catch (e, stackTrace) {
+      Sentry.logger.fmt.error(
+        'FCM Service: Exception while subscribing to topic %s: %s',
+        [topic, e.toString()],
+      );
+      await Sentry.captureException(e, stackTrace: stackTrace);
+      return false;
+    }
+  }
+
+  /// Unsubscribe from a topic
+  Future<bool> unsubscribeFromTopic(String topic) async {
+    try {
+      if (_messaging == null) {
+        Sentry.logger.info(
+          'FCM Service: Cannot unsubscribe - messaging instance is null',
+        );
+        return false;
+      }
+      if (kIsWeb) {
+        Sentry.logger.info(
+          'FCM Service: Web platform - topic unsubscription not available',
+        );
+        return false;
+      }
+
+      await _messaging!.unsubscribeFromTopic(topic);
+
+      Sentry.logger.info(
+        'FCM Service: Successfully unsubscribed from topic',
+        attributes: {'topic': SentryLogAttribute.string(topic)},
+      );
+
+      await Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Unsubscribed from FCM topic: $topic',
+          level: SentryLevel.info,
+        ),
+      );
+
+      return true;
+    } catch (e, stackTrace) {
+      Sentry.logger.fmt.error(
+        'FCM Service: Exception while unsubscribing from topic %s: %s',
+        [topic, e.toString()],
+      );
+      await Sentry.captureException(e, stackTrace: stackTrace);
+      return false;
     }
   }
 }
