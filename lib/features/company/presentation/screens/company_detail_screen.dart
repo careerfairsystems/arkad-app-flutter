@@ -367,7 +367,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
   }
 
   Widget _buildStudentSessionSection(BuildContext context, Company company) {
-    if (!company.hasStudentSessions) return const SizedBox.shrink();
+    if (!company.hasStudentSession) return const SizedBox.shrink();
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -409,39 +409,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.35),
-                    ),
-                  ),
-                  child: Text(
-                    '${company.daysWithStudentSession} ${company.daysWithStudentSession == 1 ? 'day' : 'days'} available',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
             if (company.studentSessionMotivation != null &&
                 company.studentSessionMotivation!.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Text(
                 company.studentSessionMotivation!,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
