@@ -39,7 +39,9 @@ class MapRepositoryImpl implements MapRepository {
   }
 
   @override
-  Future<Result<List<MapLocation>>> getLocations() async {
+  Future<Result<List<MapLocation>>> getLocations(
+    Map<int, int> buildingIdToFloorIndex,
+  ) async {
     try {
       final locations = await combainSDK
           .getRoutingProvider()
@@ -55,7 +57,12 @@ class MapRepositoryImpl implements MapRepository {
         }
 
         final company = await _companyFromRoutableTarget(location);
-
+        if (company != null) {
+          final okFloorIndex = buildingIdToFloorIndex[location.buildingId];
+          if (okFloorIndex != null && okFloorIndex != floorIndex) {
+            return null; // Skip if floor index does not match
+          }
+        }
         // Use buildingId from location for clustering
         final buildingId = location.buildingId.toString();
 

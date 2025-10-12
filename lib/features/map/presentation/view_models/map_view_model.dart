@@ -44,11 +44,13 @@ class MapViewModel extends ChangeNotifier {
 
     // Load buildings
     _buildings = _mapRepository.getMapBuildings();
-    for (var building in buildings) {
-      buildingIdToFloorIndex[building.id] = building.defaultFloorIndex;
+    if (buildingIdToFloorIndex.isEmpty) {
+      for (var building in _buildings) {
+        buildingIdToFloorIndex[building.id] = building.defaultFloorIndex;
+      }
     }
 
-    final result = await _mapRepository.getLocations();
+    final result = await _mapRepository.getLocations(buildingIdToFloorIndex);
 
     result.when(
       success: (locations) {
@@ -149,21 +151,17 @@ class MapViewModel extends ChangeNotifier {
       imageConfig,
       buildingIdToFloorIndex,
     );
-    notifyListeners();
   }
 
-  void updateBuildingFloor(int buildingId, int floorIndex) {
+  void updateBuildingFloor(int buildingId, int floorIndex) async {
     buildingIdToFloorIndex[buildingId] = floorIndex;
-    loadGroundOverlays(_imageConfig);
+    await loadLocations();
+    await loadGroundOverlays(_imageConfig);
+    notifyListeners();
   }
 
   int? getBuildingFloor(int buildingId) {
     return buildingIdToFloorIndex[buildingId];
-  }
-
-  /// Refresh map data
-  Future<void> refreshMapData() async {
-    await loadLocations();
   }
 
   // State management helpers
