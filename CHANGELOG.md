@@ -1,3 +1,8 @@
+## [4.1.2] - 2025-10-13
+
+### 🚀 Features
+
+- Notification logout support and broadcast (#37)
 ## [4.1.1] - 2025-10-13
 
 ### 🚀 Features
@@ -12,6 +17,10 @@
 ### 🚜 Refactor
 
 - Rename daysWithStudentSession to hasStudentSession for clarity and update related logic (#35)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.1.1+325
 ## [4.1.0] - 2025-10-09
 
 ### ⚙️ Miscellaneous Tasks
