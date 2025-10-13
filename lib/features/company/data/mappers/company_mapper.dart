@@ -25,6 +25,7 @@ class CompanyMapper {
       urlYoutube: dto.urlYoutube,
       websiteUrl: dto.website,
       studentSessionMotivation: dto.studentSessionMotivation,
+      visibleInCompanyList: dto.visibleInCompanyList ?? true,
     );
   }
 

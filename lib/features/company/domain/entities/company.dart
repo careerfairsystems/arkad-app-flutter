@@ -19,6 +19,7 @@ class Company {
     required this.urlFacebook,
     required this.urlTwitter,
     required this.urlYoutube,
+    required this.visibleInCompanyList,
   });
 
   final int id;
@@ -39,6 +40,7 @@ class Company {
   final String? urlFacebook;
   final String? urlTwitter;
   final String? urlYoutube;
+  final bool visibleInCompanyList;
 
   /// Get full logo URL (for now just returns logoUrl, but could add base URL logic)
   String? get fullLogoUrl => logoUrl;

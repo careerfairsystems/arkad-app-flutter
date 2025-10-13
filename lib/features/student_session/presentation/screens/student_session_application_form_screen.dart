@@ -7,6 +7,7 @@ import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_form_field.dart';
+import '../../../../shared/presentation/widgets/optimized_image.dart';
 import '../../../auth/presentation/view_models/auth_view_model.dart';
 import '../../../profile/domain/entities/profile.dart';
 import '../../../profile/domain/entities/programme.dart';
@@ -448,7 +449,6 @@ class _StudentSessionApplicationFormScreenState
       decoration: BoxDecoration(
         color: ArkadColors.arkadNavy.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: ArkadColors.arkadLightTurkos),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -552,7 +552,6 @@ class _StudentSessionApplicationFormScreenState
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: ArkadColors.arkadLightTurkos),
         boxShadow: [
           BoxShadow(
             color: ArkadColors.arkadLightNavy.withValues(alpha: 0.3),
@@ -573,15 +572,23 @@ class _StudentSessionApplicationFormScreenState
                   height: 56,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    color: ArkadColors.white.withValues(alpha: 0.2),
-                    border: Border.all(
-                      color: ArkadColors.white.withValues(alpha: 0.3),
-                    ),
+                    color: ArkadColors.white.withValues(alpha: 0.1),
                   ),
-                  child: const Icon(
-                    Icons.business_rounded,
-                    color: ArkadColors.white,
-                    size: 28,
+                  child: CompanyLogoImage(
+                    logoUrl: _session!.logoUrl,
+                    size: 56,
+                    borderRadius: BorderRadius.circular(16),
+                    fallbackWidget: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: ArkadColors.white.withValues(alpha: 0.2),
+                      ),
+                      child: const Icon(
+                        Icons.business_rounded,
+                        color: ArkadColors.white,
+                        size: 28,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -623,23 +630,15 @@ class _StudentSessionApplicationFormScreenState
             ),
             // Always show additional content section to balance the layout
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: ArkadColors.arkadLightNavy,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: ArkadColors.arkadLightTurkos),
-              ),
-              child: _session!.description != null
-                  ? Text(
-                      _session!.description!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: ArkadColors.white,
-                        height: 1.5,
-                      ),
-                    )
-                  : _buildDefaultSessionInfo(),
-            ),
+            _session!.description != null
+                ? Text(
+                    _session!.description!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: ArkadColors.white,
+                      height: 1.5,
+                    ),
+                  )
+                : _buildDefaultSessionInfo(),
           ],
         ),
       ),
