@@ -16,11 +16,21 @@ Future<bool> createCircularImage(String inputPath, String outputPath) async {
   try {
     // Read the original image
     final bytes = await File(inputPath).readAsBytes();
-    final image = img.decodeImage(bytes);
+    var image = img.decodeImage(bytes);
 
     if (image == null) {
       print('  ⚠️  Failed to decode image for circular version');
       return false;
+    }
+
+    // Resize to 256px width while maintaining aspect ratio
+    if (image.width > 256) {
+      print('  📐 Resizing circular image to 256px width...');
+      image = img.copyResize(
+        image,
+        width: 256,
+        interpolation: img.Interpolation.linear,
+      );
     }
 
     // Determine the size for the circular image (use the smaller dimension)
