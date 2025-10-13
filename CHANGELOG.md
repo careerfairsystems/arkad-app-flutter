@@ -1,3 +1,22 @@
+## [4.1.1] - 2025-10-13
+
+### 🚀 Features
+
+- Implement custom Dio timeouts and error differentiation for improved API error handling (#34)
+- Wtp
+
+### 💼 Other
+
+- Release script
+
+### 🚜 Refactor
+
+- Rename daysWithStudentSession to hasStudentSession for clarity and update related logic (#35)
+## [4.1.0] - 2025-10-09
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.1.0+324
 ## [4.0.2] - 2025-10-09
 
 ### 🚀 Features
