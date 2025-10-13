@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/errors/error_mapper.dart';
 import '../../../../shared/presentation/commands/base_command.dart';
@@ -17,14 +18,51 @@ class SyncFcmTokenCommand
     clearError();
     setExecuting(true);
 
+    // Log token sync attempt
+    final tokenType = params.token.isEmpty ? 'empty (logout)' : 'valid';
+    await Sentry.logger.info(
+      'Starting FCM token sync with $tokenType token',
+      attributes: {
+        'token_type': SentryLogAttribute.string(tokenType),
+        'token_length': SentryLogAttribute.int(params.token.length),
+      },
+    );
+
     try {
       final result = await _syncFcmTokenUseCase.call(params);
 
       result.when(
-        success: (_) => setResult(null),
-        failure: (error) => setError(error),
+        success: (_) {
+          Sentry.logger.info(
+            'FCM token sync completed successfully',
+            attributes: {'token_type': SentryLogAttribute.string(tokenType)},
+          );
+          setResult(null);
+        },
+        failure: (error) {
+          Sentry.logger.fmt.error(
+            'FCM token sync failed: %s',
+            [error.userMessage],
+            attributes: {
+              'token_type': SentryLogAttribute.string(tokenType),
+              'error_type': SentryLogAttribute.string(
+                error.runtimeType.toString(),
+              ),
+            },
+          );
+          setError(error);
+        },
       );
     } catch (e) {
+      Sentry.logger.fmt.error(
+        'FCM token sync threw exception: %s',
+        [e.toString()],
+        attributes: {
+          'token_type': SentryLogAttribute.string(tokenType),
+          'exception_type': SentryLogAttribute.string(e.runtimeType.toString()),
+        },
+      );
+
       if (e is DioException) {
         setError(
           ErrorMapper.fromDioException(
