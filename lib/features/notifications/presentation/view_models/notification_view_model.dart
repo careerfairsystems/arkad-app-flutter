@@ -188,40 +188,6 @@ class NotificationViewModel extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  /// Unsubscribe from broadcast topic
-  /// DO we ever want to do this?
-  Future<void> _unsubscribeFromBroadcast() async {
-    try {
-      if (!_isInitialized) {
-        await Sentry.addBreadcrumb(
-          Breadcrumb(
-            message: 'Cannot unsubscribe from broadcast - FCM not initialized',
-            level: SentryLevel.warning,
-          ),
-        );
-        return;
-      }
-
-      var success = false;
-      if (kDebugMode) {
-        success = await _fcmService.unsubscribeFromTopic('debug_broadcast');
-      } else {
-        success = await _fcmService.unsubscribeFromTopic('broadcast');
-      }
-
-      if (success) {
-        Sentry.logger.info('Successfully unsubscribed from broadcast topic');
-      } else {
-        Sentry.logger.info(
-          'Failed to unsubscribe from broadcast topic',
-          attributes: {'success': SentryLogAttribute.bool(false)},
-        );
-      }
-    } catch (e, stackTrace) {
-      await Sentry.captureException(e, stackTrace: stackTrace);
-    }
-  }
-
   /// Subscribe to authentication events
   void _subscribeToAuthEvents() {
     // Listen to sign in/sign up events

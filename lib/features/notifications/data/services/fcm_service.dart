@@ -2,7 +2,21 @@ import 'package:app_settings/app_settings.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+
+/// Top-level function for background message handling
+/// MUST be top-level or static to work with FCM background handler
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Sentry.addBreadcrumb(
+    Breadcrumb(
+      message:
+          'Background FCM message received: ${message.notification?.title}',
+      level: SentryLevel.info,
+    ),
+  );
+}
 
 /// Service for managing Firebase Cloud Messaging
 class FcmService {
@@ -13,6 +27,8 @@ class FcmService {
 
   FirebaseMessaging? _messaging;
   String? _currentToken;
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
 
   /// Initialize Firebase and FCM
   Future<void> initialize() async {
@@ -34,6 +50,14 @@ class FcmService {
       // Get FCM instance
       _messaging = FirebaseMessaging.instance;
 
+      // Initialize local notifications
+      await _initializeLocalNotifications();
+
+      // Set up background message handler
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
+
       // Request permissions
       await requestPermission();
 
@@ -53,6 +77,12 @@ class FcmService {
         },
       );
 
+      // Set up foreground message handler
+      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+
+      // Handle notification taps when app is in background
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+
       await Sentry.addBreadcrumb(
         Breadcrumb(
           message: 'FCM initialized successfully',
@@ -62,6 +92,149 @@ class FcmService {
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
     }
+  }
+
+  /// Initialize local notifications plugin
+  Future<void> _initializeLocalNotifications() async {
+    try {
+      // Android initialization settings
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
+
+      // iOS initialization settings
+      const iosSettings = DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      );
+
+      // Combined initialization settings
+      const initSettings = InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      );
+
+      await _localNotifications.initialize(
+        initSettings,
+        onDidReceiveNotificationResponse: _onNotificationTap,
+      );
+
+      // Create Android notification channel
+      const androidChannel = AndroidNotificationChannel(
+        'arkad_notifications',
+        'Arkad Notifications',
+        description: 'Important notifications from Arkad',
+        importance: Importance.high,
+      );
+
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(androidChannel);
+
+      await Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Local notifications initialized',
+          level: SentryLevel.info,
+        ),
+      );
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Handle foreground messages
+  Future<void> _handleForegroundMessage(RemoteMessage message) async {
+    try {
+      Sentry.logger.info(
+        'Foreground FCM message received',
+        attributes: {
+          'title': SentryLogAttribute.string(
+            message.notification?.title ?? 'No title',
+          ),
+          'body': SentryLogAttribute.string(
+            message.notification?.body ?? 'No body',
+          ),
+        },
+      );
+
+      // Display notification using local notifications
+      if (message.notification != null) {
+        await _showNotification(message);
+      }
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Display notification using flutter_local_notifications
+  Future<void> _showNotification(RemoteMessage message) async {
+    try {
+      final notification = message.notification;
+      if (notification == null) return;
+
+      const androidDetails = AndroidNotificationDetails(
+        'arkad_notifications',
+        'Arkad Notifications',
+        channelDescription: 'Important notifications from Arkad',
+        importance: Importance.high,
+        priority: Priority.high,
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _localNotifications.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        details,
+        payload: message.data.toString(),
+      );
+
+      await Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Notification displayed: ${notification.title}',
+          level: SentryLevel.info,
+        ),
+      );
+    } catch (e, stackTrace) {
+      await Sentry.captureException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Handle notification tap
+  void _onNotificationTap(NotificationResponse response) {
+    Sentry.logger.info(
+      'Notification tapped',
+      attributes: {
+        'payload': SentryLogAttribute.string(response.payload ?? 'No payload'),
+      },
+    );
+    // TODO: Navigate to specific screen based on notification data
+  }
+
+  /// Handle notification tap when app opened from background
+  void _handleNotificationTap(RemoteMessage message) {
+    Sentry.logger.info(
+      'App opened from notification',
+      attributes: {
+        'title': SentryLogAttribute.string(
+          message.notification?.title ?? 'No title',
+        ),
+      },
+    );
+    // TODO: Navigate to specific screen based on notification data
   }
 
   /// Request notification permissions
