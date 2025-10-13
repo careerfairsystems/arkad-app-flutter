@@ -71,7 +71,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
       );
       return Result.failure(NetworkError(details: e.message));
     } on ApiException catch (e, stackTrace) {
-      if (e.message.contains('429')) {
+      if (e.statusCode == 429) {
         Sentry.logger.error(
           'Repository: Rate limit exceeded while sending FCM token',
         );
