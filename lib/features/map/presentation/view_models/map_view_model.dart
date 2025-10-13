@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -76,7 +77,7 @@ class MapViewModel extends ChangeNotifier {
   }
 
   /// Select a company by ID and feature model ID
-  void selectCompany(int? companyId, {int featureModelId = 0}) {
+  void selectCompany(int? companyId, {int featureModelId = 0}) async {
     // Batch state updates to avoid multiple rebuilds
     _selectedCompanyId = companyId;
     _selectedFeatureModelId = featureModelId;
@@ -84,7 +85,8 @@ class MapViewModel extends ChangeNotifier {
     // Also update selectedLocation based on company
     if (companyId != null) {
       // Check if locations are loaded
-      if (_locations.isEmpty && !_isLoading) {
+      final allLocations = await _mapRepository.getLocationsForBuilding();
+      if (allLocations.isFailure) {
         debugPrint(
           'Locations not loaded yet for company selection: $companyId',
         );
@@ -100,8 +102,16 @@ class MapViewModel extends ChangeNotifier {
         );
       } else {
         try {
-          _selectedLocation = _locations.firstWhere(
-            (loc) => loc.companyId == companyId,
+          _selectedLocation = allLocations.valueOrNull!.values.flattened
+              .firstWhere((loc) => loc.companyId == companyId);
+          if (_selectedLocation != null) {
+            await updateBuildingFloor(
+              _selectedLocation!.buildingId,
+              _selectedLocation!.floorIndex,
+            );
+          }
+          debugPrint(
+            "Selected company ID: $companyId location count was ${allLocations.valueOrNull!.values.flattened.map((e) => e.companyId).toList().length}",
           );
 
           Sentry.logger.info(
@@ -111,24 +121,20 @@ class MapViewModel extends ChangeNotifier {
               'feature_model_id': SentryLogAttribute.string(
                 featureModelId.toString(),
               ),
-              'locations_count': SentryLogAttribute.string(
-                _locations.length.toString(),
-              ),
             },
           );
         } catch (e) {
           // No location found for this company - don't set a fallback
           // This prevents zooming to wrong locations
           _selectedLocation = null;
-          debugPrint('No map location found for company ID: $companyId');
+          debugPrint(
+            'No map location found for company ID: $companyId, values where ${allLocations.valueOrNull!.values.flattened.map((e) => e.companyId).toList().length}',
+          );
 
           Sentry.logger.error(
             'No map location found for company',
             attributes: {
               'company_id': SentryLogAttribute.string(companyId.toString()),
-              'locations_count': SentryLogAttribute.string(
-                _locations.length.toString(),
-              ),
             },
           );
         }

@@ -35,6 +35,7 @@ class _MapScreenState extends State<MapScreen> {
   double _currentZoom = 18.0;
   GoogleMapController? _mapController;
   final Map<int, BitmapDescriptor> _buildingMarkerIconCache = {};
+  int? _previousSelectedCompanyId;
 
   @override
   void initState() {
@@ -71,6 +72,26 @@ class _MapScreenState extends State<MapScreen> {
     // Update markers when locations change (after loading completes)
     if (!mapViewModel.isLoading && mapViewModel.locations.isNotEmpty) {
       _updateMarkers(mapViewModel.locations);
+    }
+
+    // Zoom to selected company location when selection changes
+    if (mapViewModel.selectedCompanyId != null &&
+        mapViewModel.selectedCompanyId != _previousSelectedCompanyId &&
+        mapViewModel.selectedLocation != null &&
+        _mapController != null) {
+      print(
+        '[MapScreen] Company selection changed, zooming to new location - '
+        'company_id: ${mapViewModel.selectedCompanyId}, '
+        'previous_company_id: ${_previousSelectedCompanyId ?? 'none'}, '
+        'zoom_level: 22.0',
+      );
+      _previousSelectedCompanyId = mapViewModel.selectedCompanyId;
+      final location = mapViewModel.selectedLocation!;
+      _zoomToLocation(LatLng(location.latitude, location.longitude), 22.0);
+    } else if (mapViewModel.selectedCompanyId == null) {
+      // Clear tracking when selection is cleared
+      print('[MapScreen] Company selection cleared');
+      _previousSelectedCompanyId = null;
     }
   }
 
@@ -175,6 +196,26 @@ class _MapScreenState extends State<MapScreen> {
               ),
               onMapCreated: (controller) {
                 _mapController = controller;
+
+                // If a company is already selected (e.g., from company detail screen),
+                // zoom to it now that the map is ready
+                final mapViewModel = Provider.of<MapViewModel>(
+                  context,
+                  listen: false,
+                );
+                if (mapViewModel.selectedCompanyId != null &&
+                    mapViewModel.selectedLocation != null) {
+                  print(
+                    '[MapScreen] Map created with pre-selected company, zooming to location - '
+                    'company_id: ${mapViewModel.selectedCompanyId}, zoom_level: 22.0',
+                  );
+                  _previousSelectedCompanyId = mapViewModel.selectedCompanyId;
+                  final location = mapViewModel.selectedLocation!;
+                  _zoomToLocation(
+                    LatLng(location.latitude, location.longitude),
+                    22.0,
+                  );
+                }
               },
               markers: _markers,
               onTap: (_) {
@@ -424,8 +465,16 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _zoomToLocation(LatLng target, double zoom) async {
     final controller = _mapController;
     if (controller == null) {
+      print('[MapScreen] Cannot zoom: map controller not initialized');
       return;
     }
+
+    print(
+      '[MapScreen] Animating camera to location - '
+      'latitude: ${target.latitude}, '
+      'longitude: ${target.longitude}, '
+      'zoom_level: $zoom',
+    );
 
     await controller.animateCamera(CameraUpdate.newLatLngZoom(target, zoom));
   }

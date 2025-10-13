@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../company/domain/entities/company.dart';
 import '../../../company/presentation/widgets/company_logo_widget.dart';
+import '../providers/location_provider.dart';
 
 /// Company information card displayed on map when a marker is selected
 ///
@@ -26,6 +28,9 @@ class CompanyInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locationProvider = GetIt.I<LocationProvider>();
+    final hasUserLocation = locationProvider.currentLocation != null;
+
     return Card(
       color: ArkadColors.white,
       elevation: 8,
@@ -103,19 +108,21 @@ class CompanyInfoCard extends StatelessWidget {
                     child: const Text('View Details'),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      context.push('/navigate/${company.id}');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ArkadColors.arkadGreen,
-                      foregroundColor: ArkadColors.white,
+                if (hasUserLocation) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        context.push('/navigate/${company.id}');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ArkadColors.arkadGreen,
+                        foregroundColor: ArkadColors.white,
+                      ),
+                      child: const Text('Navigate to'),
                     ),
-                    child: const Text('Navigate to'),
                   ),
-                ),
+                ],
               ],
             ),
             const SizedBox(height: 8),
