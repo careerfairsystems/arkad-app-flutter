@@ -1,3 +1,5 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/domain/use_case.dart';
 import '../entities/fcm_token_info.dart';
@@ -24,6 +26,7 @@ class SyncFcmTokenUseCase extends UseCase<void, SyncFcmTokenParams> {
         storedInfo.needsRefresh;
 
     if (!shouldSend) {
+      Sentry.logger.info('Skipping FCM token sync - token unchanged and fresh');
       return Result.success(null);
     }
 
