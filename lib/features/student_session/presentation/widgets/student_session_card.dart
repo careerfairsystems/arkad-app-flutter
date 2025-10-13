@@ -55,10 +55,7 @@ class StudentSessionCard extends StatelessWidget {
     return Card(
       margin: margin,
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: ArkadColors.arkadTurkos.withValues(alpha: 0.3)),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: actionInfo.action != ActionType.none && actionInfo.isEnabled
