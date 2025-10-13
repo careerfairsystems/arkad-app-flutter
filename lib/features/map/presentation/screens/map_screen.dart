@@ -1,5 +1,9 @@
+import 'dart:ui' as ui;
+
+import 'package:arkad/features/map/domain/repositories/map_repository.dart';
 import 'package:arkad/services/service_locator.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -29,6 +33,8 @@ class _MapScreenState extends State<MapScreen> {
   MapBuilding? currentFocusedBuilding;
   bool _shouldShowMarkers = false;
   double _currentZoom = 18.0;
+  GoogleMapController? _mapController;
+  final Map<int, BitmapDescriptor> _buildingMarkerIconCache = {};
 
   @override
   void initState() {
@@ -134,7 +140,10 @@ class _MapScreenState extends State<MapScreen> {
                 ), // StudieC
                 zoom: 18.0,
               ),
-              markers: _currentZoom > 20.0 ? _markers : {},
+              onMapCreated: (controller) {
+                _mapController = controller;
+              },
+              markers: _markers,
               onTap: (_) {
                 // Deselect company when tapping map
                 if (selectedCompany != null) {
@@ -287,6 +296,32 @@ class _MapScreenState extends State<MapScreen> {
           newMarkers.add(marker);
         }
       }
+    } else {
+      final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+      final repository = GetIt.I<MapRepository>();
+      final companiesPerBuilding = await repository.getLocationsForBuilding();
+      if (companiesPerBuilding.isFailure) {
+        return;
+      }
+
+      for (final building in mapViewModel.buildings) {
+        final companyCount =
+            companiesPerBuilding.valueOrNull![building.id]?.length ?? 0;
+        if (companyCount == 0) {
+          continue;
+        }
+
+        final icon = await _buildingMarkerIcon(companyCount);
+        final marker = Marker(
+          markerId: MarkerId('building-${building.id}'),
+          position: building.center,
+          icon: icon,
+          onTap: () {
+            _zoomToLocation(building.center, 21.0);
+          },
+        );
+        newMarkers.add(marker);
+      }
     }
 
     if (mounted) {
@@ -296,8 +331,68 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Future<BitmapDescriptor> _buildingMarkerIcon(int count) async {
+    final cachedIcon = _buildingMarkerIconCache[count];
+    if (cachedIcon != null) {
+      return cachedIcon;
+    }
+
+    const double size = 45;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final center = Offset(size / 2, size / 2);
+
+    final borderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, size / 3, borderPaint);
+
+    final fillPaint = Paint()
+      ..color = ArkadColors.arkadTurkos
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, (size / 2) - 6, fillPaint);
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: count.toString(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final textOffset = Offset(
+      center.dx - (textPainter.width / 2),
+      center.dy - (textPainter.height / 2),
+    );
+    textPainter.paint(canvas, textOffset);
+
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(size.toInt(), size.toInt());
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    if (bytes == null) {
+      return BitmapDescriptor.defaultMarker;
+    }
+
+    final icon = BitmapDescriptor.bytes(bytes.buffer.asUint8List());
+    _buildingMarkerIconCache[count] = icon;
+    return icon;
+  }
+
   void _showSearchView() {
     context.push('/map/search');
+  }
+
+  Future<void> _zoomToLocation(LatLng target, double zoom) async {
+    final controller = _mapController;
+    if (controller == null) {
+      return;
+    }
+
+    await controller.animateCamera(CameraUpdate.newLatLngZoom(target, zoom));
   }
 
   void _onCameraMove(CameraPosition position) async {

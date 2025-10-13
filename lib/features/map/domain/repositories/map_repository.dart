@@ -7,9 +7,14 @@ import '../entities/map_location.dart';
 /// Repository interface for map operations
 abstract class MapRepository {
   /// Get all map locations
-  Future<Result<List<MapLocation>>> getLocations(
+  /// Only for the specified floor in each building
+  Future<Result<List<MapLocation>>> getLocationsForFloor(
     Map<int, int> buildingIdToFloorIndex,
   );
+
+  /// Get all map locations for all buildings and floors
+  /// Grouped by building ID
+  Future<Result<Map<int, List<MapLocation>>>> getLocationsForBuilding();
 
   List<MapBuilding> getMapBuildings();
 

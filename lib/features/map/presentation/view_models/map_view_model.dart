@@ -51,7 +51,9 @@ class MapViewModel extends ChangeNotifier {
       }
     }
 
-    final result = await _mapRepository.getLocations(buildingIdToFloorIndex);
+    final result = await _mapRepository.getLocationsForFloor(
+      buildingIdToFloorIndex,
+    );
 
     result.when(
       success: (locations) {

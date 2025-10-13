@@ -97,7 +97,7 @@ class MapRepositoryImpl implements MapRepository {
   }
 
   @override
-  Future<Result<List<MapLocation>>> getLocations(
+  Future<Result<List<MapLocation>>> getLocationsForFloor(
     Map<int, int> buildingIdToFloorIndex,
   ) async {
     try {
@@ -152,6 +152,7 @@ class MapRepositoryImpl implements MapRepository {
     return MapBuilding(
       id: studyCBuildingId,
       name: 'Studie C',
+      center: const LatLng(55.71151802661963, 13.209425262563897),
       bounds: LatLngBounds(
         southwest: const LatLng(55.711319040663575, 13.208967394827487),
         northeast: const LatLng(55.711756843405276, 13.210104089933266),
@@ -188,6 +189,7 @@ class MapRepositoryImpl implements MapRepository {
       name: 'Kårhuset',
       floors: [floor1, floorBasement],
       defaultFloorIndex: 1,
+      center: const LatLng(55.71235654002736, 13.209215855357545),
       bounds: LatLngBounds(
         southwest: const LatLng(55.71211949637107, 13.20841646190142),
         northeast: const LatLng(55.71278598926637, 13.210156283172068),
@@ -210,6 +212,7 @@ class MapRepositoryImpl implements MapRepository {
       id: eHouseBuildingId,
       name: 'E-huset',
       floors: [floor1],
+      center: const LatLng(55.711038863349295, 13.210309739119706),
       defaultFloorIndex: 0,
       bounds: LatLngBounds(
         southwest: const LatLng(55.710345404059495, 13.209773518477117),
@@ -347,5 +350,28 @@ class MapRepositoryImpl implements MapRepository {
     final lonDiff = overlapEast - overlapWest;
 
     return latDiff * lonDiff;
+  }
+
+  @override
+  Future<Result<Map<int, List<MapLocation>>>> getLocationsForBuilding() async {
+    try {
+      await _ensureLocationsCache();
+
+      final locationsByBuilding = <int, List<MapLocation>>{};
+
+      for (final entry in _locationsCache!.entries) {
+        if (entry.value.isEmpty) continue;
+
+        final buildingLocations = locationsByBuilding.putIfAbsent(
+          entry.key.buildingId,
+          () => <MapLocation>[],
+        );
+        buildingLocations.addAll(entry.value);
+      }
+
+      return Result.success(locationsByBuilding);
+    } catch (e) {
+      return Result.failure(UnknownError('Failed to load locations: $e'));
+    }
   }
 }

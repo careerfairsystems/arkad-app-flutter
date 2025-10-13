@@ -91,6 +91,7 @@ class MapBuilding {
   final List<MapFloor> floors;
   final int defaultFloorIndex;
   final LatLngBounds bounds;
+  final LatLng center;
 
   MapBuilding({
     required this.id,
@@ -98,5 +99,6 @@ class MapBuilding {
     required this.floors,
     required this.defaultFloorIndex,
     required this.bounds,
+    required this.center,
   });
 }
