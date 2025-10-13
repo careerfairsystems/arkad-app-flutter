@@ -14,11 +14,15 @@ class CompanyInfoCard extends StatelessWidget {
     required this.company,
     required this.onClose,
     required this.featureModelId,
+    required this.buildingName,
+    required this.floorLabel,
   });
 
   final Company company;
   final VoidCallback onClose;
   final int featureModelId;
+  final String buildingName;
+  final String floorLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +53,15 @@ class CompanyInfoCard extends StatelessWidget {
                           color: ArkadColors.arkadNavy,
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
+                          fontFamily: 'MyriadProCondensed',
+                        ),
+                      ),
+                      Text(
+                        'Location: $buildingName, $floorLabel',
+                        style: const TextStyle(
+                          color: ArkadColors.arkadNavy,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                           fontFamily: 'MyriadProCondensed',
                         ),
                       ),

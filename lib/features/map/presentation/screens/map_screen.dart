@@ -47,6 +47,9 @@ class _MapScreenState extends State<MapScreen> {
         listen: false,
       );
 
+      // Listen to map view model changes to update markers
+      mapViewModel.addListener(_onMapViewModelChanged);
+
       // Load locations, buildings, and ground overlays
       final imageConfig = createLocalImageConfiguration(context);
       mapViewModel.loadLocations().then((_) async {
@@ -60,6 +63,15 @@ class _MapScreenState extends State<MapScreen> {
         companyViewModel.loadCompanies();
       }
     });
+  }
+
+  void _onMapViewModelChanged() {
+    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+
+    // Update markers when locations change (after loading completes)
+    if (!mapViewModel.isLoading && mapViewModel.locations.isNotEmpty) {
+      _updateMarkers(mapViewModel.locations);
+    }
   }
 
   @override
@@ -129,6 +141,27 @@ class _MapScreenState extends State<MapScreen> {
             ? companyViewModel.getCompanyById(mapViewModel.selectedCompanyId!)
             : null;
 
+        // Get building name and floor label from selected location
+        final selectedLocation = mapViewModel.selectedLocation;
+        String buildingName = 'Unknown';
+        String floorLabel = 'Unknown Floor';
+
+        if (selectedLocation != null) {
+          // Find the floor label from the building
+          final building = mapViewModel.buildings.firstWhere(
+            (b) => b.id == selectedLocation.buildingId,
+            orElse: () => mapViewModel.buildings.first,
+          );
+          buildingName = building.name;
+
+          final floor = building.floors.firstWhere(
+            (f) => f.index == selectedLocation.floorIndex,
+            orElse: () => building.floors.first,
+          );
+
+          floorLabel = floor.name;
+        }
+
         return Stack(
           children: [
             // Map
@@ -180,6 +213,8 @@ class _MapScreenState extends State<MapScreen> {
                 child: CompanyInfoCard(
                   company: selectedCompany,
                   featureModelId: mapViewModel.selectedFeatureModelId,
+                  buildingName: buildingName,
+                  floorLabel: floorLabel,
                   onClose: () {
                     mapViewModel.clearSelection();
                   },
@@ -420,6 +455,9 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
+    // Remove listener to prevent memory leaks
+    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+    mapViewModel.removeListener(_onMapViewModelChanged);
     super.dispose();
   }
 }

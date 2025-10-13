@@ -78,7 +78,6 @@ class MapRepositoryImpl implements MapRepository {
         companyId: company?.id,
         floorIndex: floorIndex,
         buildingId: location.buildingId,
-        building: location.buildingId.toString(),
       );
 
       return (location.buildingId, floorIndex, mapLocation);

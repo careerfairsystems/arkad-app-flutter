@@ -14,7 +14,6 @@ class MapLocation {
   final int floorIndex;
   final int buildingId;
   final int featureModelId;
-  final String building;
 
   const MapLocation({
     required this.id,
@@ -23,7 +22,6 @@ class MapLocation {
     required this.longitude,
     required this.type,
     required this.featureModelId,
-    required this.building,
     required this.floorIndex,
     required this.buildingId,
     this.imageUrl,
