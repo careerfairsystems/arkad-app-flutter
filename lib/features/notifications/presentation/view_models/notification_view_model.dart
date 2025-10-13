@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -167,7 +168,12 @@ class NotificationViewModel extends ChangeNotifier with WidgetsBindingObserver {
         return;
       }
 
-      final success = await _fcmService.subscribeToTopic('broadcast');
+      var success = false;
+      if (kDebugMode) {
+        success = await _fcmService.subscribeToTopic('debug_broadcast');
+      } else {
+        success = await _fcmService.subscribeToTopic('broadcast');
+      }
 
       if (success) {
         Sentry.logger.info('Successfully subscribed to broadcast topic');
@@ -183,6 +189,7 @@ class NotificationViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Unsubscribe from broadcast topic
+  /// DO we ever want to do this?
   Future<void> _unsubscribeFromBroadcast() async {
     try {
       if (!_isInitialized) {
@@ -195,7 +202,12 @@ class NotificationViewModel extends ChangeNotifier with WidgetsBindingObserver {
         return;
       }
 
-      final success = await _fcmService.unsubscribeFromTopic('broadcast');
+      var success = false;
+      if (kDebugMode) {
+        success = await _fcmService.unsubscribeFromTopic('debug_broadcast');
+      } else {
+        success = await _fcmService.unsubscribeFromTopic('broadcast');
+      }
 
       if (success) {
         Sentry.logger.info('Successfully unsubscribed from broadcast topic');
