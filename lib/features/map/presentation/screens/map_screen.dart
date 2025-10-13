@@ -22,7 +22,9 @@ import '../widgets/permission_step_widget.dart';
 
 /// Displays an interactive map of companies at ARKAD event
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  const MapScreen({super.key, this.preselectedCompanyId});
+
+  final int? preselectedCompanyId;
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -57,6 +59,16 @@ class _MapScreenState extends State<MapScreen> {
         // Load ground overlays after buildings are loaded
         await mapViewModel.loadGroundOverlays(imageConfig);
         await _updateMarkers(mapViewModel.locations);
+
+        // If a company was preselected (e.g., from company detail screen),
+        // select it now that locations are loaded
+        if (widget.preselectedCompanyId != null) {
+          print(
+            '[MapScreen] Selecting preselected company after locations loaded - '
+            'company_id: ${widget.preselectedCompanyId}',
+          );
+          mapViewModel.selectCompany(widget.preselectedCompanyId);
+        }
       });
 
       // Load companies if not already loaded (for company info cards)

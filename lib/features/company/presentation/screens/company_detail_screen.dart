@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/async_state_builder.dart';
-import '../../../map/presentation/view_models/map_view_model.dart';
 import '../../domain/entities/company.dart';
 import '../view_models/company_detail_view_model.dart';
 import '../widgets/company_logo_widget.dart';
@@ -878,15 +877,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
     final websiteUri = normalizeWeb(company.websiteUrl);
 
     void navigateToMap() {
-      // Select company in MapViewModel
-      final mapViewModel = Provider.of<MapViewModel>(
-        buildContext,
-        listen: false,
-      );
-      mapViewModel.selectCompany(company.id);
-
-      // Navigate to map tab
-      context.go('/map');
+      // Navigate to map tab with company ID as query parameter
+      // The map screen will select the company after locations are loaded
+      context.go('/map?companyId=${company.id}');
     }
 
     return Padding(

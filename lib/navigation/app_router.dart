@@ -109,7 +109,13 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/map',
-                pageBuilder: _noAnim((_) => const MapScreen()),
+                pageBuilder: _noAnimWithState((context, state) {
+                  final companyIdStr = state.uri.queryParameters['companyId'];
+                  final companyId = companyIdStr != null
+                      ? int.tryParse(companyIdStr)
+                      : null;
+                  return MapScreen(preselectedCompanyId: companyId);
+                }),
                 routes: [
                   GoRoute(
                     path: 'search',
@@ -309,9 +315,7 @@ class AppRouter {
           final companyId = int.tryParse(companyIdStr ?? '');
           if (companyId == null) {
             return const Scaffold(
-              body: Center(
-                child: Text('Error: Invalid company ID'),
-              ),
+              body: Center(child: Text('Error: Invalid company ID')),
             );
           }
           return CompanyNavigationScreen(companyId: companyId);
@@ -333,6 +337,11 @@ Page<dynamic> Function(BuildContext, GoRouterState) _noAnim(
   Widget Function(BuildContext) builder,
 ) =>
     (context, state) => NoTransitionPage(child: builder(context));
+
+Page<dynamic> Function(BuildContext, GoRouterState) _noAnimWithState(
+  Widget Function(BuildContext, GoRouterState) builder,
+) =>
+    (context, state) => NoTransitionPage(child: builder(context, state));
 
 Page<dynamic> Function(BuildContext, GoRouterState) _fade(
   Widget Function(BuildContext) builder,
