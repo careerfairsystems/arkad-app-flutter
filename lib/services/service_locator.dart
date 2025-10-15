@@ -48,6 +48,7 @@ import '../features/map/presentation/view_models/map_view_model.dart';
 import '../features/notifications/data/data_sources/notification_local_data_source.dart';
 import '../features/notifications/data/data_sources/notification_remote_data_source.dart';
 import '../features/notifications/data/repositories/notification_repository_impl.dart';
+import '../features/notifications/data/services/fcm_service.dart';
 import '../features/notifications/domain/repositories/notification_repository.dart';
 import '../features/notifications/domain/use_cases/sync_fcm_token_use_case.dart';
 import '../features/notifications/presentation/view_models/notification_view_model.dart';
@@ -84,6 +85,8 @@ import '../features/student_session/presentation/commands/get_timeslots_command.
 import '../features/student_session/presentation/commands/switch_timeslot_command.dart';
 import '../features/student_session/presentation/commands/unbook_timeslot_command.dart';
 import '../features/student_session/presentation/view_models/student_session_view_model.dart';
+import '../navigation/app_router.dart';
+import '../navigation/router_notifier.dart';
 import '../shared/infrastructure/app_environment.dart';
 import '../shared/infrastructure/services/file_service.dart';
 
@@ -106,8 +109,9 @@ void setupServiceLocator() {
     () => FileService(serviceLocator<ImagePicker>()),
   );
 
-  // Clean architecture features
   _setupAuthFeature();
+  _setupRouter();
+  _setupNotificationFeature();
   _setupProfileFeature();
   _setupCompanyFeature();
   _setupStudentSessionFeature();
@@ -200,7 +204,6 @@ void _setupAuthFeature() {
 
   // View model
   serviceLocator.registerSingleton<AuthViewModel>(authViewModel);
-  _setupNotificationFeature(authViewModel);
 }
 
 /// Setup Profile feature with clean architecture
@@ -479,7 +482,8 @@ void _setupMapFeature() {
 }
 
 /// Setup Notification feature with clean architecture
-void _setupNotificationFeature(AuthViewModel authViewModel) {
+void _setupNotificationFeature() {
+  serviceLocator.registerSingleton<FcmService>(FcmService());
   // Data sources
   serviceLocator.registerLazySingleton<NotificationLocalDataSource>(
     () =>
@@ -502,9 +506,23 @@ void _setupNotificationFeature(AuthViewModel authViewModel) {
   serviceLocator.registerSingleton<SyncFcmTokenUseCase>(useCase);
   final viewModel = NotificationViewModel(
     syncFcmTokenUseCase: useCase,
-    authViewModel: authViewModel,
+    authViewModel: serviceLocator<AuthViewModel>(),
+    fcmService: serviceLocator<FcmService>(),
   );
 
   // View model
   serviceLocator.registerSingleton<NotificationViewModel>(viewModel);
+}
+
+/// Setup Router with auth integration
+void _setupRouter() {
+  // RouterNotifier (bridges auth state with navigation)
+  serviceLocator.registerSingleton<RouterNotifier>(
+    RouterNotifier(serviceLocator<AuthViewModel>()),
+  );
+
+  // AppRouter (contains route configuration and GoRouter instance)
+  serviceLocator.registerSingleton<AppRouter>(
+    AppRouter(serviceLocator<RouterNotifier>()),
+  );
 }

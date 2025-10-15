@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -43,7 +44,7 @@ class _NotificationStatusCardState extends State<NotificationStatusCard> {
   }
 
   Future<void> _openSettings() async {
-    await FcmService.instance.openAppSettings();
+    await GetIt.I<FcmService>().openAppSettings();
   }
 
   @override

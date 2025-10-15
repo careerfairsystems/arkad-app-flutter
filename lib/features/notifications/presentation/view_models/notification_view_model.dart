@@ -16,7 +16,9 @@ class NotificationViewModel extends ChangeNotifier with WidgetsBindingObserver {
   NotificationViewModel({
     required SyncFcmTokenUseCase syncFcmTokenUseCase,
     required AuthViewModel authViewModel,
-  }) : _authViewModel = authViewModel {
+    required FcmService fcmService,
+  })  : _authViewModel = authViewModel,
+        _fcmService = fcmService {
     // Initialize command
     _syncFcmTokenCommand = SyncFcmTokenCommand(syncFcmTokenUseCase);
 
@@ -33,7 +35,7 @@ class NotificationViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   final AuthViewModel _authViewModel;
-  final FcmService _fcmService = FcmService.instance;
+  final FcmService _fcmService;
 
   late final SyncFcmTokenCommand _syncFcmTokenCommand;
   StreamSubscription<AuthSessionChangedEvent>? _authSessionChangedSubscription;
