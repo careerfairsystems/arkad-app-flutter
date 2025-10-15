@@ -1,3 +1,8 @@
+## [4.1.4] - 2025-10-15
+
+### 🚀 Features
+
+- Map integration (#38)
 ## [4.1.3] - 2025-10-15
 
 ### 🚀 Features
@@ -10,6 +15,10 @@
 
 - Notifications did not work from terminated state
 - Notification issues
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.1.3+327
 ## [4.1.2] - 2025-10-13
 
 ### 🚀 Features
