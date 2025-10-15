@@ -141,15 +141,15 @@ class FcmService {
 
   void _onForegroundNotificationClick(NotificationResponse res) {
     final payload = res.payload;
-
     if (payload == null || payload.isEmpty) return;
-    final payloadObj = jsonDecode(payload);
-    final link = payloadObj['link'] ?? payloadObj['url'];
-    if (link is! String || link.isEmpty) return;
-
     try {
-      final data = Uri.parse(link);
-      _routeToUri(data);
+      final Map<String, dynamic> payloadObj =
+          jsonDecode(payload) as Map<String, dynamic>;
+      final link = payloadObj['link'] ?? payloadObj['url'];
+      if (link is! String || link.isEmpty) return;
+      final uri = Uri.tryParse(link);
+      if (uri == null) return;
+      _routeToUri(uri);
     } catch (e, stackTrace) {
       Sentry.captureException(e, stackTrace: stackTrace);
     }
