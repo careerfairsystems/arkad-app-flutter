@@ -20,9 +20,6 @@ import UserNotifications
         GeneratedPluginRegistrant.register(with: self)
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
-    GeneratedPluginRegistrant.register(with: self)
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
 
   // Handle notification presentation when app is in foreground
   override func userNotificationCenter(

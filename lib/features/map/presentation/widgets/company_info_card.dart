@@ -108,7 +108,8 @@ class CompanyInfoCard extends StatelessWidget {
                     child: const Text('View Details'),
                   ),
                 ),
-                if (hasUserLocation) ...[
+                if (hasUserLocation && false) ...[
+                  // Disable for now
                   const SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton(
