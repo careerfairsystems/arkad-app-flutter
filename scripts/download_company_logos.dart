@@ -63,7 +63,10 @@ Future<bool> createCircularImage(String inputPath, String outputPath) async {
           final srcX = x + srcOffsetX;
           final srcY = y + srcOffsetY;
 
-          if (srcX >= 0 && srcX < image.width && srcY >= 0 && srcY < image.height) {
+          if (srcX >= 0 &&
+              srcX < image.width &&
+              srcY >= 0 &&
+              srcY < image.height) {
             final pixel = image.getPixel(srcX, srcY);
             circularImage.setPixel(x, y, pixel);
           } else {
@@ -167,40 +170,58 @@ Future<void> main() async {
           continue;
         }
 
-        // Determine file extension from URL or content-type
-        String extension = path.extension(fullLogoUrl);
-        if (extension.isEmpty || extension.contains('?')) {
-          // Try to get extension from content-type
-          final contentType = logoResponse.headers['content-type'] ?? '';
-          if (contentType.contains('png')) {
-            extension = '.png';
-          } else if (contentType.contains('jpg') ||
-              contentType.contains('jpeg')) {
-            extension = '.jpg';
-          } else if (contentType.contains('svg')) {
-            extension = '.svg';
-          } else if (contentType.contains('webp')) {
-            extension = '.webp';
-          } else {
-            extension = '.png'; // default
-          }
+        // Detect image format from content-type header and URL extension
+        final contentType = logoResponse.headers['content-type'] ?? '';
+        final urlExtension = path.extension(fullLogoUrl).toLowerCase();
+
+        // Only accept PNG format
+        final isPng = contentType.contains('png') || urlExtension == '.png';
+
+        if (!isPng) {
+          print(
+            '  ⚠️  Skipped: Only PNG format supported (detected: $contentType / $urlExtension)',
+          );
+          skippedCount++;
+          continue;
         }
 
-        // Clean extension (remove query parameters)
-        extension = extension.split('?').first;
+        // Decode the image from downloaded bytes
+        img.Image? decodedImage;
+        try {
+          decodedImage = img.decodeImage(logoResponse.bodyBytes);
+          if (decodedImage == null) {
+            print('  ❌ Error: Failed to decode image');
+            errorCount++;
+            continue;
+          }
+        } catch (e) {
+          print('  ❌ Error: Failed to decode image - $e');
+          errorCount++;
+          continue;
+        }
 
-        // Use company ID as filename
-        final fileName = '$companyId$extension';
+        // Re-encode as PNG
+        List<int> pngBytes;
+        try {
+          pngBytes = img.encodePng(decodedImage);
+        } catch (e) {
+          print('  ❌ Error: Failed to encode image as PNG - $e');
+          errorCount++;
+          continue;
+        }
+
+        // Always save with .png extension
+        final fileName = '$companyId.png';
         final filePath = path.join(assetsDir, fileName);
 
-        // Save the file
+        // Write the PNG-encoded bytes to file
         final file = File(filePath);
-        await file.writeAsBytes(logoResponse.bodyBytes);
+        await file.writeAsBytes(pngBytes);
 
         // Verify file was written successfully
         if (await file.exists()) {
           print(
-            '  ✅ Saved: $fileName (${(logoResponse.bodyBytes.length / 1024).toStringAsFixed(1)} KB)',
+            '  ✅ Saved: $fileName (${(pngBytes.length / 1024).toStringAsFixed(1)} KB)',
           );
           downloadedCount++;
 
@@ -209,8 +230,10 @@ Future<void> main() async {
           final circularFileName = '$companyId-circle.png';
           final circularFilePath = path.join(assetsDir, circularFileName);
 
-          final circularSuccess =
-              await createCircularImage(filePath, circularFilePath);
+          final circularSuccess = await createCircularImage(
+            filePath,
+            circularFilePath,
+          );
 
           if (circularSuccess) {
             final circularFile = File(circularFilePath);

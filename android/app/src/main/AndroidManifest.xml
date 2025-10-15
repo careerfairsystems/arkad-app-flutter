@@ -45,7 +45,7 @@
             android:value="2" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDyDZMudkdOk8-uWRP2E6wXmAKSduwpLWg" />  <!-- gitleaks:allow -->
+            android:value="AIzaSyADpGEg4hd31q23dSfLjPQrRw0Re4Ve7hg" />  <!-- gitleaks:allow -->
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

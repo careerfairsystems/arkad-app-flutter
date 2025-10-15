@@ -51,6 +51,14 @@ android {
                 storePassword = keystoreProperties.getProperty("storePassword")
             }
         }
+        getByName("debug") {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = file("../${keystoreProperties.getProperty("storeFile")}")
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
+        }
     }
 
     buildTypes {
@@ -59,6 +67,9 @@ android {
 
             // Fix for R8 issues
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

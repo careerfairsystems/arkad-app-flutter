@@ -10,7 +10,7 @@ import UserNotifications
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         // Initialize Google Maps
-        GMSServices.provideAPIKey("AIzaSyDyDZMudkdOk8-uWRP2E6wXmAKSduwpLWg") // gitleaks:allow
+        GMSServices.provideAPIKey("AIzaSyD1BonQ32_ER-C7FT2OBG-QzrtiRGS84WM") // gitleaks:allow
 
         // Register for remote notifications
         if #available(iOS 10.0, *) {
