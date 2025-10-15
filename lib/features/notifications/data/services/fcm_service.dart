@@ -108,7 +108,8 @@ class FcmService {
     final link = message.data['link'] ?? message.data['url'];
     if (link is! String || link.isEmpty) return;
 
-    final uri = Uri.parse(link);
+    final uri = Uri.tryParse(link);
+    if (uri == null) return;
 
     void nav() => _routeToUri(uri);
 
@@ -118,7 +119,6 @@ class FcmService {
       nav();
     }
   }
-
   Future<void> _routeToUri(Uri uri) async {
     // Handle universal links on your domain by mirroring the path+query into go_router.
     if (uri.scheme == 'https' && uri.host == 'app.arkadtlth.se') {
