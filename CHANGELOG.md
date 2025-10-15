@@ -3,6 +3,10 @@
 ### 🚀 Features
 
 - Map integration (#38)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.1.4+328
 ## [4.1.3] - 2025-10-15
 
 ### 🚀 Features
