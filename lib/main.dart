@@ -14,7 +14,6 @@ import 'features/notifications/presentation/view_models/notification_view_model.
 import 'features/profile/presentation/view_models/profile_view_model.dart';
 import 'features/student_session/presentation/view_models/student_session_view_model.dart';
 import 'navigation/app_router.dart';
-import 'navigation/router_notifier.dart';
 import 'services/service_locator.dart';
 import 'shared/presentation/themes/arkad_theme.dart';
 
@@ -59,16 +58,18 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late final AppRouter _appRouter;
-  late final RouterNotifier _routerNotifier;
-
   @override
   void initState() {
     super.initState();
-    // Use clean architecture: AuthViewModel → RouterNotifier → AppRouter
-    final authViewModel = serviceLocator<AuthViewModel>();
-    _routerNotifier = RouterNotifier(authViewModel);
-    _appRouter = AppRouter(_routerNotifier);
+    // Eagerly initialize NotificationViewModel to set up FCM for initial notifications
+    // This ensures FCM is ready to handle notifications when app launches from terminated state
+    serviceLocator<NotificationViewModel>();
+
+    // Mark router as ready after first frame completes
+    // This allows any pending routes (e.g., from notifications) to be executed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      serviceLocator<AppRouter>().markRouterReady();
+    });
   }
 
   @override
@@ -104,7 +105,7 @@ class _MyAppState extends State<MyApp> {
       child: MaterialApp.router(
         title: 'Arkad App',
         theme: ArkadTheme.appTheme,
-        routerConfig: _appRouter.router,
+        routerConfig: serviceLocator<AppRouter>().router,
       ),
     );
   }

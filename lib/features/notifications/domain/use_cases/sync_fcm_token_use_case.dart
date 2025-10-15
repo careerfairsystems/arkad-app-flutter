@@ -15,20 +15,21 @@ class SyncFcmTokenUseCase extends UseCase<void, SyncFcmTokenParams> {
   @override
   Future<Result<void>> call(SyncFcmTokenParams params) async {
     // Get stored token info
-    final storedInfo = await _repository.getStoredTokenInfo();
+    // TODO: Discuss if we should have this
+    //final storedInfo = await _repository.getStoredTokenInfo();
 
     // If token is empty, always send it to clear backend registration (logout case)
     // Otherwise, check if we need to send the token
-    final shouldSend =
-        params.token.isEmpty ||
-        storedInfo == null ||
-        storedInfo.token != params.token ||
-        storedInfo.needsRefresh;
-
-    if (!shouldSend) {
-      Sentry.logger.info('Skipping FCM token sync - token unchanged and fresh');
-      return Result.success(null);
-    }
+    // final shouldSend =
+    //     params.token.isEmpty ||
+    //     storedInfo == null ||
+    //     storedInfo.token != params.token ||
+    //     storedInfo.needsRefresh;
+    //
+    // if (!shouldSend) {
+    //   Sentry.logger.info('Skipping FCM token sync - token unchanged and fresh');
+    //   return Result.success(null);
+    // }
 
     // Send token to backend (can be empty string to clear registration)
     final result = await _repository.sendFcmToken(params.token);

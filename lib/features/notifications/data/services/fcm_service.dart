@@ -1,9 +1,16 @@
+import 'dart:convert';
+
 import 'package:app_settings/app_settings.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get_it/get_it.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../navigation/app_router.dart';
 
 /// Top-level function for background message handling
 /// MUST be top-level or static to work with FCM background handler
@@ -20,10 +27,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 /// Service for managing Firebase Cloud Messaging
 class FcmService {
-  FcmService._();
-
-  static final FcmService _instance = FcmService._();
-  static FcmService get instance => _instance;
+  final _appRouter = GetIt.I<AppRouter>();
 
   FirebaseMessaging? _messaging;
   String? _currentToken;
@@ -81,7 +85,31 @@ class FcmService {
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
       // Handle notification taps when app is in background
-      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+
+      // App opened from a terminated state by tapping a notification
+      final initial = await FirebaseMessaging.instance.getInitialMessage();
+      if (initial != null) {
+        await Sentry.addBreadcrumb(
+          Breadcrumb(
+            message:
+                'Initial notification detected - app launched from terminated state',
+            level: SentryLevel.info,
+            data: {
+              'notification_title': initial.notification?.title ?? 'No title',
+              'has_link': (initial.data['link'] ?? initial.data['url']) != null,
+            },
+          ),
+        );
+        _handleMessage(initial, deferToFirstFrame: true);
+      } else {
+        await Sentry.addBreadcrumb(
+          Breadcrumb(
+            message: 'No initial notification - normal app launch',
+            level: SentryLevel.info,
+          ),
+        );
+      }
 
       await Sentry.addBreadcrumb(
         Breadcrumb(
@@ -94,13 +122,103 @@ class FcmService {
     }
   }
 
+  void _handleMessage(RemoteMessage message, {bool deferToFirstFrame = false}) {
+    final link = message.data['link'] ?? message.data['url'];
+    if (link is! String || link.isEmpty) return;
+
+    final uri = Uri.tryParse(link);
+    if (uri == null) return;
+
+    void nav() {
+      try {
+        _routeToUri(uri);
+      } catch (e, stackTrace) {
+        Sentry.captureException(e, stackTrace: stackTrace);
+      }
+    }
+
+    if (deferToFirstFrame) {
+      // Wait for first frame to complete before attempting navigation
+      // The AppRouter's setPendingRoute will handle the timing automatically
+      WidgetsBinding.instance.addPostFrameCallback((_) => nav());
+    } else {
+      nav();
+    }
+  }
+
+  Future<void> _routeToUri(Uri uri) async {
+    await Sentry.addBreadcrumb(
+      Breadcrumb(
+        message: 'Attempting to route from notification',
+        level: SentryLevel.info,
+        data: {
+          'uri': uri.toString(),
+          'scheme': uri.scheme,
+          'host': uri.host,
+          'path': uri.path,
+        },
+      ),
+    );
+
+    // Handle universal links on your domain by mirroring the path+query into go_router.
+    if (uri.scheme == 'https' && uri.host == 'app.arkadtlth.se') {
+      // Normalize the path (ensure leading slash, collapse //).
+      var path = uri.path.isEmpty
+          ? '/'
+          : uri.path.replaceAll(RegExp(r'/{2,}'), '/');
+
+      // Preserve query and fragment (if you use fragments).
+      final query = uri.hasQuery ? '?${uri.query}' : '';
+      final fragment = uri.hasFragment ? '#${uri.fragment}' : '';
+
+      final fullPath = '$path$query$fragment';
+
+      await Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Navigating to in-app route',
+          level: SentryLevel.info,
+          data: {'route': fullPath},
+        ),
+      );
+
+      // Use deferred navigation to handle cases where router isn't ready yet
+      _appRouter.setPendingRoute(fullPath);
+      return;
+    }
+
+    // Everything else opens externally (or add more in-app rules above).
+    await Sentry.addBreadcrumb(
+      Breadcrumb(
+        message: 'Opening external URL',
+        level: SentryLevel.info,
+        data: {'url': uri.toString()},
+      ),
+    );
+
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  void _onForegroundNotificationClick(NotificationResponse res) {
+    final payload = res.payload;
+    if (payload == null || payload.isEmpty) return;
+    try {
+      final Map<String, dynamic> payloadObj =
+          jsonDecode(payload) as Map<String, dynamic>;
+      final link = payloadObj['link'] ?? payloadObj['url'];
+      if (link is! String || link.isEmpty) return;
+      final uri = Uri.tryParse(link);
+      if (uri == null) return;
+      _routeToUri(uri);
+    } catch (e, stackTrace) {
+      Sentry.captureException(e, stackTrace: stackTrace);
+    }
+  }
+
   /// Initialize local notifications plugin
   Future<void> _initializeLocalNotifications() async {
     try {
       // Android initialization settings
-      const androidSettings = AndroidInitializationSettings(
-        '@mipmap/ic_launcher',
-      );
+      const androidSettings = AndroidInitializationSettings('ic_notification');
 
       // iOS initialization settings
       const iosSettings = DarwinInitializationSettings(
@@ -117,7 +235,7 @@ class FcmService {
 
       await _localNotifications.initialize(
         initSettings,
-        onDidReceiveNotificationResponse: _onNotificationTap,
+        onDidReceiveNotificationResponse: _onForegroundNotificationClick,
       );
 
       // Create Android notification channel
@@ -163,6 +281,8 @@ class FcmService {
       // Display notification using local notifications
       if (message.notification != null) {
         await _showNotification(message);
+      } else {
+        Sentry.logger.warn("Received message without notification payload");
       }
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -181,6 +301,7 @@ class FcmService {
         channelDescription: 'Important notifications from Arkad',
         importance: Importance.high,
         priority: Priority.high,
+        icon: 'ic_notification',
       );
 
       const iosDetails = DarwinNotificationDetails(
@@ -199,7 +320,14 @@ class FcmService {
         notification.title,
         notification.body,
         details,
-        payload: message.data.toString(),
+        payload: jsonEncode(message.data),
+      );
+      Sentry.logger.info(
+        'Displayed local notification',
+        attributes: {
+          'title': SentryLogAttribute.string(notification.title ?? 'No title'),
+          'body': SentryLogAttribute.string(notification.body ?? 'No body'),
+        },
       );
 
       await Sentry.addBreadcrumb(
@@ -211,30 +339,6 @@ class FcmService {
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
     }
-  }
-
-  /// Handle notification tap
-  void _onNotificationTap(NotificationResponse response) {
-    Sentry.logger.info(
-      'Notification tapped',
-      attributes: {
-        'payload': SentryLogAttribute.string(response.payload ?? 'No payload'),
-      },
-    );
-    // TODO: Navigate to specific screen based on notification data
-  }
-
-  /// Handle notification tap when app opened from background
-  void _handleNotificationTap(RemoteMessage message) {
-    Sentry.logger.info(
-      'App opened from notification',
-      attributes: {
-        'title': SentryLogAttribute.string(
-          message.notification?.title ?? 'No title',
-        ),
-      },
-    );
-    // TODO: Navigate to specific screen based on notification data
   }
 
   /// Request notification permissions

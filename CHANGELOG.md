@@ -1,8 +1,24 @@
+## [4.1.3] - 2025-10-15
+
+### 🚀 Features
+
+- Update  for account requirements signifiers
+- Add "Coming soon" badge (#39)
+- Notification click action (#40)
+
+### 🐛 Bug Fixes
+
+- Notifications did not work from terminated state
+- Notification issues
 ## [4.1.2] - 2025-10-13
 
 ### 🚀 Features
 
 - Notification logout support and broadcast (#37)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.1.2+326
 ## [4.1.1] - 2025-10-13
 
 ### 🚀 Features

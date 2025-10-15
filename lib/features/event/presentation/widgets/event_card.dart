@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../shared/infrastructure/services/timezone_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../domain/entities/event.dart';
 
@@ -174,6 +175,28 @@ class EventCard extends StatelessWidget {
           'Booked',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: ArkadColors.arkadGreen,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
+    // Show "Coming Soon" badge if registration hasn't opened yet
+    if (event.releaseTime != null &&
+        TimezoneService.stockholmNow().isBefore(event.releaseTime!)) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: ArkadColors.arkadOrange.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: ArkadColors.arkadOrange.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Text(
+          'Coming soon',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: ArkadColors.arkadOrange,
             fontWeight: FontWeight.w600,
           ),
         ),
