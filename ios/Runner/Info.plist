@@ -33,6 +33,8 @@
 	<true/>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>This app does not access Apple Music. This permission is required by an SDK used in the app.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>This app uses Bluetooth for indoor positioning via Combain SDK to help you navigate at the ARKAD career fair.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs camera access to scan QR codes</string>
 	<key>NSContactsUsageDescription</key>
