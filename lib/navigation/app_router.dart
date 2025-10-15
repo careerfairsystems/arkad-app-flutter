@@ -13,6 +13,8 @@ import '../features/event/presentation/screens/event_detail_screen.dart';
 import '../features/event/presentation/screens/event_screen.dart';
 import '../features/event/presentation/screens/event_ticket_screen.dart';
 import '../features/event/presentation/screens/scan_event_screen.dart';
+import '../features/map/presentation/screens/company_navigation_screen.dart';
+import '../features/map/presentation/screens/company_search_screen.dart';
 import '../features/map/presentation/screens/map_screen.dart';
 import '../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
@@ -50,6 +52,7 @@ class AppRouter {
       '/auth',
       '/sessions',
       '/events',
+      '/navigate',
     ];
 
     bool isPublic(String path) =>
@@ -110,7 +113,21 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/map',
-                pageBuilder: _noAnim((_) => const MapScreen()),
+                pageBuilder: _noAnimWithState((context, state) {
+                  final companyIdStr = state.uri.queryParameters['companyId'];
+                  final companyId = companyIdStr != null
+                      ? int.tryParse(companyIdStr)
+                      : null;
+                  return MapScreen(preselectedCompanyId: companyId);
+                }),
+                routes: [
+                  GoRoute(
+                    path: 'search',
+                    pageBuilder: _slide((context, state) {
+                      return const CompanySearchScreen();
+                    }),
+                  ),
+                ],
               ),
             ],
           ),
@@ -294,6 +311,20 @@ class AppRouter {
           ),
         ],
       ),
+      // Navigation route (outside bottom nav shell)
+      GoRoute(
+        path: '/navigate/:companyId',
+        pageBuilder: _slide((context, state) {
+          final companyIdStr = state.pathParameters['companyId'];
+          final companyId = int.tryParse(companyIdStr ?? '');
+          if (companyId == null) {
+            return const Scaffold(
+              body: Center(child: Text('Error: Invalid company ID')),
+            );
+          }
+          return CompanyNavigationScreen(companyId: companyId);
+        }),
+      ),
       GoRoute(
         path: '/:_(.*)',
         builder: (ctx, state) =>
@@ -350,6 +381,11 @@ Page<dynamic> Function(BuildContext, GoRouterState) _noAnim(
   Widget Function(BuildContext) builder,
 ) =>
     (context, state) => NoTransitionPage(child: builder(context));
+
+Page<dynamic> Function(BuildContext, GoRouterState) _noAnimWithState(
+  Widget Function(BuildContext, GoRouterState) builder,
+) =>
+    (context, state) => NoTransitionPage(child: builder(context, state));
 
 Page<dynamic> Function(BuildContext, GoRouterState) _fade(
   Widget Function(BuildContext) builder,

@@ -76,3 +76,8 @@ fastlane/AuthKey_XCPYNSNSG9.p8
 fastlane/google_playstore_service_account.json
 fastlane/report.xml
 fastlane/AuthKey_Z668K9MPRU.p8
+android/kls_database.db
+assets/data/places.json
+assets/images/companies/*.png
+featuremodel.json
+env/prod.json

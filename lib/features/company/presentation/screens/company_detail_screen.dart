@@ -7,9 +7,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_button.dart';
 import '../../../../shared/presentation/widgets/async_state_builder.dart';
-import '../../../../shared/presentation/widgets/optimized_image.dart';
 import '../../domain/entities/company.dart';
 import '../view_models/company_detail_view_model.dart';
+import '../widgets/company_logo_widget.dart';
 
 /// Company detail screen using clean architecture
 class CompanyDetailScreen extends StatefulWidget {
@@ -274,32 +274,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
         ),
       ),
-      child: CompanyLogoImage(
-        logoUrl: company.fullLogoUrl,
-        size: 100,
-        fallbackWidget: _buildDefaultLogo(context),
-      ),
-    );
-  }
-
-  Widget _buildDefaultLogo(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-            Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
-          ],
-        ),
-      ),
-      child: Icon(
-        Icons.business_rounded,
-        size: 48,
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
-      ),
+      child: CompanyLogoWidget(company: company, size: 100, borderRadius: 20),
     );
   }
 
@@ -901,6 +876,12 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
 
     final websiteUri = normalizeWeb(company.websiteUrl);
 
+    void navigateToMap() {
+      // Navigate to map tab with company ID as query parameter
+      // The map screen will select the company after locations are loaded
+      context.go('/map?companyId=${company.id}');
+    }
+
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: websiteUri != null
@@ -913,14 +894,14 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                     onTap: () => openExternal(websiteUri, 'website'),
                   ),
                 ),
-                // const SizedBox(width: 12),
-                // Expanded(
-                //   child: pillButton(
-                //     icon: Icons.map_outlined,
-                //     label: 'View on Map',
-                //     onTap: () => context.push('/map/${company.id}'),
-                //   ),
-                // ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: pillButton(
+                    icon: Icons.map_outlined,
+                    label: 'View on Map',
+                    onTap: navigateToMap,
+                  ),
+                ),
               ],
             )
           : Row(
@@ -929,7 +910,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                 pillButton(
                   icon: Icons.map_outlined,
                   label: 'View on Map',
-                  onTap: () => context.push('/map/${company.id}'),
+                  onTap: navigateToMap,
                 ),
               ],
             ),

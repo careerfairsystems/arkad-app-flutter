@@ -8,7 +8,7 @@ import 'package:openapi_generator_annotations/openapi_generator_annotations.dart
     pubAuthor: 'Ludvig Lindholm',
   ),
   inputSpec: RemoteSpec(
-    path: 'https://staging.backend.arkadtlth.se/api/openapi.json',
+    path: 'https://backend.arkadtlth.se/api/openapi.json',
   ),
   generatorName: Generator.dio,
   runSourceGenOnOutput: true,

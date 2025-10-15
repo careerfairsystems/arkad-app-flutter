@@ -1,4 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+bool shouldShowMap() {
+  return !kIsWeb;
+}
 
 /// Adds `branchIndex` so the BottomNavigationBar knows which **Navigator branch**
 /// a tab belongs to.  The branch order never changes; we just
@@ -64,7 +69,17 @@ class NavigationItems {
     branchIndex: 5,
   );
 
-  static List<NavigationItem> forAuth(bool authenticated) => authenticated
-      ? const [_companies, _sessions, _events, _profile]
-      : const [_companies, _sessions, _events, _login];
+  static List<NavigationItem> forAuth(bool authenticated) {
+    var items = [_companies];
+    if (shouldShowMap()) {
+      items.add(_map);
+    }
+    items.addAll([_sessions, _events]);
+    if (authenticated) {
+      items.add(_profile);
+    } else {
+      items.add(_login);
+    }
+    return items;
+  }
 }

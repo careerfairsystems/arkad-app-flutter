@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 /// Simple environment configuration for backend URL switching
 class AppEnvironment {
   /// Use staging in debug mode, production in release mode
-  static bool get isStaging => kDebugMode;
+  static bool get isStaging => false;
 
   /// Get the appropriate backend base URL
   static String get baseUrl {

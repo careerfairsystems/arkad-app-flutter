@@ -1,57 +1,37 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_combainsdk/messages.g.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 /// Domain entity representing a location on the map
 class MapLocation {
-  final int id;
+  final FlutterNodeFloorIndex id;
   final String name;
-  final String description;
   final double latitude;
   final double longitude;
   final LocationType type;
   final String? imageUrl;
-  final Map<String, dynamic>? metadata;
+  final int? companyId;
+  final int floorIndex;
+  final int buildingId;
+  final int featureModelId;
 
   const MapLocation({
     required this.id,
     required this.name,
-    required this.description,
     required this.latitude,
     required this.longitude,
     required this.type,
+    required this.featureModelId,
+    required this.floorIndex,
+    required this.buildingId,
     this.imageUrl,
-    this.metadata,
+    this.companyId,
   });
-
-  /// Create a copy with updated values
-  MapLocation copyWith({
-    int? id,
-    String? name,
-    String? description,
-    double? latitude,
-    double? longitude,
-    LocationType? type,
-    String? imageUrl,
-    Map<String, dynamic>? metadata,
-  }) {
-    return MapLocation(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
-      type: type ?? this.type,
-      imageUrl: imageUrl ?? this.imageUrl,
-      metadata: metadata ?? this.metadata,
-    );
-  }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is MapLocation &&
-        other.id == id &&
-        other.name == name &&
-        other.latitude == latitude &&
-        other.longitude == longitude &&
-        other.type == type;
+    return other is MapLocation && other.id == id;
   }
 
   @override
@@ -67,28 +47,56 @@ class MapLocation {
 
 /// Types of locations on the map
 enum LocationType {
-  venue,
   booth,
-  facility,
-  emergency,
-  food,
-  parking;
+  food;
 
   /// Display name for UI
   String get displayName {
     switch (this) {
-      case LocationType.venue:
-        return 'Venue';
       case LocationType.booth:
         return 'Company Booth';
-      case LocationType.facility:
-        return 'Facility';
-      case LocationType.emergency:
-        return 'Emergency';
       case LocationType.food:
         return 'Food & Drinks';
-      case LocationType.parking:
-        return 'Parking';
     }
   }
+}
+
+class FloorMap {
+  final FlutterPointLLA topLeft;
+  final FlutterPointLLA NE;
+  final FlutterPointLLA SW;
+  final ImageProvider image;
+
+  FloorMap({
+    required this.topLeft,
+    required this.NE,
+    required this.SW,
+    required this.image,
+  });
+}
+
+class MapFloor {
+  final int index;
+  final String name;
+  final FloorMap map;
+
+  MapFloor({required this.index, required this.name, required this.map});
+}
+
+class MapBuilding {
+  final int id;
+  final String name;
+  final List<MapFloor> floors;
+  final int defaultFloorIndex;
+  final LatLngBounds bounds;
+  final LatLng center;
+
+  MapBuilding({
+    required this.id,
+    required this.name,
+    required this.floors,
+    required this.defaultFloorIndex,
+    required this.bounds,
+    required this.center,
+  });
 }

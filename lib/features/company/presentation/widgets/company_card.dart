@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/presentation/themes/arkad_theme.dart';
-import '../../../../shared/presentation/widgets/optimized_image.dart';
 import '../../domain/entities/company.dart';
+import 'company_logo_widget.dart';
 
 class CompanyCard extends StatelessWidget {
   const CompanyCard({
@@ -72,33 +72,7 @@ class CompanyCard extends StatelessWidget {
   }
 
   Widget _buildLogo(BuildContext context) {
-    return Container(
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Theme.of(context).colorScheme.surface,
-      ),
-      child: CompanyLogoImage(
-        logoUrl: company.logoUrl,
-        size: 64,
-        fallbackWidget: _buildDefaultLogo(context),
-      ),
-    );
-  }
-
-  Widget _buildDefaultLogo(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: ArkadColors.arkadTurkos.withValues(alpha: 0.1),
-      ),
-      child: const Icon(
-        Icons.business_rounded,
-        size: 28,
-        color: ArkadColors.arkadTurkos,
-      ),
-    );
+    return CompanyLogoWidget(company: company, size: 64, borderRadius: 12);
   }
 
   Widget _buildIndustries(BuildContext context) {

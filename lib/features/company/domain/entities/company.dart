@@ -1,3 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import '../../../../shared/infrastructure/asset_utils.dart';
+
 /// Domain entity representing a company in the career fair
 class Company {
   const Company({
@@ -117,6 +122,41 @@ class Company {
     }
 
     return true;
+  }
+
+  /// Get map marker icon for this company
+  ///
+  /// Returns a BitmapDescriptor for use in Google Maps markers if the logo asset exists.
+  /// Returns null if no logo URL is available or if the asset doesn't exist.
+  ///
+  /// [checkAssetExists] - Optional function to check if an asset path exists.
+  /// Defaults to [AssetUtils.assetExists] for production use.
+  /// Can be overridden for testing purposes.
+  Future<BitmapDescriptor?> getCompanyLogo({circular = false}) async {
+    if (logoUrl == null) {
+      return null;
+    }
+
+    try {
+      // Check if asset exists before attempting to load it
+      var assetPath = "assets/images/companies/$id.png";
+      if (circular) {
+        assetPath = "assets/images/companies/${id}-circle.png";
+      }
+      final assetExists = await AssetUtils.assetExists(assetPath);
+
+      if (assetExists) {
+        return await BitmapDescriptor.asset(
+          const ImageConfiguration(size: Size(48, 48)),
+          assetPath,
+        );
+      } else {
+        // Return null if asset doesn't exist - let caller handle fallback
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
   }
 
   @override

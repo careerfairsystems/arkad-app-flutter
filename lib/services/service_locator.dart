@@ -1,9 +1,21 @@
+import 'dart:async';
+
+import 'package:arkad/navigation/navigation_items.dart';
+import 'package:arkad/services/env.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_combainsdk/combain_logger.dart';
+import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
+import 'package:flutter_combainsdk/messages.g.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import '../features/auth/data/data_sources/auth_local_data_source.dart';
 import '../features/auth/data/data_sources/auth_remote_data_source.dart';
@@ -42,8 +54,13 @@ import '../features/event/data/mappers/ticket_verification_mapper.dart';
 import '../features/event/data/repositories/event_repository_impl.dart';
 import '../features/event/domain/repositories/event_repository.dart';
 import '../features/event/presentation/view_models/event_view_model.dart';
+import '../features/map/data/repositories/location_repository_impl.dart';
 import '../features/map/data/repositories/map_repository_impl.dart';
+import '../features/map/data/services/permission_service.dart';
+import '../features/map/domain/repositories/location_repository.dart';
 import '../features/map/domain/repositories/map_repository.dart';
+import '../features/map/presentation/providers/location_provider.dart';
+import '../features/map/presentation/view_models/map_permissions_view_model.dart';
 import '../features/map/presentation/view_models/map_view_model.dart';
 import '../features/notifications/data/data_sources/notification_local_data_source.dart';
 import '../features/notifications/data/data_sources/notification_remote_data_source.dart';
@@ -92,11 +109,145 @@ import '../shared/infrastructure/services/file_service.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
-/// Centrialized initialization of all the services and providers. An alternative to Flutter’s inherited widgets and provides a more decoupled way to access services and providers throughout the app. This abstracts the complexity from lower-level components and avoids the need to pass dependencies down the widget tree.
+/// Centrialized initialization of all the services and providers. An alternative to Flutter's inherited widgets and provides a more decoupled way to access services and providers throughout the app. This abstracts the complexity from lower-level components and avoids the need to pass dependencies down the widget tree.
+
+class ArkadCombainLogger implements CombainLogger {
+  @override
+  void d(String tag, String message) {
+    Sentry.logger.debug(
+      message,
+      attributes: {
+        'origin': SentryLogAttribute.string('combain_sdk'),
+        'tag': SentryLogAttribute.string(tag),
+      },
+    );
+  }
+
+  @override
+  void e(String tag, String message) {
+    Sentry.logger.error(
+      message,
+      attributes: {
+        'origin': SentryLogAttribute.string('combain_sdk'),
+        'tag': SentryLogAttribute.string(tag),
+      },
+    );
+  }
+
+  @override
+  void i(String tag, String message) {
+    Sentry.logger.info(
+      message,
+      attributes: {
+        'origin': SentryLogAttribute.string('combain_sdk'),
+        'tag': SentryLogAttribute.string(tag),
+      },
+    );
+  }
+
+  @override
+  void w(String tag, String message) {
+    Sentry.logger.warn(
+      message,
+      attributes: {
+        'origin': SentryLogAttribute.string('combain_sdk'),
+        'tag': SentryLogAttribute.string(tag),
+      },
+    );
+  }
+}
+
+class CombainIntializer extends ChangeNotifier {
+  final PackageInfo _packageInfo;
+
+  CombainIntializer(this._packageInfo);
+
+  var combainIntialized = false;
+  FlutterCombainSDK? _combainSDK;
+
+  /// Mark as initialized (used for web platform)
+  void markAsInitialized() {
+    combainIntialized = true;
+    notifyListeners();
+  }
+
+  /// Initialize SDK without starting it (config setup only)
+  Future<void> initializeWithoutStart() async {
+    if (!shouldShowMap()) {
+      return;
+    }
+    if (_combainSDK != null) {
+      print("Combain SDK already initialized");
+      return;
+    }
+
+    print("Running combain SDK configuration");
+
+    // Combain SDK initialization with persistent device UUID
+    final deviceId = await getOrCreateDeviceId();
+    final env = GetIt.I<Env>();
+    final combainConfig = CombainSDKConfig(
+      apiKey: env.combainApiKey,
+      settingsKey: env.combainApiKey,
+      locationProvider: FlutterLocationProvider.aiNavigation,
+      routingConfig: FlutterRoutingConfig(
+        routableNodesOptions: FlutterRoutableNodesOptions.allExceptDefaultName,
+      ),
+      deviceIdentifier: deviceId,
+      appInfo: FlutterAppInfo(
+        packageName: _packageInfo.packageName,
+        versionName: _packageInfo.version,
+        versionCode: int.tryParse(_packageInfo.buildNumber) ?? 0,
+      ),
+      syncingInterval: FlutterSyncingInterval(
+        type: FlutterSyncingIntervalType.interval,
+        intervalMilliseconds: 60 * 1000 * 60,
+      ),
+      wifiEnabled: true,
+      bluetoothEnabled: true,
+      beaconUUIDs: ["E2C56DB5-DFFB-48D2-B060-D0F5A71096E0"],
+    );
+
+    // Step 1: Create the SDK instance
+    _combainSDK = await FlutterCombainSDK.create();
+    print("Created SDK instance");
+
+    // Step 2: Initialize the SDK with the config
+    await _combainSDK!.initializeSDK(combainConfig);
+    print("Initialized SDK config");
+
+    // Register SDK instance so it can be used by PermissionsDataSource
+    serviceLocator.registerSingleton(_combainSDK!);
+  }
+
+  /// Start the SDK after permissions are granted
+  Future<void> startSDK() async {
+    if (!shouldShowMap()) {
+      return;
+    }
+    if (_combainSDK == null) {
+      print("Cannot start SDK - not initialized");
+      return;
+    }
+
+    if (combainIntialized) {
+      print("Combain SDK already started");
+      return;
+    }
+
+    print("Starting Combain SDK");
+    await _combainSDK!.start();
+    combainIntialized = true;
+    notifyListeners();
+  }
+}
 
 // We could have used InheritedWidget or riverpod package to handle state, but GetIt with provider is a solid combo to my understanding.
-void setupServiceLocator() {
-  // Core services
+Future<void> setupServiceLocator() async {
+  // Core services - PackageInfo must be first as other services depend on it
+  final packageInfo = await PackageInfo.fromPlatform();
+  serviceLocator.registerSingleton<PackageInfo>(packageInfo);
+
   _setupApiClient();
   serviceLocator.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
@@ -109,6 +260,12 @@ void setupServiceLocator() {
     () => FileService(serviceLocator<ImagePicker>()),
   );
 
+  // Register Combain initializer with injected PackageInfo
+  serviceLocator.registerSingleton<CombainIntializer>(
+    CombainIntializer(serviceLocator<PackageInfo>()),
+  );
+  serviceLocator.registerSingleton(Env());
+
   _setupAuthFeature();
   _setupRouter();
   _setupNotificationFeature();
@@ -116,7 +273,23 @@ void setupServiceLocator() {
   _setupCompanyFeature();
   _setupStudentSessionFeature();
   _setupEventFeature();
-  _setupMapFeature();
+  await _setupMapFeature();
+}
+
+/// Get or create a persistent device UUID for Combain SDK
+Future<String> getOrCreateDeviceId() async {
+  const String deviceIdKey = 'combain_device_id';
+  final prefs = await SharedPreferences.getInstance();
+
+  String? deviceId = prefs.getString(deviceIdKey);
+
+  if (deviceId == null || deviceId.isEmpty) {
+    // Generate new UUID
+    deviceId = const Uuid().v4();
+    await prefs.setString(deviceIdKey, deviceId);
+  }
+
+  return deviceId;
 }
 
 /// Setup API client conditionally
@@ -468,16 +641,43 @@ void _setupEventFeature() {
   );
 }
 
-/// Setup Map feature with minimal clean architecture
-void _setupMapFeature() {
+/// Setup Map feature with permission-gated SDK initialization
+Future<void> _setupMapFeature() async {
+  // Initialize Combain SDK config WITHOUT starting it
+  final combainInitializer = serviceLocator<CombainIntializer>();
+  await combainInitializer.initializeWithoutStart();
+
+  // Setup permission service for map
+  serviceLocator.registerLazySingleton<PermissionService>(
+    () => PermissionService(),
+  );
+
+  serviceLocator.registerLazySingleton<LocationRepository>(
+    () => LocationRepositoryImpl(),
+  );
+
   // Repository (placeholder implementation)
   serviceLocator.registerLazySingleton<MapRepository>(
     () => MapRepositoryImpl(),
   );
 
-  // View model
+  serviceLocator.registerLazySingleton<LocationProvider>(
+    () => LocationProvider(
+      serviceLocator<LocationRepository>(),
+      serviceLocator<MapRepository>(),
+    ),
+  );
+
+  // View models
   serviceLocator.registerLazySingleton<MapViewModel>(
     () => MapViewModel(mapRepository: serviceLocator<MapRepository>()),
+  );
+
+  serviceLocator.registerLazySingleton<MapPermissionsViewModel>(
+    () => MapPermissionsViewModel(
+      permissionService: serviceLocator<PermissionService>(),
+      combainInitializer: combainInitializer,
+    ),
   );
 }
 

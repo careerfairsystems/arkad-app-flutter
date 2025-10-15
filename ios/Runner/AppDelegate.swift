@@ -1,24 +1,25 @@
 import Flutter
+import GoogleMaps
 import UIKit
 import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
-  override func application(
-    _ application: UIApplication,
-    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
-  ) -> Bool {
-    // Register for remote notifications
-    if #available(iOS 10.0, *) {
-      UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
+    override func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+    ) -> Bool {
+        // Initialize Google Maps
+        GMSServices.provideAPIKey("AIzaSyD1BonQ32_ER-C7FT2OBG-QzrtiRGS84WM") // gitleaks:allow
+
+        // Register for remote notifications
+        if #available(iOS 10.0, *) {
+            UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
+        }
+
+        GeneratedPluginRegistrant.register(with: self)
+        return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
-
-    GeneratedPluginRegistrant.register(with: self)
-
-    // CRITICAL: Call super with launchOptions to ensure Firebase receives notification data
-    // when app is launched from terminated state via notification tap
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
 
   // Handle notification presentation when app is in foreground
   override func userNotificationCenter(
