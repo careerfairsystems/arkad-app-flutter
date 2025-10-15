@@ -493,7 +493,7 @@ class _MapScreenState extends State<MapScreen> {
 
   void _onCameraMove(CameraPosition position) async {
     final newZoom = position.zoom;
-    final shouldShowMarkers = newZoom > 20;
+    final shouldShowMarkers = newZoom > 19;
 
     // Only update if the visibility state changes
     if (shouldShowMarkers != _shouldShowMarkers) {

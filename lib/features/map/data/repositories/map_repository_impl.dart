@@ -129,7 +129,7 @@ class MapRepositoryImpl implements MapRepository {
   MapBuilding _getStudyC() {
     final floor2 = MapFloor(
       index: 0,
-      name: '0',
+      name: 'Floor 0',
       map: FloorMap(
         topLeft: FlutterPointLLA(lat: 55.711841, lon: 13.208909),
         NE: FlutterPointLLA(lat: 55.711841, lon: 13.209939),
@@ -140,7 +140,7 @@ class MapRepositoryImpl implements MapRepository {
 
     final floor1 = MapFloor(
       index: 1,
-      name: '1',
+      name: 'Floor 1',
       map: FloorMap(
         topLeft: FlutterPointLLA(lat: 55.711847, lon: 13.208934),
         NE: FlutterPointLLA(lat: 55.711847, lon: 13.210018),
@@ -164,7 +164,7 @@ class MapRepositoryImpl implements MapRepository {
   MapBuilding _getGuildHouse() {
     final floorBasement = MapFloor(
       index: 0,
-      name: 'Gasque',
+      name: 'Basement floor',
       map: FloorMap(
         topLeft: FlutterPointLLA(lat: 55.712775, lon: 13.208627),
         NE: FlutterPointLLA(lat: 55.712775, lon: 13.209831),
@@ -199,7 +199,7 @@ class MapRepositoryImpl implements MapRepository {
   MapBuilding _getEHouse() {
     final floor1 = MapFloor(
       index: 0,
-      name: '1',
+      name: 'Ground floor',
       map: FloorMap(
         topLeft: FlutterPointLLA(lat: 55.711453, lon: 13.209716),
         NE: FlutterPointLLA(lat: 55.711453, lon: 13.211027),
