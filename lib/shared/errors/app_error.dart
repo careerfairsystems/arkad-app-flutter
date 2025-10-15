@@ -96,7 +96,7 @@ class SignInError extends AppError {
   const SignInError({String? details})
     : super(
         userMessage:
-            "Incorrect email or password. Please check your credentials and try again.",
+            "Incorrect email or password. Do you have an account? \n*Note: A new account for this year is required.",
         severity: ErrorSeverity.error,
         technicalDetails: details,
       );

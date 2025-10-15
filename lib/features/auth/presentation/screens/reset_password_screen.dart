@@ -83,7 +83,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         const SizedBox(height: 40),
         const Icon(Icons.check_circle, color: ArkadColors.arkadGreen, size: 80),
         AuthFormWidgets.buildSuccessMessage(
-          'Password reset link sent to ${_emailController.text}',
+          'An email is sent to ${_emailController.text}, if an account exists. \n\n*Note: Accounts from last year have been deleted; a new account is required for this year. \n\nIf you do not receive an email, you might not have an account or it may be in your spam folder.',
         ),
         const SizedBox(height: 10),
         SizedBox(
