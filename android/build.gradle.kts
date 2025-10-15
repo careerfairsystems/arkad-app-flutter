@@ -1,10 +1,10 @@
 allprojects {
     repositories {
-        mavenLocal()
+        maven(url = "https://gitlab.com/api/v4/projects/3194773/packages/maven")
         google()
         mavenCentral()
     }
-    
+
     // Configure Java version for all projects
     plugins.withType<JavaBasePlugin>().configureEach {
         extensions.configure<JavaPluginExtension> {
@@ -13,7 +13,7 @@ allprojects {
             }
         }
     }
-    
+
     // Configure Android projects
     plugins.withType<com.android.build.gradle.BasePlugin>().configureEach {
         extensions.configure<com.android.build.gradle.BaseExtension> {
@@ -25,7 +25,10 @@ allprojects {
     }
 }
 
-val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
+val newBuildDir: Directory =
+    rootProject.layout.buildDirectory
+        .dir("../../build")
+        .get()
 rootProject.layout.buildDirectory.value(newBuildDir)
 
 subprojects {

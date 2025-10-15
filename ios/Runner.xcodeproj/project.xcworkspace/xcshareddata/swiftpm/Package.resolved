@@ -1,5 +1,4 @@
 {
-  "originHash" : "45318de28ee9751cb8a6378675cde7c77d913c9a22b4adcb98abd3013cb94fec",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -17,6 +16,15 @@
       "state" : {
         "revision" : "61b85103a1aeed8218f17c794687781505fbbef5",
         "version" : "11.2.0"
+      }
+    },
+    {
+      "identity" : "cpssdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://gitlab.com/combain/CPSSDK",
+      "state" : {
+        "revision" : "6a9944052217a7a920750ccaafb6685ebd34605c",
+        "version" : "5.1.0"
       }
     },
     {
@@ -200,5 +208,5 @@
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }

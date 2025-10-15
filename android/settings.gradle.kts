@@ -12,7 +12,7 @@ pluginManagement {
 
     repositories {
         // mavenLocal()
-        maven(url = "https://gitlab.com/api/v4/projects/3194773/packages/maven")
+        // maven(url = "https://gitlab.com/api/v4/projects/3194773/packages/maven")
         google()
         mavenCentral()
         gradlePluginPortal()

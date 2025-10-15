@@ -40,8 +40,10 @@ dependencies:
   firebase_core: ^3.15.2
   firebase_messaging: ^15.1.5
   app_settings: ^5.1.1
-  flutter_combainsdk:
-    path: ../../combain/combainsdk/flutter-sdk/
+  flutter_combainsdk: ^0.4.3
+
+  # flutter_combainsdk:
+  #   path: ../../combain/combainsdk/flutter-sdk/
   arkad_api:
     path: ./api/arkad_api/
   google_maps_flutter: ^2.13.0
