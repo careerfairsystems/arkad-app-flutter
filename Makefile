@@ -10,10 +10,10 @@ icons:
 	flutter pub run flutter_launcher_icons
 
 company-images:
-	rm assets/images/companies/*.png
+	rm -f assets/images/companies/*.png
 	dart scripts/download_company_logos.dart
-	rm assets/images/companies/216.png # These are invalid
-	rm assets/images/companies/264.png
+	rm -f assets/images/companies/216.png # These are invalid
+	rm -f assets/images/companies/264.png
 
 fmt:
 	dart format lib/
