@@ -29,6 +29,10 @@ class AppRouter {
 
   final RouterNotifier _routerNotifier;
 
+  // Pending route mechanism for deferred navigation (e.g., from notifications)
+  String? _pendingRoute;
+  bool _isRouterReady = false;
+
   // ────────────────────────────────────────────────────────────
   // Redirect rules
   // ────────────────────────────────────────────────────────────
@@ -297,6 +301,46 @@ class AppRouter {
       ),
     ],
   );
+
+  // ────────────────────────────────────────────────────────────
+  // Deferred navigation methods
+  // ────────────────────────────────────────────────────────────
+
+  /// Store a route to navigate to once router is ready
+  /// Used for navigation from notifications when app launches from terminated state
+  void setPendingRoute(String route) {
+    if (_isRouterReady) {
+      // Router is ready, navigate immediately
+      router.go(route);
+    } else {
+      // Store for later execution
+      _pendingRoute = route;
+      if (kDebugMode) {
+        debugPrint('AppRouter: Stored pending route: $route');
+      }
+    }
+  }
+
+  /// Mark router as ready and execute any pending navigation
+  /// Should be called after first frame completes
+  void markRouterReady() {
+    _isRouterReady = true;
+
+    if (_pendingRoute != null) {
+      final route = _pendingRoute!;
+      _pendingRoute = null;
+
+      if (kDebugMode) {
+        debugPrint('AppRouter: Executing pending route: $route');
+      }
+
+      // Execute pending navigation
+      router.go(route);
+    }
+  }
+
+  /// Check if there's a pending route waiting
+  bool get hasPendingRoute => _pendingRoute != null;
 }
 
 // ──────────────────────────────────────────────────────────────

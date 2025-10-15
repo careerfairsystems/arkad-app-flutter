@@ -90,7 +90,25 @@ class FcmService {
       // App opened from a terminated state by tapping a notification
       final initial = await FirebaseMessaging.instance.getInitialMessage();
       if (initial != null) {
+        await Sentry.addBreadcrumb(
+          Breadcrumb(
+            message:
+                'Initial notification detected - app launched from terminated state',
+            level: SentryLevel.info,
+            data: {
+              'notification_title': initial.notification?.title ?? 'No title',
+              'has_link': (initial.data['link'] ?? initial.data['url']) != null,
+            },
+          ),
+        );
         _handleMessage(initial, deferToFirstFrame: true);
+      } else {
+        await Sentry.addBreadcrumb(
+          Breadcrumb(
+            message: 'No initial notification - normal app launch',
+            level: SentryLevel.info,
+          ),
+        );
       }
 
       await Sentry.addBreadcrumb(
@@ -111,15 +129,36 @@ class FcmService {
     final uri = Uri.tryParse(link);
     if (uri == null) return;
 
-    void nav() => _routeToUri(uri);
+    void nav() {
+      try {
+        _routeToUri(uri);
+      } catch (e, stackTrace) {
+        Sentry.captureException(e, stackTrace: stackTrace);
+      }
+    }
 
     if (deferToFirstFrame) {
+      // Wait for first frame to complete before attempting navigation
+      // The AppRouter's setPendingRoute will handle the timing automatically
       WidgetsBinding.instance.addPostFrameCallback((_) => nav());
     } else {
       nav();
     }
   }
   Future<void> _routeToUri(Uri uri) async {
+    await Sentry.addBreadcrumb(
+      Breadcrumb(
+        message: 'Attempting to route from notification',
+        level: SentryLevel.info,
+        data: {
+          'uri': uri.toString(),
+          'scheme': uri.scheme,
+          'host': uri.host,
+          'path': uri.path,
+        },
+      ),
+    );
+
     // Handle universal links on your domain by mirroring the path+query into go_router.
     if (uri.scheme == 'https' && uri.host == 'app.arkadtlth.se') {
       // Normalize the path (ensure leading slash, collapse //).
@@ -131,11 +170,30 @@ class FcmService {
       final query = uri.hasQuery ? '?${uri.query}' : '';
       final fragment = uri.hasFragment ? '#${uri.fragment}' : '';
 
-      _appRouter.router.go('$path$query$fragment'); // e.g., /schedule?day=2
+      final fullPath = '$path$query$fragment';
+
+      await Sentry.addBreadcrumb(
+        Breadcrumb(
+          message: 'Navigating to in-app route',
+          level: SentryLevel.info,
+          data: {'route': fullPath},
+        ),
+      );
+
+      // Use deferred navigation to handle cases where router isn't ready yet
+      _appRouter.setPendingRoute(fullPath);
       return;
     }
 
     // Everything else opens externally (or add more in-app rules above).
+    await Sentry.addBreadcrumb(
+      Breadcrumb(
+        message: 'Opening external URL',
+        level: SentryLevel.info,
+        data: {'url': uri.toString()},
+      ),
+    );
+
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 

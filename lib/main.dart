@@ -57,6 +57,20 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   @override
+  void initState() {
+    super.initState();
+    // Eagerly initialize NotificationViewModel to set up FCM for initial notifications
+    // This ensures FCM is ready to handle notifications when app launches from terminated state
+    serviceLocator<NotificationViewModel>();
+
+    // Mark router as ready after first frame completes
+    // This allows any pending routes (e.g., from notifications) to be executed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      serviceLocator<AppRouter>().markRouterReady();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
