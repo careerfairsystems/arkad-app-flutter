@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:app_settings/app_settings.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -141,9 +143,12 @@ class FcmService {
     final payload = res.payload;
 
     if (payload == null || payload.isEmpty) return;
+    final payloadObj = jsonDecode(payload);
+    final link = payloadObj['link'] ?? payloadObj['url'];
+    if (link is! String || link.isEmpty) return;
 
     try {
-      final data = Uri.parse(payload);
+      final data = Uri.parse(link);
       _routeToUri(data);
     } catch (e, stackTrace) {
       Sentry.captureException(e, stackTrace: stackTrace);
@@ -255,7 +260,7 @@ class FcmService {
         notification.title,
         notification.body,
         details,
-        payload: message.data.toString(),
+        payload: jsonEncode(message.data),
       );
 
       await Sentry.addBreadcrumb(
