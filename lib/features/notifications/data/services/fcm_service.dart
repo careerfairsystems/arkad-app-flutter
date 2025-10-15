@@ -145,6 +145,7 @@ class FcmService {
       nav();
     }
   }
+
   Future<void> _routeToUri(Uri uri) async {
     await Sentry.addBreadcrumb(
       Breadcrumb(
@@ -217,9 +218,7 @@ class FcmService {
   Future<void> _initializeLocalNotifications() async {
     try {
       // Android initialization settings
-      const androidSettings = AndroidInitializationSettings(
-        '@mipmap/ic_launcher',
-      );
+      const androidSettings = AndroidInitializationSettings('ic_notification');
 
       // iOS initialization settings
       const iosSettings = DarwinInitializationSettings(
@@ -282,6 +281,8 @@ class FcmService {
       // Display notification using local notifications
       if (message.notification != null) {
         await _showNotification(message);
+      } else {
+        Sentry.logger.warn("Received message without notification payload");
       }
     } catch (e, stackTrace) {
       await Sentry.captureException(e, stackTrace: stackTrace);
@@ -300,6 +301,7 @@ class FcmService {
         channelDescription: 'Important notifications from Arkad',
         importance: Importance.high,
         priority: Priority.high,
+        icon: 'ic_notification',
       );
 
       const iosDetails = DarwinNotificationDetails(
@@ -319,6 +321,13 @@ class FcmService {
         notification.body,
         details,
         payload: jsonEncode(message.data),
+      );
+      Sentry.logger.info(
+        'Displayed local notification',
+        attributes: {
+          'title': SentryLogAttribute.string(notification.title ?? 'No title'),
+          'body': SentryLogAttribute.string(notification.body ?? 'No body'),
+        },
       );
 
       await Sentry.addBreadcrumb(
