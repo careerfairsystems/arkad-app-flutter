@@ -8,6 +8,10 @@
 
 - Infoplits for ble usage
 - Encryption compliance
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.2.2+331
 ## [4.2.1] - 2025-10-15
 
 ### ⚙️ Miscellaneous Tasks
