@@ -1,3 +1,18 @@
+## [4.2.2] - 2025-10-16
+
+### 🚀 Features
+
+- Moved secrets
+
+### 🐛 Bug Fixes
+
+- Infoplits for ble usage
+- Encryption compliance
+## [4.2.1] - 2025-10-15
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.2.1+330
 ## [4.2.0] - 2025-10-15
 
 ### ⚙️ Miscellaneous Tasks
