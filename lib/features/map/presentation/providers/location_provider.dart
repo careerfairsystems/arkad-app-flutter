@@ -79,6 +79,9 @@ class LocationProvider extends ChangeNotifier {
       );
       await _repository.captureLocation(loc);
       notifyListeners();
+    } else {
+      _currentLocation = null;
+      notifyListeners();
     }
   }
 

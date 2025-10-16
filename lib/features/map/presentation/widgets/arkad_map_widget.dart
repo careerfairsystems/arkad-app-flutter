@@ -379,6 +379,8 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
       tiltGesturesEnabled: false, // Enables tilt gestures
       rotateGesturesEnabled: false, // Enables rotation
       zoomControlsEnabled: false,
+      myLocationButtonEnabled:
+          false, // Disable default location button (using custom button)
 
       minMaxZoomPreference: MinMaxZoomPreference(
         widget.minZoom,
