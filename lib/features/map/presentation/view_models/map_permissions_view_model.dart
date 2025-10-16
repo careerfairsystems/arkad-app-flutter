@@ -56,6 +56,15 @@ class MapPermissionsViewModel extends ChangeNotifier {
       ),
       if (Platform.isAndroid)
         const PermissionRequest(
+          type: PermissionType.activityRecognition,
+          title: 'Activity Recognition Permission',
+          description:
+              'We need activity recognition to detect your movement and improve indoor positioning accuracy.',
+          iconPath: 'assets/images/onboarding/motion.png',
+          status: PermissionStatus.notRequested,
+        ),
+      if (Platform.isAndroid)
+        const PermissionRequest(
           type: PermissionType.bluetoothScan,
           title: 'Bluetooth Permission',
           description:

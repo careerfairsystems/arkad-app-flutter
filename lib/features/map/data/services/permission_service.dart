@@ -22,6 +22,14 @@ class PermissionService {
         }
         return PermissionStatus
             .granted; // iOS doesn't need explicit Bluetooth scan permission
+
+      case PermissionType.activityRecognition:
+        if (Platform.isAndroid) {
+          final status = await ph.Permission.activityRecognition.status;
+          return _mapStatus(status);
+        }
+        return PermissionStatus
+            .granted; // iOS doesn't need explicit activity recognition permission
     }
   }
 
@@ -42,6 +50,14 @@ class PermissionService {
         }
         final status = await ph.Permission.bluetooth.request();
         return _mapStatus(status);
+
+      case PermissionType.activityRecognition:
+        if (Platform.isAndroid) {
+          final status = await ph.Permission.activityRecognition.request();
+          return _mapStatus(status);
+        }
+        return PermissionStatus
+            .granted; // iOS doesn't need explicit activity recognition permission
     }
   }
 

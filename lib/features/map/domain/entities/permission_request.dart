@@ -1,4 +1,4 @@
-enum PermissionType { location, bluetoothScan }
+enum PermissionType { location, bluetoothScan, activityRecognition }
 
 enum PermissionStatus { notRequested, granted, denied, permanentlyDenied }
 
