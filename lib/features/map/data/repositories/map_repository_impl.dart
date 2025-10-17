@@ -7,6 +7,7 @@ import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
 import 'package:flutter_combainsdk/messages.g.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../../shared/domain/result.dart';
 import '../../../../shared/errors/app_error.dart';
@@ -44,13 +45,12 @@ class MapRepositoryImpl implements MapRepository {
   /// Builds the locations cache on first call by fetching all routable targets
   /// and grouping them by (buildingId, floorIndex)
   Future<void> _ensureLocationsCache() async {
-    if (_locationsCache != null) return;
-
     final locations = await combainSDK
         .getRoutingProvider()
         .getAllRoutableTargetsWithPagination(
           FlutterPaginationOptions(page: 0, pageSize: 1000),
         );
+    Sentry.logger.info('Fetched ${locations.length} routable targets');
 
     final cache = <({int buildingId, int floorIndex}), List<MapLocation>>{};
 
@@ -84,6 +84,7 @@ class MapRepositoryImpl implements MapRepository {
     }).toList();
 
     final mappedLocations = await Future.wait(mappedLocationsFutures);
+    Sentry.logger.info('Mapped ${mappedLocations.length} locations');
 
     // Group locations by (buildingId, floorIndex)
     for (final entry in mappedLocations.whereType<(int, int, MapLocation)>()) {

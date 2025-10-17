@@ -157,6 +157,34 @@ class ArkadCombainLogger implements CombainLogger {
   }
 }
 
+class ArkadCombainExceptionCapture implements CombainExceptionCapture {
+  @override
+  void captureException({
+    required String exception,
+    String? message,
+    String? stackTrace,
+    String tag = "CombainSDK",
+  }) {
+    // Capture exception in Sentry
+    Sentry.captureMessage(
+      '[$tag] $exception${message != null ? ': $message' : ''}',
+      level: SentryLevel.error,
+    );
+
+    // Also log using Sentry logger for consistency
+    Sentry.logger.error(
+      '[$exception] ${message ?? 'Unknown error'}',
+      attributes: {
+        'origin': SentryLogAttribute.string('combain_sdk'),
+        'tag': SentryLogAttribute.string(tag),
+        'exception_type': SentryLogAttribute.string(exception),
+        if (stackTrace != null)
+          'stack_trace': SentryLogAttribute.string(stackTrace),
+      },
+    );
+  }
+}
+
 class CombainIntializer extends ChangeNotifier {
   final PackageInfo _packageInfo;
 
@@ -189,6 +217,7 @@ class CombainIntializer extends ChangeNotifier {
     final combainConfig = CombainSDKConfig(
       apiKey: env.combainApiKey,
       settingsKey: env.combainApiKey,
+
       locationProvider: FlutterLocationProvider.aiNavigation,
       routingConfig: FlutterRoutingConfig(
         routableNodesOptions: FlutterRoutableNodesOptions.allExceptDefaultName,
@@ -208,9 +237,15 @@ class CombainIntializer extends ChangeNotifier {
       beaconUUIDs: ["E2C56DB5-DFFB-48D2-B060-D0F5A71096E0"],
     );
 
-    // Step 1: Create the SDK instance
-    _combainSDK = await FlutterCombainSDK.create();
-    print("Created SDK instance");
+    // Step 1: Create the SDK instance with logging and exception capture
+    _combainSDK = await FlutterCombainSDK.create(
+      constructorConfig: ConstructorConfig(
+        logger: ArkadCombainLogger(),
+        exceptionCapture: ArkadCombainExceptionCapture(),
+        alsoNativeLogs: kDebugMode, // Enable native logs in debug mode
+      ),
+    );
+    print("Created SDK instance with logging and exception capture");
 
     // Step 2: Initialize the SDK with the config
     await _combainSDK!.initializeSDK(combainConfig);

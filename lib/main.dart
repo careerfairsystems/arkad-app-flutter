@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -20,6 +21,14 @@ import 'shared/presentation/themes/arkad_theme.dart';
 void main() async {
   await SentryFlutter.init(
     (options) {
+      options.beforeSendLog = (event, {hint}) {
+        if (kDebugMode) {
+          // Print event to console in debug mode
+          print(event);
+        }
+        return event;
+      };
+
       options.dsn =
           'https://a42d50c4a8a0196fd8b2ace3397d6b3d@o4506696085340160.ingest.us.sentry.io/4509367674142720';
       // Adds request headers and IP for users, for more info visit:
@@ -91,9 +100,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider.value(
           value: serviceLocator<MapPermissionsViewModel>(),
         ),
-        ChangeNotifierProvider.value(
-          value: serviceLocator<LocationProvider>(),
-        ),
+        ChangeNotifierProvider.value(value: serviceLocator<LocationProvider>()),
         ChangeNotifierProvider.value(
           value: serviceLocator<NotificationViewModel>(),
         ),
