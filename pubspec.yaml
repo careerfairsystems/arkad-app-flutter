@@ -3,7 +3,7 @@ description: App for the Arkad Career Fair
 
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 4.2.6+335
+version: 4.2.7+336
 
 environment:
   sdk: ">=3.9.0 <4.0.0"
@@ -40,8 +40,7 @@ dependencies:
   firebase_core: ^3.15.2
   firebase_messaging: ^15.1.5
   app_settings: ^5.1.1
-  flutter_combainsdk: ^0.4.7
-
+  flutter_combainsdk: ^0.4.8
   # flutter_combainsdk:
   #   path: ../../combain/combainsdk/flutter-sdk/
   arkad_api:

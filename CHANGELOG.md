@@ -3,6 +3,10 @@
 ### 🐛 Bug Fixes
 
 - New sdk logging strucutre
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.2.6+335
 ## [4.2.5] - 2025-10-16
 
 ### ⚙️ Miscellaneous Tasks
