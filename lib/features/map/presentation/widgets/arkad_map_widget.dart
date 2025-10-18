@@ -240,7 +240,7 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
                 child: FloorSelectorWidget(building: building),
               ),
             // Current location widget - show if location exists
-            if (locationProvider.currentLocation != null)
+            if (locationProvider.currentLocation?.floorLabel != null)
               Positioned(
                 top: _searchBarOffset,
                 right: 16,

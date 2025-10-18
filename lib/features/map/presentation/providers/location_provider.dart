@@ -8,6 +8,7 @@ import 'package:arkad/services/service_locator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
 import 'package:flutter_combainsdk/messages.g.dart';
+import 'package:flutter_combainsdk/pigeon_extensions.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -57,7 +58,8 @@ class LocationProvider extends ChangeNotifier {
 
     if (loc != null) {
       final snappedLocation = (await combainSDK.snapToFeatureModel(loc));
-      print("Snapped location: $snappedLocation");
+      print("Snapped location: ${snappedLocation?.toStringPretty()}");
+      print("Original location: ${loc.toStringPretty()}");
       final lat = snappedLocation?.lat ?? loc.latitude;
       final lon = snappedLocation?.lon ?? loc.longitude;
       final latLng = LatLng(lat, lon);
