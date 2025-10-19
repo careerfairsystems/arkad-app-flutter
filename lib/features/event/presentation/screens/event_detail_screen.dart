@@ -398,11 +398,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           const SizedBox(height: 32),
 
           // Action Button
-          if (!isPastEvent && !isFull)
-            EventActions(
-              event: event,
-              onRegister: () => _registerForEvent(event),
-            ),
+          EventActions(
+            event: event,
+            onRegister: () => _registerForEvent(event),
+          ),
 
           const SizedBox(height: 16),
         ],
