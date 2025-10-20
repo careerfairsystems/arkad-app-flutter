@@ -27,7 +27,7 @@ enum StudentSessionType {
       case StudentSessionType.regular:
         return 'Student Session';
       case StudentSessionType.companyEvent:
-        return 'Company Event';
+        return 'Company Visit';
     }
   }
 }
