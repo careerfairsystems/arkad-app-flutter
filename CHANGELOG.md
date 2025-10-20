@@ -7,6 +7,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - Combainsdk 0.4.12
+- *(publishing)* 4.2.11+340
 ## [4.2.10] - 2025-10-20
 
 ### ⚙️ Miscellaneous Tasks
