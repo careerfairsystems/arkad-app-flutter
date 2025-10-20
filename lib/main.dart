@@ -24,7 +24,7 @@ void main() async {
       options.beforeSendLog = (event, {hint}) {
         if (kDebugMode) {
           // Print event to console in debug mode
-          print(event);
+          print('${event.level.name}: ${event.body}');
         }
         return event;
       };
