@@ -1,3 +1,18 @@
+## [4.2.9] - 2025-10-20
+
+### 🚀 Features
+
+- Latest SDK version
+
+### 🐛 Bug Fixes
+
+- Show register for event button
+- Better sentry logging
+- Comapny visit -> company event
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.2.8+337
 ## [4.2.7] - 2025-10-18
 
 ### ⚙️ Miscellaneous Tasks
