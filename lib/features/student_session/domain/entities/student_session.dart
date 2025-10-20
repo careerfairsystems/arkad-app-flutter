@@ -50,6 +50,7 @@ class StudentSession {
     this.fieldConfigurations = const [],
     this.location,
     this.companyEventAt,
+    this.name,
   });
 
   /// Unique identifier for this student session
@@ -95,6 +96,12 @@ class StudentSession {
 
   /// Field configurations for dynamic form rendering
   final List<FieldConfiguration> fieldConfigurations;
+
+  /// Custom name for this session (optional, overrides company name for display)
+  final String? name;
+
+  /// Get the display name for this session (uses custom name if available, otherwise company name)
+  String get displayName => name ?? companyName;
 
   /// Check if this is a company event
   bool get isCompanyEvent => sessionType == StudentSessionType.companyEvent;
@@ -201,6 +208,7 @@ class StudentSession {
     List<FieldConfiguration>? fieldConfigurations,
     String? location,
     DateTime? companyEventAt,
+    String? name,
   }) {
     return StudentSession(
       id: id ?? this.id,
@@ -217,6 +225,7 @@ class StudentSession {
       fieldConfigurations: fieldConfigurations ?? this.fieldConfigurations,
       location: location ?? this.location,
       companyEventAt: companyEventAt ?? this.companyEventAt,
+      name: name ?? this.name,
     );
   }
 
@@ -237,6 +246,7 @@ class StudentSession {
         other.disclaimer == disclaimer &&
         other.location == location &&
         other.companyEventAt == companyEventAt &&
+        other.name == name &&
         const ListEquality().equals(
           other.fieldConfigurations,
           fieldConfigurations,
@@ -260,6 +270,7 @@ class StudentSession {
         disclaimer,
         location,
         companyEventAt,
+        name,
         const ListEquality().hash(fieldConfigurations),
       ),
     );

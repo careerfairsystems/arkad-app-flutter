@@ -44,6 +44,7 @@ class StudentSessionMapper {
       companyEventAt: apiSession.companyEventAt != null
           ? TimezoneService.utcToStockholm(apiSession.companyEventAt!)
           : null,
+      name: apiSession.name,
     );
   }
 
