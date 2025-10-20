@@ -222,7 +222,6 @@ class CombainIntializer extends ChangeNotifier {
       routingConfig: FlutterRoutingConfig(
         routableNodesOptions: FlutterRoutableNodesOptions.allExceptDefaultName,
       ),
-      deviceIdentifier: deviceId,
       appInfo: FlutterAppInfo(
         packageName: _packageInfo.packageName,
         versionName: _packageInfo.version,
@@ -240,6 +239,7 @@ class CombainIntializer extends ChangeNotifier {
     // Step 1: Create the SDK instance with logging and exception capture
     _combainSDK = await FlutterCombainSDK.create(
       constructorConfig: ConstructorConfig(
+        debug: false,
         logger: ArkadCombainLogger(),
         exceptionCapture: ArkadCombainExceptionCapture(),
         alsoNativeLogs: kDebugMode, // Enable native logs in debug mode
