@@ -597,7 +597,7 @@ class _StudentSessionApplicationFormScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _session!.companyName,
+                        _session!.name,
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               fontWeight: FontWeight.w700,

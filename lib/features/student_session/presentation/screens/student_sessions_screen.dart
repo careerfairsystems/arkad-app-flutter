@@ -220,7 +220,7 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text('Loading student sessions...'),
+                  Text('Loading sessions...'),
                 ],
               ),
             ),
@@ -377,7 +377,7 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Sign In Required'),
         content: Text(
-          'You need to sign in to apply for ${session.companyName}\'s student session.',
+          'You need to sign in to apply for ${session.name} student session.',
         ),
         actions: [
           TextButton(
@@ -415,7 +415,7 @@ class _StudentSessionsScreenState extends State<StudentSessionsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Applications for ${session.companyName}\'s student session are currently not available.',
+              'Applications for ${session.name} student session are currently not available.',
             ),
             const SizedBox(height: 12),
             Container(

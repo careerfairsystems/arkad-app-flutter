@@ -20,10 +20,12 @@ class StudentSessionMapper {
     String? companyName,
     String? logoUrl,
   }) {
+    print("Mapping ${apiSession.name} session from API to domain entity");
     return StudentSession(
       id: apiSession.id,
       companyId: apiSession.companyId,
       companyName: companyName ?? 'Unknown Company',
+      name: apiSession.name ?? companyName ?? 'Unknown Company',
       isAvailable: apiSession.available,
       sessionType: _mapSessionType(apiSession.sessionType),
       // Convert UTC times to Stockholm time at the boundary

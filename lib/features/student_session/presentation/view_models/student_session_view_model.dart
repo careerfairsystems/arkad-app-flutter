@@ -97,6 +97,7 @@ class StudentSessionViewModel extends ChangeNotifier {
             (session) => StudentSession(
               id: session.id,
               companyId: session.companyId,
+              name: session.name,
               companyName: session.companyName,
               isAvailable: session.isAvailable,
               sessionType: session.sessionType,
@@ -168,9 +169,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     if (_searchQuery.isEmpty) return studentSessions;
 
     return studentSessions.where((session) {
-      return session.companyName.toLowerCase().contains(
-        _searchQuery.toLowerCase(),
-      );
+      return session.name.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
   }
 
@@ -183,9 +182,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     if (_searchQuery.isEmpty) return regularSessions;
 
     return regularSessions.where((session) {
-      return session.companyName.toLowerCase().contains(
-        _searchQuery.toLowerCase(),
-      );
+      return session.name.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
   }
 
@@ -200,9 +197,7 @@ class StudentSessionViewModel extends ChangeNotifier {
     if (_searchQuery.isEmpty) return companyEvents;
 
     return companyEvents.where((session) {
-      return session.companyName.toLowerCase().contains(
-        _searchQuery.toLowerCase(),
-      );
+      return session.name.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
   }
 

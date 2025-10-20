@@ -40,6 +40,7 @@ class StudentSession {
     required this.companyId,
     required this.companyName,
     required this.isAvailable,
+    required this.name,
     this.sessionType = StudentSessionType.regular,
     this.bookingCloseTime,
     this.bookingOpenTime,
@@ -60,6 +61,8 @@ class StudentSession {
 
   /// Name of the company (for display purposes)
   final String companyName;
+
+  final String name;
 
   /// Whether this session is available for applications/booking
   final bool isAvailable;
@@ -206,6 +209,7 @@ class StudentSession {
       id: id ?? this.id,
       companyId: companyId ?? this.companyId,
       companyName: companyName ?? this.companyName,
+      name: name,
       isAvailable: isAvailable ?? this.isAvailable,
       sessionType: sessionType ?? this.sessionType,
       bookingCloseTime: bookingCloseTime ?? this.bookingCloseTime,
