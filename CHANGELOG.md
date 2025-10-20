@@ -1,8 +1,18 @@
+## [4.2.11] - 2025-10-20
+
+### 🚀 Features
+
+- Name for student sessions
+
+### ⚙️ Miscellaneous Tasks
+
+- Combainsdk 0.4.12
 ## [4.2.10] - 2025-10-20
 
 ### ⚙️ Miscellaneous Tasks
 
 - Bump SDK version
+- *(publishing)* 4.2.10+339
 ## [4.2.9] - 2025-10-20
 
 ### 🚀 Features
