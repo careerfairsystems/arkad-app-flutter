@@ -1,3 +1,8 @@
+## [4.2.10] - 2025-10-20
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump SDK version
 ## [4.2.9] - 2025-10-20
 
 ### 🚀 Features
@@ -13,6 +18,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - *(publishing)* 4.2.8+337
+- *(publishing)* 4.2.9+338
 ## [4.2.7] - 2025-10-18
 
 ### ⚙️ Miscellaneous Tasks
