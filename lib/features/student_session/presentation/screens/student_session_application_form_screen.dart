@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../../services/service_locator.dart';
 import '../../../../shared/domain/validation/validation_service.dart';
 import '../../../../shared/infrastructure/services/file_service.dart';
+import '../../../../shared/infrastructure/services/timezone_service.dart';
 import '../../../../shared/presentation/themes/arkad_theme.dart';
 import '../../../../shared/presentation/widgets/arkad_form_field.dart';
 import '../../../../shared/presentation/widgets/optimized_image.dart';
@@ -615,7 +616,7 @@ class _StudentSessionApplicationFormScreenState
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          'Student Session Application',
+                          '${_session!.sessionType.displayName} Application',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: ArkadColors.white,
@@ -639,9 +640,64 @@ class _StudentSessionApplicationFormScreenState
                     ),
                   )
                 : _buildDefaultSessionInfo(),
+            // Show event date/time for company events only
+            if (_session!.isCompanyEvent &&
+                _session!.companyEventAt != null) ...[
+              const SizedBox(height: 16),
+              _buildEventDateTime(),
+            ],
+            // Show location for all sessions
+            if (_session!.location != null) ...[
+              const SizedBox(height: 16),
+              _buildLocation(),
+            ],
           ],
         ),
       ),
+    );
+  }
+
+  /// Build event date/time section (for company events only)
+  Widget _buildEventDateTime() {
+    return Row(
+      children: [
+        Icon(
+          Icons.calendar_today_rounded,
+          size: 16,
+          color: ArkadColors.white.withValues(alpha: 0.7),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            TimezoneService.formatEventDateTime(_session!.companyEventAt!),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: ArkadColors.white),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build location section (for all sessions)
+  Widget _buildLocation() {
+    return Row(
+      children: [
+        Icon(
+          Icons.location_on_rounded,
+          size: 16,
+          color: ArkadColors.white.withValues(alpha: 0.7),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            _session!.location!,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: ArkadColors.white),
+          ),
+        ),
+      ],
     );
   }
 

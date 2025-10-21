@@ -87,7 +87,11 @@ class StudentSessionCard extends StatelessWidget {
                 const SizedBox(height: 12),
               ],
               if (session.isCompanyEvent && session.companyEventAt != null) ...[
-                _buildCompanyEventInfo(context),
+                _buildEventDateTime(context),
+                const SizedBox(height: 12),
+              ],
+              if (session.location != null) ...[
+                _buildLocation(context),
                 const SizedBox(height: 12),
               ],
               _buildStatus(context),
@@ -189,62 +193,41 @@ class StudentSessionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCompanyEventInfo(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: ArkadColors.arkadOrange.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: ArkadColors.arkadOrange.withValues(alpha: 0.3),
+  Widget _buildEventDateTime(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          Icons.calendar_today_rounded,
+          size: 16,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today_rounded,
-                size: 16,
-                color: ArkadColors.arkadOrange,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  TimezoneService.formatEventDateTime(session.companyEventAt!),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: ArkadColors.arkadOrange,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            TimezoneService.formatEventDateTime(session.companyEventAt!),
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
-          if (session.location != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(
-                  Icons.location_on_rounded,
-                  size: 16,
-                  color: ArkadColors.arkadOrange,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    session.location!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: ArkadColors.arkadOrange,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocation(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          Icons.location_on_rounded,
+          size: 16,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            session.location!,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+      ],
     );
   }
 
