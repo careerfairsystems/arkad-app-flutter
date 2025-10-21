@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:arkad/features/company/domain/entities/company.dart';
 import 'package:arkad/features/company/domain/repositories/company_repository.dart';
+import 'package:arkad/services/combain_intializer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_combainsdk/flutter_combain_sdk.dart';
 import 'package:flutter_combainsdk/messages.g.dart';
@@ -22,6 +23,7 @@ class MapRepositoryImpl implements MapRepository {
 
   final combainSDK = GetIt.I<FlutterCombainSDK>();
   final CompanyRepository companyRepository = GetIt.I<CompanyRepository>();
+  final CombainIntializer combainInitializer = GetIt.I<CombainIntializer>();
 
   // Cache for locations grouped by (buildingId, floorIndex)
   Map<({int buildingId, int floorIndex}), List<MapLocation>>? _locationsCache;
@@ -45,6 +47,21 @@ class MapRepositoryImpl implements MapRepository {
   /// Builds the locations cache on first call by fetching all routable targets
   /// and grouping them by (buildingId, floorIndex)
   Future<void> _ensureLocationsCache() async {
+    // Check if SDK is initialized before attempting to load data
+    if (combainInitializer.state.index <
+        CombainInitializationState.initialized.index) {
+      Sentry.logger.info(
+        'Attempted to load map locations before SDK initialized',
+        attributes: {
+          'current_state': SentryLogAttribute.string(
+            combainInitializer.state.toString(),
+          ),
+        },
+      );
+      _locationsCache = {}; // Set empty cache to prevent repeated attempts
+      return;
+    }
+
     final locations = await combainSDK
         .getRoutingProvider()
         .getAllRoutableTargetsWithPagination(
@@ -53,16 +70,33 @@ class MapRepositoryImpl implements MapRepository {
     Sentry.logger.info('Fetched ${locations.length} routable targets');
 
     final cache = <({int buildingId, int floorIndex}), List<MapLocation>>{};
+    final ignoreNames = <String>{'WC', 'WC Handikapp'};
+    final companies = await companyRepository.getCompanies();
+    final companyMap = <String, Company>{};
+    if (companies.isSuccess) {
+      for (final company in companies.valueOrNull!) {
+        companyMap[company.name.toLowerCase()] = company;
+      }
+    }
+    print('Mapped ${companyMap.length} companies by name');
 
     // Map over locations and await all futures
     final mappedLocationsFutures = locations.map((location) async {
+      if (ignoreNames.contains(location.name)) {
+        return null; // Skip ignored names
+      }
       final floorIndex = location.floors.keys.first;
       final routableTargetCenter = location.centerPoints[floorIndex];
       if (routableTargetCenter == null) {
         return null; // Skip if no center point for the floor
       }
 
-      final company = await _companyFromRoutableTarget(location);
+      final company = companyMap[location.name.toLowerCase()];
+      if (company == null) {
+        print(
+          "Could not find company for location ${location.name} that is in ${location.buildingName} - ${location.floors}",
+        );
+      }
 
       final mapLocation = MapLocation(
         id: FlutterNodeFloorIndex(
@@ -128,19 +162,8 @@ class MapRepositoryImpl implements MapRepository {
   }
 
   MapBuilding _getStudyC() {
-    final floor2 = MapFloor(
-      index: 0,
-      name: 'Floor 0',
-      map: FloorMap(
-        topLeft: FlutterPointLLA(lat: 55.711841, lon: 13.208909),
-        NE: FlutterPointLLA(lat: 55.711841, lon: 13.209939),
-        SW: FlutterPointLLA(lat: 55.711239, lon: 13.208909),
-        image: const AssetImage('assets/images/map/sc_2.png'),
-      ),
-    );
-
     final floor1 = MapFloor(
-      index: 1,
+      index: 0,
       name: 'Floor 1',
       map: FloorMap(
         topLeft: FlutterPointLLA(lat: 55.711847, lon: 13.208934),
@@ -149,6 +172,18 @@ class MapRepositoryImpl implements MapRepository {
         image: const AssetImage('assets/images/map/sc_1.png'),
       ),
     );
+
+    final floor2 = MapFloor(
+      index: 1,
+      name: 'Floor 2',
+      map: FloorMap(
+        topLeft: FlutterPointLLA(lat: 55.711841, lon: 13.208909),
+        NE: FlutterPointLLA(lat: 55.711841, lon: 13.209939),
+        SW: FlutterPointLLA(lat: 55.711239, lon: 13.208909),
+        image: const AssetImage('assets/images/map/sc_2.png'),
+      ),
+    );
+
     return MapBuilding(
       id: studyCBuildingId,
       name: 'Studie C',
@@ -157,7 +192,7 @@ class MapRepositoryImpl implements MapRepository {
         southwest: const LatLng(55.711319040663575, 13.208967394827487),
         northeast: const LatLng(55.711756843405276, 13.210104089933266),
       ),
-      floors: [floor1, floor2],
+      floors: [floor2, floor1],
       defaultFloorIndex: 0,
     );
   }

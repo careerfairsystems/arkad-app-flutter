@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
-import '../../../../services/service_locator.dart';
+import '../../../../services/combain_intializer.dart';
 import '../../data/services/permission_service.dart';
 import '../../domain/entities/permission_request.dart';
 

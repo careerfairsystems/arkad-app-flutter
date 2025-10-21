@@ -425,10 +425,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_combainsdk
-      sha256: "7a217f5474271d0bd04be299146a19debab68f7d204b1f24eba0becff2569c0c"
+      sha256: a0730e5d8e4a27149fe9f3c99e7a789bd1b636b0c6bbcaf33bde49d214a953c4
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.12"
+    version: "0.4.14"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:

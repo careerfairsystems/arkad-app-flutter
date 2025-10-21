@@ -1,7 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:arkad/features/map/domain/repositories/map_repository.dart';
-import 'package:arkad/services/service_locator.dart';
+import 'package:arkad/services/combain_intializer.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
@@ -38,6 +38,7 @@ class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   final Map<int, BitmapDescriptor> _buildingMarkerIconCache = {};
   int? _previousSelectedCompanyId;
+  bool _hasPostSDKInitialized = false;
 
   @override
   void initState() {
@@ -49,31 +50,68 @@ class _MapScreenState extends State<MapScreen> {
         context,
         listen: false,
       );
+      final combainInitializer = Provider.of<CombainIntializer>(
+        context,
+        listen: false,
+      );
 
       // Listen to map view model changes to update markers
       mapViewModel.addListener(_onMapViewModelChanged);
 
-      // Load locations, buildings, and ground overlays
-      final imageConfig = createLocalImageConfiguration(context);
-      mapViewModel.loadLocations().then((_) async {
-        // Load ground overlays after buildings are loaded
-        await mapViewModel.loadGroundOverlays(imageConfig);
-        await _updateMarkers(mapViewModel.locations);
+      // Listen to SDK initialization changes
+      combainInitializer.addListener(_onSDKStateChanged);
 
-        // If a company was preselected (e.g., from company detail screen),
-        // select it now that locations are loaded
-        if (widget.preselectedCompanyId != null) {
-          print(
-            '[MapScreen] Selecting preselected company after locations loaded - '
-            'company_id: ${widget.preselectedCompanyId}',
-          );
-          mapViewModel.selectCompany(widget.preselectedCompanyId);
-        }
-      });
+      // Only load locations if SDK is initialized
+      // Note: ViewModel also has this check, but we add it here for clarity
+      if (combainInitializer.state.mapReady()) {
+        _postSDKInitialization();
+      } else {
+        print(
+          '[MapScreen] Skipping initial data load - SDK not initialized yet. '
+          'Current state: ${combainInitializer.state}',
+        );
+      }
 
       // Load companies if not already loaded (for company info cards)
       if (!companyViewModel.isInitialized) {
         companyViewModel.loadCompanies();
+      }
+    });
+  }
+
+  void _onSDKStateChanged() {
+    final combainInitializer = Provider.of<CombainIntializer>(
+      context,
+      listen: false,
+    );
+
+    if (combainInitializer.state.mapReady()) {
+      _postSDKInitialization();
+      combainInitializer.removeListener(_onSDKStateChanged);
+    }
+  }
+
+  void _postSDKInitialization() {
+    if (_hasPostSDKInitialized) return;
+    _hasPostSDKInitialized = true;
+
+    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+
+    // Load locations, buildings, and ground overlays
+    final imageConfig = createLocalImageConfiguration(context);
+    mapViewModel.loadLocations().then((_) async {
+      // Load ground overlays after buildings are loaded
+      await mapViewModel.loadGroundOverlays(imageConfig);
+      await _updateMarkers(mapViewModel.locations);
+
+      // If a company was preselected (e.g., from company detail screen),
+      // select it now that locations are loaded
+      if (widget.preselectedCompanyId != null) {
+        print(
+          '[MapScreen] Selecting preselected company after locations loaded - '
+          'company_id: ${widget.preselectedCompanyId}',
+        );
+        mapViewModel.selectCompany(widget.preselectedCompanyId);
       }
     });
   }
@@ -136,8 +174,7 @@ class _MapScreenState extends State<MapScreen> {
           return Consumer<CombainIntializer>(
             builder: (context, combainInitializer, child) {
               // Show loading while Combain SDK is starting
-              if (!combainInitializer.combainIntialized ||
-                  permissionsViewModel.isStartingSDK) {
+              if (!combainInitializer.state.mapReady()) {
                 return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -516,9 +553,16 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
-    // Remove listener to prevent memory leaks
+    // Remove listeners to prevent memory leaks
     final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
     mapViewModel.removeListener(_onMapViewModelChanged);
+
+    final combainInitializer = Provider.of<CombainIntializer>(
+      context,
+      listen: false,
+    );
+    combainInitializer.removeListener(_onSDKStateChanged);
+
     super.dispose();
   }
 }
