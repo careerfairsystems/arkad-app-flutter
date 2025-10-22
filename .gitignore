@@ -82,3 +82,4 @@ assets/images/companies/*.png
 featuremodel.json
 env/prod.json
 lib/services/env.dart
+companies.json

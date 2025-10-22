@@ -242,8 +242,8 @@ class _ArkadMapWidgetState extends State<ArkadMapWidget> {
             // Current location widget - show if location exists
             if (locationProvider.currentLocation?.floorLabel != null)
               Positioned(
-                top: _searchBarOffset,
-                right: 16,
+                bottom: 16,
+                left: 16,
                 child: _buildCurrentLocationWidget(
                   locationProvider.currentLocation!,
                 ),

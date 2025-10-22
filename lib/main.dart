@@ -5,6 +5,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 import 'features/auth/presentation/view_models/auth_view_model.dart';
+import 'services/combain_intializer.dart';
 import 'features/company/presentation/view_models/company_detail_view_model.dart';
 import 'features/company/presentation/view_models/company_view_model.dart';
 import 'features/event/presentation/view_models/event_view_model.dart';

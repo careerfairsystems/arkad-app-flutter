@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:arkad/navigation/navigation_items.dart';
+import 'package:arkad/services/combain_intializer.dart';
 import 'package:arkad/services/env.dart';
 import 'package:arkad_api/arkad_api.dart';
 import 'package:dio/dio.dart';
@@ -182,98 +183,6 @@ class ArkadCombainExceptionCapture implements CombainExceptionCapture {
           'stack_trace': SentryLogAttribute.string(stackTrace),
       },
     );
-  }
-}
-
-class CombainIntializer extends ChangeNotifier {
-  final PackageInfo _packageInfo;
-
-  CombainIntializer(this._packageInfo);
-
-  var combainIntialized = false;
-  FlutterCombainSDK? _combainSDK;
-
-  /// Mark as initialized (used for web platform)
-  void markAsInitialized() {
-    combainIntialized = true;
-    notifyListeners();
-  }
-
-  /// Initialize SDK without starting it (config setup only)
-  Future<void> initializeWithoutStart() async {
-    if (!shouldShowMap()) {
-      return;
-    }
-    if (_combainSDK != null) {
-      print("Combain SDK already initialized");
-      return;
-    }
-
-    print("Running combain SDK configuration");
-
-    // Combain SDK initialization with persistent device UUID
-    final deviceId = await getOrCreateDeviceId();
-    final env = GetIt.I<Env>();
-    final combainConfig = CombainSDKConfig(
-      apiKey: env.combainApiKey,
-      settingsKey: env.combainApiKey,
-
-      locationProvider: FlutterLocationProvider.aiNavigation,
-      routingConfig: FlutterRoutingConfig(
-        routableNodesOptions: FlutterRoutableNodesOptions.allExceptDefaultName,
-      ),
-      appInfo: FlutterAppInfo(
-        packageName: _packageInfo.packageName,
-        versionName: _packageInfo.version,
-        versionCode: int.tryParse(_packageInfo.buildNumber) ?? 0,
-      ),
-      syncingInterval: FlutterSyncingInterval(
-        type: FlutterSyncingIntervalType.interval,
-        intervalMilliseconds: 60 * 1000 * 60,
-      ),
-      wifiEnabled: true,
-      bluetoothEnabled: true,
-      beaconUUIDs: ["E2C56DB5-DFFB-48D2-B060-D0F5A71096E0"],
-    );
-
-    // Step 1: Create the SDK instance with logging and exception capture
-    _combainSDK = await FlutterCombainSDK.create(
-      constructorConfig: ConstructorConfig(
-        debug: false,
-        logger: ArkadCombainLogger(),
-        exceptionCapture: ArkadCombainExceptionCapture(),
-        alsoNativeLogs: kDebugMode, // Enable native logs in debug mode
-      ),
-    );
-    print("Created SDK instance with logging and exception capture");
-
-    // Step 2: Initialize the SDK with the config
-    await _combainSDK!.initializeSDK(combainConfig);
-    print("Initialized SDK config");
-
-    // Register SDK instance so it can be used by PermissionsDataSource
-    serviceLocator.registerSingleton(_combainSDK!);
-  }
-
-  /// Start the SDK after permissions are granted
-  Future<void> startSDK() async {
-    if (!shouldShowMap()) {
-      return;
-    }
-    if (_combainSDK == null) {
-      print("Cannot start SDK - not initialized");
-      return;
-    }
-
-    if (combainIntialized) {
-      print("Combain SDK already started");
-      return;
-    }
-
-    print("Starting Combain SDK");
-    await _combainSDK!.start();
-    combainIntialized = true;
-    notifyListeners();
   }
 }
 
@@ -680,7 +589,8 @@ void _setupEventFeature() {
 Future<void> _setupMapFeature() async {
   // Initialize Combain SDK config WITHOUT starting it
   final combainInitializer = serviceLocator<CombainIntializer>();
-  await combainInitializer.initializeWithoutStart();
+  await combainInitializer.registerSDK();
+  unawaited(combainInitializer.initializeWithoutStart());
 
   // Setup permission service for map
   serviceLocator.registerLazySingleton<PermissionService>(
@@ -705,7 +615,10 @@ Future<void> _setupMapFeature() async {
 
   // View models
   serviceLocator.registerLazySingleton<MapViewModel>(
-    () => MapViewModel(mapRepository: serviceLocator<MapRepository>()),
+    () => MapViewModel(
+      mapRepository: serviceLocator<MapRepository>(),
+      combainInitializer: combainInitializer,
+    ),
   );
 
   serviceLocator.registerLazySingleton<MapPermissionsViewModel>(

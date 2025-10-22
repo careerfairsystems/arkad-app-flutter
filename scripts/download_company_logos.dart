@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as path;
 
-const String apiUrl = 'https://backend.arkadtlth.se/api/company/';
+const String apiUrl = 'https://staging.backend.arkadtlth.se/api/company/';
 const String assetsDir = 'assets/images/companies';
 
 /// Creates a circular version of an image
@@ -124,6 +124,7 @@ Future<void> main() async {
     int circularCreatedCount = 0;
     int skippedCount = 0;
     int errorCount = 0;
+    final List<Map<String, String>> failedCompanies = [];
 
     // Download each logo
     for (var i = 0; i < companies.length; i++) {
@@ -139,12 +140,20 @@ Future<void> main() async {
       if (companyId == null) {
         print('  ⚠ Skipped: No company ID available');
         skippedCount++;
+        failedCompanies.add({
+          'name': companyName,
+          'reason': 'No company ID available',
+        });
         continue;
       }
 
       if (logoUrl == null || logoUrl.isEmpty) {
         print('  ⚠ Skipped: No logo URL available');
         skippedCount++;
+        failedCompanies.add({
+          'name': companyName,
+          'reason': 'No logo URL available',
+        });
         continue;
       }
 
@@ -167,6 +176,10 @@ Future<void> main() async {
             '  ❌ Error: Failed to download (status ${logoResponse.statusCode})',
           );
           errorCount++;
+          failedCompanies.add({
+            'name': companyName,
+            'reason': 'Failed to download (status ${logoResponse.statusCode})',
+          });
           continue;
         }
 
@@ -182,6 +195,10 @@ Future<void> main() async {
             '  ⚠️  Skipped: Only PNG format supported (detected: $contentType / $urlExtension)',
           );
           skippedCount++;
+          failedCompanies.add({
+            'name': companyName,
+            'reason': 'Only PNG format supported (detected: $contentType / $urlExtension)',
+          });
           continue;
         }
 
@@ -192,11 +209,19 @@ Future<void> main() async {
           if (decodedImage == null) {
             print('  ❌ Error: Failed to decode image');
             errorCount++;
+            failedCompanies.add({
+              'name': companyName,
+              'reason': 'Failed to decode image',
+            });
             continue;
           }
         } catch (e) {
           print('  ❌ Error: Failed to decode image - $e');
           errorCount++;
+          failedCompanies.add({
+            'name': companyName,
+            'reason': 'Failed to decode image - $e',
+          });
           continue;
         }
 
@@ -207,11 +232,19 @@ Future<void> main() async {
         } catch (e) {
           print('  ❌ Error: Failed to encode image as PNG - $e');
           errorCount++;
+          failedCompanies.add({
+            'name': companyName,
+            'reason': 'Failed to encode image as PNG - $e',
+          });
           continue;
         }
 
-        // Always save with .png extension
-        final fileName = '$companyId.png';
+        // Create filename from company name: lowercase with underscores
+        final sanitizedName = companyName
+            .toLowerCase()
+            .replaceAll(' ', '_')
+            .replaceAll(RegExp(r'[^a-z0-9_]'), '');
+        final fileName = '$sanitizedName.png';
         final filePath = path.join(assetsDir, fileName);
 
         // Write the PNG-encoded bytes to file
@@ -227,7 +260,7 @@ Future<void> main() async {
 
           // Create circular version
           print('  🔄 Creating circular version...');
-          final circularFileName = '$companyId-circle.png';
+          final circularFileName = '${sanitizedName}_circle.png';
           final circularFilePath = path.join(assetsDir, circularFileName);
 
           final circularSuccess = await createCircularImage(
@@ -250,10 +283,18 @@ Future<void> main() async {
             '  ⚠️  WARNING: Logo URL exists but file was not saved: $fileName',
           );
           errorCount++;
+          failedCompanies.add({
+            'name': companyName,
+            'reason': 'File was not saved',
+          });
         }
       } catch (e) {
         print('  ❌ Error: $e');
         errorCount++;
+        failedCompanies.add({
+          'name': companyName,
+          'reason': 'Unexpected error - $e',
+        });
       }
       print('');
     }
@@ -267,6 +308,17 @@ Future<void> main() async {
     print('  ❌ Errors: $errorCount');
     print('  📊 Total companies: ${companies.length}');
     print('═══════════════════════════════════════');
+
+    if (failedCompanies.isNotEmpty) {
+      print('');
+      print('Failed Companies (${failedCompanies.length}):');
+      print('═══════════════════════════════════════');
+      for (final failed in failedCompanies) {
+        print('  • ${failed['name']}');
+        print('    Reason: ${failed['reason']}');
+      }
+      print('═══════════════════════════════════════');
+    }
   } catch (e) {
     print('Fatal error: $e');
     exit(1);

@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:arkad/features/map/domain/repositories/map_repository.dart';
-import 'package:arkad/services/service_locator.dart';
+import 'package:arkad/services/combain_intializer.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
@@ -38,6 +39,7 @@ class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   final Map<int, BitmapDescriptor> _buildingMarkerIconCache = {};
   int? _previousSelectedCompanyId;
+  bool _hasPostSDKInitialized = false;
 
   @override
   void initState() {
@@ -49,31 +51,68 @@ class _MapScreenState extends State<MapScreen> {
         context,
         listen: false,
       );
+      final combainInitializer = Provider.of<CombainIntializer>(
+        context,
+        listen: false,
+      );
 
       // Listen to map view model changes to update markers
       mapViewModel.addListener(_onMapViewModelChanged);
 
-      // Load locations, buildings, and ground overlays
-      final imageConfig = createLocalImageConfiguration(context);
-      mapViewModel.loadLocations().then((_) async {
-        // Load ground overlays after buildings are loaded
-        await mapViewModel.loadGroundOverlays(imageConfig);
-        await _updateMarkers(mapViewModel.locations);
+      // Listen to SDK initialization changes
+      combainInitializer.addListener(_onSDKStateChanged);
 
-        // If a company was preselected (e.g., from company detail screen),
-        // select it now that locations are loaded
-        if (widget.preselectedCompanyId != null) {
-          print(
-            '[MapScreen] Selecting preselected company after locations loaded - '
-            'company_id: ${widget.preselectedCompanyId}',
-          );
-          mapViewModel.selectCompany(widget.preselectedCompanyId);
-        }
-      });
+      // Only load locations if SDK is initialized
+      // Note: ViewModel also has this check, but we add it here for clarity
+      if (combainInitializer.state.mapReady()) {
+        _postSDKInitialization();
+      } else {
+        print(
+          '[MapScreen] Skipping initial data load - SDK not initialized yet. '
+          'Current state: ${combainInitializer.state}',
+        );
+      }
 
       // Load companies if not already loaded (for company info cards)
       if (!companyViewModel.isInitialized) {
         companyViewModel.loadCompanies();
+      }
+    });
+  }
+
+  void _onSDKStateChanged() {
+    final combainInitializer = Provider.of<CombainIntializer>(
+      context,
+      listen: false,
+    );
+
+    if (combainInitializer.state.mapReady()) {
+      _postSDKInitialization();
+      combainInitializer.removeListener(_onSDKStateChanged);
+    }
+  }
+
+  void _postSDKInitialization() {
+    if (_hasPostSDKInitialized) return;
+    _hasPostSDKInitialized = true;
+
+    final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
+
+    // Load locations, buildings, and ground overlays
+    final imageConfig = createLocalImageConfiguration(context);
+    mapViewModel.loadLocations().then((_) async {
+      // Load ground overlays after buildings are loaded
+      await mapViewModel.loadGroundOverlays(imageConfig);
+      await _updateMarkers(mapViewModel.locations);
+
+      // If a company was preselected (e.g., from company detail screen),
+      // select it now that locations are loaded
+      if (widget.preselectedCompanyId != null) {
+        print(
+          '[MapScreen] Selecting preselected company after locations loaded - '
+          'company_id: ${widget.preselectedCompanyId}',
+        );
+        mapViewModel.selectCompany(widget.preselectedCompanyId);
       }
     });
   }
@@ -135,9 +174,13 @@ class _MapScreenState extends State<MapScreen> {
           // Permissions granted, now wait for SDK to start
           return Consumer<CombainIntializer>(
             builder: (context, combainInitializer, child) {
+              // Show error if SDK initialization failed
+              if (combainInitializer.state == CombainInitializationState.failed) {
+                return _buildSDKErrorView(combainInitializer.errorInfo);
+              }
+
               // Show loading while Combain SDK is starting
-              if (!combainInitializer.combainIntialized ||
-                  permissionsViewModel.isStartingSDK) {
+              if (!combainInitializer.state.mapReady()) {
                 return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -276,6 +319,77 @@ class _MapScreenState extends State<MapScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildSDKErrorView(String? errorInfo) {
+    // Log the SDK error to Sentry
+    Sentry.logger.error(
+      'SDK initialization failed - showing error view to user',
+      attributes: {
+        if (errorInfo != null)
+          'error_info': SentryLogAttribute.string(errorInfo),
+      },
+    );
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: ArkadColors.lightRed,
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Something went wrong with SDK',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: ArkadColors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'MyriadProCondensed',
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'The map services failed to start. Please try restarting the app.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: ArkadColors.white,
+                fontSize: 16,
+                fontFamily: 'MyriadProCondensed',
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () {
+                // Go back to previous screen
+                context.pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ArkadColors.arkadTurkos,
+                foregroundColor: ArkadColors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+              ),
+              child: const Text(
+                'Go Back',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'MyriadProCondensed',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -516,9 +630,16 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
-    // Remove listener to prevent memory leaks
+    // Remove listeners to prevent memory leaks
     final mapViewModel = Provider.of<MapViewModel>(context, listen: false);
     mapViewModel.removeListener(_onMapViewModelChanged);
+
+    final combainInitializer = Provider.of<CombainIntializer>(
+      context,
+      listen: false,
+    );
+    combainInitializer.removeListener(_onSDKStateChanged);
+
     super.dispose();
   }
 }

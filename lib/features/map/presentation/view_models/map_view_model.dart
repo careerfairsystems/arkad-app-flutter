@@ -1,3 +1,4 @@
+import 'package:arkad/services/combain_intializer.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -10,9 +11,13 @@ import '../../domain/repositories/map_repository.dart';
 /// ViewModel for managing map state and operations
 class MapViewModel extends ChangeNotifier {
   final MapRepository _mapRepository;
+  final CombainIntializer _combainInitializer;
 
-  MapViewModel({required MapRepository mapRepository})
-    : _mapRepository = mapRepository;
+  MapViewModel({
+    required MapRepository mapRepository,
+    required CombainIntializer combainInitializer,
+  })  : _mapRepository = mapRepository,
+        _combainInitializer = combainInitializer;
 
   // State
   bool _isLoading = false;
@@ -41,6 +46,20 @@ class MapViewModel extends ChangeNotifier {
 
   /// Load all locations and buildings
   Future<bool> loadLocations() async {
+    // Don't attempt to load if SDK is not initialized
+    if (_combainInitializer.state.index <
+        CombainInitializationState.initialized.index) {
+      Sentry.logger.info(
+        'MapViewModel: Skipping loadLocations - SDK not initialized',
+        attributes: {
+          'current_state': SentryLogAttribute.string(
+            _combainInitializer.state.toString(),
+          ),
+        },
+      );
+      return false;
+    }
+
     _setLoading(true);
     _clearError();
 
@@ -157,6 +176,21 @@ class MapViewModel extends ChangeNotifier {
 
   /// Load ground overlays for map buildings
   Future<void> loadGroundOverlays(ImageConfiguration imageConfig) async {
+    // Don't attempt to load if SDK is not initialized
+    if (_combainInitializer.state.index <
+        CombainInitializationState.initialized.index) {
+      Sentry.logger.info(
+        'MapViewModel: Skipping loadGroundOverlays - SDK not initialized',
+        attributes: {
+          'current_state': SentryLogAttribute.string(
+            _combainInitializer.state.toString(),
+          ),
+        },
+      );
+      _groundOverlays = {};
+      return;
+    }
+
     _imageConfig = imageConfig;
     _groundOverlays = await _mapRepository.getGroundOverlays(
       imageConfig,

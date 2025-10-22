@@ -124,6 +124,20 @@ class Company {
     return true;
   }
 
+  String getCompanyLogoPath({bool circular = false}) {
+    // Create filename from company name: lowercase with underscores
+    final sanitizedName = name
+        .toLowerCase()
+        .replaceAll(' ', '_')
+        .replaceAll(RegExp(r'[^a-z0-9_]'), '');
+
+    if (circular) {
+      return "assets/images/companies/${sanitizedName}_circle.png";
+    }
+
+    return "assets/images/companies/$sanitizedName.png";
+  }
+
   /// Get map marker icon for this company
   ///
   /// Returns a BitmapDescriptor for use in Google Maps markers if the logo asset exists.
@@ -138,11 +152,10 @@ class Company {
     }
 
     try {
+      // Create filename from company name: lowercase with underscores
+
       // Check if asset exists before attempting to load it
-      var assetPath = "assets/images/companies/$id.png";
-      if (circular) {
-        assetPath = "assets/images/companies/${id}-circle.png";
-      }
+      final assetPath = getCompanyLogoPath(circular: circular);
       final assetExists = await AssetUtils.assetExists(assetPath);
 
       if (assetExists) {

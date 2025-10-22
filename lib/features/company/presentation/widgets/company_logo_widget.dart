@@ -50,7 +50,7 @@ class CompanyLogoWidget extends StatelessWidget {
             return ClipRRect(
               borderRadius: BorderRadius.circular(borderRadius),
               child: Image.asset(
-                'assets/images/companies/${company.id}.png',
+                company.getCompanyLogoPath(),
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => _buildDefaultIcon(),
               ),

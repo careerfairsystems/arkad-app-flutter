@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://gitlab.com/combain/CPSSDK",
       "state" : {
-        "revision" : "0c8b67517e1a41000670a02f63d0d6a66499546f",
-        "version" : "5.1.7"
+        "revision" : "4ce35577c756d8bcdf9c9a3091b8948ac060911e",
+        "version" : "5.1.9"
       }
     },
     {
