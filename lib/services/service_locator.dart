@@ -115,6 +115,9 @@ final GetIt serviceLocator = GetIt.instance;
 class ArkadCombainLogger implements CombainLogger {
   @override
   void d(String tag, String message) {
+    if (!kDebugMode) {
+      return;
+    }
     Sentry.logger.debug(
       message,
       attributes: {
@@ -137,6 +140,9 @@ class ArkadCombainLogger implements CombainLogger {
 
   @override
   void i(String tag, String message) {
+    if (!kDebugMode) {
+      return;
+    }
     Sentry.logger.info(
       message,
       attributes: {
