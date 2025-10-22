@@ -153,10 +153,6 @@ class Company {
 
     try {
       // Create filename from company name: lowercase with underscores
-      final sanitizedName = name
-          .toLowerCase()
-          .replaceAll(' ', '_')
-          .replaceAll(RegExp(r'[^a-z0-9_]'), '');
 
       // Check if asset exists before attempting to load it
       final assetPath = getCompanyLogoPath(circular: circular);
