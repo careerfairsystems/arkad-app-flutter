@@ -1,3 +1,14 @@
+## [4.3.0] - 2025-10-22
+
+### 🚀 Features
+
+- Hanxuan fixes
+- Lazy load of map and optmiziation (#42)
+## [4.2.12] - 2025-10-20
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.2.12+341
 ## [4.2.11] - 2025-10-20
 
 ### 🚀 Features
