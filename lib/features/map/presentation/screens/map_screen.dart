@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:arkad/features/map/domain/repositories/map_repository.dart';
@@ -173,6 +174,11 @@ class _MapScreenState extends State<MapScreen> {
           // Permissions granted, now wait for SDK to start
           return Consumer<CombainIntializer>(
             builder: (context, combainInitializer, child) {
+              // Show error if SDK initialization failed
+              if (combainInitializer.state == CombainInitializationState.failed) {
+                return _buildSDKErrorView(combainInitializer.errorInfo);
+              }
+
               // Show loading while Combain SDK is starting
               if (!combainInitializer.state.mapReady()) {
                 return const Center(
@@ -313,6 +319,77 @@ class _MapScreenState extends State<MapScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildSDKErrorView(String? errorInfo) {
+    // Log the SDK error to Sentry
+    Sentry.logger.error(
+      'SDK initialization failed - showing error view to user',
+      attributes: {
+        if (errorInfo != null)
+          'error_info': SentryLogAttribute.string(errorInfo),
+      },
+    );
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: ArkadColors.lightRed,
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Something went wrong with SDK',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: ArkadColors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'MyriadProCondensed',
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'The map services failed to start. Please try restarting the app.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: ArkadColors.white,
+                fontSize: 16,
+                fontFamily: 'MyriadProCondensed',
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () {
+                // Go back to previous screen
+                context.pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ArkadColors.arkadTurkos,
+                foregroundColor: ArkadColors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+              ),
+              child: const Text(
+                'Go Back',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'MyriadProCondensed',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

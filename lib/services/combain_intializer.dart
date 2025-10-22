@@ -9,6 +9,7 @@ import 'package:get_it/get_it.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 enum CombainInitializationState {
+  failed,
   uninitialized,
   initializing,
   initialized,
@@ -26,8 +27,11 @@ class CombainIntializer extends ChangeNotifier {
   CombainIntializer(this._packageInfo);
 
   var state = CombainInitializationState.uninitialized;
+  String? _errorInfo;
 
   FlutterCombainSDK? _combainSDK;
+
+  String? get errorInfo => _errorInfo;
 
   /// Mark as initialized (used for web platform)
 
@@ -58,37 +62,63 @@ class CombainIntializer extends ChangeNotifier {
     if (!shouldShowMap()) {
       return;
     }
-    print("Created SDK instance with logging and exception capture");
-    // Step 2: Initialize the SDK with the config
-    // Combain SDK initialization with persistent device UUID
-    final deviceId = await getOrCreateDeviceId();
-    final env = GetIt.I<Env>();
 
-    final combainConfig = CombainSDKConfig(
-      apiKey: env.combainApiKey,
-      settingsKey: env.combainApiKey,
+    // Early null check for SDK instance
+    if (_combainSDK == null) {
+      state = CombainInitializationState.failed;
+      _errorInfo = 'SDK instance not registered. Call registerSDK() first.';
+      notifyListeners();
+      print("Cannot initialize SDK - not registered: $_errorInfo");
+      return;
+    }
 
-      locationProvider: FlutterLocationProvider.aiNavigation,
-      routingConfig: FlutterRoutingConfig(
-        routableNodesOptions: FlutterRoutableNodesOptions.allExceptDefaultName,
-      ),
-      appInfo: FlutterAppInfo(
-        packageName: _packageInfo.packageName,
-        versionName: _packageInfo.version,
-        versionCode: int.tryParse(_packageInfo.buildNumber) ?? 0,
-      ),
-      syncingInterval: FlutterSyncingInterval(
-        type: FlutterSyncingIntervalType.onStart,
-        intervalMilliseconds: 60 * 1000 * 60,
-      ),
-      wifiEnabled: true,
-      bluetoothEnabled: true,
-      beaconUUIDs: ["E2C56DB5-DFFB-48D2-B060-D0F5A71096E0"],
-    );
-    await _combainSDK!.initializeSDK(combainConfig);
-    state = CombainInitializationState.initialized;
+    // Set state to initializing before starting
+    state = CombainInitializationState.initializing;
+    _errorInfo = null;
     notifyListeners();
-    print("Initialized SDK config");
+    print("Initializing SDK config");
+
+    try {
+      // Step 2: Initialize the SDK with the config
+      // Combain SDK initialization with persistent device UUID
+      final deviceId = await getOrCreateDeviceId();
+      final env = GetIt.I<Env>();
+
+      final combainConfig = CombainSDKConfig(
+        apiKey: env.combainApiKey,
+        settingsKey: env.combainApiKey,
+
+        locationProvider: FlutterLocationProvider.aiNavigation,
+        routingConfig: FlutterRoutingConfig(
+          routableNodesOptions: FlutterRoutableNodesOptions.allExceptDefaultName,
+        ),
+        appInfo: FlutterAppInfo(
+          packageName: _packageInfo.packageName,
+          versionName: _packageInfo.version,
+          versionCode: int.tryParse(_packageInfo.buildNumber) ?? 0,
+        ),
+        syncingInterval: FlutterSyncingInterval(
+          type: FlutterSyncingIntervalType.onStart,
+          intervalMilliseconds: 60 * 1000 * 60,
+        ),
+        wifiEnabled: true,
+        bluetoothEnabled: true,
+        beaconUUIDs: ["E2C56DB5-DFFB-48D2-B060-D0F5A71096E0"],
+      );
+      await _combainSDK!.initializeSDK(combainConfig);
+
+      // Success - update state
+      state = CombainInitializationState.initialized;
+      notifyListeners();
+      print("Initialized SDK config successfully");
+    } catch (e, stackTrace) {
+      // Failure - capture error and update state
+      state = CombainInitializationState.failed;
+      _errorInfo = 'SDK initialization failed: $e';
+      notifyListeners();
+      print("Failed to initialize SDK: $e\n$stackTrace");
+      rethrow;
+    }
   }
 
   /// Start the SDK after permissions are granted
