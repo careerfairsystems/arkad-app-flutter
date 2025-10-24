@@ -1,9 +1,22 @@
+## [4.3.1] - 2025-10-24
+
+### 🐛 Bug Fixes
+
+- Only verbose sdk loggin in dev
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump sdk
 ## [4.3.0] - 2025-10-22
 
 ### 🚀 Features
 
 - Hanxuan fixes
 - Lazy load of map and optmiziation (#42)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.3.0+342
 ## [4.2.12] - 2025-10-20
 
 ### ⚙️ Miscellaneous Tasks
