@@ -1,4 +1,4 @@
-## [4.3.1] - 2025-10-24
+## [4.3.2] - 2025-10-29
 
 ### 🐛 Bug Fixes
 
@@ -7,6 +7,8 @@
 ### ⚙️ Miscellaneous Tasks
 
 - Bump sdk
+- *(publishing)* 4.3.1+343
+- Bump slamsdk
 ## [4.3.0] - 2025-10-22
 
 ### 🚀 Features
