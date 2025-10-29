@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://gitlab.com/combain/CPSSDK",
       "state" : {
-        "revision" : "4f26b77ffd7a3fa9f5ebee5316325b6f4d6855ad",
-        "version" : "5.1.10"
+        "revision" : "c85073d8df5201165778ebf26850e6e962501a5f",
+        "version" : "5.1.12"
       }
     },
     {
@@ -151,6 +151,15 @@
       "state" : {
         "revision" : "b7e1104502eca3a213b46303391ca4d3bc8ddec1",
         "version" : "2.30910.0"
+      }
+    },
+    {
+      "identity" : "onnxruntime-swift-package-manager",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/microsoft/onnxruntime-swift-package-manager",
+      "state" : {
+        "revision" : "11c7dd6dd4fefb45a00a370315f483702f48598d",
+        "version" : "1.18.0"
       }
     },
     {
