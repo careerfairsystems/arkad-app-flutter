@@ -1,3 +1,8 @@
+## [4.3.3] - 2025-11-01
+
+### 🐛 Bug Fixes
+
+- Onnxruntime issue
 ## [4.3.2] - 2025-10-29
 
 ### 🐛 Bug Fixes
@@ -9,6 +14,7 @@
 - Bump sdk
 - *(publishing)* 4.3.1+343
 - Bump slamsdk
+- *(publishing)* 4.3.2+344
 ## [4.3.0] - 2025-10-22
 
 ### 🚀 Features
