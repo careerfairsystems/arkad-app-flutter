@@ -1,8 +1,17 @@
+## [4.3.4] - 2025-11-01
+
+### 🐛 Bug Fixes
+
+- View event ticket was not shown when event booked
 ## [4.3.3] - 2025-11-01
 
 ### 🐛 Bug Fixes
 
 - Onnxruntime issue
+
+### ⚙️ Miscellaneous Tasks
+
+- *(publishing)* 4.3.3+345
 ## [4.3.2] - 2025-10-29
 
 ### 🐛 Bug Fixes
