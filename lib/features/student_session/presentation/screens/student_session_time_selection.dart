@@ -27,17 +27,13 @@ class StudentSessionTimeSelectionScreen extends StatefulWidget {
 class _StudentSessionTimeSelection
     extends State<StudentSessionTimeSelectionScreen> {
   int? _selectedTimeslotId;
-  bool _hasLoadedData = false;
 
   // Store ViewModel reference to prevent unsafe ancestor lookups during disposal
   StudentSessionViewModel? _viewModel;
 
   // Message handling state to prevent duplicates and setState during build
-  bool _hasHandledBookingSuccess = false;
   bool _hasHandledBookingError = false;
-  bool _hasHandledUnbookingSuccess = false;
   bool _hasHandledUnbookingError = false;
-  bool _hasHandledSwitchSuccess = false;
   bool _hasHandledSwitchError = false;
 
   /// Get selected timeslot from current timeslots list using ID
@@ -65,7 +61,7 @@ class _StudentSessionTimeSelection
   void initState() {
     super.initState();
 
-    // Set company context on next frame
+    // Load data in post-frame callback after widget is fully mounted
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final viewModel = Provider.of<StudentSessionViewModel>(
@@ -73,19 +69,26 @@ class _StudentSessionTimeSelection
           listen: false,
         );
 
+        // Reset action commands to clear their success/error messages
         viewModel.bookTimeslotCommand.reset();
         viewModel.unbookTimeslotCommand.reset();
         viewModel.switchTimeslotCommand.reset();
 
+        // Parse and validate company ID
         final companyId = int.tryParse(widget.id);
-        if (companyId != null) {
-          viewModel.setSelectedCompany(companyId);
-        } else {
+        if (companyId == null) {
           // Handle invalid company ID in route
           if (mounted && context.mounted) {
             context.pop();
           }
+          return;
         }
+
+        // Set company context
+        viewModel.setSelectedCompany(companyId);
+
+        // Load timeslots explicitly
+        _loadTimeslots(companyId, viewModel);
       }
     });
   }
@@ -99,39 +102,11 @@ class _StudentSessionTimeSelection
     super.dispose();
   }
 
-  /// Smart message handling with guards to prevent setState during build
+  /// Handle error messages from commands (success is handled in _confirmSelection)
   void _handleCommandMessages(StudentSessionViewModel viewModel) {
     final bookCommand = viewModel.bookTimeslotCommand;
     final unbookCommand = viewModel.unbookTimeslotCommand;
     final switchCommand = viewModel.switchTimeslotCommand;
-
-    // Handle booking success messages
-    if (bookCommand.showSuccessMessage && !_hasHandledBookingSuccess) {
-      _hasHandledBookingSuccess = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Timeslot booked successfully!'),
-              backgroundColor: ArkadColors.arkadGreen,
-              duration: Duration(milliseconds: 300),
-            ),
-          );
-
-          // Navigate back immediately on command success (event-driven)
-          if (context.mounted &&
-              context.canPop() &&
-              bookCommand.isCompleted &&
-              !bookCommand.hasError) {
-            context.pop();
-          }
-
-          bookCommand.clearSuccessMessage();
-        }
-      });
-    } else if (!bookCommand.showSuccessMessage) {
-      _hasHandledBookingSuccess = false; // Reset when message is cleared
-    }
 
     // Handle booking error messages
     if (bookCommand.showErrorMessage && !_hasHandledBookingError) {
@@ -158,34 +133,6 @@ class _StudentSessionTimeSelection
       _hasHandledBookingError = false; // Reset when message is cleared
     }
 
-    // Handle unbooking success messages
-    if (unbookCommand.showSuccessMessage && !_hasHandledUnbookingSuccess) {
-      _hasHandledUnbookingSuccess = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Booking cancelled successfully!'),
-              backgroundColor: ArkadColors.arkadGreen,
-              duration: Duration(milliseconds: 300),
-            ),
-          );
-
-          // Navigate back immediately on command success (event-driven)
-          if (context.mounted &&
-              context.canPop() &&
-              unbookCommand.isCompleted &&
-              !unbookCommand.hasError) {
-            context.pop();
-          }
-
-          unbookCommand.clearSuccessMessage();
-        }
-      });
-    } else if (!unbookCommand.showSuccessMessage) {
-      _hasHandledUnbookingSuccess = false; // Reset when message is cleared
-    }
-
     // Handle unbooking error messages
     if (unbookCommand.showErrorMessage && !_hasHandledUnbookingError) {
       _hasHandledUnbookingError = true;
@@ -206,34 +153,6 @@ class _StudentSessionTimeSelection
       });
     } else if (!unbookCommand.showErrorMessage) {
       _hasHandledUnbookingError = false; // Reset when message is cleared
-    }
-
-    // Handle switch success messages
-    if (switchCommand.showSuccessMessage && !_hasHandledSwitchSuccess) {
-      _hasHandledSwitchSuccess = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Timeslot switched successfully!'),
-              backgroundColor: ArkadColors.arkadGreen,
-              duration: Duration(milliseconds: 300),
-            ),
-          );
-
-          // Navigate back immediately on command success (event-driven)
-          if (context.mounted &&
-              context.canPop() &&
-              switchCommand.isCompleted &&
-              !switchCommand.hasError) {
-            context.pop();
-          }
-
-          switchCommand.clearSuccessMessage();
-        }
-      });
-    } else if (!switchCommand.showSuccessMessage) {
-      _hasHandledSwitchSuccess = false; // Reset when message is cleared
     }
 
     // Handle switch error messages
@@ -268,40 +187,32 @@ class _StudentSessionTimeSelection
 
     // Cache ViewModel reference safely during didChangeDependencies
     _viewModel = Provider.of<StudentSessionViewModel>(context, listen: false);
-
-    if (!_hasLoadedData) {
-      _loadAvailableSlots();
-      _hasLoadedData = true;
-    }
   }
 
-  Future<void> _loadAvailableSlots() async {
+  /// Load timeslots and update local state after completion
+  Future<void> _loadTimeslots(
+    int companyId,
+    StudentSessionViewModel viewModel,
+  ) async {
     try {
-      final provider = Provider.of<StudentSessionViewModel>(
-        context,
-        listen: false,
-      );
-      final companyId = int.tryParse(widget.id);
-      if (companyId == null) {
-        // Handle invalid company ID
-        return;
+      // Load timeslots from API
+      await viewModel.loadTimeslots(companyId);
+
+      // Update local state after load completes
+      if (mounted) {
+        setState(() {
+          // Auto-select booked timeslot if user has one
+          final bookedSlot = viewModel.timeslots
+              .where((slot) => slot.status.isBookedByCurrentUser)
+              .firstOrNull;
+          if (bookedSlot != null) {
+            _selectedTimeslotId = bookedSlot.id;
+          }
+        });
       }
-
-      await provider.loadTimeslots(companyId);
-      final slots = provider.timeslots;
-
-      setState(() {
-        // Auto-select booked timeslot if user has one
-        final bookedSlot = slots
-            .where((slot) => slot.status.isBookedByCurrentUser)
-            .firstOrNull;
-        if (bookedSlot != null) {
-          _selectedTimeslotId = bookedSlot.id;
-        }
-      });
     } catch (e) {
-      // No need to set loading state - handled by ViewModel
-      // Handle error if needed - but don't use print in production
+      // Errors are handled by command and shown in UI
+      // Only show user-facing error if needed
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error loading time slots')),
@@ -345,7 +256,16 @@ class _StudentSessionTimeSelection
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: () => _loadAvailableSlots(),
+              onPressed: () {
+                final viewModel = Provider.of<StudentSessionViewModel>(
+                  context,
+                  listen: false,
+                );
+                final companyId = int.tryParse(widget.id);
+                if (companyId != null) {
+                  _loadTimeslots(companyId, viewModel);
+                }
+              },
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
             ),
@@ -440,20 +360,66 @@ class _StudentSessionTimeSelection
           (selectedSlot == null || selectedSlot.id == currentBookedSlot.id)) {
         // User wants to cancel their existing booking
         await viewModel.unbookTimeslot(companyId);
+
+        // Navigate immediately after successful unbooking
+        if (mounted &&
+            viewModel.unbookTimeslotCommand.isCompleted &&
+            !viewModel.unbookTimeslotCommand.hasError) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Booking cancelled successfully!'),
+                backgroundColor: ArkadColors.arkadGreen,
+                duration: Duration(seconds: 2),
+              ),
+            );
+            context.pop();
+          }
+        }
       } else if (currentBookedSlot != null &&
           selectedSlot != null &&
           selectedSlot.id != currentBookedSlot.id) {
         // User wants to change to a different timeslot
         await _changeBooking(viewModel, companyId, selectedSlot.id);
+
+        // Navigate immediately after successful switch
+        if (mounted &&
+            viewModel.switchTimeslotCommand.isCompleted &&
+            !viewModel.switchTimeslotCommand.hasError) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Timeslot switched successfully!'),
+                backgroundColor: ArkadColors.arkadGreen,
+                duration: Duration(seconds: 2),
+              ),
+            );
+            context.pop();
+          }
+        }
       } else if (currentBookedSlot == null && selectedSlot != null) {
         // User is booking for the first time
         await viewModel.bookTimeslot(
           companyId: companyId,
           timeslotId: selectedSlot.id,
         );
-      }
 
-      // Navigation will be handled by success/error message system
+        // Navigate immediately after successful booking
+        if (mounted &&
+            viewModel.bookTimeslotCommand.isCompleted &&
+            !viewModel.bookTimeslotCommand.hasError) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Timeslot booked successfully!'),
+                backgroundColor: ArkadColors.arkadGreen,
+                duration: Duration(seconds: 2),
+              ),
+            );
+            context.pop();
+          }
+        }
+      }
     } else {
       // Handle application flow - just navigate back for now
       context.pop();

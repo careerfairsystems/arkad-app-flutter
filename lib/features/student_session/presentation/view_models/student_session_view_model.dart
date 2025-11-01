@@ -141,9 +141,6 @@ class StudentSessionViewModel extends ChangeNotifier {
   /// Initial loading state - shows spinner when no data exists
   bool get isInitialLoading =>
       (_getStudentSessionsCommand.isExecuting && studentSessions.isEmpty) ||
-      (_applyForSessionCommand.isExecuting) ||
-      (_bookTimeslotCommand.isExecuting) ||
-      (_unbookTimeslotCommand.isExecuting) ||
       (_getMyApplicationsWithBookingStateCommand.isExecuting &&
           myApplicationsWithBookingState.isEmpty) ||
       (_getTimeslotsCommand.isExecuting && timeslots.isEmpty);
@@ -475,6 +472,7 @@ class StudentSessionViewModel extends ChangeNotifier {
         await loadMyApplicationsWithBookingState(forceRefresh: true);
         notifyListeners(); // Notify after async operation completes
       });
+      notifyListeners();
     } else {
       // Immediate notify for non-async state changes
       notifyListeners();
@@ -491,6 +489,7 @@ class StudentSessionViewModel extends ChangeNotifier {
         await loadMyApplicationsWithBookingState(forceRefresh: true);
         notifyListeners(); // Notify after async operation completes
       });
+      notifyListeners();
     } else {
       // Immediate notify for non-async state changes
       notifyListeners();
@@ -520,6 +519,7 @@ class StudentSessionViewModel extends ChangeNotifier {
         await loadMyApplicationsWithBookingState(forceRefresh: true);
         notifyListeners(); // Notify after async operation completes
       });
+      notifyListeners();
     } else {
       // Immediate notify for non-async state changes
       notifyListeners();

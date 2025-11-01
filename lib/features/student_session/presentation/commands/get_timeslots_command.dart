@@ -16,7 +16,6 @@ class GetTimeslotsCommand extends ParameterizedCommand<int, List<Timeslot>> {
 
   @override
   Future<void> executeWithParams(int companyId) async {
-    if (isExecuting) return;
 
     clearError();
     setExecuting(true);
