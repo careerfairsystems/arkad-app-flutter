@@ -60,41 +60,37 @@ class EventActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Don't show any actions if registration is not required
-    if (!event.isRegistrationRequired) {
-      return const SizedBox.shrink();
-    }
-    if (event.bookingDeadlineClosed) {
-      return _bookingDeadlinePassed();
-    }
-
-    return Consumer<AuthViewModel>(
-      builder: (context, authViewModel, child) {
+    return Consumer2<AuthViewModel, EventViewModel>(
+      builder: (context, authViewModel, eventViewModel, child) {
         final isAuthenticated = authViewModel.isAuthenticated;
+        final status = event.status ?? EventStatus.notBooked;
+
+        // Early return for booked events - can only be booked if authenticated
+        if (status == EventStatus.booked) {
+          return _buildBookedEventActions(context, eventViewModel);
+        }
+        // Don't show any actions if registration is not required
+        if (!event.isRegistrationRequired) {
+          return const SizedBox.shrink();
+        }
+        if (event.bookingDeadlineClosed) {
+          return _bookingDeadlinePassed();
+        }
 
         if (isAuthenticated) {
-          // Show register button for authenticated users
-          return _buildRegisterButton(context);
+          // Show appropriate actions for authenticated users
+          switch (status) {
+            case EventStatus.ticketUsed:
+              return _buildTicketUsedEventActions(context);
+            case EventStatus.notBooked:
+              return _buildNotBookedEventActions(context, eventViewModel);
+            case EventStatus.booked:
+              // Already handled above, but included for exhaustiveness
+              return _buildBookedEventActions(context, eventViewModel);
+          }
         } else {
           // Show authentication prompt for unauthenticated users
           return _buildAuthenticationPrompt(context);
-        }
-      },
-    );
-  }
-
-  Widget _buildRegisterButton(BuildContext context) {
-    return Consumer<EventViewModel>(
-      builder: (context, viewModel, child) {
-        final status = event.status ?? EventStatus.notBooked;
-
-        switch (status) {
-          case EventStatus.notBooked:
-            return _buildNotBookedEventActions(context, viewModel);
-          case EventStatus.booked:
-            return _buildBookedEventActions(context, viewModel);
-          case EventStatus.ticketUsed:
-            return _buildTicketUsedEventActions(context);
         }
       },
     );
@@ -104,6 +100,8 @@ class EventActions extends StatelessWidget {
     BuildContext context,
     EventViewModel viewModel,
   ) {
+    final showDeregisterButton = !event.bookingDeadlineClosed;
+
     return Column(
       children: [
         // Booking confirmation message
@@ -146,30 +144,41 @@ class EventActions extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         // Action buttons
-        Row(
-          children: [
-            Expanded(
-              child: ArkadButton(
-                text: 'Show Ticket',
-                onPressed: () => _showTicket(context),
-                icon: Icons.confirmation_number_rounded,
-                variant: ArkadButtonVariant.secondary,
+        if (showDeregisterButton)
+          Row(
+            children: [
+              Expanded(
+                child: ArkadButton(
+                  text: 'Show Ticket',
+                  onPressed: () => _showTicket(context),
+                  icon: Icons.confirmation_number_rounded,
+                  variant: ArkadButtonVariant.secondary,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ArkadButton(
-                text: 'Deregister',
-                onPressed: viewModel.isLoading
-                    ? null
-                    : () => _handleDeregister(context, viewModel),
-                isLoading: viewModel.isLoading,
-                icon: Icons.cancel_outlined,
-                variant: ArkadButtonVariant.danger,
+              const SizedBox(width: 12),
+              Expanded(
+                child: ArkadButton(
+                  text: 'Deregister',
+                  onPressed: viewModel.isLoading
+                      ? null
+                      : () => _handleDeregister(context, viewModel),
+                  isLoading: viewModel.isLoading,
+                  icon: Icons.cancel_outlined,
+                  variant: ArkadButtonVariant.danger,
+                ),
               ),
+            ],
+          )
+        else
+          SizedBox(
+            width: double.infinity,
+            child: ArkadButton(
+              text: 'Show Ticket',
+              onPressed: () => _showTicket(context),
+              icon: Icons.confirmation_number_rounded,
+              variant: ArkadButtonVariant.secondary,
             ),
-          ],
-        ),
+          ),
       ],
     );
   }
