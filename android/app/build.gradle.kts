@@ -65,10 +65,6 @@ android {
         release {
             signingConfig = signingConfigs.getByName("release")
 
-            // Disable minification/obfuscation
-            isMinifyEnabled = false
-            isShrinkResources = false
-
             // Fix for R8 issues
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
