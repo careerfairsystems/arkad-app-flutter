@@ -252,7 +252,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   Widget _buildEventDetailWithTabs(Event event, bool isStaff) {
-    final isPastEvent = event.endTime.isBefore(DateTime.now());
+    final isPastEvent = event.hasEnded;
 
     return CustomScrollView(
       slivers: [
